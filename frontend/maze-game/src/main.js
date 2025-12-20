@@ -324,36 +324,6 @@ window.addEventListener("keyup", (e) => {
 // Swipe controls (mobile)
 let touchStart = null;
 
-canvas.addEventListener("touchstart", (e) => {
-  const t = e.touches[0];
-  touchStart = { x: t.clientX, y: t.clientY };
-}, { passive: true });
-
-canvas.addEventListener("touchmove", (e) => {
-  if (!touchStart) return;
-  const t = e.touches[0];
-  const dx = t.clientX - touchStart.x;
-  const dy = t.clientY - touchStart.y;
-
-  const adx = Math.abs(dx);
-  const ady = Math.abs(dy);
-
-  if (adx < 18 && ady < 18) return;
-
-  if (adx > ady) setDir(dx > 0 ? 1 : -1, 0);
-  else setDir(0, dy > 0 ? 1 : -1);
-
-  touchStart = { x: t.clientX, y: t.clientY };
-}, { passive: true });
-
-canvas.addEventListener("touchend", () => {
-  touchStart = null;
-  setDir(0,0);
-}, { passive: true });
-4
-
-Besfort Çollaku
-9:48 PM (6 minutes ago)
 import "./style.css"; const app = document.querySelector("#app"); // UI numberslet uiLevelNumber = 242;let uiCoins = 1888; app.innerHTML = ` <div class="ui"> <d
 
 Besfort Çollaku <besfort.collaku@gmail.com>
