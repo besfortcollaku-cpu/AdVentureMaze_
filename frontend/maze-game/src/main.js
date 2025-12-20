@@ -1,1856 +1,614 @@
 import "./style.css";
 
+/**
+ * Adventure Maze (Mobile-first)
+ * - Swipe controls + D-pad
+ * - 3D wood look
+ * - Solid walls (no gaps)
+ * - Goal hole + win animation + confetti
+ * - Level system (easy to add)
+ * - Sound + vibration
+ */
+
+/* ------------------------ UI MOUNT ------------------------ */
 const app = document.querySelector("#app");
-
-// Fake UI values (you can connect later)
-let uiLevelNumber = 242;
-let uiCoins = 1888;
-
 app.innerHTML = `
-  <div class="ui">
-    <div class="topRow">
-      <div class="leftStack">
-        <button class="iconBtn yellow" id="btnSettings" title="Settings">⚙️</button>
-        <div style="position:relative">
-          <button class="iconBtn gray" id="btnCalendar" title="Claim">📅</button>
-          <div class="claimTag">CLAIM!</div>
-        </div>
+  <div class="topbar">
+    <div class="titleBox">
+      <div class="gameTitle">Adventure Maze</div>
+      <div class="subTitle" id="subtitle">Swipe to move • Reach the hole</div>
+    </div>
+    <div class="rightBox">
+      <div class="pill" title="Coins (demo)">
+        <span class="dot"></span>
+        <span id="coins">1888</span>
       </div>
+      <button class="iconBtn" id="soundBtn" title="Sound">🔊</button>
+    </div>
+  </div>
 
-      <div class="levelText" id="uiLevel">LEVEL ${uiLevelNumber}</div>
+  <div class="stage">
+    <canvas id="game"></canvas>
 
-      <div class="rightStack" style="justify-content:flex-end">
-        <div class="coinPill" title="Coins">
-          <div class="coin"></div>
-          <div id="uiCoins">${uiCoins}</div>
-        </div>
+    <div class="hud">
+      <button class="bigBtn" id="prevBtn">◀︎ Level</button>
+      <button class="bigBtn" id="resetBtn">↻ Reset</button>
+      <button class="bigBtn" id="nextBtn">Level ▶︎</button>
+    </div>
+
+    <div class="dpadWrap">
+      <div class="dpad">
+        <div class="empty"></div>
+        <button id="upBtn">▲</button>
+        <div class="empty"></div>
+
+        <button id="leftBtn">◀</button>
+        <button id="centerBtn">●</button>
+        <button id="rightBtn">▶</button>
+
+        <div class="empty"></div>
+        <button id="downBtn">▼</button>
+        <div class="empty"></div>
       </div>
     </div>
 
-    <div class="smallRow">
-      <button class="smallBtn purple" title="Joystick">🕹️</button>
-      <button class="smallBtn pink" title="Brush"><span class="newTag">NEW!</span>🖌️</button>
-      <button class="smallBtn yellow" title="Trophy">🏆</button>
-      <button class="smallBtn purple" title="Skins">🟡</button>
-      <button class="smallBtn yellow" title="No Ads">🚫</button>
-    </div>
-
-    <div class="stage">
-      <canvas id="game" width="520" height="520"></canvas>
-    </div>
-
-    <div class="bottomRow">
-      <button class="bigBtn hint" id="btnHint"><span class="film">▶</span>HINT</button>
-      <button class="bigBtn x3" id="btnX3"><span class="film">▶</span>×3</button>
-    </div>
+    <div class="hintText">Tip: swipe on the board or use the arrows. Works best on phone.</div>
+    <div class="toast" id="toast"></div>
   </div>
 `;
 
-// Buttons (for now just demo)
-document.getElementById("btnHint").addEventListener("click", () => {
-  alert("Hint coming soon 🙂");
-});
-document.getElementById("btnX3").addEventListener("click", () => {
-  alert("x3 reward coming soon 🙂");
-});
-
+/* ------------------------ CANVAS SETUP ------------------------ */
 const canvas = document.getElementById("game");
-const ctx = canvas.getContext("2d");
+const ctx = canvas.getContext("2d", { alpha: false });
 
-const W = canvas.width;
-const H = canvas.height;
+function resizeCanvas() {
+  // phone-first sizing (square)
+  const size = Math.min(window.innerWidth * 0.92, 520);
+  canvas.width = Math.floor(size);
+  canvas.height = Math.floor(size);
+}
+window.addEventListener("resize", resizeCanvas);
+resizeCanvas();
 
-const gridSize = 8;
-const pad = 22;
-const cell = Math.floor((W - pad * 2) / gridSize);
-const boardPx = cell * gridSize;
-const boardX = Math.floor((W - boardPx) / 2);
-const boardY = Math.floor((H - boardPx) / 2);
+/* ------------------------ AUDIO / HAPTIC ------------------------ */
+let soundOn = true;
+const soundBtn = document.getElementById("soundBtn");
 
-// 0 = empty, 1 = wooden block
+soundBtn.addEventListener("click", () => {
+  soundOn = !soundOn;
+  soundBtn.textContent = soundOn ? "🔊" : "🔇";
+  toast(soundOn ? "Sound ON" : "Sound OFF");
+});
+
+function vibrate(ms) {
+  try {
+    if (navigator.vibrate) navigator.vibrate(ms);
+  } catch {}
+}
+
+let audioCtx = null;
+function beep(freq = 440, dur = 0.06, type = "sine", vol = 0.03) {
+  if (!soundOn) return;
+  try {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const o = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    o.type = type;
+    o.frequency.value = freq;
+    g.gain.value = vol;
+    o.connect(g);
+    g.connect(audioCtx.destination);
+    o.start();
+    o.stop(audioCtx.currentTime + dur);
+  } catch {}
+}
+
+/* ------------------------ LEVELS ------------------------ */
+/**
+ * Legend:
+ * # = wall
+ * . = floor
+ * S = start
+ * G = goal (hole)
+ *
+ * Add more levels by pushing to LEVELS array.
+ */
 const LEVELS = [
-  [
-    [0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,1,1,0],
-    [0,1,1,0,0,1,0,0],
-    [0,0,0,0,0,0,0,0],
-    [0,0,1,1,0,0,0,0],
-    [0,0,0,0,0,1,0,0],
-    [0,1,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0],
-  ],
+  {
+    name: "Level 242",
+    map: [
+      "###############",
+      "#S....#.......#",
+      "###.#.#.#####.#",
+      "#...#...#...#.#",
+      "#.#####.#.#.#.#",
+      "#.....#.#.#...#",
+      "###.#.#.#.###.#",
+      "#...#.#...#...#",
+      "#.###.#####.#.#",
+      "#.....#.....#G#",
+      "###############",
+    ],
+  },
+  {
+    name: "Level 243",
+    map: [
+      "###############",
+      "#S....#.......#",
+      "#.###.#.#####.#",
+      "#...#.#.....#.#",
+      "###.#.#####.#.#",
+      "#...#.....#...#",
+      "#.#####.#.###.#",
+      "#.....#.#...#.#",
+      "#.###.#.###.#.#",
+      "#...#.....#..G#",
+      "###############",
+    ],
+  },
 ];
 
+/* ------------------------ GAME STATE ------------------------ */
 let levelIndex = 0;
-let map = clone2D(LEVELS[levelIndex]);
-let painted = make2D(gridSize, gridSize, 0);
+let grid = [];
+let rows = 0;
+let cols = 0;
 
-let player = { x: 0, y: 0, r: Math.floor(cell * 0.18) };
-placePlayer();
-painted[player.y][player.x] = 1;
+let tile = 32;
+let offsetX = 0;
+let offsetY = 0;
 
-let moving = false;
-let dir = { x: 0, y: 0 };
-let lastMoveAt = 0;
+const player = {
+  x: 0, // grid
+  y: 0, // grid
+  px: 0, // pixel smooth
+  py: 0, // pixel smooth
+  r: 0, // radius in pixels
+  moving: false,
+};
 
-function clone2D(arr){ return arr.map(r => r.slice()); }
-function make2D(w,h,val){ return Array.from({length:h},()=>Array.from({length:w},()=>val)); }
-function inBounds(x,y){ return x>=0 && y>=0 && x<gridSize && y<gridSize; }
-function isBlocked(x,y){ return !inBounds(x,y) || map[y][x] === 1; }
+let goal = { x: 0, y: 0 };
+let won = false;
 
-function freeTileCount(){
-  let n=0;
-  for(let y=0;y<gridSize;y++) for(let x=0;x<gridSize;x++) if(map[y][x]===0) n++;
-  return n;
+const subtitle = document.getElementById("subtitle");
+const toastEl = document.getElementById("toast");
+
+function toast(msg) {
+  toastEl.textContent = msg;
+  if (!msg) return;
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => (toastEl.textContent = ""), 1400);
 }
-function paintedCount(){
-  let n=0;
-  for(let y=0;y<gridSize;y++) for(let x=0;x<gridSize;x++) if(painted[y][x]===1) n++;
-  return n;
-}
-function placePlayer(){
-  for(let y=0;y<gridSize;y++){
-    for(let x=0;x<gridSize;x++){
-      if(map[y][x]===0){ player.x=x; player.y=y; return; }
+
+/* ------------------------ PARSE LEVEL ------------------------ */
+function loadLevel(i) {
+  won = false;
+  levelIndex = (i + LEVELS.length) % LEVELS.length;
+
+  const map = LEVELS[levelIndex].map;
+  rows = map.length;
+  cols = map[0].length;
+  grid = map.map((line) => line.split(""));
+
+  for (let y = 0; y < rows; y++) {
+    for (let x = 0; x < cols; x++) {
+      if (grid[y][x] === "S") {
+        player.x = x;
+        player.y = y;
+      }
+      if (grid[y][x] === "G") {
+        goal.x = x;
+        goal.y = y;
+      }
     }
   }
+
+  // compute tile size to fill canvas nicely
+  const boardSize = Math.min(canvas.width, canvas.height);
+  tile = Math.floor(boardSize / Math.max(cols, rows));
+  const usedW = tile * cols;
+  const usedH = tile * rows;
+  offsetX = Math.floor((canvas.width - usedW) / 2);
+  offsetY = Math.floor((canvas.height - usedH) / 2);
+
+  player.px = gridToPx(player.x);
+  player.py = gridToPy(player.y);
+  player.r = tile * 0.34;
+  player.moving = false;
+
+  subtitle.textContent = `${LEVELS[levelIndex].name} • Swipe to move • Reach the hole`;
+  toast("");
 }
 
-function roundedRect(x,y,w,h,r){
-  ctx.beginPath();
-  ctx.moveTo(x+r,y);
-  ctx.arcTo(x+w,y,x+w,y+h,r);
-  ctx.arcTo(x+w,y+h,x,y+h,r);
-  ctx.arcTo(x,y+h,x,y,r);
-  ctx.arcTo(x,y,x+w,y,r);
-  ctx.closePath();
+function gridToPx(gx) {
+  return offsetX + gx * tile + tile / 2;
+}
+function gridToPy(gy) {
+  return offsetY + gy * tile + tile / 2;
 }
 
-function drawHole(){
-  const g = ctx.createLinearGradient(0,0,W,H);
-  g.addColorStop(0,"#3a241a");
-  g.addColorStop(1,"#24140f");
-  ctx.fillStyle = g;
-  roundedRect(boardX-10, boardY-10, boardPx+20, boardPx+20, 18);
-  ctx.fill();
+loadLevel(0);
 
-  const v = ctx.createRadialGradient(W/2,H/2,60,W/2,H/2,380);
-  v.addColorStop(0,"rgba(255,255,255,0.06)");
-  v.addColorStop(1,"rgba(0,0,0,0.40)");
-  ctx.fillStyle = v;
-  roundedRect(boardX-10, boardY-10, boardPx+20, boardPx+20, 18);
-  ctx.fill();
+/* ------------------------ INPUT (KEY + TOUCH) ------------------------ */
+const keys = new Set();
+
+window.addEventListener("keydown", (e) => {
+  const k = e.key.toLowerCase();
+  if (k.includes("arrow")) e.preventDefault();
+  keys.add(k);
+});
+window.addEventListener("keyup", (e) => {
+  keys.delete(e.key.toLowerCase());
+});
+
+// D-pad buttons (mobile)
+function pressKey(k) {
+  keys.add(k);
+  setTimeout(() => keys.delete(k), 110);
+}
+document.getElementById("upBtn").addEventListener("click", () => pressKey("arrowup"));
+document.getElementById("downBtn").addEventListener("click", () => pressKey("arrowdown"));
+document.getElementById("leftBtn").addEventListener("click", () => pressKey("arrowleft"));
+document.getElementById("rightBtn").addEventListener("click", () => pressKey("arrowright"));
+document.getElementById("centerBtn").addEventListener("click", () => resetLevel());
+
+// Swipe
+let touchStart = null;
+
+canvas.addEventListener(
+  "touchstart",
+  (e) => {
+    const t = e.touches[0];
+    touchStart = { x: t.clientX, y: t.clientY, time: performance.now() };
+  },
+  { passive: true }
+);
+
+canvas.addEventListener(
+  "touchmove",
+  (e) => {
+    if (!touchStart) return;
+    const t = e.touches[0];
+    const dx = t.clientX - touchStart.x;
+    const dy = t.clientY - touchStart.y;
+
+    // If short swipe, ignore
+    const threshold = 18;
+    if (Math.abs(dx) < threshold && Math.abs(dy) < threshold) return;
+
+    if (Math.abs(dx) > Math.abs(dy)) {
+      pressKey(dx > 0 ? "arrowright" : "arrowleft");
+    } else {
+      pressKey(dy > 0 ? "arrowdown" : "arrowup");
+    }
+
+    // reset swipe origin so continuous swipes work
+    touchStart = { x: t.clientX, y: t.clientY, time: performance.now() };
+  },
+  { passive: true }
+);
+
+canvas.addEventListener(
+  "touchend",
+  () => {
+    touchStart = null;
+  },
+  { passive: true }
+);
+
+/* ------------------------ UI BUTTONS ------------------------ */
+document.getElementById("resetBtn").addEventListener("click", resetLevel);
+document.getElementById("nextBtn").addEventListener("click", () => loadLevel(levelIndex + 1));
+document.getElementById("prevBtn").addEventListener("click", () => loadLevel(levelIndex - 1));
+
+function resetLevel() {
+  beep(260, 0.06, "square", 0.02);
+  vibrate(20);
+  loadLevel(levelIndex);
 }
 
-function drawPaintTile(x,y){
-  const px = boardX + x*cell;
-  const py = boardY + y*cell;
-  const r = Math.floor(cell*0.22);
-  const inset = 5;
-
-  ctx.save();
-  ctx.shadowColor = "rgba(0,0,0,0.25)";
-  ctx.shadowBlur = 10;
-  ctx.shadowOffsetY = 8;
-
-  const g = ctx.createLinearGradient(px,py,px+cell,py+cell);
-  g.addColorStop(0,"#d8c8ff");
-  g.addColorStop(0.35,"#8b6bff");
-  g.addColorStop(1,"#5b39ff");
-
-  ctx.fillStyle = g;
-  roundedRect(px+inset, py+inset, cell-inset*2, cell-inset*2, r);
-  ctx.fill();
-  ctx.restore();
-
-  ctx.strokeStyle = "rgba(255,255,255,0.35)";
-  ctx.lineWidth = 2;
-  roundedRect(px+inset+2, py+inset+2, cell-inset*2-4, cell-inset*2-4, r-2);
-  ctx.stroke();
+/* ------------------------ COLLISION / MOVEMENT ------------------------ */
+function isWall(x, y) {
+  if (x < 0 || y < 0 || x >= cols || y >= rows) return true;
+  return grid[y][x] === "#";
 }
 
-function drawBlock(x,y){
-  const px = boardX + x*cell;
-  const py = boardY + y*cell;
-  const r = Math.floor(cell*0.22);
-  const inset = 5;
+function tryMove(dx, dy) {
+  if (player.moving || won) return;
 
-  ctx.save();
-  ctx.shadowColor = "rgba(0,0,0,0.35)";
-  ctx.shadowBlur = 12;
-  ctx.shadowOffsetY = 12;
-
-  const g = ctx.createLinearGradient(px,py,px,py+cell);
-  g.addColorStop(0,"#e5b27a");
-  g.addColorStop(1,"#c78954");
-
-  ctx.fillStyle = g;
-  roundedRect(px+inset, py+inset, cell-inset*2, cell-inset*2, r);
-  ctx.fill();
-  ctx.restore();
-
-  ctx.strokeStyle = "rgba(255,255,255,0.30)";
-  ctx.lineWidth = 2;
-  roundedRect(px+inset+2, py+inset+2, cell-inset*2-4, cell-inset*2-4, r-2);
-  ctx.stroke();
-}
-
-function drawBall(cx,cy,r){
-  // shadow
-  ctx.save();
-  ctx.fillStyle = "rgba(0,0,0,0.25)";
-  ctx.beginPath();
-  ctx.ellipse(cx, cy + r + 10, r*1.0, r*0.40, 0, 0, Math.PI*2);
-  ctx.fill();
-  ctx.restore();
-
-  const g = ctx.createRadialGradient(cx - r*0.35, cy - r*0.35, 2, cx, cy, r);
-  g.addColorStop(0,"#fff6c8");
-  g.addColorStop(0.35,"#ffd36a");
-  g.addColorStop(1,"#b9781c");
-
-  ctx.save();
-  ctx.shadowColor = "rgba(0,0,0,0.35)";
-  ctx.shadowBlur = 12;
-  ctx.shadowOffsetY = 10;
-
-  ctx.fillStyle = g;
-  ctx.beginPath();
-  ctx.arc(cx,cy,r,0,Math.PI*2);
-  ctx.fill();
-  ctx.restore();
-
-  ctx.fillStyle = "rgba(255,255,255,0.65)";
-  ctx.beginPath();
-  ctx.arc(cx - r*0.35, cy - r*0.35, r*0.28, 0, Math.PI*2);
-  ctx.fill();
-}
-
-function setDir(dx,dy){
-  dir.x = dx; dir.y = dy;
-  moving = !(dx===0 && dy===0);
-}
-
-function moveStep(){
-  if(!moving) return;
-
-  const now = performance.now();
-  if(now - lastMoveAt < 85) return;
-  lastMoveAt = now;
-
-  const nx = player.x + dir.x;
-  const ny = player.y + dir.y;
-
-  if(isBlocked(nx,ny)){
-    moving = false;
+  const nx = player.x + dx;
+  const ny = player.y + dy;
+  if (isWall(nx, ny)) {
+    beep(120, 0.05, "square", 0.02);
+    vibrate(10);
     return;
   }
 
-  player.x = nx; player.y = ny;
-  painted[ny][nx] = 1;
+  player.x = nx;
+  player.y = ny;
+  player.moving = true;
 
-  if(paintedCount() >= freeTileCount()){
-    nextLevel();
+  beep(540, 0.03, "sine", 0.02);
+  vibrate(10);
+}
+
+function updateInput() {
+  if (keys.has("arrowup")) tryMove(0, -1);
+  if (keys.has("arrowdown")) tryMove(0, 1);
+  if (keys.has("arrowleft")) tryMove(-1, 0);
+  if (keys.has("arrowright")) tryMove(1, 0);
+}
+
+/* ------------------------ VISUAL STYLE (LEVEL 242-LIKE) ------------------------ */
+function drawWoodBase() {
+  // wood-ish background inside canvas area
+  const g = ctx.createLinearGradient(0, 0, 0, canvas.height);
+  g.addColorStop(0, "#f3d4ab");
+  g.addColorStop(1, "#e9b781");
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // subtle grain
+  ctx.globalAlpha = 0.12;
+  for (let i = 0; i < 16; i++) {
+    const y = (canvas.height / 16) * i + (i % 2) * 6;
+    ctx.fillStyle = "rgba(120,70,30,1)";
+    ctx.fillRect(0, y, canvas.width, 1);
+  }
+  ctx.globalAlpha = 1;
+}
+
+function drawBoardShadow() {
+  // “carved hole” shadow for the maze board
+  const x = offsetX - tile * 0.22;
+  const y = offsetY - tile * 0.22;
+  const w = cols * tile + tile * 0.44;
+  const h = rows * tile + tile * 0.44;
+
+  ctx.fillStyle = "rgba(0,0,0,.22)";
+  roundRect(ctx, x + 6, y + 8, w, h, 18, true);
+
+  ctx.fillStyle = "rgba(255,255,255,.28)";
+  roundRect(ctx, x, y, w, h, 18, true);
+}
+
+// NO gaps: each cell is tile x tile exactly.
+function drawWall3D(gx, gy) {
+  const rx = offsetX + gx * tile;
+  const ry = offsetY + gy * tile;
+
+  const depth = Math.max(2, Math.floor(tile * 0.14));
+
+  // drop shadow
+  ctx.fillStyle = "rgba(0,0,0,.22)";
+  ctx.fillRect(rx + depth, ry + depth, tile, tile);
+
+  // wall face gradient (wood block)
+  const grad = ctx.createLinearGradient(rx, ry, rx, ry + tile);
+  grad.addColorStop(0, "#e4b07b");
+  grad.addColorStop(1, "#b7743f");
+  ctx.fillStyle = grad;
+  ctx.fillRect(rx, ry, tile, tile);
+
+  // highlight edge
+  ctx.globalAlpha = 0.25;
+  ctx.fillStyle = "#fff";
+  ctx.fillRect(rx + 1, ry + 1, tile - 2, Math.max(1, Math.floor(tile * 0.08)));
+  ctx.globalAlpha = 1;
+}
+
+function drawPathCell(gx, gy) {
+  const rx = offsetX + gx * tile;
+  const ry = offsetY + gy * tile;
+
+  // “purple tile path” but continuous (no gaps)
+  const grad = ctx.createLinearGradient(rx, ry, rx + tile, ry + tile);
+  grad.addColorStop(0, "#e9ddff");
+  grad.addColorStop(1, "#cbb8ff");
+
+  ctx.fillStyle = grad;
+  ctx.fillRect(rx, ry, tile, tile);
+}
+
+function drawGoalHole() {
+  const cx = gridToPx(goal.x);
+  const cy = gridToPy(goal.y);
+
+  const rOuter = tile * 0.42;
+  const rInner = tile * 0.22;
+
+  // hole shadow
+  ctx.beginPath();
+  ctx.arc(cx + tile * 0.06, cy + tile * 0.08, rOuter, 0, Math.PI * 2);
+  ctx.fillStyle = "rgba(0,0,0,.30)";
+  ctx.fill();
+
+  // rim
+  ctx.beginPath();
+  ctx.arc(cx, cy, rOuter, 0, Math.PI * 2);
+  ctx.fillStyle = "rgba(255,255,255,.45)";
+  ctx.fill();
+
+  // hole
+  const g = ctx.createRadialGradient(cx, cy, rInner * 0.3, cx, cy, rOuter);
+  g.addColorStop(0, "#2a1b12");
+  g.addColorStop(1, "#140c08");
+  ctx.beginPath();
+  ctx.arc(cx, cy, rOuter * 0.82, 0, Math.PI * 2);
+  ctx.fillStyle = g;
+  ctx.fill();
+}
+
+function drawPlayerBall() {
+  const cx = player.px;
+  const cy = player.py;
+
+  const r = player.r;
+
+  // ball shadow
+  ctx.beginPath();
+  ctx.ellipse(cx + r * 0.22, cy + r * 0.34, r * 0.9, r * 0.55, 0, 0, Math.PI * 2);
+  ctx.fillStyle = "rgba(0,0,0,.18)";
+  ctx.fill();
+
+  // golden ball with gradient
+  const g = ctx.createRadialGradient(cx - r * 0.25, cy - r * 0.3, r * 0.2, cx, cy, r);
+  g.addColorStop(0, "#fff3b0");
+  g.addColorStop(0.35, "#ffd264");
+  g.addColorStop(1, "#b97818");
+
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI * 2);
+  ctx.fillStyle = g;
+  ctx.fill();
+
+  // highlight
+  ctx.globalAlpha = 0.35;
+  ctx.beginPath();
+  ctx.arc(cx - r * 0.35, cy - r * 0.35, r * 0.35, 0, Math.PI * 2);
+  ctx.fillStyle = "#fff";
+  ctx.fill();
+  ctx.globalAlpha = 1;
+}
+
+/* ------------------------ CONFETTI WIN ------------------------ */
+const confetti = [];
+function spawnConfetti() {
+  confetti.length = 0;
+  for (let i = 0; i < 120; i++) {
+    confetti.push({
+      x: canvas.width / 2,
+      y: canvas.height / 2,
+      vx: (Math.random() - 0.5) * 6,
+      vy: (Math.random() - 0.8) * 6,
+      r: 2 + Math.random() * 3,
+      a: Math.random() * Math.PI * 2,
+      va: (Math.random() - 0.5) * 0.3,
+      life: 80 + Math.random() * 50,
+    });
   }
 }
 
-function nextLevel(){
-  levelIndex = (levelIndex + 1) % LEVELS.length;
-  map = clone2D(LEVELS[levelIndex]);
-  painted = make2D(gridSize, gridSize, 0);
-  placePlayer();
-  painted[player.y][player.x] = 1;
-  moving = false;
-  dir = {x:0,y:0};
-
-  // update UI level number like “242 → 243 …”
-  uiLevelNumber++;
-  document.getElementById("uiLevel").textContent = `LEVEL ${uiLevelNumber}`;
-  uiCoins += 5;
-  document.getElementById("uiCoins").textContent = `${uiCoins}`;
+function updateConfetti() {
+  for (const c of confetti) {
+    c.x += c.vx;
+    c.y += c.vy;
+    c.vy += 0.12; // gravity
+    c.a += c.va;
+    c.life -= 1;
+  }
+  for (let i = confetti.length - 1; i >= 0; i--) {
+    if (confetti[i].life <= 0) confetti.splice(i, 1);
+  }
 }
 
-function draw(){
-  ctx.clearRect(0,0,W,H);
-  drawHole();
+function drawConfetti() {
+  if (!confetti.length) return;
+  ctx.save();
+  for (const c of confetti) {
+    ctx.translate(c.x, c.y);
+    ctx.rotate(c.a);
+    ctx.fillStyle = pickConfettiColor(c.life);
+    ctx.fillRect(-c.r, -c.r, c.r * 2, c.r * 2);
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+  }
+  ctx.restore();
+}
+function pickConfettiColor(seed) {
+  const colors = ["#ff4d4d", "#ffd54a", "#46d6ff", "#7cff76", "#c87bff"];
+  return colors[Math.floor(seed) % colors.length];
+}
 
-  for(let y=0;y<gridSize;y++){
-    for(let x=0;x<gridSize;x++){
-      if(painted[y][x]===1) drawPaintTile(x,y);
+/* ------------------------ UPDATE + DRAW LOOP ------------------------ */
+function update() {
+  updateInput();
+
+  // smooth movement toward target grid center
+  const tx = gridToPx(player.x);
+  const ty = gridToPy(player.y);
+
+  const speed = Math.max(2, Math.floor(tile * 0.22));
+  const dx = tx - player.px;
+  const dy = ty - player.py;
+
+  if (Math.abs(dx) < 0.5 && Math.abs(dy) < 0.5) {
+    player.px = tx;
+    player.py = ty;
+    player.moving = false;
+  } else {
+    player.px += Math.sign(dx) * Math.min(Math.abs(dx), speed);
+    player.py += Math.sign(dy) * Math.min(Math.abs(dy), speed);
+  }
+
+  // win check (must be centered)
+  if (!won && !player.moving && player.x === goal.x && player.y === goal.y) {
+    won = true;
+    toast("✅ Level Complete!");
+    vibrate(80);
+
+    beep(880, 0.07, "sine", 0.03);
+    setTimeout(() => beep(990, 0.07, "sine", 0.03), 90);
+    setTimeout(() => beep(1180, 0.09, "sine", 0.03), 180);
+
+    spawnConfetti();
+
+    // auto next after a moment
+    setTimeout(() => loadLevel(levelIndex + 1), 900);
+  }
+
+  updateConfetti();
+}
+
+function draw() {
+  drawWoodBase();
+  drawBoardShadow();
+
+  // draw floor/path first
+  for (let y = 0; y < rows; y++) {
+    for (let x = 0; x < cols; x++) {
+      const cell = grid[y][x];
+      if (cell !== "#") drawPathCell(x, y);
     }
   }
 
-  for(let y=0;y<gridSize;y++){
-    for(let x=0;x<gridSize;x++){
-      if(map[y][x]===1) drawBlock(x,y);
+  // goal hole on top of path
+  drawGoalHole();
+
+  // walls on top (no gaps)
+  for (let y = 0; y < rows; y++) {
+    for (let x = 0; x < cols; x++) {
+      if (grid[y][x] === "#") drawWall3D(x, y);
     }
   }
 
-  const cx = boardX + player.x*cell + cell/2;
-  const cy = boardY + player.y*cell + cell/2;
-  drawBall(cx, cy, player.r);
+  drawPlayerBall();
+  drawConfetti();
+
+  // win overlay
+  if (won) {
+    ctx.globalAlpha = 0.18;
+    ctx.fillStyle = "#000";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.globalAlpha = 1;
+  }
 }
 
-function loop(){
-  moveStep();
+function loop() {
+  update();
   draw();
   requestAnimationFrame(loop);
 }
 loop();
 
-// Keyboard
-window.addEventListener("keydown",(e)=>{
-  if(e.key==="ArrowUp") setDir(0,-1);
-  else if(e.key==="ArrowDown") setDir(0,1);
-  else if(e.key==="ArrowLeft") setDir(-1,0);
-  else if(e.key==="ArrowRight") setDir(1,0);
-  else if(e.key==="r" || e.key==="R"){
-    painted = make2D(gridSize, gridSize, 0);
-    placePlayer();
-    painted[player.y][player.x] = 1;
-    moving = false;
-    dir = {x:0,y:0};
-  }
-});
-window.addEventListener("keyup",(e)=>{
-  if(["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].includes(e.key)) setDir(0,0);
-});
-
-// Swipe (mobile)
-let touchStart = null;
-canvas.addEventListener("touchstart",(e)=>{
-  const t = e.touches[0];
-  touchStart = {x:t.clientX, y:t.clientY};
-},{passive:true});
-
-canvas.addEventListener("touchmove",(e)=>{
-  if(!touchStart) return;
-  const t = e.touches[0];
-  const dx = t.clientX - touchStart.x;
-  const dy = t.clientY - touchStart.y;
-
-  const adx = Math.abs(dx), ady = Math.abs(dy);
-  if(adx < 18 && ady < 18) return;
-
-  if(adx > ady) setDir(dx>0 ? 1 : -1, 0);
-  else setDir(0, dy>0 ? 1 : -1);
-
-  touchStart = {x:t.clientX, y:t.clientY};
-},{passive:true});
-
-canvas.addEventListener("touchend",()=>{
-  touchStart = null;
-  setDir(0,0);
-},{passive:true});
-
-Besfort Qollaku
-IT-Manager
-+386 (0) 49 433 580
-+43 (0) 660 413 7019
-+381 (0) 38 222 212
-www.kolegjifama.eu
-besfort.collaku@kolegjifama.eu
-
-
-Besfort Çollaku <besfort.collaku@gmail.com> schrieb am Sa., 20. Dez. 2025, 21:51:
-import "./style.css";
-
-const app = document.querySelector("#app");
-
-// UI numbers
-let uiLevelNumber = 242;
-let uiCoins = 1888;
-
-app.innerHTML = `
-  <div class="ui">
-    <div class="topRow">
-      <div class="leftStack">
-        <button class="iconBtn yellow" title="Settings">⚙️</button>
-        <div style="position:relative">
-          <button class="iconBtn gray" title="Claim">📅</button>
-          <div class="claimTag">CLAIM!</div>
-        </div>
-      </div>
-
-      <div class="levelText" id="uiLevel">LEVEL ${uiLevelNumber}</div>
-
-      <div class="rightStack" style="justify-content:flex-end">
-        <div class="coinPill" title="Coins">
-          <div class="coin"></div>
-          <div id="uiCoins">${uiCoins}</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="smallRow">
-      <button class="smallBtn purple" title="Joystick">🕹️</button>
-      <button class="smallBtn pink" title="Brush"><span class="newTag">NEW!</span>🖌️</button>
-      <button class="smallBtn yellow" title="Trophy">🏆</button>
-      <button class="smallBtn purple" title="Skins">🟡</button>
-      <button class="smallBtn yellow" title="No Ads">🚫</button>
-    </div>
-
-    <div class="stage">
-      <canvas id="game" width="520" height="520"></canvas>
-    </div>
-
-    <div class="bottomRow">
-      <button class="bigBtn hint" id="btnHint"><span class="film">▶</span>HINT</button>
-      <button class="bigBtn x3" id="btnX3"><span class="film">▶</span>×3</button>
-    </div>
-  </div>
-`;
-
-Besfort Qollaku
-IT-Manager
-+386 (0) 49 433 580
-+43 (0) 660 413 7019
-+381 (0) 38 222 212
-www.kolegjifama.eu
-besfort.collaku@kolegjifama.eu
-
-
-Besfort Çollaku <besfort.collaku@gmail.com> schrieb am Sa., 20. Dez. 2025, 21:48:
-import "./style.css";
-
-const app = document.querySelector("#app");
-
-// UI numbers
-let uiLevelNumber = 242;
-let uiCoins = 1888;
-
-app.innerHTML = `
-  <div class="ui">
-    <div class="topRow">
-      <div class="leftStack">
-        <button class="iconBtn yellow" title="Settings">⚙️</button>
-        <div style="position:relative">
-          <button class="iconBtn gray" title="Claim">📅</button>
-          <div class="claimTag">CLAIM!</div>
-        </div>
-      </div>
-
-      <div class="levelText" id="uiLevel">LEVEL ${uiLevelNumber}</div>
-
-      <div class="rightStack" style="justify-content:flex-end">
-        <div class="coinPill" title="Coins">
-          <div class="coin"></div>
-          <div id="uiCoins">${uiCoins}</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="smallRow">
-      <button class="smallBtn purple" title="Joystick">🕹️</button>
-      <button class="smallBtn pink" title="Brush"><span class="newTag">NEW!</span>🖌️</button>
-      <button class="smallBtn yellow" title="Trophy">🏆</button>
-      <button class="smallBtn purple" title="Skins">🟡</button>
-      <button class="smallBtn yellow" title="No Ads">🚫</button>
-    </div>
-
-    <div class="stage">
-      <canvas id="game" width="520" height="520"></canvas>
-    </div>
-
-    <div class="bottomRow">
-      <button class="bigBtn hint" id="btnHint"><span class="film">▶</span>HINT</button>
-      <button class="bigBtn x3" id="btnX3"><span class="film">▶</span>×3</button>
-    </div>
-  </div>
-`;
-
-document.getElementById("btnHint").addEventListener("click", () => alert("Hint soon 🙂"));
-document.getElementById("btnX3").addEventListener("click", () => alert("x3 soon 🙂"));
-
-const canvas = document.getElementById("game");
-const ctx = canvas.getContext("2d");
-
-const W = canvas.width;
-const H = canvas.height;
-
-const grid = 9; // little bigger looks nicer
-const pad = 26;
-const cell = Math.floor((W - pad * 2) / grid);
-const boardPx = cell * grid;
-const boardX = Math.floor((W - boardPx) / 2);
-const boardY = Math.floor((H - boardPx) / 2);
-
-// ---------- LEVEL DATA (walkable path + blocks) ----------
-// 0 = hole/pit, 1 = path you can paint
-function make2D(n, v) {
-  return Array.from({ length: n }, () => Array.from({ length: n }, () => v));
-}
-function clone2D(a) {
-  return a.map(r => r.slice());
-}
-
-function applyBlocksToMap(map, blocks) {
-  for (const b of blocks) {
-    for (let yy = b.y; yy < b.y + b.h; yy++) {
-      for (let xx = b.x; xx < b.x + b.w; xx++) {
-        if (yy >= 0 && yy < grid && xx >= 0 && xx < grid) map[yy][xx] = 0;
-      }
-    }
-  }
-}
-
-function pathLevel242() {
-  const path = make2D(grid, 0);
-
-  // Make a "channel" similar to your screenshot: top long + left vertical + right pocket
-  // Top row path
-  for (let x = 0; x < 9; x++) path[1][x] = 1;
-
-  // Left vertical down
-  for (let y = 1; y < 7; y++) path[y][0] = 1;
-
-  // Right pocket-ish channel
-  for (let x = 3; x < 9; x++) path[2][x] = 1;
-  for (let y = 2; y < 5; y++) path[y][8] = 1;
-
-  // Bottom-ish turn
-  for (let x = 0; x < 6; x++) path[6][x] = 1;
-  for (let y = 4; y < 7; y++) path[y][5] = 1;
-
-  // Blocks (wood blocks inside the pit) - different sizes
-  const blocks = [
-    { x: 3, y: 3, w: 1, h: 1 },
-    { x: 2, y: 5, w: 1, h: 1 },
-    { x: 5, y: 4, w: 2, h: 1 }, // 2x1
-    { x: 6, y: 6, w: 3, h: 1 }, // 3x1
-  ];
-
-  // Blocks should remain pit area (0), so just keep them 0 (already 0 by default)
-  applyBlocksToMap(path, blocks);
-
-  return { path, blocks };
-}
-
-let level = pathLevel242();
-let map = clone2D(level.path); // 1 = walkable, 0 = pit/blocked
-let blocks = level.blocks;
-
-// Painted tiles (only on walkable path)
-let painted = make2D(grid, 0);
-
-// ---------- PLAYER (smooth sliding) ----------
-let player = {
-  gx: 0, gy: 1, // grid pos
-  px: 0, py: 0, // pixel pos (center)
-  tx: 0, ty: 0, // target pixel pos
-  r: Math.floor(cell * 0.18),
-  moving: false,
-  dirx: 0, diry: 0
-};
-
-function inBounds(x, y) {
-  return x >= 0 && y >= 0 && x < grid && y < grid;
-}
-function isWalkable(x, y) {
-  return inBounds(x, y) && map[y][x] === 1;
-}
-function cellCenterX(x) { return boardX + x * cell + cell / 2; }
-function cellCenterY(y) { return boardY + y * cell + cell / 2; }
-
-function placePlayerOnFirstPath() {
-  for (let y = 0; y < grid; y++) {
-    for (let x = 0; x < grid; x++) {
-      if (map[y][x] === 1) {
-        player.gx = x; player.gy = y;
-        player.px = cellCenterX(x);
-        player.py = cellCenterY(y);
-        player.tx = player.px;
-        player.ty = player.py;
-        painted[y][x] = 1;
-        return;
-      }
-    }
-  }
-}
-placePlayerOnFirstPath();
-
-function paintedCount() {
-  let n = 0;
-  for (let y = 0; y < grid; y++) for (let x = 0; x < grid; x++) if (painted[y][x] === 1) n++;
-  return n;
-}
-function walkableCount() {
-  let n = 0;
-  for (let y = 0; y < grid; y++) for (let x = 0; x < grid; x++) if (map[y][x] === 1) n++;
-  return n;
-}
-
-// ---------- DRAW HELPERS ----------
-function roundedRect(x, y, w, h, r) {
+/* ------------------------ HELPERS ------------------------ */
+function roundRect(ctx, x, y, w, h, r, fill) {
+  const rr = Math.min(r, w / 2, h / 2);
   ctx.beginPath();
-  ctx.moveTo(x + r, y);
-  ctx.arcTo(x + w, y, x + w, y + h, r);
-  ctx.arcTo(x + w, y + h, x, y + h, r);
-  ctx.arcTo(x, y + h, x, y, r);
-  ctx.arcTo(x, y, x + w, y, r);
+  ctx.moveTo(x + rr, y);
+  ctx.arcTo(x + w, y, x + w, y + h, rr);
+  ctx.arcTo(x + w, y + h, x, y + h, rr);
+  ctx.arcTo(x, y + h, x, y, rr);
+  ctx.arcTo(x, y, x + w, y, rr);
   ctx.closePath();
+  if (fill) ctx.fill();
 }
-
-function drawWoodBoard() {
-  // a wood "frame"
-  const g = ctx.createLinearGradient(0, 0, W, H);
-  g.addColorStop(0, "#d8a26a");
-  g.addColorStop(1, "#c48b55");
-  ctx.fillStyle = g;
-  roundedRect(boardX - 16, boardY - 16, boardPx + 32, boardPx + 32, 22);
-  ctx.fill();
-
-  // shine
-  ctx.fillStyle = "rgba(255,255,255,0.09)";
-  roundedRect(boardX - 16, boardY - 16, boardPx + 32, boardPx + 32, 22);
-  ctx.fill();
-}
-
-function drawPitBackground() {
-  // dark pit inside the wood
-  const pit = ctx.createLinearGradient(0, boardY, 0, boardY + boardPx);
-  pit.addColorStop(0, "#3a241a");
-  pit.addColorStop(1, "#1d0f0b");
-  ctx.fillStyle = pit;
-  roundedRect(boardX, boardY, boardPx, boardPx, 18);
-  ctx.fill();
-
-  // vignette
-  const v = ctx.createRadialGradient(W/2, H/2, 50, W/2, H/2, 420);
-  v.addColorStop(0, "rgba(255,255,255,0.05)");
-  v.addColorStop(1, "rgba(0,0,0,0.45)");
-  ctx.fillStyle = v;
-  roundedRect(boardX, boardY, boardPx, boardPx, 18);
-  ctx.fill();
-}
-
-function drawPathTile(x, y) {
-  const px = boardX + x * cell;
-  const py = boardY + y * cell;
-  const inset = 6;
-  const r = Math.floor(cell * 0.23);
-
-  // shadow depth (gives carved channel feel)
-  ctx.save();
-  ctx.shadowColor = "rgba(0,0,0,0.35)";
-  ctx.shadowBlur = 10;
-  ctx.shadowOffsetY = 8;
-
-  const g = ctx.createLinearGradient(px, py, px + cell, py + cell);
-  g.addColorStop(0, "#eadfff");
-  g.addColorStop(0.4, "#9d7cff");
-  g.addColorStop(1, "#5b39ff");
-
-  ctx.fillStyle = g;
-  roundedRect(px + inset, py + inset, cell - inset * 2, cell - inset * 2, r);
-  ctx.fill();
-  ctx.restore();
-
-  // highlight border
-  ctx.strokeStyle = "rgba(255,255,255,0.35)";
-  ctx.lineWidth = 2;
-  roundedRect(px + inset + 2, py + inset + 2, cell - inset * 2 - 4, cell - inset * 2 - 4, r - 2);
-  ctx.stroke();
-}
-
-function drawWoodBlockRect(b) {
-  const px = boardX + b.x * cell;
-  const py = boardY + b.y * cell;
-  const ww = b.w * cell;
-  const hh = b.h * cell;
-
-  const inset = 7;
-  const r = 16;
-
-  ctx.save();
-  ctx.shadowColor = "rgba(0,0,0,0.40)";
-  ctx.shadowBlur = 14;
-  ctx.shadowOffsetY = 14;
-
-  const g = ctx.createLinearGradient(px, py, px, py + hh);
-  g.addColorStop(0, "#efc08b");
-  g.addColorStop(1, "#c78954");
-
-  ctx.fillStyle = g;
-  roundedRect(px + inset, py + inset, ww - inset * 2, hh - inset * 2, r);
-  ctx.fill();
-  ctx.restore();
-
-  ctx.strokeStyle = "rgba(255,255,255,0.22)";
-  ctx.lineWidth = 2;
-  roundedRect(px + inset + 2, py + inset + 2, ww - inset * 2 - 4, hh - inset * 2 - 4, r - 2);
-  ctx.stroke();
-}
-
-function drawBall(cx, cy, r) {
-  // shadow
-  ctx.save();
-  ctx.fillStyle = "rgba(0,0,0,0.22)";
-  ctx.beginPath();
-  ctx.ellipse(cx, cy + r + 10, r * 1.05, r * 0.42, 0, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.restore();
-
-  const g = ctx.createRadialGradient(cx - r * 0.35, cy - r * 0.35, 2, cx, cy, r);
-  g.addColorStop(0, "#fff6c8");
-  g.addColorStop(0.35, "#ffd36a");
-  g.addColorStop(1, "#b9781c");
-
-  ctx.save();
-  ctx.shadowColor = "rgba(0,0,0,0.35)";
-  ctx.shadowBlur = 12;
-  ctx.shadowOffsetY = 10;
-
-  ctx.fillStyle = g;
-  ctx.beginPath();
-  ctx.arc(cx, cy, r, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.restore();
-
-  ctx.fillStyle = "rgba(255,255,255,0.65)";
-  ctx.beginPath();
-  ctx.arc(cx - r * 0.35, cy - r * 0.35, r * 0.28, 0, Math.PI * 2);
-  ctx.fill();
-}
-
-// ---------- MOVEMENT (smooth) ----------
-function setDir(dx, dy) {
-  player.dirx = dx;
-  player.diry = dy;
-}
-
-function tryStartMove() {
-  if (player.moving) return;
-
-  const nx = player.gx + player.dirx;
-  const ny = player.gy + player.diry;
-
-  if (!isWalkable(nx, ny)) return;
-
-  player.gx = nx;
-  player.gy = ny;
-
-  player.tx = cellCenterX(nx);
-  player.ty = cellCenterY(ny);
-
-  player.moving = true;
-}
-
-function update(dt) {
-  // If not moving, attempt to start (for held key / swipe)
-  if (!player.moving && (player.dirx !== 0 || player.diry !== 0)) {
-    tryStartMove();
-  }
-
-  if (player.moving) {
-    const speed = 520; // px/sec
-    const dx = player.tx - player.px;
-    const dy = player.ty - player.py;
-    const dist = Math.sqrt(dx * dx + dy * dy);
-
-    if (dist < 1) {
-      player.px = player.tx;
-      player.py = player.ty;
-      player.moving = false;
-
-      painted[player.gy][player.gx] = 1;
-
-      // level complete
-      if (paintedCount() >= walkableCount()) {
-        uiLevelNumber++;
-        uiCoins += 15;
-        document.getElementById("uiLevel").textContent = `LEVEL ${uiLevelNumber}`;
-        document.getElementById("uiCoins").textContent = `${uiCoins}`;
-
-        painted = make2D(grid, 0);
-        placePlayerOnFirstPath();
-      }
-      return;
-    }
-
-    const step = Math.min(dist, speed * dt);
-    player.px += (dx / dist) * step;
-    player.py += (dy / dist) * step;
-  }
-}
-
-function draw() {
-  ctx.clearRect(0, 0, W, H);
-
-  drawWoodBoard();
-  drawPitBackground();
-
-  // draw ONLY the carved path tiles (looks like Level UI channels)
-  for (let y = 0; y < grid; y++) {
-    for (let x = 0; x < grid; x++) {
-      if (map[y][x] === 1) drawPathTile(x, y);
-    }
-  }
-
-  // wooden blocks on top
-  for (const b of blocks) drawWoodBlockRect(b);
-
-  drawBall(player.px, player.py, player.r);
-}
-
-let last = performance.now();
-function loop(now) {
-  const dt = Math.min(0.033, (now - last) / 1000);
-  last = now;
-
-  update(dt);
-  draw();
-  requestAnimationFrame(loop);
-}
-requestAnimationFrame(loop);
-
-// ---------- INPUT ----------
-window.addEventListener("keydown", (e) => {
-  if (e.key === "ArrowUp") setDir(0, -1);
-  if (e.key === "ArrowDown") setDir(0, 1);
-  if (e.key === "ArrowLeft") setDir(-1, 0);
-  if (e.key === "ArrowRight") setDir(1, 0);
-
-  if (e.key === "r" || e.key === "R") {
-    painted = make2D(grid, 0);
-    placePlayerOnFirstPath();
-  }
-});
-
-window.addEventListener("keyup", (e) => {
-  if (["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].includes(e.key)) setDir(0, 0);
-});
-
-// Swipe (mobile)
-let touchStart = null;
-
-canvas.addEventListener("touchstart", (e) => {
-  const t = e.touches[0];
-  touchStart = { x: t.clientX, y: t.clientY };
-}, { passive: true });
-
-canvas.addEventListener("touchmove", (e) => {
-  if (!touchStart) return;
-  const t = e.touches[0];
-  const dx = t.clientX - touchStart.x;
-  const dy = t.clientY - touchStart.y;
-
-  const adx = Math.abs(dx), ady = Math.abs(dy);
-  if (adx < 18 && ady < 18) return;
-
-  if (adx > ady) setDir(dx > 0 ? 1 : -1, 0);
-  else setDir(0, dy > 0 ? 1 : -1);
-
-  touchStart = { x: t.clientX, y: t.clientY };
-}, { passive: true });
-
-canvas.addEventListener("touchend", () => {
-  touchStart = null;
-  setDir(0, 0);
-}, { passive: true });
-
-Besfort Qollaku
-IT-Manager
-+386 (0) 49 433 580
-+43 (0) 660 413 7019
-+381 (0) 38 222 212
-www.kolegjifama.eu
-besfort.collaku@kolegjifama.eu
-
-
-Besfort Çollaku <besfort.collaku@gmail.com> schrieb am Sa., 20. Dez. 2025, 21:43:
-import "./style.css";
-
-const app = document.querySelector("#app");
-
-// UI numbers
-let uiLevelNumber = 242;
-let uiCoins = 1888;
-
-app.innerHTML = `
-  <div class="ui">
-    <div class="topRow">
-      <div class="leftStack">
-        <button class="iconBtn yellow" title="Settings">⚙️</button>
-        <div style="position:relative">
-          <button class="iconBtn gray" title="Claim">📅</button>
-          <div class="claimTag">CLAIM!</div>
-        </div>
-      </div>
-
-      <div class="levelText" id="uiLevel">LEVEL ${uiLevelNumber}</div>
-
-      <div class="rightStack" style="justify-content:flex-end">
-        <div class="coinPill" title="Coins">
-          <div class="coin"></div>
-          <div id="uiCoins">${uiCoins}</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="smallRow">
-      <button class="smallBtn purple" title="Joystick">🕹️</button>
-      <button class="smallBtn pink" title="Brush"><span class="newTag">NEW!</span>🖌️</button>
-      <button class="smallBtn yellow" title="Trophy">🏆</button>
-      <button class="smallBtn purple" title="Skins">🟡</button>
-      <button class="smallBtn yellow" title="No Ads">🚫</button>
-    </div>
-
-    <div class="stage">
-      <canvas id="game" width="520" height="520"></canvas>
-    </div>
-
-    <div class="bottomRow">
-      <button class="bigBtn hint" id="btnHint"><span class="film">▶</span>HINT</button>
-      <button class="bigBtn x3" id="btnX3"><span class="film">▶</span>×3</button>
-    </div>
-  </div>
-`;
-
-document.getElementById("btnHint").addEventListener("click", () => alert("Hint soon 🙂"));
-document.getElementById("btnX3").addEventListener("click", () => alert("x3 soon 🙂"));
-
-const canvas = document.getElementById("game");
-const ctx = canvas.getContext("2d");
-
-const W = canvas.width;
-const H = canvas.height;
-
-const grid = 9; // little bigger looks nicer
-const pad = 26;
-const cell = Math.floor((W - pad * 2) / grid);
-const boardPx = cell * grid;
-const boardX = Math.floor((W - boardPx) / 2);
-const boardY = Math.floor((H - boardPx) / 2);
-
-// ---------- LEVEL DATA (walkable path + blocks) ----------
-// 0 = hole/pit, 1 = path you can paint
-function make2D(n, v) {
-  return Array.from({ length: n }, () => Array.from({ length: n }, () => v));
-}
-function clone2D(a) {
-  return a.map(r => r.slice());
-}
-
-function applyBlocksToMap(map, blocks) {
-  for (const b of blocks) {
-    for (let yy = b.y; yy < b.y + b.h; yy++) {
-      for (let xx = b.x; xx < b.x + b.w; xx++) {
-        if (yy >= 0 && yy < grid && xx >= 0 && xx < grid) map[yy][xx] = 0;
-      }
-    }
-  }
-}
-
-function pathLevel242() {
-  const path = make2D(grid, 0);
-
-  // Make a "channel" similar to your screenshot: top long + left vertical + right pocket
-  // Top row path
-  for (let x = 0; x < 9; x++) path[1][x] = 1;
-
-  // Left vertical down
-  for (let y = 1; y < 7; y++) path[y][0] = 1;
-
-  // Right pocket-ish channel
-  for (let x = 3; x < 9; x++) path[2][x] = 1;
-  for (let y = 2; y < 5; y++) path[y][8] = 1;
-
-  // Bottom-ish turn
-  for (let x = 0; x < 6; x++) path[6][x] = 1;
-  for (let y = 4; y < 7; y++) path[y][5] = 1;
-
-  // Blocks (wood blocks inside the pit) - different sizes
-  const blocks = [
-    { x: 3, y: 3, w: 1, h: 1 },
-    { x: 2, y: 5, w: 1, h: 1 },
-    { x: 5, y: 4, w: 2, h: 1 }, // 2x1
-    { x: 6, y: 6, w: 3, h: 1 }, // 3x1
-  ];
-
-  // Blocks should remain pit area (0), so just keep them 0 (already 0 by default)
-  applyBlocksToMap(path, blocks);
-
-  return { path, blocks };
-}
-
-let level = pathLevel242();
-let map = clone2D(level.path); // 1 = walkable, 0 = pit/blocked
-let blocks = level.blocks;
-
-// Painted tiles (only on walkable path)
-let painted = make2D(grid, 0);
-
-// ---------- PLAYER (smooth sliding) ----------
-let player = {
-  gx: 0, gy: 1, // grid pos
-  px: 0, py: 0, // pixel pos (center)
-  tx: 0, ty: 0, // target pixel pos
-  r: Math.floor(cell * 0.18),
-  moving: false,
-  dirx: 0, diry: 0
-};
-
-function inBounds(x, y) {
-  return x >= 0 && y >= 0 && x < grid && y < grid;
-}
-function isWalkable(x, y) {
-  return inBounds(x, y) && map[y][x] === 1;
-}
-function cellCenterX(x) { return boardX + x * cell + cell / 2; }
-function cellCenterY(y) { return boardY + y * cell + cell / 2; }
-
-function placePlayerOnFirstPath() {
-  for (let y = 0; y < grid; y++) {
-    for (let x = 0; x < grid; x++) {
-      if (map[y][x] === 1) {
-        player.gx = x; player.gy = y;
-        player.px = cellCenterX(x);
-        player.py = cellCenterY(y);
-        player.tx = player.px;
-        player.ty = player.py;
-        painted[y][x] = 1;
-        return;
-      }
-    }
-  }
-}
-placePlayerOnFirstPath();
-
-function paintedCount() {
-  let n = 0;
-  for (let y = 0; y < grid; y++) for (let x = 0; x < grid; x++) if (painted[y][x] === 1) n++;
-  return n;
-}
-function walkableCount() {
-  let n = 0;
-  for (let y = 0; y < grid; y++) for (let x = 0; x < grid; x++) if (map[y][x] === 1) n++;
-  return n;
-}
-
-// ---------- DRAW HELPERS ----------
-function roundedRect(x, y, w, h, r) {
-  ctx.beginPath();
-  ctx.moveTo(x + r, y);
-  ctx.arcTo(x + w, y, x + w, y + h, r);
-  ctx.arcTo(x + w, y + h, x, y + h, r);
-  ctx.arcTo(x, y + h, x, y, r);
-  ctx.arcTo(x, y, x + w, y, r);
-  ctx.closePath();
-}
-
-function drawWoodBoard() {
-  // a wood "frame"
-  const g = ctx.createLinearGradient(0, 0, W, H);
-  g.addColorStop(0, "#d8a26a");
-  g.addColorStop(1, "#c48b55");
-  ctx.fillStyle = g;
-  roundedRect(boardX - 16, boardY - 16, boardPx + 32, boardPx + 32, 22);
-  ctx.fill();
-
-  // shine
-  ctx.fillStyle = "rgba(255,255,255,0.09)";
-  roundedRect(boardX - 16, boardY - 16, boardPx + 32, boardPx + 32, 22);
-  ctx.fill();
-}
-
-function drawPitBackground() {
-  // dark pit inside the wood
-  const pit = ctx.createLinearGradient(0, boardY, 0, boardY + boardPx);
-  pit.addColorStop(0, "#3a241a");
-  pit.addColorStop(1, "#1d0f0b");
-  ctx.fillStyle = pit;
-  roundedRect(boardX, boardY, boardPx, boardPx, 18);
-  ctx.fill();
-
-  // vignette
-  const v = ctx.createRadialGradient(W/2, H/2, 50, W/2, H/2, 420);
-  v.addColorStop(0, "rgba(255,255,255,0.05)");
-  v.addColorStop(1, "rgba(0,0,0,0.45)");
-  ctx.fillStyle = v;
-  roundedRect(boardX, boardY, boardPx, boardPx, 18);
-  ctx.fill();
-}
-
-function drawPathTile(x, y) {
-  const px = boardX + x * cell;
-  const py = boardY + y * cell;
-  const inset = 6;
-  const r = Math.floor(cell * 0.23);
-
-  // shadow depth (gives carved channel feel)
-  ctx.save();
-  ctx.shadowColor = "rgba(0,0,0,0.35)";
-  ctx.shadowBlur = 10;
-  ctx.shadowOffsetY = 8;
-
-  const g = ctx.createLinearGradient(px, py, px + cell, py + cell);
-  g.addColorStop(0, "#eadfff");
-  g.addColorStop(0.4, "#9d7cff");
-  g.addColorStop(1, "#5b39ff");
-
-  ctx.fillStyle = g;
-  roundedRect(px + inset, py + inset, cell - inset * 2, cell - inset * 2, r);
-  ctx.fill();
-  ctx.restore();
-
-  // highlight border
-  ctx.strokeStyle = "rgba(255,255,255,0.35)";
-  ctx.lineWidth = 2;
-  roundedRect(px + inset + 2, py + inset + 2, cell - inset * 2 - 4, cell - inset * 2 - 4, r - 2);
-  ctx.stroke();
-}
-
-function drawWoodBlockRect(b) {
-  const px = boardX + b.x * cell;
-  const py = boardY + b.y * cell;
-  const ww = b.w * cell;
-  const hh = b.h * cell;
-
-  const inset = 7;
-  const r = 16;
-
-  ctx.save();
-  ctx.shadowColor = "rgba(0,0,0,0.40)";
-  ctx.shadowBlur = 14;
-  ctx.shadowOffsetY = 14;
-
-  const g = ctx.createLinearGradient(px, py, px, py + hh);
-  g.addColorStop(0, "#efc08b");
-  g.addColorStop(1, "#c78954");
-
-  ctx.fillStyle = g;
-  roundedRect(px + inset, py + inset, ww - inset * 2, hh - inset * 2, r);
-  ctx.fill();
-  ctx.restore();
-
-  ctx.strokeStyle = "rgba(255,255,255,0.22)";
-  ctx.lineWidth = 2;
-  roundedRect(px + inset + 2, py + inset + 2, ww - inset * 2 - 4, hh - inset * 2 - 4, r - 2);
-  ctx.stroke();
-}
-
-function drawBall(cx, cy, r) {
-  // shadow
-  ctx.save();
-  ctx.fillStyle = "rgba(0,0,0,0.22)";
-  ctx.beginPath();
-  ctx.ellipse(cx, cy + r + 10, r * 1.05, r * 0.42, 0, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.restore();
-
-  const g = ctx.createRadialGradient(cx - r * 0.35, cy - r * 0.35, 2, cx, cy, r);
-  g.addColorStop(0, "#fff6c8");
-  g.addColorStop(0.35, "#ffd36a");
-  g.addColorStop(1, "#b9781c");
-
-  ctx.save();
-  ctx.shadowColor = "rgba(0,0,0,0.35)";
-  ctx.shadowBlur = 12;
-  ctx.shadowOffsetY = 10;
-
-  ctx.fillStyle = g;
-  ctx.beginPath();
-  ctx.arc(cx, cy, r, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.restore();
-
-  ctx.fillStyle = "rgba(255,255,255,0.65)";
-  ctx.beginPath();
-  ctx.arc(cx - r * 0.35, cy - r * 0.35, r * 0.28, 0, Math.PI * 2);
-  ctx.fill();
-}
-
-// ---------- MOVEMENT (smooth) ----------
-function setDir(dx, dy) {
-  player.dirx = dx;
-  player.diry = dy;
-}
-
-function tryStartMove() {
-  if (player.moving) return;
-
-  const nx = player.gx + player.dirx;
-  const ny = player.gy + player.diry;
-
-  if (!isWalkable(nx, ny)) return;
-
-  player.gx = nx;
-  player.gy = ny;
-
-  player.tx = cellCenterX(nx);
-  player.ty = cellCenterY(ny);
-
-  player.moving = true;
-}
-
-function update(dt) {
-  // If not moving, attempt to start (for held key / swipe)
-  if (!player.moving && (player.dirx !== 0 || player.diry !== 0)) {
-    tryStartMove();
-  }
-
-  if (player.moving) {
-    const speed = 520; // px/sec
-    const dx = player.tx - player.px;
-    const dy = player.ty - player.py;
-    const dist = Math.sqrt(dx * dx + dy * dy);
-
-    if (dist < 1) {
-      player.px = player.tx;
-      player.py = player.ty;
-      player.moving = false;
-
-      painted[player.gy][player.gx] = 1;
-
-      // level complete
-      if (paintedCount() >= walkableCount()) {
-        uiLevelNumber++;
-        uiCoins += 15;
-        document.getElementById("uiLevel").textContent = `LEVEL ${uiLevelNumber}`;
-        document.getElementById("uiCoins").textContent = `${uiCoins}`;
-
-        painted = make2D(grid, 0);
-        placePlayerOnFirstPath();
-      }
-      return;
-    }
-
-    const step = Math.min(dist, speed * dt);
-    player.px += (dx / dist) * step;
-    player.py += (dy / dist) * step;
-  }
-}
-
-function draw() {
-  ctx.clearRect(0, 0, W, H);
-
-  drawWoodBoard();
-  drawPitBackground();
-
-  // draw ONLY the carved path tiles (looks like Level UI channels)
-  for (let y = 0; y < grid; y++) {
-    for (let x = 0; x < grid; x++) {
-      if (map[y][x] === 1) drawPathTile(x, y);
-    }
-  }
-
-  // wooden blocks on top
-  for (const b of blocks) drawWoodBlockRect(b);
-
-  drawBall(player.px, player.py, player.r);
-}
-
-let last = performance.now();
-function loop(now) {
-  const dt = Math.min(0.033, (now - last) / 1000);
-  last = now;
-
-  update(dt);
-  draw();
-  requestAnimationFrame(loop);
-}
-requestAnimationFrame(loop);
-
-// ---------- INPUT ----------
-window.addEventListener("keydown", (e) => {
-  if (e.key === "ArrowUp") setDir(0, -1);
-  if (e.key === "ArrowDown") setDir(0, 1);
-  if (e.key === "ArrowLeft") setDir(-1, 0);
-  if (e.key === "ArrowRight") setDir(1, 0);
-
-  if (e.key === "r" || e.key === "R") {
-    painted = make2D(grid, 0);
-    placePlayerOnFirstPath();
-  }
-});
-
-window.addEventListener("keyup", (e) => {
-  if (["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].includes(e.key)) setDir(0, 0);
-});
-
-// Swipe (mobile)
-let touchStart = null;
-
-canvas.addEventListener("touchstart", (e) => {
-  const t = e.touches[0];
-  touchStart = { x: t.clientX, y: t.clientY };
-}, { passive: true });
-
-canvas.addEventListener("touchmove", (e) => {
-  if (!touchStart) return;
-  const t = e.touches[0];
-  const dx = t.clientX - touchStart.x;
-  const dy = t.clientY - touchStart.y;
-
-  const adx = Math.abs(dx), ady = Math.abs(dy);
-  if (adx < 18 && ady < 18) return;
-
-  if (adx > ady) setDir(dx > 0 ? 1 : -1, 0);
-  else setDir(0, dy > 0 ? 1 : -1);
-
-  touchStart = { x: t.clientX, y: t.clientY };
-}, { passive: true });
-
-canvas.addEventListener("touchend", () => {
-  touchStart = null;
-  setDir(0, 0);
-}, { passive: true });
-
-Besfort Qollaku
-IT-Manager
-+386 (0) 49 433 580
-+43 (0) 660 413 7019
-+381 (0) 38 222 212
-www.kolegjifama.eu
-besfort.collaku@kolegjifama.eu
-
-
-Besfort Çollaku <besfort.collaku@gmail.com> schrieb am Sa., 20. Dez. 2025, 19:57:
-import "./style.css";
-
-const app = document.querySelector("#app");
-
-// UI numbers
-let uiLevelNumber = 242;
-let uiCoins = 1888;
-
-app.innerHTML = `
-  <div class="ui">
-    <div class="topRow">
-      <div class="leftStack">
-        <button class="iconBtn yellow" title="Settings">⚙️</button>
-        <div style="position:relative">
-          <button class="iconBtn gray" title="Claim">📅</button>
-          <div class="claimTag">CLAIM!</div>
-        </div>
-      </div>
-
-      <div class="levelText" id="uiLevel">LEVEL ${uiLevelNumber}</div>
-
-      <div class="rightStack" style="justify-content:flex-end">
-        <div class="coinPill" title="Coins">
-          <div class="coin"></div>
-          <div id="uiCoins">${uiCoins}</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="smallRow">
-      <button class="smallBtn purple" title="Joystick">🕹️</button>
-      <button class="smallBtn pink" title="Brush"><span class="newTag">NEW!</span>🖌️</button>
-      <button class="smallBtn yellow" title="Trophy">🏆</button>
-      <button class="smallBtn purple" title="Skins">🟡</button>
-      <button class="smallBtn yellow" title="No Ads">🚫</button>
-    </div>
-
-    <div class="stage">
-      <canvas id="game" width="520" height="520"></canvas>
-    </div>
-
-    <div class="bottomRow">
-      <button class="bigBtn hint" id="btnHint"><span class="film">▶</span>HINT</button>
-      <button class="bigBtn x3" id="btnX3"><span class="film">▶</span>×3</button>
-    </div>
-  </div>
-`;
-
-document.getElementById("btnHint").addEventListener("click", () => alert("Hint soon 🙂"));
-document.getElementById("btnX3").addEventListener("click", () => alert("x3 soon 🙂"));
-
-const canvas = document.getElementById("game");
-const ctx = canvas.getContext("2d");
-
-const W = canvas.width;
-const H = canvas.height;
-
-const grid = 9; // little bigger looks nicer
-const pad = 26;
-const cell = Math.floor((W - pad * 2) / grid);
-const boardPx = cell * grid;
-const boardX = Math.floor((W - boardPx) / 2);
-const boardY = Math.floor((H - boardPx) / 2);
-
-// ---------- LEVEL DATA (walkable path + blocks) ----------
-// 0 = hole/pit, 1 = path you can paint
-function make2D(n, v) {
-  return Array.from({ length: n }, () => Array.from({ length: n }, () => v));
-}
-function clone2D(a) {
-  return a.map(r => r.slice());
-}
-
-function applyBlocksToMap(map, blocks) {
-  for (const b of blocks) {
-    for (let yy = b.y; yy < b.y + b.h; yy++) {
-      for (let xx = b.x; xx < b.x + b.w; xx++) {
-        if (yy >= 0 && yy < grid && xx >= 0 && xx < grid) map[yy][xx] = 0;
-      }
-    }
-  }
-}
-
-function pathLevel242() {
-  const path = make2D(grid, 0);
-
-  // Make a "channel" similar to your screenshot: top long + left vertical + right pocket
-  // Top row path
-  for (let x = 0; x < 9; x++) path[1][x] = 1;
-
-  // Left vertical down
-  for (let y = 1; y < 7; y++) path[y][0] = 1;
-
-  // Right pocket-ish channel
-  for (let x = 3; x < 9; x++) path[2][x] = 1;
-  for (let y = 2; y < 5; y++) path[y][8] = 1;
-
-  // Bottom-ish turn
-  for (let x = 0; x < 6; x++) path[6][x] = 1;
-  for (let y = 4; y < 7; y++) path[y][5] = 1;
-
-  // Blocks (wood blocks inside the pit) - different sizes
-  const blocks = [
-    { x: 3, y: 3, w: 1, h: 1 },
-    { x: 2, y: 5, w: 1, h: 1 },
-    { x: 5, y: 4, w: 2, h: 1 }, // 2x1
-    { x: 6, y: 6, w: 3, h: 1 }, // 3x1
-  ];
-
-  // Blocks should remain pit area (0), so just keep them 0 (already 0 by default)
-  applyBlocksToMap(path, blocks);
-
-  return { path, blocks };
-}
-
-let level = pathLevel242();
-let map = clone2D(level.path); // 1 = walkable, 0 = pit/blocked
-let blocks = level.blocks;
-
-// Painted tiles (only on walkable path)
-let painted = make2D(grid, 0);
-
-// ---------- PLAYER (smooth sliding) ----------
-let player = {
-  gx: 0, gy: 1, // grid pos
-  px: 0, py: 0, // pixel pos (center)
-  tx: 0, ty: 0, // target pixel pos
-  r: Math.floor(cell * 0.18),
-  moving: false,
-  dirx: 0, diry: 0
-};
-
-function inBounds(x, y) {
-  return x >= 0 && y >= 0 && x < grid && y < grid;
-}
-function isWalkable(x, y) {
-  return inBounds(x, y) && map[y][x] === 1;
-}
-function cellCenterX(x) { return boardX + x * cell + cell / 2; }
-function cellCenterY(y) { return boardY + y * cell + cell / 2; }
-
-function placePlayerOnFirstPath() {
-  for (let y = 0; y < grid; y++) {
-    for (let x = 0; x < grid; x++) {
-      if (map[y][x] === 1) {
-        player.gx = x; player.gy = y;
-        player.px = cellCenterX(x);
-        player.py = cellCenterY(y);
-        player.tx = player.px;
-        player.ty = player.py;
-        painted[y][x] = 1;
-        return;
-      }
-    }
-  }
-}
-placePlayerOnFirstPath();
-
-function paintedCount() {
-  let n = 0;
-  for (let y = 0; y < grid; y++) for (let x = 0; x < grid; x++) if (painted[y][x] === 1) n++;
-  return n;
-}
-function walkableCount() {
-  let n = 0;
-  for (let y = 0; y < grid; y++) for (let x = 0; x < grid; x++) if (map[y][x] === 1) n++;
-  return n;
-}
-
-// ---------- DRAW HELPERS ----------
-function roundedRect(x, y, w, h, r) {
-  ctx.beginPath();
-  ctx.moveTo(x + r, y);
-  ctx.arcTo(x + w, y, x + w, y + h, r);
-  ctx.arcTo(x + w, y + h, x, y + h, r);
-  ctx.arcTo(x, y + h, x, y, r);
-  ctx.arcTo(x, y, x + w, y, r);
-  ctx.closePath();
-}
-
-function drawWoodBoard() {
-  // a wood "frame"
-  const g = ctx.createLinearGradient(0, 0, W, H);
-  g.addColorStop(0, "#d8a26a");
-  g.addColorStop(1, "#c48b55");
-  ctx.fillStyle = g;
-  roundedRect(boardX - 16, boardY - 16, boardPx + 32, boardPx + 32, 22);
-  ctx.fill();
-
-  // shine
-  ctx.fillStyle = "rgba(255,255,255,0.09)";
-  roundedRect(boardX - 16, boardY - 16, boardPx + 32, boardPx + 32, 22);
-  ctx.fill();
-}
-
-function drawPitBackground() {
-  // dark pit inside the wood
-  const pit = ctx.createLinearGradient(0, boardY, 0, boardY + boardPx);
-  pit.addColorStop(0, "#3a241a");
-  pit.addColorStop(1, "#1d0f0b");
-  ctx.fillStyle = pit;
-  roundedRect(boardX, boardY, boardPx, boardPx, 18);
-  ctx.fill();
-
-  // vignette
-  const v = ctx.createRadialGradient(W/2, H/2, 50, W/2, H/2, 420);
-  v.addColorStop(0, "rgba(255,255,255,0.05)");
-  v.addColorStop(1, "rgba(0,0,0,0.45)");
-  ctx.fillStyle = v;
-  roundedRect(boardX, boardY, boardPx, boardPx, 18);
-  ctx.fill();
-}
-
-function drawPathTile(x, y) {
-  const px = boardX + x * cell;
-  const py = boardY + y * cell;
-  const inset = 6;
-  const r = Math.floor(cell * 0.23);
-
-  // shadow depth (gives carved channel feel)
-  ctx.save();
-  ctx.shadowColor = "rgba(0,0,0,0.35)";
-  ctx.shadowBlur = 10;
-  ctx.shadowOffsetY = 8;
-
-  const g = ctx.createLinearGradient(px, py, px + cell, py + cell);
-  g.addColorStop(0, "#eadfff");
-  g.addColorStop(0.4, "#9d7cff");
-  g.addColorStop(1, "#5b39ff");
-
-  ctx.fillStyle = g;
-  roundedRect(px + inset, py + inset, cell - inset * 2, cell - inset * 2, r);
-  ctx.fill();
-  ctx.restore();
-
-  // highlight border
-  ctx.strokeStyle = "rgba(255,255,255,0.35)";
-  ctx.lineWidth = 2;
-  roundedRect(px + inset + 2, py + inset + 2, cell - inset * 2 - 4, cell - inset * 2 - 4, r - 2);
-  ctx.stroke();
-}
-
-function drawWoodBlockRect(b) {
-  const px = boardX + b.x * cell;
-  const py = boardY + b.y * cell;
-  const ww = b.w * cell;
-  const hh = b.h * cell;
-
-  const inset = 7;
-  const r = 16;
-
-  ctx.save();
-  ctx.shadowColor = "rgba(0,0,0,0.40)";
-  ctx.shadowBlur = 14;
-  ctx.shadowOffsetY = 14;
-
-  const g = ctx.createLinearGradient(px, py, px, py + hh);
-  g.addColorStop(0, "#efc08b");
-  g.addColorStop(1, "#c78954");
-
-  ctx.fillStyle = g;
-  roundedRect(px + inset, py + inset, ww - inset * 2, hh - inset * 2, r);
-  ctx.fill();
-  ctx.restore();
-
-  ctx.strokeStyle = "rgba(255,255,255,0.22)";
-  ctx.lineWidth = 2;
-  roundedRect(px + inset + 2, py + inset + 2, ww - inset * 2 - 4, hh - inset * 2 - 4, r - 2);
-  ctx.stroke();
-}
-
-function drawBall(cx, cy, r) {
-  // shadow
-  ctx.save();
-  ctx.fillStyle = "rgba(0,0,0,0.22)";
-  ctx.beginPath();
-  ctx.ellipse(cx, cy + r + 10, r * 1.05, r * 0.42, 0, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.restore();
-
-  const g = ctx.createRadialGradient(cx - r * 0.35, cy - r * 0.35, 2, cx, cy, r);
-  g.addColorStop(0, "#fff6c8");
-  g.addColorStop(0.35, "#ffd36a");
-  g.addColorStop(1, "#b9781c");
-
-  ctx.save();
-  ctx.shadowColor = "rgba(0,0,0,0.35)";
-  ctx.shadowBlur = 12;
-  ctx.shadowOffsetY = 10;
-
-  ctx.fillStyle = g;
-  ctx.beginPath();
-  ctx.arc(cx, cy, r, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.restore();
-
-  ctx.fillStyle = "rgba(255,255,255,0.65)";
-  ctx.beginPath();
-  ctx.arc(cx - r * 0.35, cy - r * 0.35, r * 0.28, 0, Math.PI * 2);
-  ctx.fill();
-}
-
-// ---------- MOVEMENT (smooth) ----------
-function setDir(dx, dy) {
-  player.dirx = dx;
-  player.diry = dy;
-}
-
-function tryStartMove() {
-  if (player.moving) return;
-
-  const nx = player.gx + player.dirx;
-  const ny = player.gy + player.diry;
-
-  if (!isWalkable(nx, ny)) return;
-
-  player.gx = nx;
-  player.gy = ny;
-
-  player.tx = cellCenterX(nx);
-  player.ty = cellCenterY(ny);
-
-  player.moving = true;
-}
-
-function update(dt) {
-  // If not moving, attempt to start (for held key / swipe)
-  if (!player.moving && (player.dirx !== 0 || player.diry !== 0)) {
-    tryStartMove();
-  }
-
-  if (player.moving) {
-    const speed = 520; // px/sec
-    const dx = player.tx - player.px;
-    const dy = player.ty - player.py;
-    const dist = Math.sqrt(dx * dx + dy * dy);
-
-    if (dist < 1) {
-      player.px = player.tx;
-      player.py = player.ty;
-      player.moving = false;
-
-      painted[player.gy][player.gx] = 1;
-
-      // level complete
-      if (paintedCount() >= walkableCount()) {
-        uiLevelNumber++;
-        uiCoins += 15;
-        document.getElementById("uiLevel").textContent = `LEVEL ${uiLevelNumber}`;
-        document.getElementById("uiCoins").textContent = `${uiCoins}`;
-
-        painted = make2D(grid, 0);
-        placePlayerOnFirstPath();
-      }
-      return;
-    }
-
-    const step = Math.min(dist, speed * dt);
-    player.px += (dx / dist) * step;
-    player.py += (dy / dist) * step;
-  }
-}
-
-function draw() {
-  ctx.clearRect(0, 0, W, H);
-
-  drawWoodBoard();
-  drawPitBackground();
-
-  // draw ONLY the carved path tiles (looks like Level UI channels)
-  for (let y = 0; y < grid; y++) {
-    for (let x = 0; x < grid; x++) {
-      if (map[y][x] === 1) drawPathTile(x, y);
-    }
-  }
-
-  // wooden blocks on top
-  for (const b of blocks) drawWoodBlockRect(b);
-
-  drawBall(player.px, player.py, player.r);
-}
-
-let last = performance.now();
-function loop(now) {
-  const dt = Math.min(0.033, (now - last) / 1000);
-  last = now;
-
-  update(dt);
-  draw();
-  requestAnimationFrame(loop);
-}
-requestAnimationFrame(loop);
-
-// ---------- INPUT ----------
-window.addEventListener("keydown", (e) => {
-  if (e.key === "ArrowUp") setDir(0, -1);
-  if (e.key === "ArrowDown") setDir(0, 1);
-  if (e.key === "ArrowLeft") setDir(-1, 0);
-  if (e.key === "ArrowRight") setDir(1, 0);
-
-  if (e.key === "r" || e.key === "R") {
-    painted = make2D(grid, 0);
-    placePlayerOnFirstPath();
-  }
-});
-
-window.addEventListener("keyup", (e) => {
-  if (["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].includes(e.key)) setDir(0, 0);
-});
-
-// Swipe (mobile)
-let touchStart = null;
-
-canvas.addEventListener("touchstart", (e) => {
-  const t = e.touches[0];
-  touchStart = { x: t.clientX, y: t.clientY };
-}, { passive: true });
-
-canvas.addEventListener("touchmove", (e) => {
-  if (!touchStart) return;
-  const t = e.touches[0];
-  const dx = t.clientX - touchStart.x;
-  const dy = t.clientY - touchStart.y;
-
-  const adx = Math.abs(dx), ady = Math.abs(dy);
-  if (adx < 18 && ady < 18) return;
-
-  if (adx > ady) setDir(dx > 0 ? 1 : -1, 0);
-  else setDir(0, dy > 0 ? 1 : -1);
-
-  touchStart = { x: t.clientX, y: t.clientY };
-}, { passive: true });
-
-canvas.addEventListener("touchend", () => {
-  touchStart = null;
-  setDir(0, 0);
-}, { passive: true });
-
-Besfort Qollaku
-IT-Manager
-+386 (0) 49 433 580
-+43 (0) 660 413 7019
-+381 (0) 38 222 212
-www.kolegjifama.eu
-besfort.collaku@kolegjifama.eu
-
-
-Besfort Çollaku <besfort.collaku@gmail.com> schrieb am Sa., 20. Dez. 2025, 18:11:
-import "./style.css";
-
-const app = document.querySelector("#app");
-
-// Fake UI values (you can connect later)
-let uiLevelNumber = 242;
-let uiCoins = 1888;
-
-app.innerHTML = `
-  <div class="ui">
-    <div class="topRow">
-      <div class="leftStack">
-        <button class="iconBtn yellow" id="btnSettings" title="Settings">⚙️</button>
-        <div style="position:relative">
-          <button class="iconBtn gray" id="btnCalendar" title="Claim">📅</button>
-          <div class="claimTag">CLAIM!</div>
-        </div>
-      </div>
-
-      <div class="levelText" id="uiLevel">LEVEL ${uiLevelNumber}</div>
-
-      <div class="rightStack" style="justify-content:flex-end">
-        <div class="coinPill" title="Coins">
-          <div class="coin"></div>
-          <div id="uiCoins">${uiCoins}</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="smallRow">
-      <button class="smallBtn purple" title="Joystick">🕹️</button>
-      <button class="smallBtn pink" title="Brush"><span class="newTag">NEW!</span>🖌️</button>
-      <button class="smallBtn yellow" title="Trophy">🏆</button>
-      <button class="smallBtn purple" title="Skins">🟡</button>
-      <button class="smallBtn yellow" title="No Ads">🚫</button>
-    </div>
-
-    <div class="stage">
-      <canvas id="game" width="520" height="520"></canvas>
-    </div>
-
-    <div class="bottomRow">
-      <button class="bigBtn hint" id="btnHint"><span class="film">▶</span>HINT</button>
-      <button class="bigBtn x3" id="btnX3"><span class="film">▶</span>×3</button>
-    </div>
-  </div>
-`;
-
-// Buttons (for now just demo)
-document.getElementById("btnHint").addEventListener("click", () => {
-  alert("Hint coming soon 🙂");
-});
-document.getElementById("btnX3").addEventListener("click", () => {
-  alert("x3 reward coming soon 🙂");
-});
-
-const canvas = document.getElementById("game");
-const ctx = canvas.getContext("2d");
-
-const W = canvas.width;
-const H = canvas.height;
-
-const gridSize = 8;
-const pad = 22;
-const cell = Math.floor((W - pad * 2) / gridSize);
-const boardPx = cell * gridSize;
-const boardX = Math.floor((W - boardPx) / 2);
-const boardY = Math.floor((H - boardPx) / 2);
-
-// 0 = empty, 1 = wooden block
-const LEVELS = [
-  [
-    [0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,1,1,0],
-    [0,1,1,0,0,1,0,0],
-    [0,0,0,0,0,0,0,0],
-    [0,0,1,1,0,0,0,0],
-    [0,0,0,0,0,1,0,0],
-    [0,1,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0],
-  ],
-];
-
-let levelIndex = 0;
-let map = clone2D(LEVELS[levelIndex]);
-let painted = make2D(gridSize, gridSize, 0);
-
-let player = { x: 0, y: 0, r: Math.floor(cell * 0.18) };
-placePlayer();
-painted[player.y][player.x] = 1;
-
-let moving = false;
-let dir = { x: 0, y: 0 };
-let lastMoveAt = 0;
-
-function clone2D(arr){ return arr.map(r => r.slice()); }
-function make2D(w,h,val){ return Array.from({length:h},()=>Array.from({length:w},()=>val)); }
-function inBounds(x,y){ return x>=0 && y>=0 && x<gridSize && y<gridSize; }
-function isBlocked(x,y){ return !inBounds(x,y) || map[y][x] === 1; }
