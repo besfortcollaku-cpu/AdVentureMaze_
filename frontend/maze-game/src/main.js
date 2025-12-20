@@ -1,15 +1,30 @@
 import './style.css'
 
-let time = 0
-
 const app = document.querySelector('#app')
 
-setInterval(() => {
-    time++
-      app.innerHTML = `
-            <h1>Adventure Maze</h1>
-            <p>Game running for ${time} seconds</p>
-          `
-        }, 1000)
-      `
-})
+app.innerHTML = `
+    <h1>Adventure Maze</h1>
+    <canvas id="game" width="400" height="400"></canvas>
+`
+
+const canvas = document.getElementById('game')
+const ctx = canvas.getContext('2d')
+
+// player
+let player = { x: 20, y: 20, size: 20 }
+
+function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
+
+      // background
+      ctx.fillStyle = '#f5f5f5'
+        ctx.fillRect(0, 0, canvas.width, canvas.height)
+
+          // player
+          ctx.fillStyle = '#2c7be5'
+            ctx.fillRect(player.x, player.y, player.size, player.size)
+          }
+
+          draw()
+  `}
+}
