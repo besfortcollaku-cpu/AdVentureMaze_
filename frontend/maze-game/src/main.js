@@ -12,17 +12,38 @@ app.innerHTML = `
 const canvas = document.getElementById('game')
 const ctx = canvas.getContext('2d')
 
-const player = { x: 20, y: 20, size: 20 }
+const player = { x: 20, y: 20, size: 20, speed: 2 }
+const keys = {}
 
-function draw() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height)
+window.addEventListener('keydown', e => keys[e.key] = true)
+window.addEventListener('keyup', e => keys[e.key] = false)
 
-      ctx.fillStyle = '#ddd'
-        ctx.fillRect(0, 0, canvas.width, canvas.height)
+function update() {
+    if (keys['ArrowUp']) player.y -= player.speed
+        if (keys['ArrowDown']) player.y += player.speed
+            if (keys['ArrowLeft']) player.x -= player.speed
+                if (keys['ArrowRight']) player.x += player.speed
+              }
 
-          ctx.fillStyle = '#2c7be5'
-            ctx.fillRect(player.x, player.y, player.size, player.size)
-          }
+            function draw() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height)
 
-          draw()
-  `}   }
+                  ctx.fillStyle = '#ddd'
+                    ctx.fillRect(0, 0, canvas.width, canvas.height)
+
+                      ctx.fillStyle = '#2c7be5'
+                        ctx.fillRect(player.x, player.y, player.size, player.size)
+                      }
+
+                      function loop() {
+                          update()
+                            draw()
+                              requestAnimationFrame(loop)
+                            }
+
+                            loop()
+                      }
+            }
+  `}
+}
+}
