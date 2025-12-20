@@ -4,19 +4,28 @@ const app = document.querySelector('#app')
 
 app.innerHTML = `
     <h1>Adventure Maze</h1>
-    <canvas id="game" width="400" height="400"
-      style="border:2px solid black; background:#eee;">
-    </canvas>
+    <canvas
+      id="game"
+      width="400"
+      height="400"
+      style="border:2px solid black; background:#eee;"
+    ></canvas>
 `
 
 const canvas = document.getElementById('game')
 const ctx = canvas.getContext('2d')
 
+
 const player = { x: 20, y: 20, size: 20, speed: 2 }
 const keys = {}
 
-window.addEventListener('keydown', e => keys[e.key] = true)
-window.addEventListener('keyup', e => keys[e.key] = false)
+window.addEventListener('keydown', (e) => {
+    keys[e.key] = true
+  })
+
+window.addEventListener('keyup', (e) => {
+    keys[e.key] = false
+  })
 
 function update() {
     if (keys['ArrowUp']) player.y -= player.speed
@@ -42,8 +51,3 @@ function update() {
                             }
 
                             loop()
-                      }
-            }
-  `}
-}
-}
