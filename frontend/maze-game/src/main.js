@@ -1,5 +1,6 @@
+import './style.css'
+
 document.querySelector('#app').innerHTML = `
-    <h1>Adventure Maze</h1>
-    <p>Game loading...</p>
-`;
-  
+    <h1>🧩 Adventure Maze</h1>
+    <p>If you see this, Cloudflare is working.</p>
+  `
