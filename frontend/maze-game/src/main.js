@@ -296,40 +296,6 @@ loop();
 
 // ---------- controls ----------
 function setDir(dx, dy) {
-  dir.x = dx; dir.y = dy;
-  moving = !(dx === 0 && dy === 0);
-}
-
-window.addEventListener("keydown", (e) => {
-  if (e.key === "ArrowUp") setDir(0,-1);
-  else if (e.key === "ArrowDown") setDir(0,1);
-  else if (e.key === "ArrowLeft") setDir(-1,0);
-  else if (e.key === "ArrowRight") setDir(1,0);
-  else if (e.key === "r" || e.key === "R") { // reset
-    painted = make2D(gridSize, gridSize, 0);
-    placePlayer();
-    painted[player.y][player.x] = 1;
-    moving = false;
-    dir = {x:0,y:0};
-  }
-});
-
-window.addEventListener("keyup", (e) => {
-  // stop when releasing arrow keys (optional)
-  if (["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].includes(e.key)) {
-    setDir(0,0);
-  }
-});
-
-// Swipe controls (mobile)
-let touchStart = null;
-
-import "./style.css"; const app = document.querySelector("#app"); // UI numberslet uiLevelNumber = 242;let uiCoins = 1888; app.innerHTML = ` <div class="ui"> <d
-
-Besfort Çollaku <besfort.collaku@gmail.com>
-9:51 PM (2 minutes ago)
-to me
-
 import "./style.css";
 
 const app = document.querySelector("#app");
