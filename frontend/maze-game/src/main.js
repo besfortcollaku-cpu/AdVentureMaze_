@@ -19,7 +19,7 @@ const ctx = canvas.getContext("2d");
 const W = canvas.width;
 const H = canvas.height;
 
-const pad = 22;              // hole padding
+const pad = 22;           // hole padding    // hole padding
 const gridSize = 8;          // 8x8 tiles like the screenshot vibe
 const cell = Math.floor((W - pad * 2) / gridSize);
 const boardPx = cell * gridSize;
