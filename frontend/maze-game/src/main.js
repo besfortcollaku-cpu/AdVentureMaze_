@@ -1,6 +1,15 @@
 import './style.css'
 
-document.querySelector('#app').innerHTML = `
-    <h1>🧩 Adventure Maze</h1>
-    <p>If you see this, Cloudflare is working.</p>
-  `
+let time = 0
+
+const app = document.querySelector('#app')
+
+setInterval(() => {
+    time++
+      app.innerHTML = `
+            <h1>Adventure Maze</h1>
+            <p>Game running for ${time} seconds</p>
+          `
+        }, 1000)
+      `
+})
