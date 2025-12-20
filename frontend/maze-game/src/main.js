@@ -1,607 +1,243 @@
 import "./style.css";
 
 /**
- * Adventure Maze (Mobile-first)
- * - Swipe controls + D-pad
- * - 3D wood look
- * - Solid walls (no gaps)
- * - Goal hole + win animation + confetti
- * - Level system (easy to add)
- * - Sound + vibration
+ * Adventure Maze — Level 242 vibe
+ * - Wood board background
+ * - Dark "pit/hole" recessed area
+ * - Connected path strip (no gaps)
+ * - Smooth movement (slide animation)
+ * - Mobile swipe controls
  */
 
-/* ------------------------ UI MOUNT ------------------------ */
 const app = document.querySelector("#app");
+
+// Put your logo here:
+// frontend/maze-game/public/logo.png
 app.innerHTML = `
-  <div class="topbar">
-    <div class="titleBox">
-      <div class="gameTitle">Adventure Maze</div>
-      <div class="subTitle" id="subtitle">Swipe to move • Reach the hole</div>
-    </div>
-    <div class="rightBox">
-      <div class="pill" title="Coins (demo)">
-        <span class="dot"></span>
-        <span id="coins">1888</span>
+  <div class="phone">
+    <div class="topbar">
+      <div class="brand">
+        <div class="logoBox" title="Adventure Maze">
+          <img src="/logo.png" alt="Adventure Maze Logo" />
+        </div>
       </div>
-      <button class="iconBtn" id="soundBtn" title="Sound">🔊</button>
+
+      <div class="levelWrap">
+        <div class="levelNew">NEW!</div>
+        <div class="levelText">LEVEL 242</div>
+      </div>
+
+      <div class="coins" title="Coins">
+        <div class="coinDot"></div>
+        <div id="coinCount">1888</div>
+      </div>
+    </div>
+
+    <div class="boardWrap">
+      <div class="boardFrame">
+        <canvas id="game"></canvas>
+      </div>
+    </div>
+
+    <div class="bottomBar">
+      <button class="btn" id="hintBtn">
+        <div class="btnIcon">🎬</div>
+        <div>HINT</div>
+      </button>
+
+      <div class="pill">Swipe to move</div>
+
+      <button class="btn" id="x3Btn">
+        <div class="btnIcon">⏩</div>
+        <div>×3</div>
+      </button>
     </div>
   </div>
 
-  <div class="stage">
-    <canvas id="game"></canvas>
-
-    <div class="hud">
-      <button class="bigBtn" id="prevBtn">◀︎ Level</button>
-      <button class="bigBtn" id="resetBtn">↻ Reset</button>
-      <button class="bigBtn" id="nextBtn">Level ▶︎</button>
+  <div class="desktopBlock" id="desktopBlock">
+    <div class="desktopCard">
+      <h2>Mobile game</h2>
+      <p>This game is designed for smartphones. Use swipe on mobile. Desktop is only for testing (arrow keys).</p>
     </div>
-
-    <div class="dpadWrap">
-      <div class="dpad">
-        <div class="empty"></div>
-        <button id="upBtn">▲</button>
-        <div class="empty"></div>
-
-        <button id="leftBtn">◀</button>
-        <button id="centerBtn">●</button>
-        <button id="rightBtn">▶</button>
-
-        <div class="empty"></div>
-        <button id="downBtn">▼</button>
-        <div class="empty"></div>
-      </div>
-    </div>
-
-    <div class="hintText">Tip: swipe on the board or use the arrows. Works best on phone.</div>
-    <div class="toast" id="toast"></div>
   </div>
 `;
 
-/* ------------------------ CANVAS SETUP ------------------------ */
+/* ------------------ Device helpers ------------------ */
+function isTouchDevice() {
+  return "ontouchstart" in window || navigator.maxTouchPoints > 0;
+}
+function isNarrow() {
+  return window.matchMedia("(max-width: 700px)").matches;
+}
+const desktopBlock = document.getElementById("desktopBlock");
+function updateDesktopOverlay() {
+  const show = !isTouchDevice() && !isNarrow();
+  desktopBlock.style.display = show ? "flex" : "none";
+}
+updateDesktopOverlay();
+window.addEventListener("resize", updateDesktopOverlay);
+
+/* ------------------ Canvas setup ------------------ */
 const canvas = document.getElementById("game");
-const ctx = canvas.getContext("2d", { alpha: false });
+const ctx = canvas.getContext("2d");
 
-function resizeCanvas() {
-  // phone-first sizing (square)
-  const size = Math.min(window.innerWidth * 0.92, 520);
-  canvas.width = Math.floor(size);
-  canvas.height = Math.floor(size);
-}
-window.addEventListener("resize", resizeCanvas);
-resizeCanvas();
+let tile = 40;
+let boardW = 0;
+let boardH = 0;
+let ox = 0;
+let oy = 0;
 
-/* ------------------------ AUDIO / HAPTIC ------------------------ */
-let soundOn = true;
-const soundBtn = document.getElementById("soundBtn");
-
-soundBtn.addEventListener("click", () => {
-  soundOn = !soundOn;
-  soundBtn.textContent = soundOn ? "🔊" : "🔇";
-  toast(soundOn ? "Sound ON" : "Sound OFF");
-});
-
-function vibrate(ms) {
-  try {
-    if (navigator.vibrate) navigator.vibrate(ms);
-  } catch {}
-}
-
-let audioCtx = null;
-function beep(freq = 440, dur = 0.06, type = "sine", vol = 0.03) {
-  if (!soundOn) return;
-  try {
-    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    const o = audioCtx.createOscillator();
-    const g = audioCtx.createGain();
-    o.type = type;
-    o.frequency.value = freq;
-    g.gain.value = vol;
-    o.connect(g);
-    g.connect(audioCtx.destination);
-    o.start();
-    o.stop(audioCtx.currentTime + dur);
-  } catch {}
-}
-
-/* ------------------------ LEVELS ------------------------ */
+/* ------------------ Level data ------------------ */
 /**
- * Legend:
- * # = wall
- * . = floor
- * S = start
- * G = goal (hole)
+ * 0 = track
+ * 1 = pit/void
+ * 2 = goal (track)
  *
- * Add more levels by pushing to LEVELS array.
+ * Track is a strip through a hole area (like Level 242).
  */
-const LEVELS = [
-  {
-    name: "Level 242",
-    map: [
-      "###############",
-      "#S....#.......#",
-      "###.#.#.#####.#",
-      "#...#...#...#.#",
-      "#.#####.#.#.#.#",
-      "#.....#.#.#...#",
-      "###.#.#.#.###.#",
-      "#...#.#...#...#",
-      "#.###.#####.#.#",
-      "#.....#.....#G#",
-      "###############",
-    ],
-  },
-  {
-    name: "Level 243",
-    map: [
-      "###############",
-      "#S....#.......#",
-      "#.###.#.#####.#",
-      "#...#.#.....#.#",
-      "###.#.#####.#.#",
-      "#...#.....#...#",
-      "#.#####.#.###.#",
-      "#.....#.#...#.#",
-      "#.###.#.###.#.#",
-      "#...#.....#..G#",
-      "###############",
-    ],
-  },
+const grid = [
+  [1,1,1,1,1,1,1,1,1,1],
+  [1,0,0,0,0,0,0,0,0,1],
+  [1,0,1,1,1,1,1,1,0,1],
+  [1,0,1,1,1,1,1,1,0,1],
+  [1,0,0,0,0,0,0,1,0,1],
+  [1,1,1,1,1,1,0,1,0,1],
+  [1,0,0,0,0,1,0,0,0,1],
+  [1,0,1,1,0,1,1,1,2,1],
+  [1,0,0,0,0,0,0,0,0,1],
+  [1,1,1,1,1,1,1,1,1,1],
 ];
 
-/* ------------------------ GAME STATE ------------------------ */
-let levelIndex = 0;
-let grid = [];
-let rows = 0;
-let cols = 0;
+const rows = grid.length;
+const cols = grid[0].length;
 
-let tile = 32;
-let offsetX = 0;
-let offsetY = 0;
+const start = { x: 1, y: 1 };
+let playerCell = { x: start.x, y: start.y };
 
-const player = {
-  x: 0, // grid
-  y: 0, // grid
-  px: 0, // pixel smooth
-  py: 0, // pixel smooth
-  r: 0, // radius in pixels
-  moving: false,
-};
-
-let goal = { x: 0, y: 0 };
-let won = false;
-
-const subtitle = document.getElementById("subtitle");
-const toastEl = document.getElementById("toast");
-
-function toast(msg) {
-  toastEl.textContent = msg;
-  if (!msg) return;
-  clearTimeout(toast._t);
-  toast._t = setTimeout(() => (toastEl.textContent = ""), 1400);
-}
-
-/* ------------------------ PARSE LEVEL ------------------------ */
-function loadLevel(i) {
-  won = false;
-  levelIndex = (i + LEVELS.length) % LEVELS.length;
-
-  const map = LEVELS[levelIndex].map;
-  rows = map.length;
-  cols = map[0].length;
-  grid = map.map((line) => line.split(""));
-
+const goal = findGoal();
+function findGoal() {
   for (let y = 0; y < rows; y++) {
     for (let x = 0; x < cols; x++) {
-      if (grid[y][x] === "S") {
-        player.x = x;
-        player.y = y;
-      }
-      if (grid[y][x] === "G") {
-        goal.x = x;
-        goal.y = y;
-      }
+      if (grid[y][x] === 2) return { x, y };
     }
   }
-
-  // compute tile size to fill canvas nicely
-  const boardSize = Math.min(canvas.width, canvas.height);
-  tile = Math.floor(boardSize / Math.max(cols, rows));
-  const usedW = tile * cols;
-  const usedH = tile * rows;
-  offsetX = Math.floor((canvas.width - usedW) / 2);
-  offsetY = Math.floor((canvas.height - usedH) / 2);
-
-  player.px = gridToPx(player.x);
-  player.py = gridToPy(player.y);
-  player.r = tile * 0.34;
-  player.moving = false;
-
-  subtitle.textContent = `${LEVELS[levelIndex].name} • Swipe to move • Reach the hole`;
-  toast("");
+  return { x: cols - 2, y: rows - 2 };
 }
 
-function gridToPx(gx) {
-  return offsetX + gx * tile + tile / 2;
-}
-function gridToPy(gy) {
-  return offsetY + gy * tile + tile / 2;
+function isTrack(x, y) {
+  return grid[y] && (grid[y][x] === 0 || grid[y][x] === 2);
 }
 
-loadLevel(0);
+/* ------------------ Smooth movement ------------------ */
+let moving = false;
+let moveQueue = [];
+let anim = {
+  t0: 0,
+  dur: 130, // ms
+  sx: start.x,
+  sy: start.y,
+  tx: start.x,
+  ty: start.y,
+};
 
-/* ------------------------ INPUT (KEY + TOUCH) ------------------------ */
-const keys = new Set();
-
-window.addEventListener("keydown", (e) => {
-  const k = e.key.toLowerCase();
-  if (k.includes("arrow")) e.preventDefault();
-  keys.add(k);
-});
-window.addEventListener("keyup", (e) => {
-  keys.delete(e.key.toLowerCase());
-});
-
-// D-pad buttons (mobile)
-function pressKey(k) {
-  keys.add(k);
-  setTimeout(() => keys.delete(k), 110);
-}
-document.getElementById("upBtn").addEventListener("click", () => pressKey("arrowup"));
-document.getElementById("downBtn").addEventListener("click", () => pressKey("arrowdown"));
-document.getElementById("leftBtn").addEventListener("click", () => pressKey("arrowleft"));
-document.getElementById("rightBtn").addEventListener("click", () => pressKey("arrowright"));
-document.getElementById("centerBtn").addEventListener("click", () => resetLevel());
-
-// Swipe
-let touchStart = null;
-
-canvas.addEventListener(
-  "touchstart",
-  (e) => {
-    const t = e.touches[0];
-    touchStart = { x: t.clientX, y: t.clientY, time: performance.now() };
-  },
-  { passive: true }
-);
-
-canvas.addEventListener(
-  "touchmove",
-  (e) => {
-    if (!touchStart) return;
-    const t = e.touches[0];
-    const dx = t.clientX - touchStart.x;
-    const dy = t.clientY - touchStart.y;
-
-    // If short swipe, ignore
-    const threshold = 18;
-    if (Math.abs(dx) < threshold && Math.abs(dy) < threshold) return;
-
-    if (Math.abs(dx) > Math.abs(dy)) {
-      pressKey(dx > 0 ? "arrowright" : "arrowleft");
-    } else {
-      pressKey(dy > 0 ? "arrowdown" : "arrowup");
-    }
-
-    // reset swipe origin so continuous swipes work
-    touchStart = { x: t.clientX, y: t.clientY, time: performance.now() };
-  },
-  { passive: true }
-);
-
-canvas.addEventListener(
-  "touchend",
-  () => {
-    touchStart = null;
-  },
-  { passive: true }
-);
-
-/* ------------------------ UI BUTTONS ------------------------ */
-document.getElementById("resetBtn").addEventListener("click", resetLevel);
-document.getElementById("nextBtn").addEventListener("click", () => loadLevel(levelIndex + 1));
-document.getElementById("prevBtn").addEventListener("click", () => loadLevel(levelIndex - 1));
-
-function resetLevel() {
-  beep(260, 0.06, "square", 0.02);
-  vibrate(20);
-  loadLevel(levelIndex);
+function easeOutCubic(t) {
+  return 1 - Math.pow(1 - t, 3);
 }
 
-/* ------------------------ COLLISION / MOVEMENT ------------------------ */
-function isWall(x, y) {
-  if (x < 0 || y < 0 || x >= cols || y >= rows) return true;
-  return grid[y][x] === "#";
-}
-
-function tryMove(dx, dy) {
-  if (player.moving || won) return;
-
-  const nx = player.x + dx;
-  const ny = player.y + dy;
-  if (isWall(nx, ny)) {
-    beep(120, 0.05, "square", 0.02);
-    vibrate(10);
+function requestMove(dx, dy) {
+  // queue moves while moving
+  if (moving) {
+    moveQueue.push({ dx, dy });
+    if (moveQueue.length > 3) moveQueue.shift();
     return;
   }
 
-  player.x = nx;
-  player.y = ny;
-  player.moving = true;
+  const nx = playerCell.x + dx;
+  const ny = playerCell.y + dy;
+  if (!isTrack(nx, ny)) return;
 
-  beep(540, 0.03, "sine", 0.02);
-  vibrate(10);
+  moving = true;
+
+  anim.t0 = performance.now();
+  anim.sx = playerCell.x;
+  anim.sy = playerCell.y;
+  anim.tx = nx;
+  anim.ty = ny;
+
+  // update logical cell immediately (so goal check correct at end)
+  playerCell.x = nx;
+  playerCell.y = ny;
 }
 
-function updateInput() {
-  if (keys.has("arrowup")) tryMove(0, -1);
-  if (keys.has("arrowdown")) tryMove(0, 1);
-  if (keys.has("arrowleft")) tryMove(-1, 0);
-  if (keys.has("arrowright")) tryMove(1, 0);
-}
+/* After movement ends, pop next queued move */
+function onMoveFinished() {
+  moving = false;
 
-/* ------------------------ VISUAL STYLE (LEVEL 242-LIKE) ------------------------ */
-function drawWoodBase() {
-  // wood-ish background inside canvas area
-  const g = ctx.createLinearGradient(0, 0, 0, canvas.height);
-  g.addColorStop(0, "#f3d4ab");
-  g.addColorStop(1, "#e9b781");
-  ctx.fillStyle = g;
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-  // subtle grain
-  ctx.globalAlpha = 0.12;
-  for (let i = 0; i < 16; i++) {
-    const y = (canvas.height / 16) * i + (i % 2) * 6;
-    ctx.fillStyle = "rgba(120,70,30,1)";
-    ctx.fillRect(0, y, canvas.width, 1);
+  if (playerCell.x === goal.x && playerCell.y === goal.y) {
+    setTimeout(() => alert("LEVEL COMPLETE!"), 60);
   }
-  ctx.globalAlpha = 1;
-}
 
-function drawBoardShadow() {
-  // “carved hole” shadow for the maze board
-  const x = offsetX - tile * 0.22;
-  const y = offsetY - tile * 0.22;
-  const w = cols * tile + tile * 0.44;
-  const h = rows * tile + tile * 0.44;
-
-  ctx.fillStyle = "rgba(0,0,0,.22)";
-  roundRect(ctx, x + 6, y + 8, w, h, 18, true);
-
-  ctx.fillStyle = "rgba(255,255,255,.28)";
-  roundRect(ctx, x, y, w, h, 18, true);
-}
-
-// NO gaps: each cell is tile x tile exactly.
-function drawWall3D(gx, gy) {
-  const rx = offsetX + gx * tile;
-  const ry = offsetY + gy * tile;
-
-  const depth = Math.max(2, Math.floor(tile * 0.14));
-
-  // drop shadow
-  ctx.fillStyle = "rgba(0,0,0,.22)";
-  ctx.fillRect(rx + depth, ry + depth, tile, tile);
-
-  // wall face gradient (wood block)
-  const grad = ctx.createLinearGradient(rx, ry, rx, ry + tile);
-  grad.addColorStop(0, "#e4b07b");
-  grad.addColorStop(1, "#b7743f");
-  ctx.fillStyle = grad;
-  ctx.fillRect(rx, ry, tile, tile);
-
-  // highlight edge
-  ctx.globalAlpha = 0.25;
-  ctx.fillStyle = "#fff";
-  ctx.fillRect(rx + 1, ry + 1, tile - 2, Math.max(1, Math.floor(tile * 0.08)));
-  ctx.globalAlpha = 1;
-}
-
-function drawPathCell(gx, gy) {
-  const rx = offsetX + gx * tile;
-  const ry = offsetY + gy * tile;
-
-  // “purple tile path” but continuous (no gaps)
-  const grad = ctx.createLinearGradient(rx, ry, rx + tile, ry + tile);
-  grad.addColorStop(0, "#e9ddff");
-  grad.addColorStop(1, "#cbb8ff");
-
-  ctx.fillStyle = grad;
-  ctx.fillRect(rx, ry, tile, tile);
-}
-
-function drawGoalHole() {
-  const cx = gridToPx(goal.x);
-  const cy = gridToPy(goal.y);
-
-  const rOuter = tile * 0.42;
-  const rInner = tile * 0.22;
-
-  // hole shadow
-  ctx.beginPath();
-  ctx.arc(cx + tile * 0.06, cy + tile * 0.08, rOuter, 0, Math.PI * 2);
-  ctx.fillStyle = "rgba(0,0,0,.30)";
-  ctx.fill();
-
-  // rim
-  ctx.beginPath();
-  ctx.arc(cx, cy, rOuter, 0, Math.PI * 2);
-  ctx.fillStyle = "rgba(255,255,255,.45)";
-  ctx.fill();
-
-  // hole
-  const g = ctx.createRadialGradient(cx, cy, rInner * 0.3, cx, cy, rOuter);
-  g.addColorStop(0, "#2a1b12");
-  g.addColorStop(1, "#140c08");
-  ctx.beginPath();
-  ctx.arc(cx, cy, rOuter * 0.82, 0, Math.PI * 2);
-  ctx.fillStyle = g;
-  ctx.fill();
-}
-
-function drawPlayerBall() {
-  const cx = player.px;
-  const cy = player.py;
-
-  const r = player.r;
-
-  // ball shadow
-  ctx.beginPath();
-  ctx.ellipse(cx + r * 0.22, cy + r * 0.34, r * 0.9, r * 0.55, 0, 0, Math.PI * 2);
-  ctx.fillStyle = "rgba(0,0,0,.18)";
-  ctx.fill();
-
-  // golden ball with gradient
-  const g = ctx.createRadialGradient(cx - r * 0.25, cy - r * 0.3, r * 0.2, cx, cy, r);
-  g.addColorStop(0, "#fff3b0");
-  g.addColorStop(0.35, "#ffd264");
-  g.addColorStop(1, "#b97818");
-
-  ctx.beginPath();
-  ctx.arc(cx, cy, r, 0, Math.PI * 2);
-  ctx.fillStyle = g;
-  ctx.fill();
-
-  // highlight
-  ctx.globalAlpha = 0.35;
-  ctx.beginPath();
-  ctx.arc(cx - r * 0.35, cy - r * 0.35, r * 0.35, 0, Math.PI * 2);
-  ctx.fillStyle = "#fff";
-  ctx.fill();
-  ctx.globalAlpha = 1;
-}
-
-/* ------------------------ CONFETTI WIN ------------------------ */
-const confetti = [];
-function spawnConfetti() {
-  confetti.length = 0;
-  for (let i = 0; i < 120; i++) {
-    confetti.push({
-      x: canvas.width / 2,
-      y: canvas.height / 2,
-      vx: (Math.random() - 0.5) * 6,
-      vy: (Math.random() - 0.8) * 6,
-      r: 2 + Math.random() * 3,
-      a: Math.random() * Math.PI * 2,
-      va: (Math.random() - 0.5) * 0.3,
-      life: 80 + Math.random() * 50,
-    });
+  if (moveQueue.length > 0) {
+    const m = moveQueue.shift();
+    requestMove(m.dx, m.dy);
   }
 }
 
-function updateConfetti() {
-  for (const c of confetti) {
-    c.x += c.vx;
-    c.y += c.vy;
-    c.vy += 0.12; // gravity
-    c.a += c.va;
-    c.life -= 1;
-  }
-  for (let i = confetti.length - 1; i >= 0; i--) {
-    if (confetti[i].life <= 0) confetti.splice(i, 1);
-  }
+/* Desktop keys (testing only) */
+window.addEventListener("keydown", (e) => {
+  if (e.key === "ArrowUp") requestMove(0, -1);
+  if (e.key === "ArrowDown") requestMove(0, 1);
+  if (e.key === "ArrowLeft") requestMove(-1, 0);
+  if (e.key === "ArrowRight") requestMove(1, 0);
+});
+
+/* Swipe controls */
+let touchStartX = 0;
+let touchStartY = 0;
+
+canvas.addEventListener("touchstart", (e) => {
+  const t = e.touches[0];
+  touchStartX = t.clientX;
+  touchStartY = t.clientY;
+}, { passive: true });
+
+canvas.addEventListener("touchend", (e) => {
+  const t = e.changedTouches[0];
+  const dx = t.clientX - touchStartX;
+  const dy = t.clientY - touchStartY;
+
+  const ax = Math.abs(dx);
+  const ay = Math.abs(dy);
+  if (Math.max(ax, ay) < 14) return;
+
+  if (ax > ay) requestMove(dx > 0 ? 1 : -1, 0);
+  else requestMove(0, dy > 0 ? 1 : -1);
+}, { passive: true });
+
+/* Buttons (UI only for now) */
+document.getElementById("hintBtn").addEventListener("click", () => alert("Hint later 😉"));
+document.getElementById("x3Btn").addEventListener("click", () => alert("Boost later 😉"));
+
+/* ------------------ Resize ------------------ */
+function resizeCanvas() {
+  const rect = canvas.getBoundingClientRect();
+  const dpr = Math.min(2, window.devicePixelRatio || 1);
+
+  canvas.width = Math.floor(rect.width * dpr);
+  canvas.height = Math.floor(rect.height * dpr);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+  boardW = rect.width;
+  boardH = rect.height;
+
+  tile = Math.floor(Math.min(boardW / cols, boardH / rows));
+  ox = Math.floor((boardW - cols * tile) / 2);
+  oy = Math.floor((boardH - rows * tile) / 2);
 }
+window.addEventListener("resize", resizeCanvas);
 
-function drawConfetti() {
-  if (!confetti.length) return;
-  ctx.save();
-  for (const c of confetti) {
-    ctx.translate(c.x, c.y);
-    ctx.rotate(c.a);
-    ctx.fillStyle = pickConfettiColor(c.life);
-    ctx.fillRect(-c.r, -c.r, c.r * 2, c.r * 2);
-    ctx.setTransform(1, 0, 0, 1, 0, 0);
-  }
-  ctx.restore();
-}
-function pickConfettiColor(seed) {
-  const colors = ["#ff4d4d", "#ffd54a", "#46d6ff", "#7cff76", "#c87bff"];
-  return colors[Math.floor(seed) % colors.length];
-}
-
-/* ------------------------ UPDATE + DRAW LOOP ------------------------ */
-function update() {
-  updateInput();
-
-  // smooth movement toward target grid center
-  const tx = gridToPx(player.x);
-  const ty = gridToPy(player.y);
-
-  const speed = Math.max(2, Math.floor(tile * 0.22));
-  const dx = tx - player.px;
-  const dy = ty - player.py;
-
-  if (Math.abs(dx) < 0.5 && Math.abs(dy) < 0.5) {
-    player.px = tx;
-    player.py = ty;
-    player.moving = false;
-  } else {
-    player.px += Math.sign(dx) * Math.min(Math.abs(dx), speed);
-    player.py += Math.sign(dy) * Math.min(Math.abs(dy), speed);
-  }
-
-  // win check (must be centered)
-  if (!won && !player.moving && player.x === goal.x && player.y === goal.y) {
-    won = true;
-    toast("✅ Level Complete!");
-    vibrate(80);
-
-    beep(880, 0.07, "sine", 0.03);
-    setTimeout(() => beep(990, 0.07, "sine", 0.03), 90);
-    setTimeout(() => beep(1180, 0.09, "sine", 0.03), 180);
-
-    spawnConfetti();
-
-    // auto next after a moment
-    setTimeout(() => loadLevel(levelIndex + 1), 900);
-  }
-
-  updateConfetti();
-}
-
-function draw() {
-  drawWoodBase();
-  drawBoardShadow();
-
-  // draw floor/path first
-  for (let y = 0; y < rows; y++) {
-    for (let x = 0; x < cols; x++) {
-      const cell = grid[y][x];
-      if (cell !== "#") drawPathCell(x, y);
-    }
-  }
-
-  // goal hole on top of path
-  drawGoalHole();
-
-  // walls on top (no gaps)
-  for (let y = 0; y < rows; y++) {
-    for (let x = 0; x < cols; x++) {
-      if (grid[y][x] === "#") drawWall3D(x, y);
-    }
-  }
-
-  drawPlayerBall();
-  drawConfetti();
-
-  // win overlay
-  if (won) {
-    ctx.globalAlpha = 0.18;
-    ctx.fillStyle = "#000";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.globalAlpha = 1;
-  }
-}
-
-function loop() {
-  update();
-  draw();
-  requestAnimationFrame(loop);
-}
-loop();
-
-/* ------------------------ HELPERS ------------------------ */
-function roundRect(ctx, x, y, w, h, r, fill) {
+/* ------------------ Drawing helpers ------------------ */
+function roundRect(x, y, w, h, r) {
   const rr = Math.min(r, w / 2, h / 2);
   ctx.beginPath();
   ctx.moveTo(x + rr, y);
@@ -610,5 +246,361 @@ function roundRect(ctx, x, y, w, h, r, fill) {
   ctx.arcTo(x, y + h, x, y, rr);
   ctx.arcTo(x, y, x + w, y, rr);
   ctx.closePath();
-  if (fill) ctx.fill();
 }
+
+function cellCenter(x, y) {
+  return {
+    cx: ox + x * tile + tile / 2,
+    cy: oy + y * tile + tile / 2
+  };
+}
+
+/* --- Wood background like Level 242 --- */
+function drawWoodBackground() {
+  // base
+  const g = ctx.createLinearGradient(0, 0, 0, boardH);
+  g.addColorStop(0, "#f0b77d");
+  g.addColorStop(1, "#d89255");
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, boardW, boardH);
+
+  // subtle planks
+  ctx.globalAlpha = 0.12;
+  for (let i = 0; i < 10; i++) {
+    const y = (boardH / 10) * i;
+    ctx.fillStyle = i % 2 === 0 ? "#8a4f22" : "#6f3d18";
+    ctx.fillRect(0, y, boardW, 2);
+  }
+  ctx.globalAlpha = 1;
+
+  // wood grain curves (simple)
+  ctx.globalAlpha = 0.08;
+  for (let i = 0; i < 14; i++) {
+    const x = (boardW / 14) * i + 10;
+    ctx.beginPath();
+    ctx.ellipse(x, boardH * 0.5, 18, boardH * 0.35, 0, 0, Math.PI * 2);
+    ctx.strokeStyle = "#5d2e12";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  }
+  ctx.globalAlpha = 1;
+}
+
+/* --- Pit (hole) for void cells --- */
+function drawPit() {
+  // Draw a big dark area behind, then carve edges per cell to look recessed.
+  const pitPad = tile * 0.12;
+
+  // overall pit glow/ambient
+  ctx.save();
+  ctx.globalAlpha = 0.9;
+  ctx.fillStyle = "#2a1b12";
+  ctx.fillRect(ox, oy, cols * tile, rows * tile);
+  ctx.restore();
+
+  // Per void-cell: recessed rounded square + shadow
+  for (let y = 0; y < rows; y++) {
+    for (let x = 0; x < cols; x++) {
+      if (grid[y][x] !== 1) continue;
+
+      const px = ox + x * tile + pitPad;
+      const py = oy + y * tile + pitPad;
+      const pw = tile - pitPad * 2;
+      const ph = tile - pitPad * 2;
+      const r = Math.max(10, Math.floor(tile * 0.22));
+
+      // shadow
+      ctx.save();
+      ctx.shadowColor = "rgba(0,0,0,0.45)";
+      ctx.shadowBlur = 16;
+      ctx.shadowOffsetY = 6;
+      ctx.fillStyle = "#1b100b";
+      roundRect(px, py, pw, ph, r);
+      ctx.fill();
+      ctx.restore();
+
+      // inner darker center (depth)
+      const gg = ctx.createRadialGradient(px + pw*0.35, py + ph*0.25, 4, px + pw/2, py + ph/2, pw);
+      gg.addColorStop(0, "#2b1a12");
+      gg.addColorStop(1, "#120a07");
+      ctx.fillStyle = gg;
+      roundRect(px, py, pw, ph, r);
+      ctx.fill();
+
+      // top highlight edge
+      ctx.globalAlpha = 0.18;
+      ctx.strokeStyle = "#6a3b1f";
+      ctx.lineWidth = 2;
+      roundRect(px + 1, py + 1, pw - 2, ph - 2, r);
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+    }
+  }
+}
+
+/* --- Wooden blocks (obstacles) inside pit like Level 242 --- */
+const woodBlocks = [
+  { x: 4, y: 4, w: 1, h: 1 },
+  { x: 6, y: 6, w: 2, h: 1 },
+  { x: 3, y: 7, w: 1, h: 1 },
+];
+
+function drawWoodBlock(rect) {
+  // rect in grid coords
+  const pad = tile * 0.12;
+  const x = ox + rect.x * tile + pad;
+  const y = oy + rect.y * tile + pad;
+  const w = rect.w * tile - pad * 2;
+  const h = rect.h * tile - pad * 2;
+  const r = Math.max(12, Math.floor(tile * 0.25));
+
+  // shadow
+  ctx.save();
+  ctx.shadowColor = "rgba(0,0,0,0.40)";
+  ctx.shadowBlur = 18;
+  ctx.shadowOffsetY = 10;
+  ctx.fillStyle = "#000";
+  roundRect(x, y, w, h, r);
+  ctx.fill();
+  ctx.restore();
+
+  // wood gradient
+  const g = ctx.createLinearGradient(0, y, 0, y + h);
+  g.addColorStop(0, "#f3bf7f");
+  g.addColorStop(1, "#d08a4c");
+
+  roundRect(x, y, w, h, r);
+  ctx.fillStyle = g;
+  ctx.fill();
+
+  // wood lines
+  ctx.globalAlpha = 0.18;
+  ctx.strokeStyle = "#7a3e15";
+  ctx.lineWidth = 2;
+  for (let i = 0; i < 4; i++) {
+    const yy = y + (h / 5) * (i + 1);
+    ctx.beginPath();
+    ctx.moveTo(x + 10, yy);
+    ctx.lineTo(x + w - 10, yy);
+    ctx.stroke();
+  }
+  ctx.globalAlpha = 1;
+
+  // top edge highlight
+  ctx.globalAlpha = 0.18;
+  ctx.strokeStyle = "#fff2d8";
+  ctx.lineWidth = 3;
+  roundRect(x + 2, y + 2, w - 4, h - 4, r);
+  ctx.stroke();
+  ctx.globalAlpha = 1;
+}
+
+/* --- Track strip (connected, no gaps) --- */
+function drawTrack() {
+  const thick = tile * 0.78;
+  const half = thick / 2;
+  const rad = Math.max(12, Math.floor(thick * 0.28));
+  const overlap = 1.4; // kills seams
+
+  // track "tile" color like Level 242 (light purple)
+  const trackGrad = ctx.createLinearGradient(0, oy, 0, oy + rows * tile);
+  trackGrad.addColorStop(0, "#e9d6ff");
+  trackGrad.addColorStop(1, "#cbb2ff");
+
+  // glow around track a bit
+  function glowStroke(pathFn) {
+    ctx.save();
+    ctx.globalAlpha = 0.22;
+    ctx.lineWidth = 10;
+    ctx.strokeStyle = "rgba(255,255,255,0.8)";
+    pathFn();
+    ctx.stroke();
+
+    ctx.globalAlpha = 0.12;
+    ctx.lineWidth = 14;
+    ctx.strokeStyle = "rgba(37,215,255,0.55)";
+    pathFn();
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function fillTrack(pathFn) {
+    ctx.save();
+    ctx.fillStyle = trackGrad;
+    pathFn();
+    ctx.fill();
+
+    // slight top highlight
+    ctx.globalAlpha = 0.16;
+    ctx.fillStyle = "#ffffff";
+    pathFn(true);
+    ctx.fill();
+    ctx.globalAlpha = 1;
+    ctx.restore();
+  }
+
+  // draw per track cell + connectors
+  for (let y = 0; y < rows; y++) {
+    for (let x = 0; x < cols; x++) {
+      if (!isTrack(x, y)) continue;
+
+      const { cx, cy } = cellCenter(x, y);
+
+      const nodePath = () => roundRect(cx - half, cy - half, thick, thick, rad);
+      glowStroke(nodePath);
+      fillTrack(nodePath);
+
+      const neighbors = {
+        up: isTrack(x, y - 1),
+        down: isTrack(x, y + 1),
+        left: isTrack(x - 1, y),
+        right: isTrack(x + 1, y),
+      };
+
+      if (neighbors.up) {
+        const p = () => roundRect(cx - half, cy - tile / 2 - overlap, thick, tile / 2 + overlap, rad);
+        glowStroke(p); fillTrack(p);
+      }
+      if (neighbors.down) {
+        const p = () => roundRect(cx - half, cy, thick, tile / 2 + overlap, rad);
+        glowStroke(p); fillTrack(p);
+      }
+      if (neighbors.left) {
+        const p = () => roundRect(cx - tile / 2 - overlap, cy - half, tile / 2 + overlap, thick, rad);
+        glowStroke(p); fillTrack(p);
+      }
+      if (neighbors.right) {
+        const p = () => roundRect(cx, cy - half, tile / 2 + overlap, thick, rad);
+        glowStroke(p); fillTrack(p);
+      }
+    }
+  }
+
+  // start ring
+  const s = cellCenter(start.x, start.y);
+  drawStartRing(s.cx, s.cy, tile * 0.22);
+
+  // goal socket
+  const g = cellCenter(goal.x, goal.y);
+  drawGoalSocket(g.cx, g.cy, tile * 0.22);
+}
+
+function drawStartRing(cx, cy, r) {
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(cx, cy, r * 1.18, 0, Math.PI * 2);
+  ctx.strokeStyle = "rgba(37,215,255,.65)";
+  ctx.lineWidth = 5;
+  ctx.stroke();
+  ctx.restore();
+}
+
+function drawGoalSocket(cx, cy, r) {
+  ctx.save();
+  // shadow
+  ctx.beginPath();
+  ctx.arc(cx + 2, cy + 3, r * 1.25, 0, Math.PI * 2);
+  ctx.fillStyle = "rgba(0,0,0,0.28)";
+  ctx.fill();
+
+  // gold
+  const gg = ctx.createRadialGradient(cx - r*0.35, cy - r*0.35, r*0.2, cx, cy, r*1.25);
+  gg.addColorStop(0, "#fff6c2");
+  gg.addColorStop(0.55, "#ffcc33");
+  gg.addColorStop(1, "#b67a00");
+
+  ctx.beginPath();
+  ctx.arc(cx, cy, r * 1.08, 0, Math.PI * 2);
+  ctx.fillStyle = gg;
+  ctx.fill();
+
+  // inner hole
+  ctx.beginPath();
+  ctx.arc(cx, cy, r * 0.55, 0, Math.PI * 2);
+  ctx.fillStyle = "rgba(0,0,0,0.55)";
+  ctx.fill();
+
+  ctx.restore();
+}
+
+/* --- Player (gold ball) --- */
+function drawPlayer(px, py) {
+  const r = tile * 0.22;
+
+  // shadow
+  ctx.beginPath();
+  ctx.arc(px + 2, py + 4, r * 1.08, 0, Math.PI * 2);
+  ctx.fillStyle = "rgba(0,0,0,0.28)";
+  ctx.fill();
+
+  const g = ctx.createRadialGradient(px - r*0.35, py - r*0.35, r*0.2, px, py, r);
+  g.addColorStop(0, "#fff6c2");
+  g.addColorStop(0.55, "#ffcc33");
+  g.addColorStop(1, "#c98700");
+
+  ctx.beginPath();
+  ctx.arc(px, py, r, 0, Math.PI * 2);
+  ctx.fillStyle = g;
+  ctx.fill();
+
+  // cyan rim glow (matches logo)
+  ctx.globalAlpha = 0.20;
+  ctx.beginPath();
+  ctx.arc(px, py, r * 1.18, 0, Math.PI * 2);
+  ctx.strokeStyle = "#25d7ff";
+  ctx.lineWidth = 8;
+  ctx.stroke();
+  ctx.globalAlpha = 1;
+}
+
+/* ------------------ Main render ------------------ */
+function getAnimatedPlayerPixel(now) {
+  // If not moving, just return center of playerCell
+  if (!moving) {
+    const c = cellCenter(playerCell.x, playerCell.y);
+    return { px: c.cx, py: c.cy };
+  }
+
+  const t = (now - anim.t0) / anim.dur;
+  const k = easeOutCubic(Math.min(1, Math.max(0, t)));
+
+  const sx = anim.sx + (anim.tx - anim.sx) * k;
+  const sy = anim.sy + (anim.ty - anim.sy) * k;
+
+  const c = cellCenter(sx, sy);
+  return { px: c.cx, py: c.cy, done: t >= 1 };
+}
+
+function draw(now) {
+  ctx.clearRect(0, 0, boardW, boardH);
+
+  // 1) wood board
+  drawWoodBackground();
+
+  // 2) pit area
+  drawPit();
+
+  // 3) wooden blocks
+  for (const b of woodBlocks) drawWoodBlock(b);
+
+  // 4) track strip
+  drawTrack();
+
+  // 5) player (animated)
+  const p = getAnimatedPlayerPixel(now);
+  drawPlayer(p.px, p.py);
+
+  if (moving && p.done) {
+    onMoveFinished();
+  }
+}
+
+/* ------------------ Game loop ------------------ */
+function loop(now) {
+  draw(now);
+  requestAnimationFrame(loop);
+}
+
+/* init */
+resizeCanvas();
+requestAnimationFrame(loop);
