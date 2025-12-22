@@ -1,10 +1,11 @@
 import "./style.css";
+import { mountUI } from "./ui/ui.js";
 
-import { mountUI } from "./ui.js";
-import { setupPiLogin } from "./pi/piClient.js";
-import { createGame } from "./game.js";
+import { createGame } from "./game/game.js";
+
 import { level242 } from "./levels/level242.js";
 
+import { setupPiLogin } from "./pi/piClient.js";
 /**
  * ✅ Render backend base URL (NO trailing slash)
  */
