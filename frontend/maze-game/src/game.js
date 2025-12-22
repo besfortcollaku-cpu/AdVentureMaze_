@@ -276,10 +276,11 @@ export function createGame({ BACKEND, canvas, getCurrentUser, level }) {
       // important: do one resize now + one after layout
       resizeCanvas();
       requestAnimationFrame(() => {
+      
         resizeCanvas();
         bindButtons();
         requestAnimationFrame(loop);
-      });
+      }, 0);
     },
   };
 }
