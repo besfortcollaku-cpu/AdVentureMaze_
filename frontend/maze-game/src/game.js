@@ -394,9 +394,7 @@ export function createGame({ BACKEND, canvas, getCurrentUser, level }) {
 
     touchStartY = t.clientY;
 
-  }, { piv;enn"tf){n.c  ntttt
-     
-     aa.     ayab  th ax    -  uee * --fuesnvct.ngt(=  .dlR dtt.w *    s.=og      tT(d,,,0);  dei Mboo
+  }, { piv;enn"tf){n.c  ntttt aa.     ayab  th ax    -  uee * --fuesnvct.ngt(=  .dlR dtt.w *    s.=og      tT(d,,,0);  dei Mboo
 
 rbh);  enzeeeC
 ----gee rnn,     /     PaTo, ,       
