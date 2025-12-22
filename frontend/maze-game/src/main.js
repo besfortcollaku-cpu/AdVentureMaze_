@@ -7,7 +7,13 @@ import { setupPiLogin } from "./pi/piClient.js";
 import { createGame } from "./game.js";
 
 import { level242 } from "./levels/level242.js";
+export function createGame() {
 
+  // Game is already running in main.js, so this is just a placeholder.
+
+  console.log("createGame placeholder");
+
+}
 
 
 /**
