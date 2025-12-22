@@ -8,6 +8,8 @@ export function createGame({ canvas }) {
 
   let h = 0; // CSS px height
 
+  let started = false;
+
 
 
   function resizeCanvas() {
@@ -91,6 +93,12 @@ export function createGame({ canvas }) {
   return {
 
     start() {
+
+      if (started) return;
+
+      started = true;
+
+
 
       resizeCanvas();
 

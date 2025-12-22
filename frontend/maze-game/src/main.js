@@ -29,13 +29,13 @@ setupPiLogin({
   },
 });
 
+// ✅ ALWAYS grab canvas from DOM after mountUI
 const canvas = document.getElementById("game");
-
 
 // Create + start game
 const game = createGame({
   BACKEND,
-  canvas: ui.canvas,
+  canvas, // ✅ use the real canvas
   getCurrentUser: () => CURRENT_USER,
   level: level242,
 });
