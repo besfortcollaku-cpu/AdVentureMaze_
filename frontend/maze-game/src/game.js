@@ -394,4 +394,4 @@ export function createGame({ BACKEND, canvas, getCurrentUser, level }) {
 
     touchStartY = t.clientY;
 
-  }
+  `)`
