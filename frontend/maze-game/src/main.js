@@ -4,6 +4,7 @@ import { mountUI } from "./ui.js";
 
 import { setupPiLogin } from "./pi/piClient.js";
 
+import { creatGame} from "./game.js";
 
 
 import { level242 } from "./levels/level242.js";
