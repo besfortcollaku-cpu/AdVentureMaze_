@@ -1,4 +1,4 @@
-import { piLoginAndVerify } from "../piAuth.js";
+import { piLoginAndVerify } from "./piAuth.js";
 
 
 
