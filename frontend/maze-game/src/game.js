@@ -4,6 +4,12 @@ export function createGame({ canvas }) {
 
 
 
+  let w = 0; // CSS px width
+
+  let h = 0; // CSS px height
+
+
+
   function resizeCanvas() {
 
     const rect = canvas.getBoundingClientRect();
@@ -12,9 +18,19 @@ export function createGame({ canvas }) {
 
 
 
-    canvas.width = rect.width * dpr;
+    w = rect.width;
 
-    canvas.height = rect.height * dpr;
+    h = rect.height;
+
+
+
+    canvas.width = Math.floor(w * dpr);
+
+    canvas.height = Math.floor(h * dpr);
+
+
+
+    // draw in CSS pixel coordinates
 
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
@@ -24,31 +40,39 @@ export function createGame({ canvas }) {
 
   function draw() {
 
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    // clear in CSS px space
+
+    ctx.clearRect(0, 0, w, h);
 
 
 
-    // TEMP visual proof
+    // visible background (so we KNOW draw runs)
+
+    ctx.fillStyle = "rgba(255,255,255,0.06)";
+
+    ctx.fillRect(0, 0, w, h);
+
+
+
+    // cyan ball in center
 
     ctx.fillStyle = "#25d7ff";
 
     ctx.beginPath();
 
-    ctx.arc(
-
-      canvas.width / 2 / devicePixelRatio,
-
-      canvas.height / 2 / devicePixelRatio,
-
-      24,
-
-      0,
-
-      Math.PI * 2
-
-    );
+    ctx.arc(w / 2, h / 2, 22, 0, Math.PI * 2);
 
     ctx.fill();
+
+
+
+    // text debug (also proves drawing)
+
+    ctx.fillStyle = "rgba(255,255,255,0.8)";
+
+    ctx.font = "14px Arial";
+
+    ctx.fillText("GAME LOOP RUNNING", 12, 22);
 
   }
 
@@ -68,13 +92,11 @@ export function createGame({ canvas }) {
 
     start() {
 
-      requestAnimationFrame(() => {
+      resizeCanvas();
 
-        resizeCanvas();
+      window.addEventListener("resize", resizeCanvas);
 
-        requestAnimationFrame(loop);
-
-      });
+      requestAnimationFrame(loop);
 
     },
 
