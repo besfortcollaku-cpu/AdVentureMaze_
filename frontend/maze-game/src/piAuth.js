@@ -1,133 +1,135 @@
 // src/piAuth.js
 
-// Pi Network auth helper (frontend)
-
-// Works in Pi Browser. In normal browser it will show a helpful error.
-
-
-
-function isPiBrowser() {
-
-  return typeof window !== "undefined" && typeof window.Pi !== "undefined";
-
-}
-
-
-
-async function piAuthenticate() {
-
-  if (!isPiBrowser()) {
-
-    throw new Error("Pi SDK not found. Open this game inside Pi Browser.");
-
-  }
-
-
-
-  // Minimal scopes for username + basic auth
-
-  const scopes = ["username"];
-
-  const onIncompletePaymentFound = (payment) => {
-
-    console.log("Incomplete payment found:", payment);
-
-  };
-
-
-
-  const auth = await window.Pi.authenticate(scopes, onIncompletePaymentFound);
-
-  return auth; // { accessToken, user: { username, uid } }
-
-}
-
 
 
 /**
 
- * Calls Pi.authenticate() and (optionally) verifies token with your backend.
+ * Pi Auth helper:
 
- * If backend verify fails (or endpoint missing), login still succeeds locally.
+ * - requires Pi Browser (Pi SDK available)
+
+ * - returns { auth, verifiedUser }
 
  *
 
- * @param {string} backendBase e.g. "https://adventuremaze.onrender.com"
+ * Backend contract:
 
- * @returns {Promise<{auth:any, verifiedUser:any|null}>}
+ * POST { accessToken } to `${BACKEND}/api/pi/verify`
+
+ * => { user: { username, uid } }
 
  */
 
-export async function piLoginAndVerify(backendBase) {
-
-  const auth = await piAuthenticate();
 
 
+export function isPiBrowser() {
 
-  let verifiedUser = null;
+  // Most reliable: Pi SDK object exists
 
-
-
-  // Optional backend verification:
-
-  // Backend endpoint you should implement later:
-
-  // POST {backendBase}/api/pi/verify  Authorization: Bearer <accessToken>
-
-  // returns { ok:true, user:{ username, uid } }
-
-  if (backendBase) {
-
-    const base = backendBase.replace(/\/+$/, ""); // trim trailing slashes
-
-    try {
-
-      const res = await fetch(`${base}/api/pi/verify`, {
-
-        method: "POST",
-
-        headers: {
-
-          "Content-Type": "application/json",
-
-          Authorization: `Bearer ${auth.accessToken}`,
-
-        },
-
-        body: JSON.stringify({
-
-          uid: auth?.user?.uid || null,
-
-          username: auth?.user?.username || null,
-
-        }),
-
-      });
+  if (typeof window !== "undefined" && window.Pi) return true;
 
 
 
-      if (res.ok) {
+  // Fallback: UA contains PiBrowser (not always)
 
-        const data = await res.json();
+  const ua = (navigator.userAgent || "").toLowerCase();
 
-        verifiedUser = data?.user || null;
+  if (ua.includes("pibrowser")) return true;
 
-      } else {
 
-        console.warn("Backend verify failed:", res.status);
 
-      }
+  return false;
 
-    } catch (e) {
+}
 
-      console.warn("Backend verify unreachable (ok for now):", e);
 
-    }
+
+export async function piLoginAndVerify(BACKEND) {
+
+  if (!isPiBrowser()) {
+
+    throw new Error("Pi Browser required (open this inside Pi Browser).");
 
   }
 
 
 
-  return { auth, verifiedUser };
+  if (!window.Pi) {
+
+    throw new Error("Pi SDK not found. Make sure you are inside Pi Browser.");
+
+  }
+
+
+
+  // Init Pi SDK (safe to call multiple times)
+
+  try {
+
+    window.Pi.init({ version: "2.0" });
+
+  } catch (e) {
+
+    // ignore if already initialized
+
+  }
+
+
+
+  // Ask user to authenticate
+
+  // Scopes depend on your app; "username" is the common one
+
+  const auth = await window.Pi.authenticate(["username"], (payment) => {
+
+    // incomplete payments callback (Pi may call it later)
+
+    console.log("Incomplete payment found:", payment);
+
+  });
+
+
+
+  if (!auth?.accessToken) {
+
+    throw new Error("Pi auth did not return accessToken.");
+
+  }
+
+
+
+  // Verify token with backend (important: NEVER trust token only in frontend)
+
+  const res = await fetch(`${BACKEND.replace(/\/$/, "")}/api/pi/verify`, {
+
+    method: "POST",
+
+    headers: {
+
+      "Content-Type": "application/json",
+
+      Authorization: `Bearer ${auth.accessToken}`,
+
+    },
+
+    body: JSON.stringify({ accessToken: auth.accessToken }),
+
+  });
+
+
+
+  if (!res.ok) {
+
+    const msg = await res.text().catch(() => "");
+
+    throw new Error(`Backend verify failed (${res.status}): ${msg}`);
+
+  }
+
+
+
+  const data = await res.json();
+
+  return { auth, verifiedUser: data?.user || null };
 
 }
