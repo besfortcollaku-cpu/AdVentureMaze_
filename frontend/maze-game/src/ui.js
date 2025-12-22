@@ -286,22 +286,17 @@ function gearSVG() {
 
 }
 
-function joystickSVG() {
+function gearSVG() {
 
   return (
 
-    '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true">' +
+    '<svg viewBox="0 0 24 24" fill="none">' +
 
-    '<path d="M9 8.5c0-1.7 1.3-3 3-3s3 1.3 3 3v1.2c0 1.7-1.3 3-33s3-3="4,,,e.
-      950  ---244444    .o5,ok""rooi  ="15,2.1-l+
+      '<path d="M12 15.2a3.2 3.2 0 1 0 0-6.4" stroke="white"/>' +
 
+    '</svg>'
 
+  );
 
+}
 
-hS  
-vg="24"nnhie   d 3 99c7 1....8-222L1 g32 -.8-"" +pa22.99.3ke951e""
-svnnp{
-
-s4=""r' a8 0  5..----5.trr2555 sdsinnro +p2  gb(3,, wi nun
-    h  6..6  3--3sgb5,,stttrrnd"n )tu  vi022l aadee"  =" 7=85e.-""      ="9--3c7V=,,,.ro"1inn  ="5"")-id s-""     "<
-  }
