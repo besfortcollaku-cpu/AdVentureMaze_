@@ -31,9 +31,6 @@ setupPiLogin({
 
 const canvas = document.getElementById("game");
 
-const game = createGame({ canvas });
-
-game.start();
 
 // Create + start game
 const game = createGame({
