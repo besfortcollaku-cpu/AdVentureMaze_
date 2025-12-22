@@ -28,8 +28,19 @@ setupPiLogin({
     CURRENT_ACCESS_TOKEN = accessToken;
   },
 });
-const game = createGame({ canvas: ui.canvas });
+
+const canvas = document.getElementById("game");
+
+const game = createGame({ canvas });
 
 game.start();
 
+// Create + start game
+const game = createGame({
+  BACKEND,
+  canvas: ui.canvas,
+  getCurrentUser: () => CURRENT_USER,
+  level: level242,
+});
 
+game.start();
