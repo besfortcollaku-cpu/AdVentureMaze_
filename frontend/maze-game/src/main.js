@@ -6,7 +6,7 @@ import { createGame } from "./game/game.js";
 import { level242 } from "./levels/level242.js";
 
 import { setupPiLogin } from "./pi/piClient.js";
-import { piLoginAndVerify } from "./piAuth.js";
+import { piLoginAndVerify } from "./pi/piAuth.js";
 /**
  * ✅ Render backend base URL (NO trailing slash)
  */
