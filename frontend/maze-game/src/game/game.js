@@ -4,11 +4,9 @@ export function createGame({ canvas }) {
 
 
 
-  let w = 0; // CSS px width
+  let w = 0; // CSS px
 
-  let h = 0; // CSS px height
-
-  let started = false;
+  let h = 0; // CSS px
 
 
 
@@ -30,10 +28,6 @@ export function createGame({ canvas }) {
 
     canvas.height = Math.floor(h * dpr);
 
-
-
-    // draw in CSS pixel coordinates
-
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
   }
@@ -42,13 +36,11 @@ export function createGame({ canvas }) {
 
   function draw() {
 
-    // clear in CSS px space
-
     ctx.clearRect(0, 0, w, h);
 
 
 
-    // visible background (so we KNOW draw runs)
+    // visible bg (proves it renders)
 
     ctx.fillStyle = "rgba(255,255,255,0.06)";
 
@@ -56,7 +48,7 @@ export function createGame({ canvas }) {
 
 
 
-    // cyan ball in center
+    // cyan ball
 
     ctx.fillStyle = "#25d7ff";
 
@@ -68,9 +60,9 @@ export function createGame({ canvas }) {
 
 
 
-    // text debug (also proves drawing)
+    // debug text
 
-    ctx.fillStyle = "rgba(255,255,255,0.8)";
+    ctx.fillStyle = "rgba(255,255,255,0.85)";
 
     ctx.font = "14px Arial";
 
@@ -93,12 +85,6 @@ export function createGame({ canvas }) {
   return {
 
     start() {
-
-      if (started) return;
-
-      started = true;
-
-
 
       resizeCanvas();
 

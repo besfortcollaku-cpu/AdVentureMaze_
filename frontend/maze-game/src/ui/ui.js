@@ -1,5 +1,39 @@
 // src/ui.js
+export function mountUI(app) {
 
+  app.innerHTML =
+
+    '<div class="phone">' +
+
+      // ... your existing HTML exactly as it is ...
+
+      '<div class="boardFrame">' +
+
+        '<canvas id="game"></canvas>' +
+
+      "</div>" +
+
+      // ... rest of your existing HTML ...
+
+    "</div>";
+
+
+
+  // ✅ IMPORTANT: return references so main.js can use them
+
+  const canvas = app.querySelector("#game");
+
+  const loginBtn = app.querySelector("#loginBtn");
+
+  const loginBtnText = app.querySelector("#loginBtnText");
+
+  const userPill = app.querySelector("#userPill");
+
+
+
+  return { canvas, loginBtn, loginBtnText, userPill };
+
+}
 export function mountUI(app) {
   app.innerHTML = `
     <div class="phone">

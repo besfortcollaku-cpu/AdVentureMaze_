@@ -574,3 +574,41 @@ canvas {
   }
 
 }
+
+/* --- Ensure canvas is visible (prevents 0px height) --- */
+
+.boardWrap {
+
+  width: 100%;
+
+  display: flex;
+
+  justify-content: center;
+
+}
+
+
+
+.boardFrame {
+
+  width: min(92vw, 520px);
+
+  aspect-ratio: 1 / 1;
+
+  height: auto;
+
+}
+
+
+
+#game {
+
+  width: 100%;
+
+  height: 100%;
+
+  display: block;
+
+  touch-action: none;
+
+}
