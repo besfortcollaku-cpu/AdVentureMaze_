@@ -2,41 +2,7 @@
 
 
 
-export function isPiBrowser() {
-
-  // Pi Browser typically injects window.Pi (Pi SDK)
-
-  if (typeof window !== "undefined" && window.Pi) return true;
-
-
-
-  const ua = (navigator.userAgent || "").toLowerCase();
-
-  // Common UA hints people see in Pi Browser builds
-
-  if (ua.includes("pibrowser")) return true;
-
-  if (ua.includes("pi browser")) return true;
-
-
-
-  return false;
-
-}
-
-
-
-export function isMobile() {
-
-  const ua = (navigator.userAgent || "").toLowerCase();
-
-  return /android|iphone|ipad|ipod|mobile/.test(ua);
-
-}
-
-
-
-export function hasDevOverride() {
+function hasDevOverride() {
 
   const params = new URLSearchParams(window.location.search);
 
@@ -46,52 +12,110 @@ export function hasDevOverride() {
 
 
 
-/**
+// Simple detection (you can improve later if Pi adds a reliable flag)
 
- * Shows a blocker overlay if NOT in Pi Browser.
+function isPiBrowser() {
 
- * - Allows desktop testing with ?dev=true
+  const ua = navigator.userAgent || "";
 
- * - Returns { ok, reason }
+  // Pi Browser UA often contains "PiBrowser" or "Pi Network"
 
- */
+  return /pibrowser|pi browser|pinetwork|pi network/i.test(ua);
+
+}
+
+
+
+function hardBlockInputs() {
+
+  const stop = (e) => {
+
+    e.preventDefault();
+
+    e.stopPropagation();
+
+    e.stopImmediatePropagation?.();
+
+    return false;
+
+  };
+
+
+
+  // Block pointer/touch/mouse
+
+  const pointerEvents = [
+
+    "pointerdown", "pointermove", "pointerup",
+
+    "mousedown", "mousemove", "mouseup",
+
+    "touchstart", "touchmove", "touchend",
+
+    "click", "dblclick", "contextmenu",
+
+    "wheel",
+
+  ];
+
+
+
+  // Capture phase so we stop events BEFORE app gets them
+
+  pointerEvents.forEach((ev) =>
+
+    window.addEventListener(ev, stop, { capture: true, passive: false })
+
+  );
+
+
+
+  // Block keyboard
+
+  window.addEventListener("keydown", stop, true);
+
+  window.addEventListener("keyup", stop, true);
+
+
+
+  // Stop scrolling
+
+  document.documentElement.style.overflow = "hidden";
+
+  document.body.style.overflow = "hidden";
+
+}
+
+
 
 export function enforcePiEnvironment({ desktopBlockEl } = {}) {
 
-  if (hasDevOverride()) return { ok: true, reason: "dev-override" };
-
-
+  const dev = hasDevOverride();
 
   const pi = isPiBrowser();
 
-  const mobile = isMobile();
+
+
+  // Allow dev override for testing
+
+  if (dev) return { ok: true, reason: "dev override" };
+
+  if (pi) return { ok: true, reason: "Pi Browser" };
 
 
 
-  // Pi requirement: must be inside Pi Browser (and usually mobile)
+  // Not Pi Browser: show overlay + hard-block interactions
 
-  const ok = pi && mobile;
-
-
-
-  if (!ok && desktopBlockEl) {
+  if (desktopBlockEl) {
 
     desktopBlockEl.style.display = "flex";
 
-    desktopBlockEl.style.pointerEvents = "auto";
-
-    desktopBlockEl.style.opacity = "1";
-
   }
 
+  hardBlockInputs();
 
 
-  return {
 
-    ok,
-
-    reason: !pi ? "not-pi-browser" : "not-mobile",
-
-  };
+  return { ok: false, reason: "not pi browser" };
 
 }
