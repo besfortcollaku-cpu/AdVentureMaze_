@@ -29,11 +29,9 @@ export function mountUI(app) {
           iconBtn("paint", brushSVG(), "NEW") +
           iconBtn("trophy", trophySVG(), "") +
           iconBtn("noads", noAdsSVG(), "") +
+          iconBtn("Login", loginBtn(), "") +
 
-          '<div class="loginWrap">' +
-            '<button class="iconBtnWide" id="loginBtn"><span id="loginBtnText">Login with Pi</span></button>' +
-            '<div class="userPill" id="userPill">User: guest</div>' +
-          "</div>" +
+         
         "</div>" +
       "</div>" +
 '<div id="desktopBlock" class="desktopBlock">' +
