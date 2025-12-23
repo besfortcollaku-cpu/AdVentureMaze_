@@ -242,17 +242,21 @@ canvas{
   opacity:.95;
 }
 
-.desktopBlock{display:none;}
-.desktopBlock.show {display:block; }
-.desktopCard{
-  max-width:100%;
-  width:100%;
-  background: linear-gradient(180deg, #0f1a36, #090f20);
-  border-radius:20px;
-  padding:18px;
-  box-shadow: 0 20px 60px rgba(0,0,0,.45);
-  color: var(--text);
-  border: 1px solid rgba(37,215,255,.18);
+.desktopBlock {
+  position: fixed;
+  inset: 0;
+  display: none;
+  z-index: 9999;
+  background: rgba(0,0,0,0.35);
+  backdrop-filter: blur(6px);
+}
+
+.desktopBlock.show { display: block; }
+.desktopCard {
+  max-width: 320px;
+  margin: 180px auto 0;
+  padding: 18px 18px;
+  border-radius: 18px;
 }
 .desktopCard h2{ margin:0 0 10px; }
 .desktopCard p{ margin:0; color: var(--muted); line-height:1.35; }
