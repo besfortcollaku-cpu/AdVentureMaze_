@@ -15,8 +15,6 @@ export function mountUI(app) {
           "</div>" +
           '<div class="levelWrap">' +
            '<div class="levelText">Adventure Maze</div>' +
-
-
            '<div class="coins" title="Coins">' +
             '<div class="coinDot"></div>' +
             '<div id="coinCount">1888</div>' +
@@ -24,7 +22,7 @@ export function mountUI(app) {
         "</div>" +
 
         '<div class="iconRow">' +
-          iconBtn("account", accountSVG(), "") +
+          iconBtn("settings", gearSVG(), "") +
           iconBtn("paint", brushSVG(), "NEW") +
           iconBtn("trophy", trophySVG(), "") +
             
