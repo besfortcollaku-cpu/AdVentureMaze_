@@ -12,7 +12,9 @@ import { enforcePiEnvironment } from "./pi/piDetect.js";
 
 import { createGame } from "./game/game.js";
 
-import { level242 } from "./levels/level242.js";
+
+
+import { level1, level2 } from "./levels/index.js";
 
 
 
@@ -26,19 +28,35 @@ let CURRENT_ACCESS_TOKEN = null;
 
 
 
+function pickLevelFromURL() {
+
+  const params = new URLSearchParams(window.location.search);
+
+  const lvl = Number(params.get("lvl") || "1");
+
+
+
+  if (lvl === 2) return level2;
+
+  return level1; // default
+
+}
+
+
+
 async function boot() {
 
-  // 1) UI first (creates canvas + desktopBlock)
+  // 1) UI first
 
   const ui = mountUI(document.querySelector("#app"));
 
 
 
-  // 2) Enforce Pi env (WAIT if your enforcePiEnvironment is async)
+  // 2) Enforce Pi env (wait for Pi injection if your detect does that)
 
   const env = await enforcePiEnvironment({
 
-    desktopBlockEl: ui.desktopBlock, // ✅ use the ref returned by mountUI
+    desktopBlockEl: document.getElementById("desktopBlock"),
 
   });
 
@@ -48,7 +66,7 @@ async function boot() {
 
     console.log("Blocked:", env.reason);
 
-    return; // stop here (don’t init login/game)
+    return;
 
   }
 
@@ -78,7 +96,11 @@ async function boot() {
 
 
 
-  // 4) Game
+  // 4) Game (Level loader here)
+
+  const level = pickLevelFromURL();
+
+
 
   const game = createGame({
 
@@ -88,7 +110,7 @@ async function boot() {
 
     getCurrentUser: () => CURRENT_USER,
 
-    level: level242,
+    level,
 
   });
 
