@@ -49,9 +49,3 @@ async function boot() {
                         }
 
                         boot();
-                        })
-                                            }
-                      })
-        }
-      })
-}
