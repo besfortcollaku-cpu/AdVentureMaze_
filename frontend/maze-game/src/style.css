@@ -245,7 +245,7 @@ canvas{
 .desktopBlock{display:none;}
 .desktopBlock.show {display:block; }
 .desktopCard{
-  max-width:420px;
+  max-width:100%;
   width:100%;
   background: linear-gradient(180deg, #0f1a36, #090f20);
   border-radius:20px;
