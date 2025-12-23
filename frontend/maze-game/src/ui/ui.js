@@ -9,11 +9,13 @@ export function mountUI(app) {
           '<div class="brand">' +
             '<div class="logoBox" title="Adventure Maze">' +
               '<img src="/logo.png" alt="Adventure Maze Logo" />' +
-              '<div class="levelWrap">' +
-           '<div class="levelText">Adventure Maze</div>' +
+              
           "</div>" +
             "</div>" +
           "</div>" +
+          '<div class="levelWrap">' +
+           '<div class="levelText">Adventure Maze</div>' +
+
 
            '<div class="coins" title="Coins">' +
             '<div class="coinDot"></div>' +
@@ -22,7 +24,7 @@ export function mountUI(app) {
         "</div>" +
 
         '<div class="iconRow">' +
-          iconBtn("settings", gearSVG(), "") +
+          iconBtn("account", accountSVG(), "") +
           iconBtn("paint", brushSVG(), "NEW") +
           iconBtn("trophy", trophySVG(), "") +
             
