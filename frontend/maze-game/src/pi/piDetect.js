@@ -87,35 +87,58 @@ function hardBlockInputs() {
 }
 
 
+export function isPiBrowser() {
+
+  // Pi Browser usually exposes window.Pi and/or "PiBrowser" in UA
+
+  const ua = navigator.userAgent || "";
+
+  return Boolean(window.Pi) || /PiBrowser/i.test(ua);
+
+}
+
+
+
+// allow ?dev=true to bypass
 
 export function enforcePiEnvironment({ desktopBlockEl } = {}) {
 
-  const dev = hasDevOverride();
+  const params = new URLSearchParams(window.location.search);
 
-  const pi = isPiBrowser();
-
-
-
-  // Allow dev override for testing
-
-  if (dev) return { ok: true, reason: "dev override" };
-
-  if (pi) return { ok: true, reason: "Pi Browser" };
+  const dev = params.get("dev") === "true";
 
 
 
-  // Not Pi Browser: show overlay + hard-block interactions
+  const ok = dev || isPiBrowser();
+
+
 
   if (desktopBlockEl) {
 
-    desktopBlockEl.style.display = "flex";
+    if (ok) {
+
+      desktopBlockEl.classList.remove("show");
+
+      desktopBlockEl.style.display = "none";
+
+    } else {
+
+      desktopBlockEl.classList.add("show");
+
+      desktopBlockEl.style.display = "block";
+
+    }
 
   }
 
-  hardBlockInputs();
 
 
+  return {
 
-  return { ok: false, reason: "not pi browser" };
+    ok,
+
+    reason: ok ? "ok" : "not_pi_browser",
+
+  };
 
 }

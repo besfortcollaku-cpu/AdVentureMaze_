@@ -56,15 +56,7 @@ const env = enforcePiEnvironment({
 
 
 
-if (!env.ok) {
-
-  console.log("Blocked:", env.reason);
-
-  // Stop execution if not Pi Browser
-
-  throw new Error("Not running in Pi Browser: " + env.reason);
-
-}
+if (!env.ok) throw new Error ("Not running in Pi Browser: ");
 
 
 

@@ -36,7 +36,21 @@ export function mountUI(app) {
           "</div>" +
         "</div>" +
       "</div>" +
+'<div id="desktopBlock" class="desktopBlock">' +
 
+  '<div class="desktopCard">' +
+
+    '<div class="desktopTitle">Mobile game</div>' +
+
+    '<div class="desktopText">' +
+
+      'This game is designed for smartphones. Use swipe on mobile. Desktop is only for testing (arrow keys).' +
+
+    '</div>' +
+
+  '</div>' +
+
+'</div>' +
       '<div class="boardWrap">' +
         '<div class="boardFrame">' +
           '<canvas id="game"></canvas>' +

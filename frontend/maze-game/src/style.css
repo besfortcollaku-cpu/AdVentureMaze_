@@ -242,16 +242,8 @@ canvas{
   opacity:.95;
 }
 
-.desktopBlock{
-  position:fixed;
-  inset:0;
-  background: rgba(0,0,0,.65);
-  display:none;
-  align-items:center;
-  justify-content:center;
-  padding:20px;
-  z-index:999;
-}
+.desktopBlock{display:none;}
+.desktopBlock.show {display:block; }
 .desktopCard{
   max-width:420px;
   width:100%;
