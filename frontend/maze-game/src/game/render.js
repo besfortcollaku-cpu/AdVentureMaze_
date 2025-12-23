@@ -2,33 +2,21 @@
 
 
 
-export function createRenderer({ canvas, state, level }) {
+export function createRenderer({ canvas, state }) {
 
   const ctx = canvas.getContext("2d");
 
 
 
-  // canvas css size (not DPR size)
-
   let w = 0;
 
   let h = 0;
 
-
-
-  // board layout
-
-  let tile = 40; // size of one cell in CSS px (auto-fit)
+  let tile = 32;
 
   let ox = 0;
 
   let oy = 0;
-
-
-
-  // ✅ ball stays consistent on screen (CSS px)
-
-  const BALL_RADIUS_PX = 22;
 
 
 
@@ -50,43 +38,11 @@ export function createRenderer({ canvas, state, level }) {
 
     canvas.height = Math.floor(h * dpr);
 
-
-
-    // draw in CSS px coords
-
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
 
 
-    // ✅ Auto-fit maze to screen with padding
-
-    const pad = Math.max(10, Math.floor(Math.min(w, h) * 0.04));
-
-    const usableW = Math.max(10, w - pad * 2);
-
-    const usableH = Math.max(10, h - pad * 2);
-
-
-
-    // optional zoom factor per level (default 1)
-
-    const zoom = typeof level?.zoom === "number" ? level.zoom : 1;
-
-
-
-    tile = Math.floor(
-
-      Math.min(usableW / state.cols, usableH / state.rows) * zoom
-
-    );
-
-
-
-    // prevent zero / too small tile
-
-    tile = Math.max(10, tile);
-
-
+    tile = Math.floor(Math.min(w / state.cols, h / state.rows));
 
     ox = Math.floor((w - state.cols * tile) / 2);
 
@@ -96,7 +52,7 @@ export function createRenderer({ canvas, state, level }) {
 
 
 
-  function cellCenter(x, y) {
+  function cellToPx(x, y) {
 
     return {
 
@@ -110,19 +66,9 @@ export function createRenderer({ canvas, state, level }) {
 
 
 
-  function clear() {
-
-    ctx.clearRect(0, 0, w, h);
-
-  }
-
-
-
   function drawBackground() {
 
-    // simple dark board background so you always see render
-
-    ctx.fillStyle = "rgba(0,0,0,0.25)";
+    ctx.fillStyle = "rgba(0,0,0,0.18)";
 
     ctx.fillRect(0, 0, w, h);
 
@@ -132,15 +78,11 @@ export function createRenderer({ canvas, state, level }) {
 
   function drawGrid() {
 
-    // draw walls + floor
-
     for (let y = 0; y < state.rows; y++) {
 
       for (let x = 0; x < state.cols; x++) {
 
-        const isWall = state.grid[y][x] === 1;
-
-
+        const v = state.grid[y][x];
 
         const px = ox + x * tile;
 
@@ -148,17 +90,51 @@ export function createRenderer({ canvas, state, level }) {
 
 
 
-        if (isWall) {
+        // wall
+
+        if (v === 1) {
 
           ctx.fillStyle = "rgba(0,0,0,0.55)";
 
           ctx.fillRect(px, py, tile, tile);
 
-        } else {
+          continue;
 
-          ctx.fillStyle = "rgba(255,255,255,0.06)";
+        }
 
-          ctx.fillRect(px, py, tile, tile);
+
+
+        // walkable base
+
+        ctx.fillStyle = "rgba(255,255,255,0.08)";
+
+        ctx.fillRect(px, py, tile, tile);
+
+
+
+        // painted overlay
+
+        const k = x + "," + y;
+
+        if (state.painted.has(k)) {
+
+          ctx.fillStyle = "rgba(37,215,255,0.22)";
+
+          ctx.fillRect(px + 2, py + 2, tile - 4, tile - 4);
+
+        }
+
+
+
+        // goal tile (optional, if you have 2)
+
+        if (v === 2) {
+
+          ctx.strokeStyle = "rgba(255,210,120,0.55)";
+
+          ctx.lineWidth = 2;
+
+          ctx.strokeRect(px + 4, py + 4, tile - 8, tile - 8);
 
         }
 
@@ -170,59 +146,21 @@ export function createRenderer({ canvas, state, level }) {
 
 
 
-  function drawPainted() {
+  function drawPlayer() {
 
-    // paint tiles user visited
+    const p = cellToPx(state.renderPos.x, state.renderPos.y);
 
-    for (const k of state.painted) {
-
-      const [xs, ys] = k.split(",");
-
-      const x = parseInt(xs, 10);
-
-      const y = parseInt(ys, 10);
-
-
-
-      const px = ox + x * tile;
-
-      const py = oy + y * tile;
-
-
-
-      // glow
-
-      ctx.fillStyle = "rgba(37,215,255,0.18)";
-
-      ctx.fillRect(px, py, tile, tile);
-
-
-
-      // inner
-
-      ctx.fillStyle = "rgba(37,215,255,0.08)";
-
-      ctx.fillRect(px + 2, py + 2, tile - 4, tile - 4);
-
-    }
-
-  }
-
-
-
-  function drawBall() {
-
-    const { cx, cy } = cellCenter(state.playerX, state.playerY);
+    const r = Math.max(10, tile * 0.22);
 
 
 
     // shadow
 
-    ctx.fillStyle = "rgba(0,0,0,0.35)";
+    ctx.fillStyle = "rgba(0,0,0,0.28)";
 
     ctx.beginPath();
 
-    ctx.ellipse(cx + 2, cy + 6, BALL_RADIUS_PX * 1.05, BALL_RADIUS_PX * 0.72, 0, 0, Math.PI * 2);
+    ctx.ellipse(p.cx + 2, p.cy + 6, r * 1.05, r * 0.85, 0, 0, Math.PI * 2);
 
     ctx.fill();
 
@@ -234,7 +172,7 @@ export function createRenderer({ canvas, state, level }) {
 
     ctx.beginPath();
 
-    ctx.arc(cx, cy, BALL_RADIUS_PX, 0, Math.PI * 2);
+    ctx.arc(p.cx, p.cy, r, 0, Math.PI * 2);
 
     ctx.fill();
 
@@ -242,11 +180,11 @@ export function createRenderer({ canvas, state, level }) {
 
     // highlight
 
-    ctx.fillStyle = "rgba(255,255,255,0.55)";
+    ctx.fillStyle = "rgba(255,255,255,0.35)";
 
     ctx.beginPath();
 
-    ctx.arc(cx - BALL_RADIUS_PX * 0.35, cy - BALL_RADIUS_PX * 0.35, BALL_RADIUS_PX * 0.35, 0, Math.PI * 2);
+    ctx.arc(p.cx - r * 0.25, p.cy - r * 0.25, r * 0.45, 0, Math.PI * 2);
 
     ctx.fill();
 
@@ -254,44 +192,20 @@ export function createRenderer({ canvas, state, level }) {
 
 
 
-  function drawHUD() {
-
-    const s = state.getStats();
-
-    ctx.fillStyle = "rgba(255,255,255,0.8)";
-
-    ctx.font = "13px Arial";
-
-    ctx.fillText(`Tiles: ${s.painted}/${s.total}`, 12, 20);
-
-  }
-
-
-
   function render() {
 
-    clear();
+    ctx.clearRect(0, 0, w, h);
 
     drawBackground();
 
     drawGrid();
 
-    drawPainted();
-
-    drawBall();
-
-    drawHUD();
+    drawPlayer();
 
   }
 
 
 
-  return {
-
-    resize,
-
-    render,
-
-  };
+  return { resize, render };
 
 }

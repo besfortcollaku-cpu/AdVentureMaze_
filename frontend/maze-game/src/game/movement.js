@@ -8,13 +8,11 @@ export function createMovement({ state, onMoveFinished }) {
 
 
 
-  // animation data
-
   const anim = {
 
     t0: 0,
 
-    dur: 220, // feel free later; keeps it smooth
+    dur: 0,
 
     sx: 0,
 
@@ -24,39 +22,23 @@ export function createMovement({ state, onMoveFinished }) {
 
     ty: 0,
 
-    steps: 0,
-
-    dx: 0,
-
-    dy: 0,
-
-    paintedSteps: 0, // how many tiles already painted during this move
-
-    finishedCalled: false,
+    path: [],
 
   };
 
 
 
-  function computeSlideSteps(dx, dy) {
+  function computeSlideTarget(dx, dy) {
 
-    // starting from CURRENT integer cell
+    // move until next step would be blocked
 
-    const cx = Math.round(state.playerX);
+    let x = state.player.x;
 
-    const cy = Math.round(state.playerY);
-
-
-
-    // if already in motion, we don’t compute
-
-    let x = cx;
-
-    let y = cy;
+    let y = state.player.y;
 
 
 
-    let steps = 0;
+    const path = [{ x, y }]; // include start cell
 
 
 
@@ -68,7 +50,7 @@ export function createMovement({ state, onMoveFinished }) {
 
 
 
-      if (state.isWall(nx, ny)) break;
+      if (!state.isWalkable(nx, ny)) break;
 
 
 
@@ -76,19 +58,13 @@ export function createMovement({ state, onMoveFinished }) {
 
       y = ny;
 
-      steps++;
-
-
-
-      // safety (should never hit, but avoids infinite loops)
-
-      if (steps > 9999) break;
+      path.push({ x, y });
 
     }
 
 
 
-    return steps;
+    return { tx: x, ty: y, path };
 
   }
 
@@ -100,17 +76,31 @@ export function createMovement({ state, onMoveFinished }) {
 
 
 
-    // no diagonals
+    // no diagonal
 
     if ((dx !== 0 && dy !== 0) || (dx === 0 && dy === 0)) return;
 
 
 
-    const steps = computeSlideSteps(dx, dy);
-
-    if (steps <= 0) return; // can't move (wall next)
+    const res = computeSlideTarget(dx, dy);
 
 
+
+    // if we can't move at all
+
+    if (res.tx === state.player.x && res.ty === state.player.y) return;
+
+
+
+    // paint all tiles we will pass over (so level logic matches slide)
+
+    // includes start cell too, harmless
+
+    state.paintPath(res.path);
+
+
+
+    // start animation from current renderPos (should match player cell when idle)
 
     moving = true;
 
@@ -118,41 +108,33 @@ export function createMovement({ state, onMoveFinished }) {
 
     anim.t0 = performance.now();
 
-    anim.dx = dx;
+    anim.sx = state.renderPos.x;
 
-    anim.dy = dy;
+    anim.sy = state.renderPos.y;
 
+    anim.tx = res.tx;
 
+    anim.ty = res.ty;
 
-    // start is current integer cell
-
-    anim.sx = Math.round(state.playerX);
-
-    anim.sy = Math.round(state.playerY);
+    anim.path = res.path;
 
 
 
-    // target is start + steps * dir
-
-    anim.tx = anim.sx + dx * steps;
-
-    anim.ty = anim.sy + dy * steps;
+    const dist = Math.abs(anim.tx - anim.sx) + Math.abs(anim.ty - anim.sy);
 
 
 
-    anim.steps = steps;
+    // duration scales with distance
 
-    anim.paintedSteps = 0;
-
-    anim.finishedCalled = false;
+    anim.dur = 120 + dist * 85;
 
 
 
-    // IMPORTANT: keep state player cell at start until update() moves it smoothly
+    // commit logical player cell immediately (so progress/save uses target)
 
-    state.playerX = anim.sx;
+    state.player.x = res.tx;
 
-    state.playerY = anim.sy;
+    state.player.y = res.ty;
 
   }
 
@@ -162,95 +144,53 @@ export function createMovement({ state, onMoveFinished }) {
 
     if (!moving) {
 
-      return { x: state.playerX, y: state.playerY };
+      // keep render position locked to cell when idle
+
+      state.renderPos.x = state.player.x;
+
+      state.renderPos.y = state.player.y;
+
+      return;
 
     }
 
 
 
-    const tRaw = (now - anim.t0) / anim.dur;
+    const t = (now - anim.t0) / anim.dur;
 
-    const t = Math.max(0, Math.min(1, tRaw));
-
-
-
-    // smooth (ease out)
-
-    const k = 1 - Math.pow(1 - t, 3);
+    const clamped = Math.max(0, Math.min(1, t));
 
 
 
-    // float position along straight line
+    // smooth step easing
 
-    const fx = anim.sx + (anim.tx - anim.sx) * k;
-
-    const fy = anim.sy + (anim.ty - anim.sy) * k;
+    const k = 1 - Math.pow(1 - clamped, 3);
 
 
 
-    state.playerX = fx;
+    state.renderPos.x = anim.sx + (anim.tx - anim.sx) * k;
 
-    state.playerY = fy;
-
-
-
-    // ---- paint tiles AS YOU PASS THEM (not all at once) ----
-
-    // we convert progress into "how many step tiles have been crossed"
-
-    // stepsCrossed in [0..steps]
-
-    const stepsCrossed = Math.floor(k * anim.steps);
+    state.renderPos.y = anim.sy + (anim.ty - anim.sy) * k;
 
 
 
-    // paint newly crossed tiles (excluding start)
-
-    while (anim.paintedSteps < stepsCrossed) {
-
-      anim.paintedSteps++;
-
-      const px = anim.sx + anim.dx * anim.paintedSteps;
-
-      const py = anim.sy + anim.dy * anim.paintedSteps;
-
-      state.paintCell(px, py);
-
-    }
-
-
-
-    // finish
-
-    if (t >= 1 && !anim.finishedCalled) {
-
-      anim.finishedCalled = true;
+    if (t >= 1) {
 
       moving = false;
 
 
 
-      // snap exactly to target cell
+      // snap exact
 
-      state.playerX = anim.tx;
+      state.renderPos.x = state.player.x;
 
-      state.playerY = anim.ty;
-
-
-
-      // make sure final tile is painted
-
-      state.paintCell(anim.tx, anim.ty);
+      state.renderPos.y = state.player.y;
 
 
 
       onMoveFinished?.();
 
     }
-
-
-
-    return { x: state.playerX, y: state.playerY };
 
   }
 

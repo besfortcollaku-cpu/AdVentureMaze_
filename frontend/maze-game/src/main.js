@@ -12,9 +12,7 @@ import { enforcePiEnvironment } from "./pi/piDetect.js";
 
 import { createGame } from "./game/game.js";
 
-
-
-import { level1, level2 } from "./levels/index.js";
+import { level242 as level1 } from "./levels/level242.js"; // keep file name for now
 
 
 
@@ -28,19 +26,7 @@ let CURRENT_ACCESS_TOKEN = null;
 
 
 
-function pickLevelFromURL() {
-
-  const params = new URLSearchParams(window.location.search);
-
-  const lvl = Number(params.get("lvl") || "1");
-
-
-
-  if (lvl === 2) return level2;
-
-  return level1; // default
-
-}
+let POINTS = 0;
 
 
 
@@ -52,11 +38,19 @@ async function boot() {
 
 
 
-  // 2) Enforce Pi env (wait for Pi injection if your detect does that)
+  // show Level 1 label
+
+  if (ui.levelTitle) ui.levelTitle.textContent = "LEVEL 1";
+
+  if (ui.coinCount) ui.coinCount.textContent = String(POINTS);
+
+
+
+  // 2) Enforce Pi env
 
   const env = await enforcePiEnvironment({
 
-    desktopBlockEl: document.getElementById("desktopBlock"),
+    desktopBlockEl: ui.desktopBlock,
 
   });
 
@@ -96,21 +90,57 @@ async function boot() {
 
 
 
-  // 4) Game (Level loader here)
+  // ✅ popup button actions
 
-  const level = pickLevelFromURL();
+  ui.nextLevelBtn.addEventListener("click", () => {
+
+    // later: load next level data
+
+    ui.hideLevelComplete();
+
+    alert("Next level (Level 2) coming next step ✅");
+
+  });
 
 
+
+  ui.watchAdBtn.addEventListener("click", () => {
+
+    // later: real ad hook + reward via backend
+
+    POINTS += 10;
+
+    ui.coinCount.textContent = String(POINTS);
+
+    ui.hideLevelComplete();
+
+    alert("Ad reward simulated: +10 points ✅");
+
+  });
+
+
+
+  // 4) Game
 
   const game = createGame({
 
-    BACKEND,
-
     canvas: ui.canvas,
 
-    getCurrentUser: () => CURRENT_USER,
+    level: { ...level1, number: 1 },
 
-    level,
+    onComplete: ({ levelNumber, pointsEarned }) => {
+
+      // base reward per level
+
+      POINTS += pointsEarned;
+
+      ui.coinCount.textContent = String(POINTS);
+
+
+
+      ui.showLevelComplete({ levelNumber, pointsEarned });
+
+    },
 
   });
 

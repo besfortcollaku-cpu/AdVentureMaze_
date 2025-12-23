@@ -2,6 +2,14 @@
 
 
 
+function key(x, y) {
+
+  return x + "," + y;
+
+}
+
+
+
 export function createGameState(level) {
 
   const grid = level.grid;
@@ -16,21 +24,25 @@ export function createGameState(level) {
 
 
 
-  // painted tiles (only floor tiles)
+  // walkable = 0 or 2
 
-  const painted = new Set();
+  function isWalkable(x, y) {
+
+    return grid[y] && (grid[y][x] === 0 || grid[y][x] === 2);
+
+  }
 
 
 
-  // count all floor tiles (0 = floor)
+  // total walkable tiles in level (must be painted)
 
-  let totalFloor = 0;
+  let totalWalkable = 0;
 
   for (let y = 0; y < rows; y++) {
 
     for (let x = 0; x < cols; x++) {
 
-      if (grid[y][x] === 0) totalFloor++;
+      if (isWalkable(x, y)) totalWalkable++;
 
     }
 
@@ -38,93 +50,13 @@ export function createGameState(level) {
 
 
 
-  // player cell position (can be float while animating)
+  const painted = new Set();
 
-  let playerX = start.x;
-
-  let playerY = start.y;
+  painted.add(key(start.x, start.y));
 
 
 
-  function key(x, y) {
-
-    return `${x},${y}`;
-
-  }
-
-
-
-  function isInside(x, y) {
-
-    return y >= 0 && y < rows && x >= 0 && x < cols;
-
-  }
-
-
-
-  function isWall(x, y) {
-
-    if (!isInside(x, y)) return true;
-
-    return grid[y][x] === 1;
-
-  }
-
-
-
-  function isFloor(x, y) {
-
-    if (!isInside(x, y)) return false;
-
-    return grid[y][x] === 0;
-
-  }
-
-
-
-  function paintCell(x, y) {
-
-    if (!isFloor(x, y)) return;
-
-    painted.add(key(x, y));
-
-  }
-
-
-
-  // paint start tile immediately
-
-  paintCell(start.x, start.y);
-
-
-
-  function isComplete() {
-
-    return painted.size >= totalFloor;
-
-  }
-
-
-
-  function getStats() {
-
-    return {
-
-      levelId: level.id || 1,
-
-      painted: painted.size,
-
-      total: totalFloor,
-
-    };
-
-  }
-
-
-
-  return {
-
-    levelId: level.id || 1,
+  const state = {
 
     grid,
 
@@ -134,50 +66,56 @@ export function createGameState(level) {
 
 
 
+    // current cell
+
+    player: { x: start.x, y: start.y },
+
+
+
+    // render position in cell coordinates (float)
+
+    renderPos: { x: start.x, y: start.y },
+
+
+
+    // painted tiles
+
     painted,
 
+    totalWalkable,
 
 
-    // position
 
-    get playerX() {
+    isWalkable,
 
-      return playerX;
 
-    },
 
-    get playerY() {
+    paintCell(x, y) {
 
-      return playerY;
-
-    },
-
-    set playerX(v) {
-
-      playerX = v;
-
-    },
-
-    set playerY(v) {
-
-      playerY = v;
+      painted.add(key(x, y));
 
     },
 
 
 
-    // helpers
+    paintPath(pathCells) {
 
-    isWall,
+      for (const c of pathCells) painted.add(key(c.x, c.y));
 
-    isFloor,
+    },
 
-    paintCell,
 
-    isComplete,
 
-    getStats,
+    isComplete() {
+
+      return painted.size >= totalWalkable;
+
+    },
 
   };
+
+
+
+  return state;
 
 }
