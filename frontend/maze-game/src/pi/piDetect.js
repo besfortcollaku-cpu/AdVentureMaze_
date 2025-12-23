@@ -1,34 +1,96 @@
-// src/piDetect.js
+// src/pi/piDetect.js
+
+
 
 export function isPiBrowser() {
 
-  // Pi Browser usually injects window.Pi + specific userAgent string
+  // Pi Browser typically injects window.Pi (Pi SDK)
 
-  const ua = navigator.userAgent || "";
+  if (typeof window !== "undefined" && window.Pi) return true;
 
-  const hasPiObject = typeof window !== "undefined" && !!window.Pi;
 
-  const looksLikePiUA = /PiBrowser|Pi Network/i.test(ua);
 
-  return hasPiObject || looksLikePiUA;
+  const ua = (navigator.userAgent || "").toLowerCase();
+
+  // Common UA hints people see in Pi Browser builds
+
+  if (ua.includes("pibrowser")) return true;
+
+  if (ua.includes("pi browser")) return true;
+
+
+
+  return false;
 
 }
 
 
 
-export function requirePiBrowserOrMessage() {
+export function isMobile() {
 
-  if (isPiBrowser()) return { ok: true };
+  const ua = (navigator.userAgent || "").toLowerCase();
+
+  return /android|iphone|ipad|ipod|mobile/.test(ua);
+
+}
+
+
+
+export function hasDevOverride() {
+
+  const params = new URLSearchParams(window.location.search);
+
+  return params.get("dev") === "true";
+
+}
+
+
+
+/**
+
+ * Shows a blocker overlay if NOT in Pi Browser.
+
+ * - Allows desktop testing with ?dev=true
+
+ * - Returns { ok, reason }
+
+ */
+
+export function enforcePiEnvironment({ desktopBlockEl } = {}) {
+
+  if (hasDevOverride()) return { ok: true, reason: "dev-override" };
+
+
+
+  const pi = isPiBrowser();
+
+  const mobile = isMobile();
+
+
+
+  // Pi requirement: must be inside Pi Browser (and usually mobile)
+
+  const ok = pi && mobile;
+
+
+
+  if (!ok && desktopBlockEl) {
+
+    desktopBlockEl.style.display = "flex";
+
+    desktopBlockEl.style.pointerEvents = "auto";
+
+    desktopBlockEl.style.opacity = "1";
+
+  }
 
 
 
   return {
 
-    ok: false,
+    ok,
 
-    message:
-
-      "Please open this game inside Pi Browser to login and pay with Pi.",
+    reason: !pi ? "not-pi-browser" : "not-mobile",
 
   };
 
