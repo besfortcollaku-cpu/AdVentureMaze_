@@ -14,98 +14,70 @@ import { level242 } from "./levels/level242.js";
 
 
 
-/**
+(async () => {
 
- * Render backend base URL (NO trailing slash)
-
- */
-
-const BACKEND = "https://adventuremaze.onrender.com";
+  const BACKEND = "https://adventuremaze.onrender.com";
 
 
 
-// user state
+  let CURRENT_USER = { username: "guest", uid: null };
 
-let CURRENT_USER = { username: "guest", uid: null };
-
-let CURRENT_ACCESS_TOKEN = null;
+  let CURRENT_ACCESS_TOKEN = null;
 
 
 
-/* --------------------------------------------------
-
-   1) BUILD UI (creates canvas + desktopBlock)
-
--------------------------------------------------- */
-
-const ui = mountUI(document.querySelector("#app"));
+  const ui = mountUI(document.querySelector("#app"));
 
 
 
-/* --------------------------------------------------
+  const env = await enforcePiEnvironment({
 
-   2) PI BROWSER ENFORCEMENT  👈 INSERTED HERE
+    desktopBlockEl: document.getElementById("desktopBlock"),
 
--------------------------------------------------- */
-
-const env = enforcePiEnvironment({
-
-  desktopBlockEl: document.getElementById("desktopBlock"),
-
-});
+  });
 
 
 
-if (!env.ok) throw new Error ("Not running in Pi Browser: ");
+  if (!env.ok) throw new Error("Not running in Pi Browser: " + env.reason);
 
 
 
-/* --------------------------------------------------
+  setupPiLogin({
 
-   3) SETUP PI LOGIN
+    BACKEND,
 
--------------------------------------------------- */
+    loginBtn: ui.loginBtn,
 
-setupPiLogin({
+    loginBtnText: ui.loginBtnText,
 
-  BACKEND,
+    userPill: ui.userPill,
 
-  loginBtn: ui.loginBtn,
+    onLogin: ({ user, accessToken }) => {
 
-  loginBtnText: ui.loginBtnText,
+      CURRENT_USER = user;
 
-  userPill: ui.userPill,
+      CURRENT_ACCESS_TOKEN = accessToken;
 
-  onLogin: ({ user, accessToken }) => {
+    },
 
-    CURRENT_USER = user;
-
-    CURRENT_ACCESS_TOKEN = accessToken;
-
-  },
-
-});
+  });
 
 
 
-/* --------------------------------------------------
+  const game = createGame({
 
-   4) CREATE + START GAME
+    BACKEND,
 
--------------------------------------------------- */
+    canvas: ui.canvas,
 
-const game = createGame({
+    getCurrentUser: () => CURRENT_USER,
 
-  BACKEND,
+    level: level242,
 
-  canvas: ui.canvas,
-
-  getCurrentUser: () => CURRENT_USER,
-
-  level: level242,
-
-});
+  });
 
 
 
-game.start();
+  game.start();
+
+})();
