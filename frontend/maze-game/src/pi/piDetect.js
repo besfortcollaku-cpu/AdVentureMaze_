@@ -26,6 +26,7 @@ function isPiBrowser() {
 
 
 
+
 function hardBlockInputs() {
 
   const stop = (e) => {
@@ -87,15 +88,6 @@ function hardBlockInputs() {
 }
 
 
-export function isPiBrowser() {
-
-  // Pi Browser usually exposes window.Pi and/or "PiBrowser" in UA
-
-  const ua = navigator.userAgent || "";
-
-  return Boolean(window.Pi) || /PiBrowser/i.test(ua);
-
-}
 
 
 
