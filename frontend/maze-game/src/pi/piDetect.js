@@ -1,121 +1,84 @@
 // src/pi/piDetect.js
 
-
-
 function hasDevOverride() {
-
   const params = new URLSearchParams(window.location.search);
-
   return params.get("dev") === "true";
-
 }
 
-
-
-// src/pi/piDetect.js
-
-// ✅ reliable detection: Pi injects window.Pi.authenticate()
-function isPiBrowser() {
-  try {
-    return !!(window.Pi && typeof window.Pi.authenticate === "function");
-  } catch {
-    return false;
-  }
+// Pi Browser detection (best-effort)
+// NOTE: Some Pi versions load window.Pi late, so we also wait for injection.
+function isPiBrowserUA() {
+  const ua = navigator.userAgent || "";
+  return /pibrowser|pi browser|pinetwork|pi network/i.test(ua);
 }
 
-// allow ?dev=true to bypass
+function hasPiInjected() {
+  return !!(window.Pi && window.Pi.authenticate);
+}
+
+// device helpers
+function isTouchDevice() {
+  return "ontouchstart" in window || navigator.maxTouchPoints > 0;
+}
+function isNarrow() {
+  return window.matchMedia("(max-width: 700px)").matches;
+}
+function isDesktopLike() {
+  return !isTouchDevice() && !isNarrow();
+}
+
+function showDesktopBlock(desktopBlockEl, show) {
+  if (!desktopBlockEl) return;
+  desktopBlockEl.style.display = show ? "flex" : "none";
+}
+
+function sleep(ms) {
+  return new Promise((r) => setTimeout(r, ms));
+}
+
+/**
+ * Enforce Pi environment:
+ * - allow ?dev=true to bypass
+ * - allow Pi Browser (UA OR injected Pi object)
+ * - block desktop completely
+ * - allow normal mobile browsers (for testing) ONLY if you want -> currently: NOT allowed unless dev=true
+ *
+ * If you want to allow mobile Chrome/Safari too, tell me and I'll flip one boolean.
+ */
 export async function enforcePiEnvironment({ desktopBlockEl } = {}) {
-  const params = new URLSearchParams(window.location.search);
-  const dev = params.get("dev") === "true";
+  // dev override
+  if (hasDevOverride()) {
+    showDesktopBlock(desktopBlockEl, false);
+    return { ok: true, reason: "dev_override" };
+  }
 
-  // Pi sometimes injects window.Pi slightly after load → retry up to ~2s
-  let ok = dev || isPiBrowser();
+  // Always block desktop (even if UA spoofed)
+  if (isDesktopLike()) {
+    showDesktopBlock(desktopBlockEl, true);
+    return { ok: false, reason: "desktop_blocked" };
+  }
+
+  // Wait for Pi injection (up to ~2 seconds)
+  // Some Pi Browser builds load window.Pi a moment after JS starts.
+  const maxWaitMs = 2000;
+  const stepMs = 100;
+  let waited = 0;
+
+  while (waited < maxWaitMs) {
+    if (hasPiInjected()) break;
+    await sleep(stepMs);
+    waited += stepMs;
+  }
+
+  const ok = hasPiInjected() || isPiBrowserUA();
 
   if (!ok) {
-    for (let i = 0; i < 20; i++) {
-      await new Promise((r) => setTimeout(r, 100));
-      if (isPiBrowser()) {
-        ok = true;
-        break;
-      }
-    }
+    // Not Pi Browser on mobile (blocked)
+    showDesktopBlock(desktopBlockEl, false);
+    return { ok: false, reason: "not_pi_browser" };
   }
 
-  if (desktopBlockEl) {
-    if (ok) {
-      desktopBlockEl.classList.remove("show");
-      desktopBlockEl.style.display = "none";
-    } else {
-      desktopBlockEl.classList.add("show");
-      desktopBlockEl.style.display = "block";
-    }
-  }
-
-  return { ok, reason: ok ? "ok" : "not_pi_browser" };
+  // Pi Browser ok
+  showDesktopBlock(desktopBlockEl, false);
+  return { ok: true, reason: "ok" };
 }
-
-
-
-function hardBlockInputs() {
-
-  const stop = (e) => {
-
-    e.preventDefault();
-
-    e.stopPropagation();
-
-    e.stopImmediatePropagation?.();
-
-    return false;
-
-  };
-
-
-
-  // Block pointer/touch/mouse
-
-  const pointerEvents = [
-
-    "pointerdown", "pointermove", "pointerup",
-
-    "mousedown", "mousemove", "mouseup",
-
-    "touchstart", "touchmove", "touchend",
-
-    "click", "dblclick", "contextmenu",
-
-    "wheel",
-
-  ];
-
-
-
-  // Capture phase so we stop events BEFORE app gets them
-
-  pointerEvents.forEach((ev) =>
-
-    window.addEventListener(ev, stop, { capture: true, passive: false })
-
-  );
-
-
-
-  // Block keyboard
-
-  window.addEventListener("keydown", stop, true);
-
-  window.addEventListener("keyup", stop, true);
-
-
-
-  // Stop scrolling
-
-  document.documentElement.style.overflow = "hidden";
-
-  document.body.style.overflow = "hidden";
-
-}
-
-
-
-
