@@ -1,22 +1,14 @@
 // src/levels/level242.js
 
-// ✅ This file is LEVEL 1 now (we keep filename to avoid more path changes)
-
-
+// ✅ LEVEL 1 (formerly “242”)
 
 export const level242 = {
 
   name: "LEVEL 1",
 
-  zoom: 1.0, // ✅ per level zoom (1 = normal, <1 zoom out, >1 zoom in)
+  zoom: 1.05, // little zoom in
 
   start: { x: 1, y: 1 },
-
-
-
-  // ✅ 0 = walkable, 1 = wall
-
-  // (No goal tile anymore)
 
   grid: [
 
@@ -34,7 +26,7 @@ export const level242 = {
 
     [1,0,0,0,0,1,0,0,0,1],
 
-    [1,0,1,1,0,1,1,1,0,1],
+    [1,0,1,1,0,1,1,1,2,1],
 
     [1,0,0,0,0,0,0,0,0,1],
 
