@@ -1,121 +1,72 @@
 // src/game/state.js
 
-
-
-function key(x, y) {
-
-  return `${x},${y}`;
-
-}
-
-
-
 export function createGameState(level) {
-
   const grid = level.grid;
 
   const rows = grid.length;
-
   const cols = grid[0].length;
 
+  // Track painted tiles
+  const painted = Array.from({ length: rows }, () =>
+    Array(cols).fill(false)
+  );
 
+  let freeTileCount = 0;
+  let paintedCount = 0;
 
-  const start = level.start || { x: 1, y: 1 };
-
-
-
-  const state = {
-
-    level,
-
-    grid,
-
-    rows,
-
-    cols,
-
-
-
-    player: { x: start.x, y: start.y },
-
-
-
-    // painted tiles (walkable visited)
-
-    painted: new Set(),
-
-
-
-    // total walkable tiles count
-
-    totalWalkable: 0,
-
-
-
-    // helpers
-
-    isWalkable(x, y) {
-
-      return !!grid[y] && grid[y][x] === 0;
-
-    },
-
-
-
-    paint(x, y) {
-
-      state.painted.add(key(x, y));
-
-    },
-
-
-
-    isPainted(x, y) {
-
-      return state.painted.has(key(x, y));
-
-    },
-
-
-
-    isComplete() {
-
-      return state.painted.size >= state.totalWalkable && state.totalWalkable > 0;
-
-    },
-
+  let player = {
+    row: 0,
+    col: 0,
   };
 
+  // Init state from level grid
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      const cell = grid[r][c];
 
+      if (cell === 0 || cell === 2) {
+        freeTileCount++;
+      }
 
-  // compute total walkable tiles
-
-  let count = 0;
-
-  for (let y = 0; y < rows; y++) {
-
-    for (let x = 0; x < cols; x++) {
-
-      if (grid[y][x] === 0) count++;
-
+      if (cell === 2) {
+        player.row = r;
+        player.col = c;
+        paintTile(r, c);
+      }
     }
-
   }
 
-  state.totalWalkable = count;
-
-
-
-  // paint start tile immediately
-
-  if (state.isWalkable(state.player.x, state.player.y)) {
-
-    state.paint(state.player.x, state.player.y);
-
+  function isWall(r, c) {
+    return grid[r]?.[c] === 1;
   }
 
+  function paintTile(r, c) {
+    if (!painted[r][c]) {
+      painted[r][c] = true;
+      paintedCount++;
+    }
+  }
 
+  function allTilesPainted() {
+    return paintedCount >= freeTileCount;
+  }
 
-  return state;
+  function movePlayerTo(r, c) {
+    player.row = r;
+    player.col = c;
+    paintTile(r, c);
+  }
 
+  return {
+    grid,
+    rows,
+    cols,
+
+    player,
+    painted,
+
+    isWall,
+    movePlayerTo,
+    allTilesPainted,
+  };
 }

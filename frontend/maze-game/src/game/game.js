@@ -1,7 +1,7 @@
 // src/game/game.js
-// STEP 17:
-// ✅ Adds setLevel(level) so we can go Next Level without page refresh
-// ✅ Calls onLevelComplete({ level, painted, total }) once
+// STEP 13 UNDO:
+// ✅ All levels use same tile size (no zoom)
+// ✅ No per-level zoom scaling
 
 export function createGame({ canvas, level, onLevelComplete }) {
   const ctx = canvas.getContext("2d");
@@ -12,7 +12,11 @@ export function createGame({ canvas, level, onLevelComplete }) {
   // ---------- canvas ----------
   let w = 0;
   let h = 0;
-  let tile = 40;
+
+  // ✅ fixed tile (same everywhere)
+  const TILE = 40;
+  let tile = TILE;
+
   let ox = 0;
   let oy = 0;
 
@@ -27,12 +31,12 @@ export function createGame({ canvas, level, onLevelComplete }) {
     canvas.height = Math.floor(h * dpr);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-    const baseTile = Math.min(w / cols, h / rows);
-    tile = Math.max(18, Math.floor(baseTile * ZOOM));
+    // ✅ no zoom, no fit-scaling
+    tile = TILE;
   }
 
   // ---------- level state ----------
-  let grid, rows, cols, start, ZOOM;
+  let grid, rows, cols, start;
   let player = { x: 1, y: 1 };
   let painted = new Set();
   let totalPassable = 0;
@@ -54,7 +58,6 @@ export function createGame({ canvas, level, onLevelComplete }) {
     rows = grid.length;
     cols = grid[0].length;
     start = lvl.start || { x: 1, y: 1 };
-    ZOOM = typeof lvl.zoom === "number" ? lvl.zoom : 1;
 
     player = { x: start.x, y: start.y };
     painted = new Set();
@@ -296,7 +299,13 @@ export function createGame({ canvas, level, onLevelComplete }) {
     ctx.fill();
 
     ctx.beginPath();
-    ctx.arc(ox + px - r * 0.3, oy + py - bounce - r * 0.35, r * 0.35, 0, Math.PI * 2);
+    ctx.arc(
+      ox + px - r * 0.3,
+      oy + py - bounce - r * 0.35,
+      r * 0.35,
+      0,
+      Math.PI * 2
+    );
     ctx.fillStyle = "rgba(255,255,255,0.55)";
     ctx.fill();
   }
