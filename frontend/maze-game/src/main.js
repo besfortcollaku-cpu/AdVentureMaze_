@@ -1,201 +1,110 @@
 // src/main.js
-
 import "./style.css";
 
-
-
 import { mountUI } from "./ui/ui.js";
-
 import { setupPiLogin } from "./pi/piClient.js";
-
 import { enforcePiEnvironment } from "./pi/piDetect.js";
-
 import { createGame } from "./game/game.js";
 
-import { levels } from "./levels/index.js";
-
-
+import { level242 } from "./levels/level242.js"; // ✅ LEVEL 1 (name inside is LEVEL 1)
+import { level2 } from "./levels/level2.js";     // ✅ LEVEL 2
 
 const BACKEND = "https://adventuremaze.onrender.com";
 
-
-
 // user state
-
 let CURRENT_USER = { username: "guest", uid: null };
-
 let CURRENT_ACCESS_TOKEN = null;
 
-
-
-function getLevelIndex() {
-
-  const p = new URLSearchParams(window.location.search);
-
-  const lvl = parseInt(p.get("level") || "1", 10);
-
-  return Math.max(0, Math.min(levels.length - 1, lvl - 1));
-
-}
-
-
-
-function setLevelIndex(i) {
-
-  const p = new URLSearchParams(window.location.search);
-
-  p.set("level", String(i + 1));
-
-  const nextUrl = window.location.pathname + "?" + p.toString();
-
-  window.location.href = nextUrl;
-
-}
-
-
-
+// points (local for now)
 function getPoints() {
-
-  return parseInt(localStorage.getItem("points") || "0", 10);
-
+  const n = parseInt(localStorage.getItem("points") || "0", 10);
+  return Number.isFinite(n) ? n : 0;
 }
-
 function setPoints(n) {
-
   localStorage.setItem("points", String(n));
-
 }
 
+// choose level by URL param (?level=1,2,3...) default 1
+function getLevelIndex() {
+  const params = new URLSearchParams(window.location.search);
+  const n = parseInt(params.get("level") || "1", 10);
+  return Number.isFinite(n) && n > 0 ? n : 1;
+}
+function setLevelIndex(n) {
+  const url = new URL(window.location.href);
+  url.searchParams.set("level", String(n));
+  window.location.href = url.toString(); // simplest reliable "restart"
+}
 
+const LEVELS = [level242, level2];
 
 async function boot() {
-
   const ui = mountUI(document.querySelector("#app"));
 
-
-
-  // show points
-
+  // set header points + level title
   ui.coinCount.textContent = String(getPoints());
 
-
-
-  // set level title
-
   const levelIndex = getLevelIndex();
+  const level = LEVELS[levelIndex - 1] || LEVELS[0];
 
-  const level = levels[levelIndex];
-
-  ui.levelTitle.textContent = level.name || `LEVEL ${levelIndex + 1}`;
-
-
+  ui.levelText.textContent = level?.name || `LEVEL ${levelIndex}`;
 
   // Enforce Pi env (WAIT for Pi injection)
-
   const env = await enforcePiEnvironment({
-
-    desktopBlockEl: ui.desktopBlock,
-
+    desktopBlockEl: document.getElementById("desktopBlock"),
   });
-
-
 
   if (!env.ok) {
-
     console.log("Blocked:", env.reason);
-
     return;
-
   }
 
-
-
   // Pi login
-
   setupPiLogin({
-
     BACKEND,
-
     loginBtn: ui.loginBtn,
-
     loginBtnText: ui.loginBtnText,
-
     userPill: ui.userPill,
-
     onLogin: ({ user, accessToken }) => {
-
       CURRENT_USER = user;
-
       CURRENT_ACCESS_TOKEN = accessToken;
-
     },
-
   });
 
+  // Level complete UI
+  function showLevelComplete() {
+    // +1 point per level finish
+    const newPoints = getPoints() + 1;
+    setPoints(newPoints);
+    ui.coinCount.textContent = String(newPoints);
 
+    ui.levelOverlayTitle.textContent = `${level?.name || "LEVEL"} COMPLETE!`;
+    ui.levelOverlayText.textContent = `+1 point (Total: ${newPoints})`;
+    ui.levelOverlay.style.display = "flex";
+  }
+
+  ui.nextLevelBtn.onclick = () => {
+    ui.levelOverlay.style.display = "none";
+    setLevelIndex(levelIndex + 1);
+  };
+
+  ui.watchAdBtn.onclick = () => {
+    // placeholder: later we hook real Pi ads/payment
+    const newPoints = getPoints() + 10;
+    setPoints(newPoints);
+    ui.coinCount.textContent = String(newPoints);
+    ui.levelOverlayText.textContent = `+10 points (Total: ${newPoints})`;
+    alert("Ad system later ✅ (you still got +10 for now)");
+  };
 
   // Game
-
   const game = createGame({
-
     canvas: ui.canvas,
-
     level,
-
-    onLevelComplete: () => {
-
-      // +1 point each level complete
-
-      const p = getPoints() + 1;
-
-      setPoints(p);
-
-      ui.coinCount.textContent = String(p);
-
-
-
-      // show overlay
-
-      ui.completeOverlay.style.display = "flex";
-
-    },
-
+    onLevelComplete: showLevelComplete,
   });
-
-
-
-  // overlay buttons
-
-  ui.nextLevelBtn.addEventListener("click", () => {
-
-    const next = Math.min(levels.length - 1, levelIndex + 1);
-
-    setLevelIndex(next);
-
-  });
-
-
-
-  ui.watchAdBtn.addEventListener("click", () => {
-
-    // hook later; for now just add +10
-
-    const p = getPoints() + 10;
-
-    setPoints(p);
-
-    ui.coinCount.textContent = String(p);
-
-    alert("Ad hook later ✅ (+10 added for now)");
-
-  });
-
-
 
   game.start();
-
 }
-
-
 
 boot();
