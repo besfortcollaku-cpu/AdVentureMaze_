@@ -4,7 +4,7 @@
 
 function key(x, y) {
 
-  return x + "," + y;
+  return `${x},${y}`;
 
 }
 
@@ -24,39 +24,9 @@ export function createGameState(level) {
 
 
 
-  // walkable = 0 or 2
-
-  function isWalkable(x, y) {
-
-    return grid[y] && (grid[y][x] === 0 || grid[y][x] === 2);
-
-  }
-
-
-
-  // total walkable tiles in level (must be painted)
-
-  let totalWalkable = 0;
-
-  for (let y = 0; y < rows; y++) {
-
-    for (let x = 0; x < cols; x++) {
-
-      if (isWalkable(x, y)) totalWalkable++;
-
-    }
-
-  }
-
-
-
-  const painted = new Set();
-
-  painted.add(key(start.x, start.y));
-
-
-
   const state = {
+
+    level,
 
     grid,
 
@@ -66,41 +36,43 @@ export function createGameState(level) {
 
 
 
-    // current cell
-
     player: { x: start.x, y: start.y },
 
 
 
-    // render position in cell coordinates (float)
+    // painted tiles (walkable visited)
 
-    renderPos: { x: start.x, y: start.y },
-
-
-
-    // painted tiles
-
-    painted,
-
-    totalWalkable,
+    painted: new Set(),
 
 
 
-    isWalkable,
+    // total walkable tiles count
+
+    totalWalkable: 0,
 
 
 
-    paintCell(x, y) {
+    // helpers
 
-      painted.add(key(x, y));
+    isWalkable(x, y) {
+
+      return !!grid[y] && grid[y][x] === 0;
 
     },
 
 
 
-    paintPath(pathCells) {
+    paint(x, y) {
 
-      for (const c of pathCells) painted.add(key(c.x, c.y));
+      state.painted.add(key(x, y));
+
+    },
+
+
+
+    isPainted(x, y) {
+
+      return state.painted.has(key(x, y));
 
     },
 
@@ -108,11 +80,39 @@ export function createGameState(level) {
 
     isComplete() {
 
-      return painted.size >= totalWalkable;
+      return state.painted.size >= state.totalWalkable && state.totalWalkable > 0;
 
     },
 
   };
+
+
+
+  // compute total walkable tiles
+
+  let count = 0;
+
+  for (let y = 0; y < rows; y++) {
+
+    for (let x = 0; x < cols; x++) {
+
+      if (grid[y][x] === 0) count++;
+
+    }
+
+  }
+
+  state.totalWalkable = count;
+
+
+
+  // paint start tile immediately
+
+  if (state.isWalkable(state.player.x, state.player.y)) {
+
+    state.paint(state.player.x, state.player.y);
+
+  }
 
 
 

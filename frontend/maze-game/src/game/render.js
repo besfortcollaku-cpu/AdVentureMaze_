@@ -12,7 +12,9 @@ export function createRenderer({ canvas, state }) {
 
   let h = 0;
 
-  let tile = 32;
+
+
+  let tile = 40;
 
   let ox = 0;
 
@@ -42,7 +44,27 @@ export function createRenderer({ canvas, state }) {
 
 
 
-    tile = Math.floor(Math.min(w / state.cols, h / state.rows));
+    // base tile fits grid
+
+    const base = Math.min(w / state.cols, h / state.rows);
+
+    const zoom = typeof state.level.zoom === "number" ? state.level.zoom : 1.0;
+
+
+
+    // requested tile size
+
+    let t = Math.floor(base * zoom);
+
+
+
+    // cap so it always fits (important if zoom > 1)
+
+    t = Math.min(t, Math.floor(w / state.cols), Math.floor(h / state.rows));
+
+    tile = Math.max(10, t);
+
+
 
     ox = Math.floor((w - state.cols * tile) / 2);
 
@@ -52,7 +74,7 @@ export function createRenderer({ canvas, state }) {
 
 
 
-  function cellToPx(x, y) {
+  function cellCenter(x, y) {
 
     return {
 
@@ -68,7 +90,9 @@ export function createRenderer({ canvas, state }) {
 
   function drawBackground() {
 
-    ctx.fillStyle = "rgba(0,0,0,0.18)";
+    // subtle bg so we always see something
+
+    ctx.fillStyle = "rgba(255,255,255,0.04)";
 
     ctx.fillRect(0, 0, w, h);
 
@@ -76,13 +100,11 @@ export function createRenderer({ canvas, state }) {
 
 
 
-  function drawGrid() {
+  function drawMaze() {
 
     for (let y = 0; y < state.rows; y++) {
 
       for (let x = 0; x < state.cols; x++) {
-
-        const v = state.grid[y][x];
 
         const px = ox + x * tile;
 
@@ -90,51 +112,33 @@ export function createRenderer({ canvas, state }) {
 
 
 
-        // wall
+        if (state.grid[y][x] === 1) {
 
-        if (v === 1) {
+          // wall
 
-          ctx.fillStyle = "rgba(0,0,0,0.55)";
+          ctx.fillStyle = "rgba(0,0,0,0.40)";
 
           ctx.fillRect(px, py, tile, tile);
 
-          continue;
+        } else {
 
-        }
+          // walkable base
 
+          ctx.fillStyle = "rgba(255,255,255,0.06)";
 
-
-        // walkable base
-
-        ctx.fillStyle = "rgba(255,255,255,0.08)";
-
-        ctx.fillRect(px, py, tile, tile);
+          ctx.fillRect(px, py, tile, tile);
 
 
 
-        // painted overlay
+          // painted overlay
 
-        const k = x + "," + y;
+          if (state.isPainted(x, y)) {
 
-        if (state.painted.has(k)) {
+            ctx.fillStyle = "rgba(37,215,255,0.18)";
 
-          ctx.fillStyle = "rgba(37,215,255,0.22)";
+            ctx.fillRect(px + 2, py + 2, tile - 4, tile - 4);
 
-          ctx.fillRect(px + 2, py + 2, tile - 4, tile - 4);
-
-        }
-
-
-
-        // goal tile (optional, if you have 2)
-
-        if (v === 2) {
-
-          ctx.strokeStyle = "rgba(255,210,120,0.55)";
-
-          ctx.lineWidth = 2;
-
-          ctx.strokeRect(px + 4, py + 4, tile - 8, tile - 8);
+          }
 
         }
 
@@ -146,21 +150,21 @@ export function createRenderer({ canvas, state }) {
 
 
 
-  function drawPlayer() {
+  function drawBall(playerFloat) {
 
-    const p = cellToPx(state.renderPos.x, state.renderPos.y);
+    const r = Math.max(10, tile * 0.24);
 
-    const r = Math.max(10, tile * 0.22);
+    const c = cellCenter(playerFloat.x, playerFloat.y);
 
 
 
     // shadow
 
-    ctx.fillStyle = "rgba(0,0,0,0.28)";
+    ctx.fillStyle = "rgba(0,0,0,0.25)";
 
     ctx.beginPath();
 
-    ctx.ellipse(p.cx + 2, p.cy + 6, r * 1.05, r * 0.85, 0, 0, Math.PI * 2);
+    ctx.ellipse(c.cx + 2, c.cy + 5, r * 1.05, r * 0.85, 0, 0, Math.PI * 2);
 
     ctx.fill();
 
@@ -172,7 +176,7 @@ export function createRenderer({ canvas, state }) {
 
     ctx.beginPath();
 
-    ctx.arc(p.cx, p.cy, r, 0, Math.PI * 2);
+    ctx.arc(c.cx, c.cy, r, 0, Math.PI * 2);
 
     ctx.fill();
 
@@ -180,11 +184,11 @@ export function createRenderer({ canvas, state }) {
 
     // highlight
 
-    ctx.fillStyle = "rgba(255,255,255,0.35)";
+    ctx.fillStyle = "rgba(255,255,255,0.55)";
 
     ctx.beginPath();
 
-    ctx.arc(p.cx - r * 0.25, p.cy - r * 0.25, r * 0.45, 0, Math.PI * 2);
+    ctx.arc(c.cx - r * 0.3, c.cy - r * 0.35, r * 0.38, 0, Math.PI * 2);
 
     ctx.fill();
 
@@ -192,15 +196,15 @@ export function createRenderer({ canvas, state }) {
 
 
 
-  function render() {
+  function render(playerFloat) {
 
     ctx.clearRect(0, 0, w, h);
 
     drawBackground();
 
-    drawGrid();
+    drawMaze();
 
-    drawPlayer();
+    drawBall(playerFloat);
 
   }
 

@@ -12,7 +12,7 @@ import { enforcePiEnvironment } from "./pi/piDetect.js";
 
 import { createGame } from "./game/game.js";
 
-import { level242 as level1 } from "./levels/level242.js"; // keep file name for now
+import { levels } from "./levels/index.js";
 
 
 
@@ -20,33 +20,77 @@ const BACKEND = "https://adventuremaze.onrender.com";
 
 
 
+// user state
+
 let CURRENT_USER = { username: "guest", uid: null };
 
 let CURRENT_ACCESS_TOKEN = null;
 
 
 
-let POINTS = 0;
+function getLevelIndex() {
+
+  const p = new URLSearchParams(window.location.search);
+
+  const lvl = parseInt(p.get("level") || "1", 10);
+
+  return Math.max(0, Math.min(levels.length - 1, lvl - 1));
+
+}
+
+
+
+function setLevelIndex(i) {
+
+  const p = new URLSearchParams(window.location.search);
+
+  p.set("level", String(i + 1));
+
+  const nextUrl = window.location.pathname + "?" + p.toString();
+
+  window.location.href = nextUrl;
+
+}
+
+
+
+function getPoints() {
+
+  return parseInt(localStorage.getItem("points") || "0", 10);
+
+}
+
+function setPoints(n) {
+
+  localStorage.setItem("points", String(n));
+
+}
 
 
 
 async function boot() {
 
-  // 1) UI first
-
   const ui = mountUI(document.querySelector("#app"));
 
 
 
-  // show Level 1 label
+  // show points
 
-  if (ui.levelTitle) ui.levelTitle.textContent = "LEVEL 1";
-
-  if (ui.coinCount) ui.coinCount.textContent = String(POINTS);
+  ui.coinCount.textContent = String(getPoints());
 
 
 
-  // 2) Enforce Pi env
+  // set level title
+
+  const levelIndex = getLevelIndex();
+
+  const level = levels[levelIndex];
+
+  ui.levelTitle.textContent = level.name || `LEVEL ${levelIndex + 1}`;
+
+
+
+  // Enforce Pi env (WAIT for Pi injection)
 
   const env = await enforcePiEnvironment({
 
@@ -66,7 +110,7 @@ async function boot() {
 
 
 
-  // 3) Pi login
+  // Pi login
 
   setupPiLogin({
 
@@ -90,15 +134,43 @@ async function boot() {
 
 
 
-  // ✅ popup button actions
+  // Game
+
+  const game = createGame({
+
+    canvas: ui.canvas,
+
+    level,
+
+    onLevelComplete: () => {
+
+      // +1 point each level complete
+
+      const p = getPoints() + 1;
+
+      setPoints(p);
+
+      ui.coinCount.textContent = String(p);
+
+
+
+      // show overlay
+
+      ui.completeOverlay.style.display = "flex";
+
+    },
+
+  });
+
+
+
+  // overlay buttons
 
   ui.nextLevelBtn.addEventListener("click", () => {
 
-    // later: load next level data
+    const next = Math.min(levels.length - 1, levelIndex + 1);
 
-    ui.hideLevelComplete();
-
-    alert("Next level (Level 2) coming next step ✅");
+    setLevelIndex(next);
 
   });
 
@@ -106,41 +178,15 @@ async function boot() {
 
   ui.watchAdBtn.addEventListener("click", () => {
 
-    // later: real ad hook + reward via backend
+    // hook later; for now just add +10
 
-    POINTS += 10;
+    const p = getPoints() + 10;
 
-    ui.coinCount.textContent = String(POINTS);
+    setPoints(p);
 
-    ui.hideLevelComplete();
+    ui.coinCount.textContent = String(p);
 
-    alert("Ad reward simulated: +10 points ✅");
-
-  });
-
-
-
-  // 4) Game
-
-  const game = createGame({
-
-    canvas: ui.canvas,
-
-    level: { ...level1, number: 1 },
-
-    onComplete: ({ levelNumber, pointsEarned }) => {
-
-      // base reward per level
-
-      POINTS += pointsEarned;
-
-      ui.coinCount.textContent = String(POINTS);
-
-
-
-      ui.showLevelComplete({ levelNumber, pointsEarned });
-
-    },
+    alert("Ad hook later ✅ (+10 added for now)");
 
   });
 

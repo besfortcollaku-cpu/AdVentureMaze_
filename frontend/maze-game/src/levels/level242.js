@@ -1,9 +1,45 @@
 // src/levels/level242.js
 
-// Backward-compat alias so existing imports don't break.
-
-// We start at Level 1 now.
+// ✅ This file is LEVEL 1 now (we keep filename to avoid more path changes)
 
 
 
-export { level1 as level242 } from "./level1.js";
+export const level242 = {
+
+  name: "LEVEL 1",
+
+  zoom: 1.0, // ✅ per level zoom (1 = normal, <1 zoom out, >1 zoom in)
+
+  start: { x: 1, y: 1 },
+
+
+
+  // ✅ 0 = walkable, 1 = wall
+
+  // (No goal tile anymore)
+
+  grid: [
+
+    [1,1,1,1,1,1,1,1,1,1],
+
+    [1,0,0,0,0,0,0,0,0,1],
+
+    [1,0,1,1,1,1,1,1,0,1],
+
+    [1,0,1,1,1,1,1,1,0,1],
+
+    [1,0,0,0,0,0,0,1,0,1],
+
+    [1,1,1,1,1,1,0,1,0,1],
+
+    [1,0,0,0,0,1,0,0,0,1],
+
+    [1,0,1,1,0,1,1,1,0,1],
+
+    [1,0,0,0,0,0,0,0,0,1],
+
+    [1,1,1,1,1,1,1,1,1,1],
+
+  ],
+
+};

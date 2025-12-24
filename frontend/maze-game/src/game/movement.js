@@ -8,7 +8,7 @@ export function createMovement({ state, onMoveFinished }) {
 
 
 
-  const anim = {
+  let anim = {
 
     t0: 0,
 
@@ -22,23 +22,27 @@ export function createMovement({ state, onMoveFinished }) {
 
     ty: 0,
 
-    path: [],
+    dist: 0,
+
+    lastPaintCellX: 0,
+
+    lastPaintCellY: 0,
 
   };
 
 
 
-  function computeSlideTarget(dx, dy) {
+  function findSlideTarget(dx, dy) {
 
-    // move until next step would be blocked
+    const sx = state.player.x;
 
-    let x = state.player.x;
-
-    let y = state.player.y;
+    const sy = state.player.y;
 
 
 
-    const path = [{ x, y }]; // include start cell
+    let x = sx;
+
+    let y = sy;
 
 
 
@@ -48,23 +52,17 @@ export function createMovement({ state, onMoveFinished }) {
 
       const ny = y + dy;
 
-
-
       if (!state.isWalkable(nx, ny)) break;
-
-
 
       x = nx;
 
       y = ny;
 
-      path.push({ x, y });
-
     }
 
 
 
-    return { tx: x, ty: y, path };
+    return { x, y };
 
   }
 
@@ -76,31 +74,15 @@ export function createMovement({ state, onMoveFinished }) {
 
 
 
-    // no diagonal
-
-    if ((dx !== 0 && dy !== 0) || (dx === 0 && dy === 0)) return;
+    if (!dx && !dy) return;
 
 
 
-    const res = computeSlideTarget(dx, dy);
+    const target = findSlideTarget(dx, dy);
+
+    if (target.x === state.player.x && target.y === state.player.y) return;
 
 
-
-    // if we can't move at all
-
-    if (res.tx === state.player.x && res.ty === state.player.y) return;
-
-
-
-    // paint all tiles we will pass over (so level logic matches slide)
-
-    // includes start cell too, harmless
-
-    state.paintPath(res.path);
-
-
-
-    // start animation from current renderPos (should match player cell when idle)
 
     moving = true;
 
@@ -108,33 +90,43 @@ export function createMovement({ state, onMoveFinished }) {
 
     anim.t0 = performance.now();
 
-    anim.sx = state.renderPos.x;
+    anim.sx = state.player.x;
 
-    anim.sy = state.renderPos.y;
+    anim.sy = state.player.y;
 
-    anim.tx = res.tx;
+    anim.tx = target.x;
 
-    anim.ty = res.ty;
-
-    anim.path = res.path;
+    anim.ty = target.y;
 
 
 
-    const dist = Math.abs(anim.tx - anim.sx) + Math.abs(anim.ty - anim.sy);
+    const ddx = anim.tx - anim.sx;
+
+    const ddy = anim.ty - anim.sy;
+
+    anim.dist = Math.max(1, Math.abs(ddx) + Math.abs(ddy)); // Manhattan tiles
 
 
 
-    // duration scales with distance
+    // ✅ duration scales with distance (slide feels natural)
 
-    anim.dur = 120 + dist * 85;
+    const perTile = 90; // ms per tile
+
+    anim.dur = Math.max(120, anim.dist * perTile);
 
 
 
-    // commit logical player cell immediately (so progress/save uses target)
+    anim.lastPaintCellX = anim.sx;
 
-    state.player.x = res.tx;
+    anim.lastPaintCellY = anim.sy;
 
-    state.player.y = res.ty;
+  }
+
+
+
+  function easeOutCubic(t) {
+
+    return 1 - Math.pow(1 - t, 3);
 
   }
 
@@ -142,17 +134,7 @@ export function createMovement({ state, onMoveFinished }) {
 
   function update(now) {
 
-    if (!moving) {
-
-      // keep render position locked to cell when idle
-
-      state.renderPos.x = state.player.x;
-
-      state.renderPos.y = state.player.y;
-
-      return;
-
-    }
+    if (!moving) return;
 
 
 
@@ -160,37 +142,119 @@ export function createMovement({ state, onMoveFinished }) {
 
     const clamped = Math.max(0, Math.min(1, t));
 
-
-
-    // smooth step easing
-
-    const k = 1 - Math.pow(1 - clamped, 3);
+    const k = easeOutCubic(clamped);
 
 
 
-    state.renderPos.x = anim.sx + (anim.tx - anim.sx) * k;
+    // current float position
 
-    state.renderPos.y = anim.sy + (anim.ty - anim.sy) * k;
+    const fx = anim.sx + (anim.tx - anim.sx) * k;
+
+    const fy = anim.sy + (anim.ty - anim.sy) * k;
 
 
 
-    if (t >= 1) {
+    // Determine which cell we are "in" during slide:
+
+    // We only slide axis-aligned, so we can safely round
+
+    const cx = Math.round(fx);
+
+    const cy = Math.round(fy);
+
+
+
+    // Paint every new cell we pass through
+
+    if (cx !== anim.lastPaintCellX || cy !== anim.lastPaintCellY) {
+
+      // walk from lastPaintCell -> current cell (covers multi-tile jumps)
+
+      const stepX = cx === anim.lastPaintCellX ? 0 : (cx > anim.lastPaintCellX ? 1 : -1);
+
+      const stepY = cy === anim.lastPaintCellY ? 0 : (cy > anim.lastPaintCellY ? 1 : -1);
+
+
+
+      let x = anim.lastPaintCellX;
+
+      let y = anim.lastPaintCellY;
+
+
+
+      while (x !== cx || y !== cy) {
+
+        if (x !== cx) x += stepX;
+
+        else if (y !== cy) y += stepY;
+
+
+
+        if (state.isWalkable(x, y)) state.paint(x, y);
+
+      }
+
+
+
+      anim.lastPaintCellX = cx;
+
+      anim.lastPaintCellY = cy;
+
+    }
+
+
+
+    // At end, snap player to target
+
+    if (clamped >= 1) {
+
+      state.player.x = anim.tx;
+
+      state.player.y = anim.ty;
+
+
+
+      // ensure final tile painted
+
+      if (state.isWalkable(state.player.x, state.player.y)) {
+
+        state.paint(state.player.x, state.player.y);
+
+      }
+
+
 
       moving = false;
-
-
-
-      // snap exact
-
-      state.renderPos.x = state.player.x;
-
-      state.renderPos.y = state.player.y;
-
-
 
       onMoveFinished?.();
 
     }
+
+  }
+
+
+
+  function getAnimatedPlayer(now) {
+
+    if (!moving) return { x: state.player.x, y: state.player.y, moving: false, progress: 0 };
+
+
+
+    const t = (now - anim.t0) / anim.dur;
+
+    const clamped = Math.max(0, Math.min(1, t));
+
+    const k = easeOutCubic(clamped);
+
+
+
+    const x = anim.sx + (anim.tx - anim.sx) * k;
+
+    const y = anim.sy + (anim.ty - anim.sy) * k;
+
+
+
+    return { x, y, moving: true, progress: clamped };
 
   }
 
@@ -202,7 +266,9 @@ export function createMovement({ state, onMoveFinished }) {
 
     update,
 
-    get moving() {
+    getAnimatedPlayer,
+
+    isMoving() {
 
       return moving;
 

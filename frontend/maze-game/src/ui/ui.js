@@ -8,19 +8,19 @@ export function mountUI(app) {
           '<div class="brand">' +
             '<div class="logoBox" title="Adventure Maze">' +
               '<img src="/logo.png" alt="Adventure Maze Logo" />' +
-            "</div>" +
-          "</div>" +
+            '</div>' +
+          '</div>' +
 
           '<div class="levelWrap">' +
             '<div class="levelNew">NEW!</div>' +
             '<div class="levelText" id="levelTitle">LEVEL 1</div>' +
-          "</div>" +
+          '</div>' +
 
           '<div class="coins" title="Points">' +
             '<div class="coinDot"></div>' +
             '<div id="coinCount">0</div>' +
-          "</div>" +
-        "</div>" +
+          '</div>' +
+        '</div>' +
 
         '<div class="iconRow">' +
           iconBtn("settings", gearSVG(), "") +
@@ -32,90 +32,128 @@ export function mountUI(app) {
           '<div class="loginWrap">' +
             '<button class="iconBtnWide" id="loginBtn"><span id="loginBtnText">Login with Pi</span></button>' +
             '<div class="userPill" id="userPill">User: guest</div>' +
-          "</div>" +
-        "</div>" +
-      "</div>" +
+          '</div>' +
+        '</div>' +
+      '</div>' +
 
       '<div class="boardWrap">' +
         '<div class="boardFrame">' +
           '<canvas id="game"></canvas>' +
-        "</div>" +
-      "</div>" +
+        '</div>' +
+      '</div>' +
 
       '<div class="bottomBar">' +
         '<button class="btn" id="hintBtn">' +
           '<div class="btnIcon">🎬</div>' +
-          "<div>HINT</div>" +
-        "</button>" +
+          '<div>HINT</div>' +
+        '</button>' +
 
         '<div class="pill">Swipe to move</div>' +
 
         '<button class="btn" id="x3Btn">' +
           '<div class="btnIcon">⏩</div>' +
-          "<div>×3</div>" +
-        "</button>" +
-      "</div>" +
-    "</div>" +
+          '<div>×3</div>' +
+        '</button>' +
+      '</div>' +
+    '</div>' +
 
-    // ✅ Desktop/Pi overlay blocker (used by piDetect)
-    '<div class="desktopBlock" id="desktopBlock">' +
+    // Desktop block overlay (for non-Pi / desktop)
+    '<div class="desktopBlock" id="desktopBlock" style="display:none;">' +
       '<div class="desktopCard">' +
-        "<h2>Mobile game</h2>" +
-        "<p>This game is designed for smartphones. Use Pi Browser. Desktop is blocked.</p>" +
-      "</div>" +
-    "</div>" +
+        '<h2>Mobile game</h2>' +
+        '<p>This game is designed for smartphones. Use swipe on mobile. Desktop is only for testing (arrow keys).</p>' +
+      '</div>' +
+    '</div>' +
 
-    // ✅ LEVEL COMPLETE FULLSCREEN POPUP
-    '<div class="levelCompleteOverlay" id="levelCompleteOverlay" style="display:none;">' +
-      '<div class="levelCompleteCard">' +
-        '<div class="lcTitle">🎉 LEVEL COMPLETE!</div>' +
-        '<div class="lcSub" id="lcSub">You painted all tiles.</div>' +
+    // ✅ Level complete overlay (fullscreen)
+    '<div class="completeOverlay" id="completeOverlay" style="display:none;">' +
+      '<div class="completeCard">' +
+        '<div class="completeTitle">🎉 Level Complete!</div>' +
+        '<div class="completeText">You painted every tile.</div>' +
+        '<div class="completeBtns">' +
+          '<button class="completeBtn primary" id="nextLevelBtn">Next level</button>' +
+          '<button class="completeBtn" id="watchAdBtn">Watch an ad (+10)</button>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
 
-        '<div class="lcStats">' +
-          '<div class="lcStat"><div class="lcStatLabel">Level</div><div class="lcStatValue" id="lcLevel">1</div></div>' +
-          '<div class="lcStat"><div class="lcStatLabel">Points</div><div class="lcStatValue" id="lcPoints">+1</div></div>' +
-        "</div>" +
+  // Small CSS injected here so you don’t touch style.css
+  const extra = document.createElement("style");
+  extra.textContent = `
+    .loginWrap{ display:flex; gap:10px; align-items:center; margin-left:auto; }
+    .iconBtnWide{
+      height:42px; padding:0 14px; border-radius:14px;
+      border:1px solid rgba(255,255,255,.18);
+      background: rgba(18,28,60,.55);
+      color:#fff; font-weight:800; letter-spacing:.2px; cursor:pointer; white-space:nowrap;
+    }
+    .iconBtnWide:active{ transform: translateY(1px); }
+    .iconBtnWide:disabled{ opacity:.6; cursor:not-allowed; transform:none; }
+    .userPill{
+      height:42px; display:flex; align-items:center; padding:0 12px; border-radius:14px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.22);
+      color: rgba(234,243,255,.9);
+      font-weight:700; font-size:13px; white-space:nowrap;
+    }
+    @media (max-width: 420px){
+      .loginWrap{ width:100%; justify-content:space-between; margin-left:0; }
+      .iconBtnWide{ flex:1; }
+      .userPill{ flex:1; justify-content:center; }
+    }
 
-        '<div class="lcBtns">' +
-          '<button class="lcBtnPrimary" id="nextLevelBtn">Next level</button>' +
-          '<button class="lcBtnSecondary" id="watchAdBtn">Watch ad (+10)</button>' +
-        "</div>" +
-      "</div>" +
-    "</div>";
-
-  injectPopupCSS();
-
-  const overlayEl = document.getElementById("levelCompleteOverlay");
-  const nextLevelBtn = document.getElementById("nextLevelBtn");
-  const watchAdBtn = document.getElementById("watchAdBtn");
-
-  function showLevelComplete({ levelNumber = 1, pointsEarned = 1 } = {}) {
-    document.getElementById("lcLevel").textContent = String(levelNumber);
-    document.getElementById("lcPoints").textContent = `+${pointsEarned}`;
-    overlayEl.style.display = "flex";
-  }
-
-  function hideLevelComplete() {
-    overlayEl.style.display = "none";
-  }
+    /* ✅ Level complete overlay */
+    .completeOverlay{
+      position:fixed; inset:0; z-index:9999;
+      background: rgba(0,0,0,0.72);
+      display:flex; align-items:center; justify-content:center;
+      padding:18px;
+    }
+    .completeCard{
+      width:min(420px, 92vw);
+      border-radius:18px;
+      background: rgba(18,28,60,0.92);
+      border: 1px solid rgba(255,255,255,0.14);
+      box-shadow: 0 20px 70px rgba(0,0,0,0.55);
+      padding:18px;
+      color:#fff;
+      text-align:center;
+    }
+    .completeTitle{ font-size:22px; font-weight:900; margin-bottom:8px; }
+    .completeText{ opacity:.9; margin-bottom:14px; }
+    .completeBtns{ display:flex; gap:10px; }
+    .completeBtn{
+      flex:1;
+      height:44px;
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,.16);
+      background: rgba(255,255,255,.08);
+      color:#fff;
+      font-weight:800;
+      cursor:pointer;
+    }
+    .completeBtn.primary{
+      background: rgba(37,215,255,0.22);
+      border-color: rgba(37,215,255,0.35);
+    }
+    .completeBtn:active{ transform: translateY(1px); }
+  `;
+  document.head.appendChild(extra);
 
   return {
     canvas: document.getElementById("game"),
-
     loginBtn: document.getElementById("loginBtn"),
     loginBtnText: document.getElementById("loginBtnText"),
     userPill: document.getElementById("userPill"),
 
-    coinCount: document.getElementById("coinCount"),
-    levelTitle: document.getElementById("levelTitle"),
-
     desktopBlock: document.getElementById("desktopBlock"),
 
-    overlayEl,
-    nextLevelBtn,
-    watchAdBtn,
-    showLevelComplete,
-    hideLevelComplete,
+    completeOverlay: document.getElementById("completeOverlay"),
+    nextLevelBtn: document.getElementById("nextLevelBtn"),
+    watchAdBtn: document.getElementById("watchAdBtn"),
+
+    levelTitle: document.getElementById("levelTitle"),
+    coinCount: document.getElementById("coinCount"),
   };
 }
 
@@ -129,73 +167,7 @@ function iconBtn(id, svg, badgeText) {
   );
 }
 
-function injectPopupCSS() {
-  if (document.getElementById("lc_css")) return;
-  const s = document.createElement("style");
-  s.id = "lc_css";
-  s.textContent = `
-    .levelCompleteOverlay{
-      position: fixed;
-      inset: 0;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      background: rgba(0,0,0,0.62);
-      z-index: 9999;
-      padding: 18px;
-    }
-    .levelCompleteCard{
-      width: min(420px, 100%);
-      border-radius: 18px;
-      border: 1px solid rgba(255,255,255,.14);
-      background: rgba(18,28,60,.92);
-      box-shadow: 0 18px 50px rgba(0,0,0,.45);
-      padding: 18px;
-      color: #fff;
-      text-align:center;
-    }
-    .lcTitle{ font-weight: 900; letter-spacing: .3px; font-size: 22px; margin-bottom: 6px; }
-    .lcSub{ opacity: .85; font-weight: 700; font-size: 13px; margin-bottom: 14px; }
-
-    .lcStats{
-      display:flex;
-      gap: 10px;
-      justify-content:center;
-      margin-bottom: 14px;
-    }
-    .lcStat{
-      flex:1;
-      border-radius: 14px;
-      padding: 10px;
-      border: 1px solid rgba(255,255,255,.12);
-      background: rgba(255,255,255,.06);
-    }
-    .lcStatLabel{ font-size: 11px; opacity: .75; font-weight: 800; }
-    .lcStatValue{ font-size: 18px; font-weight: 900; margin-top: 4px; }
-
-    .lcBtns{ display:flex; gap: 10px; }
-    .lcBtnPrimary, .lcBtnSecondary{
-      flex:1;
-      height: 44px;
-      border-radius: 14px;
-      border: 1px solid rgba(255,255,255,.16);
-      font-weight: 900;
-      cursor: pointer;
-    }
-    .lcBtnPrimary{
-      background: rgba(37,215,255,.22);
-      color:#fff;
-    }
-    .lcBtnSecondary{
-      background: rgba(255,255,255,.08);
-      color:#fff;
-    }
-    .lcBtnPrimary:active, .lcBtnSecondary:active{ transform: translateY(1px); }
-  `;
-  document.head.appendChild(s);
-}
-
-/* --- keep your SVG functions (same as before) --- */
+/* ---------- SVG icons ---------- */
 function gearSVG() {
   return (
     '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true">' +
