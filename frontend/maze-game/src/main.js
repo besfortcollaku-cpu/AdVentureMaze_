@@ -1,3 +1,4 @@
+// src/main.js
 import "./style.css";
 
 import { mountUI } from "./ui/ui.js";
@@ -11,9 +12,24 @@ const BACKEND = "https://adventuremaze.onrender.com";
 let CURRENT_USER = { username: "guest", uid: null };
 let CURRENT_ACCESS_TOKEN = null;
 
+// simple points (local only for now)
+let points = Number(localStorage.getItem("points") || "0");
+
+// current level index
+let levelIndex = 0;
+
+// keep single game instance
+let game = null;
+
 async function boot() {
+  // 1) UI first
   const ui = mountUI(document.querySelector("#app"));
 
+  // initial HUD
+  ui.setPoints(points);
+  ui.setLevelName(levels[levelIndex]?.name || `LEVEL ${levelIndex + 1}`);
+
+  // 2) Enforce Pi env (WAIT for Pi injection)
   const env = await enforcePiEnvironment({
     desktopBlockEl: document.getElementById("desktopBlock"),
   });
@@ -23,6 +39,7 @@ async function boot() {
     return;
   }
 
+  // 3) Pi login
   setupPiLogin({
     BACKEND,
     loginBtn: ui.loginBtn,
@@ -34,11 +51,52 @@ async function boot() {
     },
   });
 
-  const game = createGame({
+  // 4) Overlay button handlers
+  ui.onNextLevel(() => {
+    ui.hideLevelComplete();
+
+    // advance level index (loops back to 0 if last)
+    levelIndex = Math.min(levelIndex + 1, levels.length - 1);
+
+    const next = levels[levelIndex];
+    ui.setLevelName(next?.name || `LEVEL ${levelIndex + 1}`);
+
+    if (game && typeof game.setLevel === "function") {
+      game.setLevel(next);
+    }
+  });
+
+  ui.onWatchAd(() => {
+    points += 10;
+    localStorage.setItem("points", String(points));
+    ui.setPoints(points);
+
+    // optional: keep overlay open (or close it)
+    // ui.hideLevelComplete();
+  });
+
+  // 5) Create game
+  const firstLevel = levels[levelIndex];
+
+  game = createGame({
     BACKEND,
     canvas: ui.canvas,
     getCurrentUser: () => CURRENT_USER,
-    level: levels[0], // ✅ always start from LEVEL 1
+    level: firstLevel,
+
+    onLevelComplete: ({ level, painted, total }) => {
+      // +1 point per completed level
+      points += 1;
+      localStorage.setItem("points", String(points));
+      ui.setPoints(points);
+
+      // show overlay
+      ui.showLevelComplete({
+        levelName: level?.name || `LEVEL ${levelIndex + 1}`,
+        pointsEarned: 1,
+        totalPoints: points,
+      });
+    },
   });
 
   game.start();
