@@ -1,5 +1,8 @@
 // src/levels/index.js
-import { level242 as level1 } from "./level242.js";
+import { level242 } from "./level242.js";
+// import { level2 } from "./level2.js"; // only if this file exists & exports level2
 
-// ✅ Start with only Level 1 for now (no level2 needed yet)
-export const levels = [level1];
+export const levels = [
+  level242,
+  // level2,
+];
