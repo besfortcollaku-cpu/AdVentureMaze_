@@ -9,52 +9,20 @@ import { levels } from "./levels/index.js";
 
 const BACKEND = "https://adventuremaze.onrender.com";
 
-// user state
 let CURRENT_USER = { username: "guest", uid: null };
 let CURRENT_ACCESS_TOKEN = null;
 
 let levelIndex = 0;
 let game = null;
 
-// points
-let POINTS = 0;
-let awardedThisLevel = false;
-
-function pointsKey(username) {
-  return `maze_points:${username || "guest"}`;
-}
-
-function loadPoints(username) {
-  const raw = localStorage.getItem(pointsKey(username));
-  const n = raw ? parseInt(raw, 10) : 0;
-  return Number.isFinite(n) ? n : 0;
-}
-
-function savePoints(username, value) {
-  localStorage.setItem(pointsKey(username), String(value));
-}
-
-function setPoints(ui, n) {
-  POINTS = n;
-  if (ui?.coinCount) ui.coinCount.textContent = String(POINTS);
-  savePoints(CURRENT_USER?.username || "guest", POINTS);
-}
-
-function addPoints(ui, delta) {
-  setPoints(ui, POINTS + delta);
-}
-
 async function boot() {
   // 1) UI first
   const ui = mountUI(document.querySelector("#app"));
 
-  // initial label
+  // set initial UI
   if (ui.levelLabel) ui.levelLabel.textContent = levels[levelIndex].name || `LEVEL ${levelIndex + 1}`;
 
-  // load points for guest at start
-  setPoints(ui, loadPoints("guest"));
-
-  // 2) Enforce Pi env
+  // 2) Enforce Pi env (WAIT for Pi injection)
   const env = await enforcePiEnvironment({
     desktopBlockEl: document.getElementById("desktopBlock"),
   });
@@ -73,19 +41,16 @@ async function boot() {
     onLogin: ({ user, accessToken }) => {
       CURRENT_USER = user;
       CURRENT_ACCESS_TOKEN = accessToken;
-
-      // switch points bucket to user
-      const username = CURRENT_USER?.username || "guest";
-      setPoints(ui, loadPoints(username));
     },
   });
 
-  // Overlay helpers
+  // 4) Game create
   function showCompleteOverlay({ painted, total }) {
     ui.overlayTitle.textContent = "Level Complete! 🎉";
     ui.overlayText.textContent = `You painted all tiles (${painted}/${total}).`;
     ui.overlay.style.display = "block";
 
+    // update Next button label
     const nextIdx = levelIndex + 1;
     if (nextIdx < levels.length) {
       ui.nextLevelBtn.textContent = `Next Level (${nextIdx + 1})`;
@@ -100,42 +65,32 @@ async function boot() {
     ui.overlay.style.display = "none";
   }
 
-  // 4) Game create
   game = createGame({
     BACKEND,
     canvas: ui.canvas,
     level: levels[levelIndex],
     onLevelComplete: ({ painted, total }) => {
-      // ✅ +1 point only once per level
-      if (!awardedThisLevel) {
-        awardedThisLevel = true;
-        addPoints(ui, 1);
-      }
       showCompleteOverlay({ painted, total });
     },
   });
 
-  // Overlay buttons
+  // Buttons in overlay
   ui.nextLevelBtn.addEventListener("click", () => {
     const nextIdx = levelIndex + 1;
     if (nextIdx >= levels.length) return;
 
     hideCompleteOverlay();
-
     levelIndex = nextIdx;
-    awardedThisLevel = false; // reset award for next level
 
     if (ui.levelLabel) ui.levelLabel.textContent = levels[levelIndex].name || `LEVEL ${levelIndex + 1}`;
     game.setLevel(levels[levelIndex]);
   });
 
   ui.watchAdBtn.addEventListener("click", () => {
-    // ✅ temporary reward (Pi payment/ad hook comes next step)
-    addPoints(ui, 10);
-    alert("+10 points ✅ (ad hook next step)");
+    alert("Ad hook next step ✅ (+10 points)"); // we connect piPay next
   });
 
-  // Bottom/top buttons (safe)
+  // your bottom buttons (safe)
   document.getElementById("hintBtn")?.addEventListener("click", () => alert("Hint later 😉"));
   document.getElementById("x3Btn")?.addEventListener("click", () => alert("Boost later 😉"));
   document.getElementById("settings")?.addEventListener("click", () => alert("Settings later"));
