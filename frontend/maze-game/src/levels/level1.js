@@ -1,4 +1,6 @@
 // src/levels/level1.js
+// ✅ LEVEL 1 (no zoom)
+
 export const level1 = {
   name: "LEVEL 1",
   start: { x: 1, y: 1 },

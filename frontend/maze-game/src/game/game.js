@@ -1,4 +1,8 @@
 // src/game/game.js
+// ✅ No zoom (STEP 13 undone)
+// ✅ setLevel(level) works
+// ✅ Calls onLevelComplete({ level, painted, total }) once
+
 export function createGame({ canvas, level, onLevelComplete }) {
   const ctx = canvas.getContext("2d");
 
@@ -30,15 +34,6 @@ export function createGame({ canvas, level, onLevelComplete }) {
     ty: 1,
   };
 
-  function isPassable(x, y) {
-    if (!grid[y] || typeof grid[y][x] === "undefined") return false;
-    return grid[y][x] === 0 || grid[y][x] === 2;
-  }
-
-  function key(x, y) {
-    return x + "," + y;
-  }
-
   function resizeCanvas() {
     const rect = canvas.getBoundingClientRect();
     const dpr = Math.min(2, window.devicePixelRatio || 1);
@@ -50,13 +45,9 @@ export function createGame({ canvas, level, onLevelComplete }) {
     canvas.height = Math.floor(h * dpr);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-    // ✅ NO ZOOM: tile purely based on grid + canvas size
+    // ✅ SAME sizing for every level (no zoom)
     const baseTile = Math.min(w / cols, h / rows);
-    tile = Math.max(18, Math.floor(baseTile));
-
-    // ✅ center grid (no camera follow)
-    ox = Math.floor((w - cols * tile) / 2);
-    oy = Math.floor((h - rows * tile) / 2);
+    tile = Math.max(18, Math.floor(baseTile)); // keep min size
   }
 
   function loadLevel(lvl) {
@@ -66,7 +57,6 @@ export function createGame({ canvas, level, onLevelComplete }) {
     start = lvl.start || { x: 1, y: 1 };
 
     player = { x: start.x, y: start.y };
-
     painted = new Set();
     painted.add(key(player.x, player.y));
 
@@ -86,6 +76,15 @@ export function createGame({ canvas, level, onLevelComplete }) {
     anim.ty = player.y;
 
     resizeCanvas();
+  }
+
+  function isPassable(x, y) {
+    if (!grid[y] || typeof grid[y][x] === "undefined") return false;
+    return grid[y][x] === 0 || grid[y][x] === 2;
+  }
+
+  function key(x, y) {
+    return x + "," + y;
   }
 
   function slideTarget(dx, dy) {
@@ -123,11 +122,13 @@ export function createGame({ canvas, level, onLevelComplete }) {
     if (finished) return;
     if (painted.size >= totalPassable) {
       finished = true;
-      onLevelComplete?.({
-        level: lvlRef,
-        painted: painted.size,
-        total: totalPassable,
-      });
+      if (typeof onLevelComplete === "function") {
+        onLevelComplete({
+          level: lvlRef,
+          painted: painted.size,
+          total: totalPassable,
+        });
+      }
     }
   }
 
@@ -202,13 +203,29 @@ export function createGame({ canvas, level, onLevelComplete }) {
     window.addEventListener("resize", resizeCanvas, { signal: sig });
   }
 
+  // ---------- camera ----------
+  function updateCamera(px, py) {
+    ox = w / 2 - px;
+    oy = h / 2 - py;
+
+    const mapW = cols * tile;
+    const mapH = rows * tile;
+
+    if (mapW < w) ox = (w - mapW) / 2;
+    if (mapH < h) oy = (h - mapH) / 2;
+  }
+
   // ---------- drawing ----------
   function eased(t) {
     return 1 - Math.pow(1 - t, 3);
   }
 
   function getAnimatedPlayer(now) {
-    if (!moving) return { x: player.x, y: player.y, progress: 0 };
+    if (!moving) {
+      const px = (player.x + 0.5) * tile;
+      const py = (player.y + 0.5) * tile;
+      return { px, py, progress: 0 };
+    }
 
     const raw = (now - anim.t0) / anim.dur;
     const t = Math.max(0, Math.min(1, raw));
@@ -217,7 +234,11 @@ export function createGame({ canvas, level, onLevelComplete }) {
     const cx = anim.sx + (anim.tx - anim.sx) * k;
     const cy = anim.sy + (anim.ty - anim.sy) * k;
 
-    return { x: cx, y: cy, progress: t };
+    return {
+      px: (cx + 0.5) * tile,
+      py: (cy + 0.5) * tile,
+      progress: t,
+    };
   }
 
   function drawBackground() {
@@ -260,25 +281,28 @@ export function createGame({ canvas, level, onLevelComplete }) {
     }
   }
 
-  function drawBall(pxCell, pyCell, progress) {
-    const px = ox + (pxCell + 0.5) * tile;
-    const py = oy + (pyCell + 0.5) * tile;
-
+  function drawBall(px, py, progress) {
     const r = Math.max(10, tile * 0.22);
     const bounce = Math.sin(progress * Math.PI) * (tile * 0.10);
 
     ctx.beginPath();
-    ctx.arc(px + 2, py + 6, r * 1.05, 0, Math.PI * 2);
+    ctx.arc(ox + px + 2, oy + py + 6, r * 1.05, 0, Math.PI * 2);
     ctx.fillStyle = "rgba(0,0,0,0.35)";
     ctx.fill();
 
     ctx.beginPath();
-    ctx.arc(px, py - bounce, r, 0, Math.PI * 2);
+    ctx.arc(ox + px, oy + py - bounce, r, 0, Math.PI * 2);
     ctx.fillStyle = "#25d7ff";
     ctx.fill();
 
     ctx.beginPath();
-    ctx.arc(px - r * 0.3, py - bounce - r * 0.35, r * 0.35, 0, Math.PI * 2);
+    ctx.arc(
+      ox + px - r * 0.3,
+      oy + py - bounce - r * 0.35,
+      r * 0.35,
+      0,
+      Math.PI * 2
+    );
     ctx.fillStyle = "rgba(255,255,255,0.55)";
     ctx.fill();
   }
@@ -293,9 +317,10 @@ export function createGame({ canvas, level, onLevelComplete }) {
     drawBackground();
 
     const p = getAnimatedPlayer(now);
+    updateCamera(p.px, p.py);
 
     drawGrid();
-    drawBall(p.x, p.y, p.progress);
+    drawBall(p.px, p.py, p.progress);
     drawHUD();
   }
 
@@ -316,6 +341,7 @@ export function createGame({ canvas, level, onLevelComplete }) {
   // keep current level ref so callback knows which one
   let currentLevelRef = level;
 
+  // init level
   loadLevel(level);
 
   return {
