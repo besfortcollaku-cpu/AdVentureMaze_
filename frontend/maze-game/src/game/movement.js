@@ -110,9 +110,9 @@ export function createMovement({ state, onMoveFinished }) {
 
     // ✅ duration scales with distance (slide feels natural)
 
-    const perTile = 50; // ms per tile
+    const perTile = 30; // ms per tile
 
-    anim.dur = Math.max(80, anim.dist * perTile);
+    anim.dur = Math.max(50, anim.dist * perTile);
 
 
 
