@@ -1,50 +1,135 @@
-// src/pi/piAuth.js
+// src/piAuth.js
 
-function isDevBypass() {
-  const params = new URLSearchParams(window.location.search);
-  return params.get("dev") === "true";
+
+
+/**
+
+ * Pi Auth helper:
+
+ * - requires Pi Browser (Pi SDK available)
+
+ * - returns { auth, verifiedUser }
+
+ *
+
+ * Backend contract:
+
+ * POST { accessToken } to `${BACKEND}/api/pi/verify`
+
+ * => { user: { username, uid } }
+
+ */
+
+
+
+export function isPiBrowser() {
+
+  // Most reliable: Pi SDK object exists
+
+  if (typeof window !== "undefined" && window.Pi) return true;
+
+
+
+  // Fallback: UA contains PiBrowser (not always)
+
+  const ua = (navigator.userAgent || "").toLowerCase();
+
+  if (ua.includes("pibrowser")) return true;
+
+
+
+  return false;
+
 }
 
-export async function piLoginAndVerify({ BACKEND }) {
-  // Dev bypass: no Pi required, no backend call
-  if (isDevBypass()) {
-    return {
-      user: { username: "guest", uid: null },
-      accessToken: null,
-    };
+
+
+export async function piLoginAndVerify(BACKEND) {
+
+  if (!isPiBrowser()) {
+
+    throw new Error("Pi Browser required (open this inside Pi Browser).");
+
   }
+
+
 
   if (!window.Pi) {
-    throw new Error("Pi SDK not loaded. Open in Pi Browser or add ?dev=true.");
+
+    throw new Error("Pi SDK not found. Make sure you are inside Pi Browser.");
+
   }
 
-  // Pi SDK auth
+
+
+  // Init Pi SDK (safe to call multiple times)
+
+  try {
+
+    window.Pi.init({ version: "2.0" });
+
+  } catch (e) {
+
+    // ignore if already initialized
+
+  }
+
+
+
+  // Ask user to authenticate
+
+  // Scopes depend on your app; "username" is the common one
+
   const auth = await window.Pi.authenticate(["username"], (payment) => {
-    // optional payment callbacks (not used now)
-    console.log("Pi payment:", payment);
+
+    // incomplete payments callback (Pi may call it later)
+
+    console.log("Incomplete payment found:", payment);
+
   });
 
-  const accessToken = auth?.accessToken;
-  const user = auth?.user || { username: "guest", uid: null };
 
-  if (!BACKEND) throw new Error("BACKEND is missing.");
 
-  // Verify with backend
-  const res = await fetch(`${BACKEND}/pi/verify`, {
+  if (!auth?.accessToken) {
+
+    throw new Error("Pi auth did not return accessToken.");
+
+  }
+
+
+
+  // Verify token with backend (important: NEVER trust token only in frontend)
+
+  const res = await fetch(`${BACKEND.replace(/\/$/, "")}/api/pi/verify`, {
+
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ accessToken }),
+
+    headers: {
+
+      "Content-Type": "application/json",
+
+      Authorization: `Bearer ${auth.accessToken}`,
+
+    },
+
+    body: JSON.stringify({ accessToken: auth.accessToken }),
+
   });
+
+
 
   if (!res.ok) {
-    const t = await res.text();
-    throw new Error(`Backend verify failed (${res.status}): ${t}`);
+
+    const msg = await res.text().catch(() => "");
+
+    throw new Error(`Backend verify failed (${res.status}): ${msg}`);
+
   }
+
+
 
   const data = await res.json();
 
-  return {
-    user: data?.user || user,
-    accessToken,
-  };
+  return { auth, verifiedUser: data?.user || null };
+
 }

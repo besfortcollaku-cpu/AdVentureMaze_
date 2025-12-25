@@ -1,34 +1,93 @@
-// src/pi/piClient.js
 import { piLoginAndVerify } from "./piAuth.js";
 
+
+
 export function setupPiLogin({
+
   BACKEND,
+
   loginBtn,
+
   loginBtnText,
+
   userPill,
+
   onLogin,
+
 }) {
+
+  let CURRENT_USER = { username: "guest", uid: null };
+
+  let CURRENT_ACCESS_TOKEN = null;
+
+
+
   async function doPiLogin() {
-    if (!loginBtn) return;
 
     try {
+
       loginBtn.disabled = true;
-      if (loginBtnText) loginBtnText.textContent = "Logging in...";
 
-      const { user, accessToken } = await piLoginAndVerify({ BACKEND });
+      loginBtnText.textContent = "Logging in...";
 
-      if (userPill) userPill.textContent = `User: ${user.username || "guest"}`;
-      if (typeof onLogin === "function") onLogin({ user, accessToken });
-    } catch (err) {
-      console.error("Pi login failed:", err);
-      alert(String(err?.message || err));
 
-      if (userPill) userPill.textContent = "User: guest";
+
+      const { auth, verifiedUser } = await piLoginAndVerify(BACKEND);
+
+
+
+      CURRENT_ACCESS_TOKEN = auth?.accessToken || null;
+
+
+
+      const username =
+
+        verifiedUser?.username ||
+
+        auth?.user?.username ||
+
+        "unknown";
+
+
+
+      const uid =
+
+        verifiedUser?.uid ||
+
+        auth?.user?.uid ||
+
+        null;
+
+
+
+      CURRENT_USER = { username, uid };
+
+
+
+      userPill.textContent = `User: ${CURRENT_USER.username}`;
+
+      loginBtnText.textContent = "Logged in ✅";
+
+
+
+      if (onLogin) onLogin({ user: CURRENT_USER, accessToken: CURRENT_ACCESS_TOKEN });
+
+    } catch (e) {
+
+      alert("Pi Login failed: " + (e?.message || String(e)));
+
+      loginBtnText.textContent = "Login with Pi";
+
     } finally {
-      if (loginBtnText) loginBtnText.textContent = "Login with Pi";
+
       loginBtn.disabled = false;
+
     }
+
   }
 
+
+
   if (loginBtn) loginBtn.addEventListener("click", doPiLogin);
+
 }
