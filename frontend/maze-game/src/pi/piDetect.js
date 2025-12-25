@@ -1,45 +1,41 @@
 // src/pi/piDetect.js
 
-
-
 function hasDevOverride() {
-
   const params = new URLSearchParams(window.location.search);
-
   return params.get("dev") === "true";
-
 }
 
+function isPiBrowserUA() {
+  const ua = navigator.userAgent || "";
+  return /pibrowser|pi browser|pinetwork|pi network/i.test(ua);
+}
 
-
-// src/pi/piDetect.js
-
-// ✅ reliable detection: Pi injects window.Pi.authenticate()
-function isPiBrowser() {
-  try {
-    return !!(window.Pi && typeof window.Pi.authenticate === "function");
-  } catch {
-    return false;
+// Wait a bit for Pi SDK injection (Pi Browser sometimes injects late)
+async function waitForPiSDK(timeoutMs = 1200) {
+  const start = Date.now();
+  while (Date.now() - start < timeoutMs) {
+    if (window.Pi) return true;
+    await new Promise((r) => setTimeout(r, 50));
   }
+  return !!window.Pi;
 }
 
-// allow ?dev=true to bypass
 export async function enforcePiEnvironment({ desktopBlockEl } = {}) {
-  const params = new URLSearchParams(window.location.search);
-  const dev = params.get("dev") === "true";
+  const dev = hasDevOverride();
 
-  // Pi sometimes injects window.Pi slightly after load → retry up to ~2s
-  let ok = dev || isPiBrowser();
-
-  if (!ok) {
-    for (let i = 0; i < 20; i++) {
-      await new Promise((r) => setTimeout(r, 100));
-      if (isPiBrowser()) {
-        ok = true;
-        break;
-      }
+  // dev mode always allowed
+  if (dev) {
+    if (desktopBlockEl) {
+      desktopBlockEl.classList.remove("show");
+      desktopBlockEl.style.display = "none";
     }
+    return { ok: true, reason: "dev_override" };
   }
+
+  // wait for SDK, then confirm UA / SDK presence
+  await waitForPiSDK(1200);
+
+  const ok = !!window.Pi || isPiBrowserUA();
 
   if (desktopBlockEl) {
     if (ok) {
@@ -53,69 +49,3 @@ export async function enforcePiEnvironment({ desktopBlockEl } = {}) {
 
   return { ok, reason: ok ? "ok" : "not_pi_browser" };
 }
-
-
-
-function hardBlockInputs() {
-
-  const stop = (e) => {
-
-    e.preventDefault();
-
-    e.stopPropagation();
-
-    e.stopImmediatePropagation?.();
-
-    return false;
-
-  };
-
-
-
-  // Block pointer/touch/mouse
-
-  const pointerEvents = [
-
-    "pointerdown", "pointermove", "pointerup",
-
-    "mousedown", "mousemove", "mouseup",
-
-    "touchstart", "touchmove", "touchend",
-
-    "click", "dblclick", "contextmenu",
-
-    "wheel",
-
-  ];
-
-
-
-  // Capture phase so we stop events BEFORE app gets them
-
-  pointerEvents.forEach((ev) =>
-
-    window.addEventListener(ev, stop, { capture: true, passive: false })
-
-  );
-
-
-
-  // Block keyboard
-
-  window.addEventListener("keydown", stop, true);
-
-  window.addEventListener("keyup", stop, true);
-
-
-
-  // Stop scrolling
-
-  document.documentElement.style.overflow = "hidden";
-
-  document.body.style.overflow = "hidden";
-
-}
-
-
-
-

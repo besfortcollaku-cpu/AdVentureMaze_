@@ -1,93 +1,54 @@
+// src/pi/piClient.js
 import { piLoginAndVerify } from "./piAuth.js";
 
-
+function hasDevOverride() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get("dev") === "true";
+}
 
 export function setupPiLogin({
-
   BACKEND,
-
   loginBtn,
-
   loginBtnText,
-
   userPill,
-
   onLogin,
-
 }) {
+  // guard: if UI refs are missing, do nothing instead of crashing
+  if (!loginBtn || !loginBtnText || !userPill) return;
 
-  let CURRENT_USER = { username: "guest", uid: null };
+  const dev = hasDevOverride();
 
-  let CURRENT_ACCESS_TOKEN = null;
-
-
-
-  async function doPiLogin() {
-
+  async function doLogin() {
     try {
-
       loginBtn.disabled = true;
-
       loginBtnText.textContent = "Logging in...";
 
+      // dev mode: allow guest without Pi
+      if (dev && !window.Pi) {
+        const user = { username: "guest", uid: null };
+        userPill.textContent = `User: ${user.username}`;
+        loginBtnText.textContent = "Dev mode";
+        onLogin?.({ user, accessToken: null });
+        return;
+      }
 
+      const { user, accessToken } = await piLoginAndVerify({ BACKEND });
 
-      const { auth, verifiedUser } = await piLoginAndVerify(BACKEND);
-
-
-
-      CURRENT_ACCESS_TOKEN = auth?.accessToken || null;
-
-
-
-      const username =
-
-        verifiedUser?.username ||
-
-        auth?.user?.username ||
-
-        "unknown";
-
-
-
-      const uid =
-
-        verifiedUser?.uid ||
-
-        auth?.user?.uid ||
-
-        null;
-
-
-
-      CURRENT_USER = { username, uid };
-
-
-
-      userPill.textContent = `User: ${CURRENT_USER.username}`;
-
-      loginBtnText.textContent = "Logged in ✅";
-
-
-
-      if (onLogin) onLogin({ user: CURRENT_USER, accessToken: CURRENT_ACCESS_TOKEN });
-
+      userPill.textContent = `User: ${user.username || "guest"}`;
+      loginBtnText.textContent = "Logged in";
+      onLogin?.({ user, accessToken });
     } catch (e) {
-
-      alert("Pi Login failed: " + (e?.message || String(e)));
-
-      loginBtnText.textContent = "Login with Pi";
-
+      console.error(e);
+      loginBtnText.textContent = "Login failed";
+      alert(String(e?.message || e));
     } finally {
-
       loginBtn.disabled = false;
-
     }
-
   }
 
+  loginBtn.addEventListener("click", doLogin);
 
-
-  if (loginBtn) loginBtn.addEventListener("click", doPiLogin);
-
+  // initial state
+  userPill.textContent = "User: guest";
+  loginBtnText.textContent = window.Pi ? "Login with Pi" : (dev ? "Dev mode login" : "Login with Pi");
 }
