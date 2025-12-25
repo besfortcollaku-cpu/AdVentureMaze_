@@ -15,7 +15,7 @@ let CURRENT_USER = { username: "guest", uid: null };
 let CURRENT_ACCESS_TOKEN = null;
 
 // ---------------------------
-// STEP 1: Persist level index
+// Persist level index
 // ---------------------------
 const LEVEL_KEY = "levelIndex";
 
@@ -37,7 +37,8 @@ function saveLevelIndex(i) {
 }
 
 let levelIndex = loadSavedLevelIndex();
-saveLevelIndex(levelIndex); // keep storage clean (clamped)
+saveLevelIndex(levelIndex);
+
 let game = null;
 
 async function boot() {
@@ -45,17 +46,17 @@ async function boot() {
 
   // init toggles from saved settings
   const s0 = getSettings();
-  ui.setSoundEnabled(s0.sound);
-  ui.setVibrationEnabled(s0.vibration);
+  ui.setSoundEnabled?.(s0.sound);
+  ui.setVibrationEnabled?.(s0.vibration);
 
   // when user toggles
-  ui.onSoundToggle((v) => setSetting("sound", v));
-  ui.onVibrationToggle((v) => setSetting("vibration", v));
+  ui.onSoundToggle?.((v) => setSetting("sound", v));
+  ui.onVibrationToggle?.((v) => setSetting("vibration", v));
 
   // keep UI in sync if settings changed elsewhere
   subscribeSettings((s) => {
-    ui.setSoundEnabled(s.sound);
-    ui.setVibrationEnabled(s.vibration);
+    ui.setSoundEnabled?.(s.sound);
+    ui.setVibrationEnabled?.(s.vibration);
   });
 
   // Pi environment
@@ -80,36 +81,58 @@ async function boot() {
   levelIndex = clampLevelIndex(levelIndex);
   const firstLevel = levels[levelIndex];
 
+  // helper: go next level (safe even if last level)
+  function goNextLevel() {
+    const nextIndex = clampLevelIndex(levelIndex + 1);
+
+    // if you reached the last level, stay there (or change to 0 if you want loop)
+    levelIndex = nextIndex;
+    saveLevelIndex(levelIndex);
+
+    // reload to load new level (because current game.js has no setLevel())
+    window.location.reload();
+  }
+
+  // If your UI already has a Next button callback, wire it (optional)
+  ui.onNextLevel?.(() => goNextLevel());
+
   game = createGame({
     BACKEND,
     canvas: ui.canvas,
     getCurrentUser: () => CURRENT_USER,
     level: firstLevel,
 
+    // ✅ THIS is what was missing
     onLevelComplete: () => {
-      // ✅ your existing level complete logic stays as-is
-      // (when you do "Next Level", call goNextLevel() below)
+      // If you already implemented a nice overlay in UI, use it:
+      if (typeof ui.showLevelComplete === "function") {
+        ui.showLevelComplete({
+          levelName: firstLevel?.name || `LEVEL ${levelIndex + 1}`,
+        });
+
+        // If UI has a next-level handler, it will work.
+        // If not, we still provide a fallback:
+        if (typeof ui.onNextLevel !== "function") {
+          // fallback: tap anywhere to go next
+          setTimeout(() => {
+            const handler = () => {
+              window.removeEventListener("click", handler, true);
+              goNextLevel();
+            };
+            window.addEventListener("click", handler, true);
+          }, 50);
+        }
+
+        return;
+      }
+
+      // Fallback if UI overlay not implemented
+      const ok = window.confirm(
+        `Level complete! Go to next level? (LEVEL ${levelIndex + 2})`
+      );
+      if (ok) goNextLevel();
     },
   });
-
-  // OPTIONAL SAFE HOOK:
-  // If your UI already has a Next button callback, wire it to goNextLevel().
-  // This will NOT break if ui.onNextLevel doesn't exist.
-  function goNextLevel() {
-    levelIndex = clampLevelIndex(levelIndex + 1);
-    saveLevelIndex(levelIndex);
-
-    const next = levels[levelIndex];
-    if (game && typeof game.setLevel === "function") {
-      game.setLevel(next);
-    }
-  }
-
-  if (typeof ui.onNextLevel === "function") {
-    ui.onNextLevel(() => {
-      goNextLevel();
-    });
-  }
 
   game.start();
 }
