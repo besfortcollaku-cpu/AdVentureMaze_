@@ -14,52 +14,41 @@ const BACKEND = "https://adventuremaze.onrender.com";
 let CURRENT_USER = { username: "guest", uid: null };
 let CURRENT_ACCESS_TOKEN = null;
 
-// ---------------------------
-// Persist level index
-// ---------------------------
-const LEVEL_KEY = "levelIndex";
+// points (local)
+const POINTS_KEY = "points";
+let points = Number(localStorage.getItem(POINTS_KEY) || "0");
 
-function clampLevelIndex(i) {
+// level index (local)
+const LEVEL_KEY = "levelIndex";
+function clampIndex(i) {
   const n = Array.isArray(levels) ? levels.length : 0;
   if (!n) return 0;
-  const x = Number.isFinite(i) ? i : 0;
-  return Math.max(0, Math.min(n - 1, x));
+  return Math.max(0, Math.min(n - 1, i));
 }
-
-function loadSavedLevelIndex() {
-  const raw = localStorage.getItem(LEVEL_KEY);
-  const i = raw == null ? 0 : parseInt(raw, 10);
-  return clampLevelIndex(Number.isFinite(i) ? i : 0);
-}
-
-function saveLevelIndex(i) {
-  localStorage.setItem(LEVEL_KEY, String(clampLevelIndex(i)));
-}
-
-let levelIndex = loadSavedLevelIndex();
-saveLevelIndex(levelIndex);
+let levelIndex = clampIndex(Number(localStorage.getItem(LEVEL_KEY) || "0"));
 
 let game = null;
 
 async function boot() {
   const ui = mountUI(document.querySelector("#app"));
 
-  // init toggles from saved settings
+  // settings toggles
   const s0 = getSettings();
   ui.setSoundEnabled?.(s0.sound);
   ui.setVibrationEnabled?.(s0.vibration);
 
-  // when user toggles
   ui.onSoundToggle?.((v) => setSetting("sound", v));
   ui.onVibrationToggle?.((v) => setSetting("vibration", v));
 
-  // keep UI in sync if settings changed elsewhere
   subscribeSettings((s) => {
     ui.setSoundEnabled?.(s.sound);
     ui.setVibrationEnabled?.(s.vibration);
   });
 
-  // Pi environment
+  // if you have points HUD methods (optional)
+  ui.setPoints?.(points);
+
+  // Pi env
   const env = await enforcePiEnvironment({
     desktopBlockEl: document.getElementById("desktopBlock"),
   });
@@ -77,24 +66,45 @@ async function boot() {
     },
   });
 
-  // Load level from saved index
-  levelIndex = clampLevelIndex(levelIndex);
-  const firstLevel = levels[levelIndex];
+  function setLevelNameOnUI() {
+    const lvl = levels[levelIndex];
+    ui.setLevelName?.(lvl?.name || `LEVEL ${levelIndex + 1}`);
+  }
+  setLevelNameOnUI();
 
-  // helper: go next level (safe even if last level)
   function goNextLevel() {
-    const nextIndex = clampLevelIndex(levelIndex + 1);
+    // advance until last level (no looping)
+    if (levelIndex < levels.length - 1) {
+      levelIndex += 1;
+      levelIndex = clampIndex(levelIndex);
+      localStorage.setItem(LEVEL_KEY, String(levelIndex));
 
-    // if you reached the last level, stay there (or change to 0 if you want loop)
-    levelIndex = nextIndex;
-    saveLevelIndex(levelIndex);
+      const next = levels[levelIndex];
+      setLevelNameOnUI();
 
-    // reload to load new level (because current game.js has no setLevel())
-    window.location.reload();
+      // ✅ switch without reload
+      game?.setLevel?.(next);
+    } else {
+      // last level finished
+      // (optional) you can show a “coming soon” overlay
+      if (typeof ui.showAllComplete === "function") ui.showAllComplete();
+    }
   }
 
-  // If your UI already has a Next button callback, wire it (optional)
-  ui.onNextLevel?.(() => goNextLevel());
+  // If your UI has Next button / overlay
+  ui.onNextLevel?.(() => {
+    ui.hideLevelComplete?.();
+    goNextLevel();
+  });
+
+  // Watch ad button (+10)
+  ui.onWatchAd?.(() => {
+    points += 10;
+    localStorage.setItem(POINTS_KEY, String(points));
+    ui.setPoints?.(points);
+  });
+
+  const firstLevel = levels[levelIndex];
 
   game = createGame({
     BACKEND,
@@ -102,35 +112,27 @@ async function boot() {
     getCurrentUser: () => CURRENT_USER,
     level: firstLevel,
 
-    // ✅ THIS is what was missing
-    onLevelComplete: () => {
-      // If you already implemented a nice overlay in UI, use it:
+    onLevelComplete: ({ level }) => {
+      // +1 point per completed level
+      points += 1;
+      localStorage.setItem(POINTS_KEY, String(points));
+      ui.setPoints?.(points);
+
+      // show overlay if you have it, else fallback confirm
       if (typeof ui.showLevelComplete === "function") {
         ui.showLevelComplete({
-          levelName: firstLevel?.name || `LEVEL ${levelIndex + 1}`,
+          levelName: level?.name || `LEVEL ${levelIndex + 1}`,
+          pointsEarned: 1,
+          totalPoints: points,
+          nextLevelName:
+            levelIndex < levels.length - 1
+              ? levels[levelIndex + 1]?.name || `LEVEL ${levelIndex + 2}`
+              : "Coming soon",
         });
-
-        // If UI has a next-level handler, it will work.
-        // If not, we still provide a fallback:
-        if (typeof ui.onNextLevel !== "function") {
-          // fallback: tap anywhere to go next
-          setTimeout(() => {
-            const handler = () => {
-              window.removeEventListener("click", handler, true);
-              goNextLevel();
-            };
-            window.addEventListener("click", handler, true);
-          }, 50);
-        }
-
-        return;
+      } else {
+        const ok = window.confirm("Level complete! Go Next Level?");
+        if (ok) goNextLevel();
       }
-
-      // Fallback if UI overlay not implemented
-      const ok = window.confirm(
-        `Level complete! Go to next level? (LEVEL ${levelIndex + 2})`
-      );
-      if (ok) goNextLevel();
     },
   });
 

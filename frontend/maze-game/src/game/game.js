@@ -1,159 +1,148 @@
 // src/game/game.js
-
-
-
 import { createGameState } from "./state.js";
-
 import { createMovement } from "./movement.js";
-
 import { createRenderer } from "./render.js";
 
-
-
 export function createGame({ canvas, level, onLevelComplete }) {
-
-  const state = createGameState(level);
-
-  const renderer = createRenderer({ canvas, state });
-
-
+  let state = createGameState(level);
+  let renderer = createRenderer({ canvas, state });
 
   let completed = false;
 
-
-
-  const movement = createMovement({
-
+  let movement = createMovement({
     state,
-
     onMoveFinished: () => {
-
       if (!completed && state.isComplete()) {
-
         completed = true;
-
-        onLevelComplete?.();
-
+        onLevelComplete?.({ level: state.level, state });
       }
-
     },
-
   });
 
-
-
   function requestMove(dx, dy) {
-
     if (completed) return;
-
     movement.startMove(dx, dy);
-
   }
 
+  // ---------------------------
+  // Input
+  // ---------------------------
+  let controller = null;
 
+  function bindInputsOnce() {
+    if (controller) return;
+    controller = new AbortController();
+    const sig = controller.signal;
 
-  // desktop keys (testing)
+    // desktop keys (testing)
+    window.addEventListener(
+      "keydown",
+      (e) => {
+        if (completed) return;
+        if (e.key === "ArrowUp") requestMove(0, -1);
+        if (e.key === "ArrowDown") requestMove(0, 1);
+        if (e.key === "ArrowLeft") requestMove(-1, 0);
+        if (e.key === "ArrowRight") requestMove(1, 0);
+      },
+      { signal: sig }
+    );
 
-  function onKeyDown(e) {
+    // swipe controls
+    let touchStartX = 0;
+    let touchStartY = 0;
 
-    if (completed) return;
+    canvas.addEventListener(
+      "touchstart",
+      (e) => {
+        const t = e.touches[0];
+        touchStartX = t.clientX;
+        touchStartY = t.clientY;
+      },
+      { passive: true, signal: sig }
+    );
 
-    if (e.key === "ArrowUp") requestMove(0, -1);
+    canvas.addEventListener(
+      "touchend",
+      (e) => {
+        if (completed) return;
+        const t = e.changedTouches[0];
+        const dx = t.clientX - touchStartX;
+        const dy = t.clientY - touchStartY;
 
-    if (e.key === "ArrowDown") requestMove(0, 1);
+        const ax = Math.abs(dx);
+        const ay = Math.abs(dy);
+        if (Math.max(ax, ay) < 14) return;
 
-    if (e.key === "ArrowLeft") requestMove(-1, 0);
+        if (ax > ay) requestMove(dx > 0 ? 1 : -1, 0);
+        else requestMove(0, dy > 0 ? 1 : -1);
+      },
+      { passive: true, signal: sig }
+    );
 
-    if (e.key === "ArrowRight") requestMove(1, 0);
-
+    window.addEventListener("resize", () => renderer.resize(), { signal: sig });
   }
 
-
-
-  // swipe controls
-
-  let touchStartX = 0;
-
-  let touchStartY = 0;
-
-
-
-  function onTouchStart(e) {
-
-    const t = e.touches[0];
-
-    touchStartX = t.clientX;
-
-    touchStartY = t.clientY;
-
-  }
-
-
-
-  function onTouchEnd(e) {
-
-    if (completed) return;
-
-    const t = e.changedTouches[0];
-
-    const dx = t.clientX - touchStartX;
-
-    const dy = t.clientY - touchStartY;
-
-
-
-    const ax = Math.abs(dx);
-
-    const ay = Math.abs(dy);
-
-    if (Math.max(ax, ay) < 14) return;
-
-
-
-    if (ax > ay) requestMove(dx > 0 ? 1 : -1, 0);
-
-    else requestMove(0, dy > 0 ? 1 : -1);
-
-  }
-
-
+  // ---------------------------
+  // Loop
+  // ---------------------------
+  let rafId = null;
 
   function loop(now) {
-
     movement.update(now);
-
     const p = movement.getAnimatedPlayer(now);
-
     renderer.render(p);
-
-    requestAnimationFrame(loop);
-
+    rafId = requestAnimationFrame(loop);
   }
 
+  function startLoop() {
+    if (rafId) return;
+    renderer.resize();
+    rafId = requestAnimationFrame(loop);
+  }
 
+  // ---------------------------
+  // ✅ Level switching (NO reload)
+  // ---------------------------
+  function setLevel(nextLevel) {
+    // stop movement instantly
+    completed = false;
+
+    // rebuild state/movement/renderer with the new level
+    state = createGameState(nextLevel);
+
+    // IMPORTANT: keep same canvas but rebuild renderer/movement to use new state
+    renderer = createRenderer({ canvas, state });
+
+    movement = createMovement({
+      state,
+      onMoveFinished: () => {
+        if (!completed && state.isComplete()) {
+          completed = true;
+          onLevelComplete?.({ level: state.level, state });
+        }
+      },
+    });
+
+    // resize and render 1 frame immediately
+    renderer.resize();
+    const p = movement.getAnimatedPlayer(performance.now());
+    renderer.render(p);
+  }
 
   return {
-
     start() {
-
-      renderer.resize();
-
-      window.addEventListener("resize", renderer.resize);
-
-
-
-      window.addEventListener("keydown", onKeyDown);
-
-      canvas.addEventListener("touchstart", onTouchStart, { passive: true });
-
-      canvas.addEventListener("touchend", onTouchEnd, { passive: true });
-
-
-
-      requestAnimationFrame(loop);
-
+      bindInputsOnce();
+      startLoop();
     },
-
+    setLevel,
+    stop() {
+      if (rafId) cancelAnimationFrame(rafId);
+      rafId = null;
+      if (controller) controller.abort();
+      controller = null;
+    },
+    getState() {
+      return state;
+    },
   };
-
 }
