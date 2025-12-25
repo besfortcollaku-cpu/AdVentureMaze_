@@ -1,5 +1,4 @@
 import "./style.css";
-
 import { mountUI } from "./ui/ui.js";
 import { setupPiLogin } from "./pi/piClient.js";
 import { enforcePiEnvironment } from "./pi/piDetect.js";
