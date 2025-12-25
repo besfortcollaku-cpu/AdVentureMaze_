@@ -4,7 +4,7 @@
 
 
 
-export const level242 = {
+export const level1 = {
 
   name: "LEVEL 1",
 
