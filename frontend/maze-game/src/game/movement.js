@@ -1,6 +1,7 @@
 // src/game/movement.js
 
-import { startRollSound, updateRollSound, stopRollSound, playWallThump } from "./rollSound.js";
+import { getSettings } from "../settings.js";
+import { startRollSound, updateRollSound, stopRollSound } from "./rollSound.js";
 
 export function createMovement({ state, onMoveFinished }) {
   let moving = false;
@@ -18,7 +19,8 @@ export function createMovement({ state, onMoveFinished }) {
   };
 
   function vibrate(pattern) {
-    // safe vibration (mobile only)
+    const s = getSettings();
+    if (!s.vibration) return;
     try {
       if (navigator.vibrate) navigator.vibrate(pattern);
     } catch {}
@@ -61,15 +63,16 @@ export function createMovement({ state, onMoveFinished }) {
     const ddy = anim.ty - anim.sy;
     anim.dist = Math.max(1, Math.abs(ddx) + Math.abs(ddy)); // Manhattan tiles
 
-    // ✅ speed (faster)
-    const perTile = 45; // ms per tile (lower = faster)
+    // speed (already faster)
+    const perTile = 45; // ms per tile
     anim.dur = Math.max(70, anim.dist * perTile);
 
     anim.lastPaintCellX = anim.sx;
     anim.lastPaintCellY = anim.sy;
 
-    // 🔊 start rolling sound (intensity relates to distance)
-    startRollSound(Math.min(3, 0.8 + anim.dist * 0.25));
+    // 🔊 start rolling sound (ONLY if enabled)
+    const s = getSettings();
+    if (s.sound) startRollSound(Math.min(3, 0.8 + anim.dist * 0.25));
   }
 
   function easeOutCubic(t) {
@@ -87,10 +90,11 @@ export function createMovement({ state, onMoveFinished }) {
     const fx = anim.sx + (anim.tx - anim.sx) * k;
     const fy = anim.sy + (anim.ty - anim.sy) * k;
 
-    // pitch changes while moving:
-    // higher at start, slightly lower at end (feels like slowing)
-    const speedFeel = 1.2 + (anim.dist * 0.25) * (1 - clamped);
-    updateRollSound(Math.min(3, speedFeel));
+    // update roll pitch ONLY if sound enabled
+    if (getSettings().sound) {
+      const speedFeel = 1.2 + anim.dist * 0.25 * (1 - clamped);
+      updateRollSound(Math.min(3, speedFeel));
+    }
 
     // Determine which cell we are "in" during slide:
     const cx = Math.round(fx);
@@ -129,11 +133,10 @@ export function createMovement({ state, onMoveFinished }) {
 
       moving = false;
 
-      // 🔊 stop rolling + wall thump
+      // stop rolling sound (always safe)
       stopRollSound();
-      playWallThump(Math.min(2, 0.8 + anim.dist * 0.15));
 
-      // 📳 vibration (small impact)
+      // 📳 vibration only (NO wall-hit sound)
       vibrate([18]);
 
       onMoveFinished?.();
