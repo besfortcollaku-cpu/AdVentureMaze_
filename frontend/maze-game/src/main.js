@@ -8,7 +8,9 @@ import { createGame } from "./game/game.js";
 
 import { level242 } from "./levels/level242.js"; // ✅ LEVEL 1 (name inside is LEVEL 1)
 import { level2 } from "./levels/level2.js";     // ✅ LEVEL 2
-
+import { level3 } from "./levels/level3.js";     // ✅ LEVEL 3
+import { level5 } from "./levels/level4.js";     // ✅ LEVEL 4
+import { level5 } from "./levels/level5.js";     // ✅ LEVEL 5
 const BACKEND = "https://adventuremaze.onrender.com";
 
 // user state
