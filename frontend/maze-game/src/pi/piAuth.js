@@ -1,40 +1,50 @@
 // src/pi/piAuth.js
 
-/**
- * Does Pi auth + backend verify
- * Returns: { user, accessToken }
- */
-export async function piLoginAndVerify({ BACKEND }) {
-  if (!window.Pi) throw new Error("Pi SDK not available");
+function isDevBypass() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get("dev") === "true";
+}
 
-  // init once
-  if (!window.__PI_INIT_DONE__) {
-    window.Pi.init({ version: "2.0", sandbox: false });
-    window.__PI_INIT_DONE__ = true;
+export async function piLoginAndVerify({ BACKEND }) {
+  // Dev bypass: no Pi required, no backend call
+  if (isDevBypass()) {
+    return {
+      user: { username: "guest", uid: null },
+      accessToken: null,
+    };
   }
 
-  // 1) Pi auth
-  const auth = await window.Pi.authenticate(["username"], () => {
-    // onIncompletePaymentFound - not used here
+  if (!window.Pi) {
+    throw new Error("Pi SDK not loaded. Open in Pi Browser or add ?dev=true.");
+  }
+
+  // Pi SDK auth
+  const auth = await window.Pi.authenticate(["username"], (payment) => {
+    // optional payment callbacks (not used now)
+    console.log("Pi payment:", payment);
   });
 
-  // 2) Verify with backend
+  const accessToken = auth?.accessToken;
+  const user = auth?.user || { username: "guest", uid: null };
+
+  if (!BACKEND) throw new Error("BACKEND is missing.");
+
+  // Verify with backend
   const res = await fetch(`${BACKEND}/pi/verify`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(auth),
+    body: JSON.stringify({ accessToken }),
   });
 
   if (!res.ok) {
-    const msg = await res.text().catch(() => "");
-    throw new Error(`Backend verify failed (${res.status}): ${msg}`);
+    const t = await res.text();
+    throw new Error(`Backend verify failed (${res.status}): ${t}`);
   }
 
   const data = await res.json();
 
-  // expect backend returns { user, accessToken } (or similar)
   return {
-    user: data.user || { username: auth?.user?.username || "guest", uid: null },
-    accessToken: data.accessToken || null,
+    user: data?.user || user,
+    accessToken,
   };
 }

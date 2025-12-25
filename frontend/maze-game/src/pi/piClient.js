@@ -1,11 +1,6 @@
 // src/pi/piClient.js
 import { piLoginAndVerify } from "./piAuth.js";
 
-function hasDevOverride() {
-  const params = new URLSearchParams(window.location.search);
-  return params.get("dev") === "true";
-}
-
 export function setupPiLogin({
   BACKEND,
   loginBtn,
@@ -13,42 +8,27 @@ export function setupPiLogin({
   userPill,
   onLogin,
 }) {
-  // guard: if UI refs are missing, do nothing instead of crashing
-  if (!loginBtn || !loginBtnText || !userPill) return;
+  async function doPiLogin() {
+    if (!loginBtn) return;
 
-  const dev = hasDevOverride();
-
-  async function doLogin() {
     try {
       loginBtn.disabled = true;
-      loginBtnText.textContent = "Logging in...";
-
-      // dev mode: allow guest without Pi
-      if (dev && !window.Pi) {
-        const user = { username: "guest", uid: null };
-        userPill.textContent = `User: ${user.username}`;
-        loginBtnText.textContent = "Dev mode";
-        onLogin?.({ user, accessToken: null });
-        return;
-      }
+      if (loginBtnText) loginBtnText.textContent = "Logging in...";
 
       const { user, accessToken } = await piLoginAndVerify({ BACKEND });
 
-      userPill.textContent = `User: ${user.username || "guest"}`;
-      loginBtnText.textContent = "Logged in";
-      onLogin?.({ user, accessToken });
-    } catch (e) {
-      console.error(e);
-      loginBtnText.textContent = "Login failed";
-      alert(String(e?.message || e));
+      if (userPill) userPill.textContent = `User: ${user.username || "guest"}`;
+      if (typeof onLogin === "function") onLogin({ user, accessToken });
+    } catch (err) {
+      console.error("Pi login failed:", err);
+      alert(String(err?.message || err));
+
+      if (userPill) userPill.textContent = "User: guest";
     } finally {
+      if (loginBtnText) loginBtnText.textContent = "Login with Pi";
       loginBtn.disabled = false;
     }
   }
 
-  loginBtn.addEventListener("click", doLogin);
-
-  // initial state
-  userPill.textContent = "User: guest";
-  loginBtnText.textContent = window.Pi ? "Login with Pi" : (dev ? "Dev mode login" : "Login with Pi");
+  if (loginBtn) loginBtn.addEventListener("click", doPiLogin);
 }
