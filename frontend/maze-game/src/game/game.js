@@ -1,12 +1,12 @@
 // src/game/game.js
-// ✅ No zoom (STEP 13 undone)
+// ✅ No zoom (tile size same for every level)
+// ✅ Works on older mobile browsers (NO AbortController / signal)
 // ✅ setLevel(level) works
 // ✅ Calls onLevelComplete({ level, painted, total }) once
 
 export function createGame({ canvas, level, onLevelComplete }) {
   const ctx = canvas.getContext("2d");
 
-  let controller = null;
   let rafId = null;
 
   // ---------- canvas ----------
@@ -34,6 +34,11 @@ export function createGame({ canvas, level, onLevelComplete }) {
     ty: 1,
   };
 
+  // --------- listeners (manual) ----------
+  let bound = false;
+  let touchStartX = 0;
+  let touchStartY = 0;
+
   function resizeCanvas() {
     const rect = canvas.getBoundingClientRect();
     const dpr = Math.min(2, window.devicePixelRatio || 1);
@@ -41,16 +46,23 @@ export function createGame({ canvas, level, onLevelComplete }) {
     w = rect.width;
     h = rect.height;
 
+    // if canvas is 0x0, don't crash
+    if (!w || !h || !cols || !rows) return;
+
     canvas.width = Math.floor(w * dpr);
     canvas.height = Math.floor(h * dpr);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-    // ✅ SAME sizing for every level (no zoom)
     const baseTile = Math.min(w / cols, h / rows);
-    tile = Math.max(18, Math.floor(baseTile)); // keep min size
+    tile = Math.max(18, Math.floor(baseTile));
   }
 
   function loadLevel(lvl) {
+    if (!lvl || !lvl.grid) {
+      console.error("Level missing grid:", lvl);
+      return;
+    }
+
     grid = lvl.grid;
     rows = grid.length;
     cols = grid[0].length;
@@ -79,7 +91,7 @@ export function createGame({ canvas, level, onLevelComplete }) {
   }
 
   function isPassable(x, y) {
-    if (!grid[y] || typeof grid[y][x] === "undefined") return false;
+    if (!grid || !grid[y] || typeof grid[y][x] === "undefined") return false;
     return grid[y][x] === 0 || grid[y][x] === 2;
   }
 
@@ -154,53 +166,51 @@ export function createGame({ canvas, level, onLevelComplete }) {
     player.y = target.y;
   }
 
-  // ---------- input ----------
+  // ---------- input (NO AbortController) ----------
+  function onKeyDown(e) {
+    if (e.key === "ArrowUp") requestMove(0, -1);
+    if (e.key === "ArrowDown") requestMove(0, 1);
+    if (e.key === "ArrowLeft") requestMove(-1, 0);
+    if (e.key === "ArrowRight") requestMove(1, 0);
+  }
+
+  function onTouchStart(e) {
+    const t = e.touches[0];
+    touchStartX = t.clientX;
+    touchStartY = t.clientY;
+  }
+
+  function onTouchEnd(e) {
+    const t = e.changedTouches[0];
+    const dx = t.clientX - touchStartX;
+    const dy = t.clientY - touchStartY;
+
+    const ax = Math.abs(dx);
+    const ay = Math.abs(dy);
+    if (Math.max(ax, ay) < 14) return;
+
+    if (ax > ay) requestMove(dx > 0 ? 1 : -1, 0);
+    else requestMove(0, dy > 0 ? 1 : -1);
+  }
+
   function bindInputs() {
-    controller = new AbortController();
-    const sig = controller.signal;
+    if (bound) return;
+    bound = true;
 
-    window.addEventListener(
-      "keydown",
-      (e) => {
-        if (e.key === "ArrowUp") requestMove(0, -1);
-        if (e.key === "ArrowDown") requestMove(0, 1);
-        if (e.key === "ArrowLeft") requestMove(-1, 0);
-        if (e.key === "ArrowRight") requestMove(1, 0);
-      },
-      { signal: sig }
-    );
+    window.addEventListener("keydown", onKeyDown);
+    canvas.addEventListener("touchstart", onTouchStart, { passive: true });
+    canvas.addEventListener("touchend", onTouchEnd, { passive: true });
+    window.addEventListener("resize", resizeCanvas);
+  }
 
-    let touchStartX = 0;
-    let touchStartY = 0;
+  function unbindInputs() {
+    if (!bound) return;
+    bound = false;
 
-    canvas.addEventListener(
-      "touchstart",
-      (e) => {
-        const t = e.touches[0];
-        touchStartX = t.clientX;
-        touchStartY = t.clientY;
-      },
-      { passive: true, signal: sig }
-    );
-
-    canvas.addEventListener(
-      "touchend",
-      (e) => {
-        const t = e.changedTouches[0];
-        const dx = t.clientX - touchStartX;
-        const dy = t.clientY - touchStartY;
-
-        const ax = Math.abs(dx);
-        const ay = Math.abs(dy);
-        if (Math.max(ax, ay) < 14) return;
-
-        if (ax > ay) requestMove(dx > 0 ? 1 : -1, 0);
-        else requestMove(0, dy > 0 ? 1 : -1);
-      },
-      { passive: true, signal: sig }
-    );
-
-    window.addEventListener("resize", resizeCanvas, { signal: sig });
+    window.removeEventListener("keydown", onKeyDown);
+    canvas.removeEventListener("touchstart", onTouchStart);
+    canvas.removeEventListener("touchend", onTouchEnd);
+    window.removeEventListener("resize", resizeCanvas);
   }
 
   // ---------- camera ----------
@@ -285,24 +295,21 @@ export function createGame({ canvas, level, onLevelComplete }) {
     const r = Math.max(10, tile * 0.22);
     const bounce = Math.sin(progress * Math.PI) * (tile * 0.10);
 
+    // shadow
     ctx.beginPath();
     ctx.arc(ox + px + 2, oy + py + 6, r * 1.05, 0, Math.PI * 2);
     ctx.fillStyle = "rgba(0,0,0,0.35)";
     ctx.fill();
 
+    // ball
     ctx.beginPath();
     ctx.arc(ox + px, oy + py - bounce, r, 0, Math.PI * 2);
     ctx.fillStyle = "#25d7ff";
     ctx.fill();
 
+    // highlight
     ctx.beginPath();
-    ctx.arc(
-      ox + px - r * 0.3,
-      oy + py - bounce - r * 0.35,
-      r * 0.35,
-      0,
-      Math.PI * 2
-    );
+    ctx.arc(ox + px - r * 0.3, oy + py - bounce - r * 0.35, r * 0.35, 0, Math.PI * 2);
     ctx.fillStyle = "rgba(255,255,255,0.55)";
     ctx.fill();
   }
@@ -314,6 +321,10 @@ export function createGame({ canvas, level, onLevelComplete }) {
   }
 
   function draw(now) {
+    // if canvas is not ready, try resizing again
+    if (!w || !h) resizeCanvas();
+    if (!w || !h) return;
+
     drawBackground();
 
     const p = getAnimatedPlayer(now);
@@ -341,12 +352,12 @@ export function createGame({ canvas, level, onLevelComplete }) {
   // keep current level ref so callback knows which one
   let currentLevelRef = level;
 
-  // init level
+  // init
   loadLevel(level);
 
   return {
     start() {
-      if (!controller) bindInputs();
+      bindInputs();
       if (!rafId) rafId = requestAnimationFrame(loop);
       checkWin(currentLevelRef);
     },
@@ -358,8 +369,7 @@ export function createGame({ canvas, level, onLevelComplete }) {
     stop() {
       if (rafId) cancelAnimationFrame(rafId);
       rafId = null;
-      if (controller) controller.abort();
-      controller = null;
+      unbindInputs();
     },
   };
 }
