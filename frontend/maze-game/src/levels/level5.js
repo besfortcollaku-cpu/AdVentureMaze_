@@ -1,10 +1,10 @@
-// src/levels/level3.js
+// src/levels/level5.js
 
 
 
-export const level3 = {
+export const level5 = {
 
-  name: "LEVEL 3",
+  name: "LEVEL 5 Noari",
 
   zoom: 0.92, // slightly zoomed-out (bigger maze feel)
 
