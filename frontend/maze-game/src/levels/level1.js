@@ -6,7 +6,7 @@
 
 export const level242 = {
 
-  name: "LEVEL 1",
+  name: "ERON",
 
   zoom: 1.0, // ✅ per level zoom (1 = normal, <1 zoom out, >1 zoom in)
 
