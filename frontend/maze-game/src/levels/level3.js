@@ -4,7 +4,7 @@
 
 export const level3 = {
 
-  name: "LEVEL 3 Erini",
+  name: "Erini",
 
   zoom: 0.92, // slightly zoomed-out (bigger maze feel)
 
