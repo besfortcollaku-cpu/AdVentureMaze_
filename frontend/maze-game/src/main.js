@@ -1,58 +1,55 @@
 // src/main.js
-
 import "./style.css";
+
 import { mountUI } from "./ui/ui.js";
 import { setupPiLogin } from "./pi/piClient.js";
 import { enforcePiEnvironment } from "./pi/piDetect.js";
 import { createGame } from "./game/game.js";
-import { levels } from "./levels/index.js";
+
+import { level242 } from "./levels/level242.js"; // ✅ LEVEL 1 (name inside is LEVEL 1)
+import { level2 } from "./levels/level2.js";     // ✅ LEVEL 2
 
 const BACKEND = "https://adventuremaze.onrender.com";
 
+// user state
 let CURRENT_USER = { username: "guest", uid: null };
 let CURRENT_ACCESS_TOKEN = null;
 
-// points
-let points = Number(localStorage.getItem("points") || "0");
-
-// current level index
-let levelIndex = Number(localStorage.getItem("levelIndex") || "0");
-
-// ✅ max unlocked level index (0 means only level 1 is unlocked)
-let unlockedMaxIndex = Number(localStorage.getItem("unlockedMaxIndex") || "0");
-
-let game = null;
-
-function clampLevelIndex() {
-  if (!Number.isFinite(levelIndex)) levelIndex = 0;
-  levelIndex = Math.max(0, Math.min(levelIndex, levels.length - 1));
+// points (local for now)
+function getPoints() {
+  const n = parseInt(localStorage.getItem("points") || "0", 10);
+  return Number.isFinite(n) ? n : 0;
+}
+function setPoints(n) {
+  localStorage.setItem("points", String(n));
 }
 
-function saveProgress() {
-  localStorage.setItem("points", String(points));
-  localStorage.setItem("levelIndex", String(levelIndex));
-  localStorage.setItem("unlockedMaxIndex", String(unlockedMaxIndex));
+// choose level by URL param (?level=1,2,3...) default 1
+function getLevelIndex() {
+  const params = new URLSearchParams(window.location.search);
+  const n = parseInt(params.get("level") || "1", 10);
+  return Number.isFinite(n) && n > 0 ? n : 1;
+}
+function setLevelIndex(n) {
+  const url = new URL(window.location.href);
+  url.searchParams.set("level", String(n));
+  window.location.href = url.toString(); // simplest reliable "restart"
 }
 
-function isLevelUnlocked(idx) {
-  return idx <= unlockedMaxIndex;
-}
-
-function levelCost(idx) {
-  const c = levels[idx]?.unlockCost;
-  return typeof c === "number" && c > 0 ? c : 0;
-}
+const LEVELS = [level242, level2];
 
 async function boot() {
-  clampLevelIndex();
-
-  // 1) UI
   const ui = mountUI(document.querySelector("#app"));
 
-  ui.setPoints(points);
-  ui.setLevelName(levels[levelIndex]?.name || `LEVEL ${levelIndex + 1}`);
+  // set header points + level title
+  ui.coinCount.textContent = String(getPoints());
 
-  // 2) Enforce Pi env
+  const levelIndex = getLevelIndex();
+  const level = LEVELS[levelIndex - 1] || LEVELS[0];
+
+  ui.levelText.textContent = level?.name || `LEVEL ${levelIndex}`;
+
+  // Enforce Pi env (WAIT for Pi injection)
   const env = await enforcePiEnvironment({
     desktopBlockEl: document.getElementById("desktopBlock"),
   });
@@ -62,7 +59,7 @@ async function boot() {
     return;
   }
 
-  // 3) Pi login
+  // Pi login
   setupPiLogin({
     BACKEND,
     loginBtn: ui.loginBtn,
@@ -74,101 +71,37 @@ async function boot() {
     },
   });
 
-  // ✅ Unlock overlay handlers
-  ui.onUnlockLevel(() => {
-    const idx = ui._pendingUnlockIndex;
-    if (!Number.isFinite(idx)) return;
+  // Level complete UI
+  function showLevelComplete() {
+    // +1 point per level finish
+    const newPoints = getPoints() + 1;
+    setPoints(newPoints);
+    ui.coinCount.textContent = String(newPoints);
 
-    const cost = levelCost(idx);
-    if (points < cost) return;
+    ui.levelOverlayTitle.textContent = `${level?.name || "LEVEL"} COMPLETE!`;
+    ui.levelOverlayText.textContent = `+1 point (Total: ${newPoints})`;
+    ui.levelOverlay.style.display = "flex";
+  }
 
-    points -= cost;
-    unlockedMaxIndex = Math.max(unlockedMaxIndex, idx);
+  ui.nextLevelBtn.onclick = () => {
+    ui.levelOverlay.style.display = "none";
+    setLevelIndex(levelIndex + 1);
+  };
 
-    // go to that level immediately
-    levelIndex = idx;
+  ui.watchAdBtn.onclick = () => {
+    // placeholder: later we hook real Pi ads/payment
+    const newPoints = getPoints() + 10;
+    setPoints(newPoints);
+    ui.coinCount.textContent = String(newPoints);
+    ui.levelOverlayText.textContent = `+10 points (Total: ${newPoints})`;
+    alert("Ad system later ✅ (you still got +10 for now)");
+  };
 
-    saveProgress();
-
-    ui.setPoints(points);
-    ui.hideUnlock();
-    ui.setLevelName(levels[levelIndex]?.name || `LEVEL ${levelIndex + 1}`);
-
-    if (game && typeof game.setLevel === "function") {
-      game.setLevel(levels[levelIndex]);
-    }
-  });
-
-  ui.onCancelUnlock(() => {
-    ui.hideUnlock();
-  });
-
-  // 4) Level complete overlay buttons
-  ui.onNextLevel(() => {
-    ui.hideLevelComplete();
-
-    const nextIndex = Math.min(levelIndex + 1, levels.length - 1);
-
-    // If you are already at last level, do nothing
-    if (nextIndex === levelIndex) return;
-
-    // ✅ If next level locked => show unlock overlay
-    const cost = levelCost(nextIndex);
-    const locked = cost > 0 && !isLevelUnlocked(nextIndex);
-
-    if (locked) {
-      ui.showUnlock({
-        levelName: levels[nextIndex]?.name || `LEVEL ${nextIndex + 1}`,
-        cost,
-        points,
-        index: nextIndex,
-      });
-      return;
-    }
-
-    // otherwise load next
-    levelIndex = nextIndex;
-    saveProgress();
-
-    const next = levels[levelIndex];
-    ui.setLevelName(next?.name || `LEVEL ${levelIndex + 1}`);
-
-    if (game && typeof game.setLevel === "function") {
-      game.setLevel(next);
-    }
-  });
-
-  ui.onWatchAd(() => {
-    points += 10;
-    saveProgress();
-    ui.setPoints(points);
-  });
-
-  // 5) Create game
-  const firstLevel = levels[levelIndex];
-
-  game = createGame({
-    BACKEND,
+  // Game
+  const game = createGame({
     canvas: ui.canvas,
-    getCurrentUser: () => CURRENT_USER,
-    level: firstLevel,
-
-    onLevelComplete: ({ level, painted, total }) => {
-      // +1 point per completed level
-      points += 1;
-
-      // ✅ unlock the next level automatically (but user still presses Next)
-      unlockedMaxIndex = Math.max(unlockedMaxIndex, levelIndex + 1);
-
-      saveProgress();
-      ui.setPoints(points);
-
-      ui.showLevelComplete({
-        levelName: level?.name || `LEVEL ${levelIndex + 1}`,
-        pointsEarned: 1,
-        totalPoints: points,
-      });
-    },
+    level,
+    onLevelComplete: showLevelComplete,
   });
 
   game.start();
