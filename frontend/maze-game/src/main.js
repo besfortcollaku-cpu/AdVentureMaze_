@@ -1,4 +1,5 @@
 // src/main.js
+
 import "./style.css";
 
 import { mountUI } from "./ui/ui.js";
