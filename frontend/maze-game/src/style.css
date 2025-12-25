@@ -40,6 +40,10 @@ body{
   padding:14px;
   position:relative;
   border: 1px solid rgba(37,215,255,.10);
+
+  /* ✅ make phone a proper vertical layout */
+  display:flex;
+  flex-direction:column;
 }
 
 .topbar{
@@ -128,7 +132,7 @@ body{
     0 6px 14px rgba(255,204,51,.18);
 }
 
-/* Icon row */
+/* Icon row like the screenshot */
 .iconRow{
   display:flex;
   align-items:center;
@@ -153,7 +157,12 @@ body{
 }
 
 .iconBtn:active{ transform: translateY(1px); }
-.iconBtn svg{ width:24px; height:24px; opacity:.95; }
+
+.iconBtn svg{
+  width:24px;
+  height:24px;
+  opacity:.95;
+}
 
 .badgeNew{
   position:absolute;
@@ -169,10 +178,16 @@ body{
   box-shadow: 0 10px 18px rgba(255,75,58,.25);
 }
 
+/* ✅ FIXED: board area fills remaining space and centers */
 .boardWrap{
-  margin-top:8px;
+  flex: 1;                     /* 🔥 important */
   display:flex;
+  align-items:center;          /* vertical center */
   justify-content:center;
+  margin-top:8px;
+
+  /* space so board never clashes with bottom bar */
+  padding-bottom: 92px;
 }
 
 .boardFrame{
@@ -190,9 +205,10 @@ canvas{
   height:100%;
   display:block;
   border-radius:18px;
-  background: #0f1a2e;
+  background: #111;
 }
 
+/* bottom buttons (keep absolute like your design) */
 .bottomBar{
   position:absolute;
   left:14px;
@@ -256,3 +272,180 @@ canvas{
 }
 .desktopCard h2{ margin:0 0 10px; }
 .desktopCard p{ margin:0; color: var(--muted); line-height:1.35; }
+
+/* === Mobile-first lock === */
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;           /* no scroll */
+  touch-action: none;         /* stop page panning */
+  -webkit-user-select: none;
+  user-select: none;
+  background: #0b1220;
+  color: #e8f0ff;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+}
+
+#app {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: env(safe-area-inset-top) 12px env(safe-area-inset-bottom) 12px;
+  box-sizing: border-box;
+}
+
+/* Top bar (older layout) */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 6px;
+}
+
+.brand {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+}
+.brand .title {
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  font-size: 22px;
+}
+.brand .sub {
+  opacity: 0.7;
+  font-size: 12px;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 999px;
+  padding: 10px 12px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.10);
+  backdrop-filter: blur(10px);
+}
+
+.btn {
+  border: 0;
+  border-radius: 999px;
+  padding: 10px 14px;
+  font-weight: 700;
+  cursor: pointer;
+  background: #2dd4ff;
+  color: #07111f;
+}
+
+.btn:active { transform: scale(0.98); }
+
+.small {
+  font-size: 12px;
+  opacity: 0.85;
+}
+
+/* Game area (older) */
+.gamewrap {
+  flex: 1;
+  display: grid;
+  place-items: center;
+  padding: 10px 0;
+}
+
+canvas {
+  width: min(92vw, 420px);
+  height: min(92vw, 420px);
+  max-height: 70vh;
+  border-radius: 18px;
+  background: #0f1a2e;
+  border: 1px solid rgba(255,255,255,0.10);
+}
+
+/* --- Pi / Desktop locks --- */
+.fullscreenLock {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  background: radial-gradient(1200px 800px at 50% 25%, rgba(20,30,60,.92), rgba(5,8,18,.98));
+}
+
+.fullscreenLock .card {
+  width: min(520px, 100%);
+  border-radius: 22px;
+  padding: 18px 18px 14px;
+  border: 1px solid rgba(255,255,255,.12);
+  background: rgba(0,0,0,.35);
+  box-shadow: 0 18px 60px rgba(0,0,0,.55);
+  color: rgba(240,247,255,.92);
+}
+
+.fullscreenLock h2 {
+  margin: 0 0 8px;
+  font-size: 20px;
+}
+
+.fullscreenLock p {
+  margin: 0 0 14px;
+  opacity: .9;
+  line-height: 1.35;
+}
+
+.fullscreenLock .row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.fullscreenLock .lockBtn {
+  height: 44px;
+  padding: 0 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,.16);
+  background: rgba(18,28,60,.55);
+  color: #fff;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.fullscreenLock .lockBtn:active { transform: translateY(1px); }
+
+.smallNote {
+  margin-top: 10px;
+  font-size: 12px;
+  opacity: .75;
+}
+
+/* Hard desktop lock: */
+@media (min-width: 900px) and (hover: hover) and (pointer: fine) {
+  body {
+    overflow: hidden;
+  }
+}
+
+/* --- Ensure canvas is visible (prevents 0px height) --- */
+.boardWrap {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.boardFrame {
+  width: min(92vw, 520px);
+  aspect-ratio: 1 / 1;
+  height: auto;
+}
+
+#game {
+  width: 100%;
+  height: 100%;
+  display: block;
+  touch-action: none;
+}
+```0
