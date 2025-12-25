@@ -14,7 +14,30 @@ const BACKEND = "https://adventuremaze.onrender.com";
 let CURRENT_USER = { username: "guest", uid: null };
 let CURRENT_ACCESS_TOKEN = null;
 
-let levelIndex = 0;
+// ---------------------------
+// STEP 1: Persist level index
+// ---------------------------
+const LEVEL_KEY = "levelIndex";
+
+function clampLevelIndex(i) {
+  const n = Array.isArray(levels) ? levels.length : 0;
+  if (!n) return 0;
+  const x = Number.isFinite(i) ? i : 0;
+  return Math.max(0, Math.min(n - 1, x));
+}
+
+function loadSavedLevelIndex() {
+  const raw = localStorage.getItem(LEVEL_KEY);
+  const i = raw == null ? 0 : parseInt(raw, 10);
+  return clampLevelIndex(Number.isFinite(i) ? i : 0);
+}
+
+function saveLevelIndex(i) {
+  localStorage.setItem(LEVEL_KEY, String(clampLevelIndex(i)));
+}
+
+let levelIndex = loadSavedLevelIndex();
+saveLevelIndex(levelIndex); // keep storage clean (clamped)
 let game = null;
 
 async function boot() {
@@ -53,6 +76,8 @@ async function boot() {
     },
   });
 
+  // Load level from saved index
+  levelIndex = clampLevelIndex(levelIndex);
   const firstLevel = levels[levelIndex];
 
   game = createGame({
@@ -60,10 +85,31 @@ async function boot() {
     canvas: ui.canvas,
     getCurrentUser: () => CURRENT_USER,
     level: firstLevel,
+
     onLevelComplete: () => {
-      // your existing level complete logic stays as-is
+      // ✅ your existing level complete logic stays as-is
+      // (when you do "Next Level", call goNextLevel() below)
     },
   });
+
+  // OPTIONAL SAFE HOOK:
+  // If your UI already has a Next button callback, wire it to goNextLevel().
+  // This will NOT break if ui.onNextLevel doesn't exist.
+  function goNextLevel() {
+    levelIndex = clampLevelIndex(levelIndex + 1);
+    saveLevelIndex(levelIndex);
+
+    const next = levels[levelIndex];
+    if (game && typeof game.setLevel === "function") {
+      game.setLevel(next);
+    }
+  }
+
+  if (typeof ui.onNextLevel === "function") {
+    ui.onNextLevel(() => {
+      goNextLevel();
+    });
+  }
 
   game.start();
 }
