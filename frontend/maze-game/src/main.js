@@ -1,3 +1,5 @@
+// src/main.js
+
 import "./style.css";
 import { mountUI } from "./ui/ui.js";
 import { setupPiLogin } from "./pi/piClient.js";

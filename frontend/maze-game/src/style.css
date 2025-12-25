@@ -1,236 +1,451 @@
-// src/main.js
-import "./style.css";
+:root{
+  --bg0:#070b14;
+  --bg1:#0b1224;
 
-import { mountUI } from "./ui/ui.js";
-import { setupPiLogin } from "./pi/piClient.js";
-import { enforcePiEnvironment } from "./pi/piDetect.js";
-import { createGame } from "./game/game.js";
-import { levels } from "./levels/index.js";
+  --cyan:#25d7ff;
+  --cyan2:#00b7ff;
+  --gold:#ffcc33;
 
-const BACKEND = "https://adventuremaze.onrender.com";
-
-let CURRENT_USER = { username: "guest", uid: null };
-let CURRENT_ACCESS_TOKEN = null;
-
-// points
-let points = Number(localStorage.getItem("points") || "0");
-
-// current level index
-let levelIndex = Number(localStorage.getItem("levelIndex") || "0");
-
-// ✅ max unlocked level index (0 means only level 1 is unlocked)
-let unlockedMaxIndex = Number(localStorage.getItem("unlockedMaxIndex") || "0");
-
-let game = null;
-
-function clampLevelIndex() {
-  if (!Number.isFinite(levelIndex)) levelIndex = 0;
-  levelIndex = Math.max(0, Math.min(levelIndex, levels.length - 1));
+  --text:#eaf3ff;
+  --muted:rgba(234,243,255,.65);
 }
 
-function saveProgress() {
-  localStorage.setItem("points", String(points));
-  localStorage.setItem("levelIndex", String(levelIndex));
-  localStorage.setItem("unlockedMaxIndex", String(unlockedMaxIndex));
+*{ box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
+html,body{ height:100%; margin:0; }
+body{
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  color:var(--text);
+  overflow:hidden;
+  background:
+    radial-gradient(1200px 900px at 20% 10%, rgba(37,215,255,.12), transparent 55%),
+    radial-gradient(1000px 900px at 85% 20%, rgba(255,204,51,.10), transparent 60%),
+    linear-gradient(180deg, var(--bg1), var(--bg0));
 }
 
-function isLevelUnlocked(idx) {
-  return idx <= unlockedMaxIndex;
+#app{
+  height:100%;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  padding:14px;
 }
 
-function levelCost(idx) {
-  const c = levels[idx]?.unlockCost;
-  return typeof c === "number" && c > 0 ? c : 0;
+/* phone frame */
+.phone{
+  width:min(430px, 100%);
+  height:min(860px, 100%);
+  border-radius:28px;
+  background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+  box-shadow: 0 18px 70px rgba(0,0,0,.55);
+  padding:14px;
+  position:relative;
+  border: 1px solid rgba(37,215,255,.10);
+
+  /* ✅ make phone a proper vertical layout */
+  display:flex;
+  flex-direction:column;
 }
 
-async function boot() {
-  clampLevelIndex();
-
-  // 1) UI
-  const ui = mountUI(document.querySelector("#app"));
-
-  ui.setPoints(points);
-  ui.setLevelName(levels[levelIndex]?.name || `LEVEL ${levelIndex + 1}`);
-
-  // 2) Enforce Pi env
-  const env = await enforcePiEnvironment({
-    desktopBlockEl: document.getElementById("desktopBlock"),
-  });
-
-  if (!env.ok) {
-    console.log("Blocked:", env.reason);
-    return;
-  }
-
-  // 3) Pi login
-  setupPiLogin({
-    BACKEND,
-    loginBtn: ui.loginBtn,
-    loginBtnText: ui.loginBtnText,
-    userPill: ui.userPill,
-    onLogin: ({ user, accessToken }) => {
-      CURRENT_USER = user;
-      CURRENT_ACCESS_TOKEN = accessToken;
-    },
-  });
-
-  // ✅ Unlock overlay handlers
-  ui.onUnlockLevel(() => {
-    const idx = ui._pendingUnlockIndex;
-    if (!Number.isFinite(idx)) return;
-
-    const cost = levelCost(idx);
-    if (points < cost) return;
-
-    points -= cost;
-    unlockedMaxIndex = Math.max(unlockedMaxIndex, idx);
-
-    // go to that level immediately
-    levelIndex = idx;
-
-    saveProgress();
-
-    ui.setPoints(points);
-    ui.hideUnlock();
-    ui.setLevelName(levels[levelIndex]?.name || `LEVEL ${levelIndex + 1}`);
-
-    if (game && typeof game.setLevel === "function") {
-      game.setLevel(levels[levelIndex]);
-    }
-  });
-
-  ui.onCancelUnlock(() => {
-    ui.hideUnlock();
-  });
-
-  // 4) Level complete overlay buttons
-  ui.onNextLevel(() => {
-    ui.hideLevelComplete();
-
-    const nextIndex = Math.min(levelIndex + 1, levels.length - 1);
-
-    // If you are already at last level, do nothing
-    if (nextIndex === levelIndex) return;
-
-    // ✅ If next level locked => show unlock overlay
-    const cost = levelCost(nextIndex);
-    const locked = cost > 0 && !isLevelUnlocked(nextIndex);
-
-    if (locked) {
-      ui.showUnlock({
-        levelName: levels[nextIndex]?.name || `LEVEL ${nextIndex + 1}`,
-        cost,
-        points,
-        index: nextIndex,
-      });
-      return;
-    }
-
-    // otherwise load next
-    levelIndex = nextIndex;
-    saveProgress();
-
-    const next = levels[levelIndex];
-    ui.setLevelName(next?.name || `LEVEL ${levelIndex + 1}`);
-
-    if (game && typeof game.setLevel === "function") {
-      game.setLevel(next);
-    }
-  });
-
-  ui.onWatchAd(() => {
-    points += 10;
-    saveProgress();
-    ui.setPoints(points);
-  });
-
-  // 5) Create game
-  const firstLevel = levels[levelIndex];
-
-  game = createGame({
-    BACKEND,
-    canvas: ui.canvas,
-    getCurrentUser: () => CURRENT_USER,
-    level: firstLevel,
-
-    onLevelComplete: ({ level, painted, total }) => {
-      // +1 point per completed level
-      points += 1;
-
-      // ✅ unlock the next level automatically (but user still presses Next)
-      unlockedMaxIndex = Math.max(unlockedMaxIndex, levelIndex + 1);
-
-      saveProgress();
-      ui.setPoints(points);
-
-      ui.showLevelComplete({
-        levelName: level?.name || `LEVEL ${levelIndex + 1}`,
-        pointsEarned: 1,
-        totalPoints: points,
-      });
-    },
-  });
-
-  game.start();
+.topbar{
+  padding:10px 10px 12px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
 }
 
-boot();
-/* ✅ overlays (level complete + unlock) */
-.overlay{
+.topRow{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+}
+
+.brand{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  min-width: 44px;
+}
+
+.logoBox{
+  width:46px;
+  height:46px;
+  border-radius:14px;
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(37,215,255,.18);
+  box-shadow: 0 12px 22px rgba(0,0,0,.35);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+}
+
+.logoBox img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+
+.levelWrap{
+  flex: 1;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:6px;
+}
+
+.levelNew{
+  font-size:12px;
+  font-weight:900;
+  padding:4px 10px;
+  border-radius:999px;
+  background: linear-gradient(180deg, #ff4b3a, #d61e12);
+  color:white;
+  box-shadow: 0 10px 18px rgba(255,75,58,.25);
+}
+
+.levelText{
+  font-size:34px;
+  font-weight:950;
+  letter-spacing:.6px;
+  text-shadow: 0 0 18px rgba(37,215,255,.15);
+}
+
+.coins{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:10px 12px;
+  border-radius:16px;
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,204,51,.25);
+  box-shadow: 0 12px 22px rgba(0,0,0,.35);
+  font-weight:950;
+}
+
+.coinDot{
+  width:18px; height:18px;
+  border-radius:50%;
+  background: radial-gradient(circle at 30% 30%, #fff6c2, var(--gold) 55%, #d39a00);
+  box-shadow:
+    inset 0 2px 0 rgba(255,255,255,.35),
+    0 6px 14px rgba(255,204,51,.18);
+}
+
+/* Icon row like the screenshot */
+.iconRow{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:5px;
+  flex-wrap:wrap;
+}
+
+.iconBtn{
+  width:36px;
+  height:36px;
+  border-radius:12px;
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.12);
+  box-shadow: 0 12px 22px rgba(0,0,0,.35);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  position:relative;
+  padding:0;
+  cursor:pointer;
+}
+
+.iconBtn:active{ transform: translateY(1px); }
+
+.iconBtn svg{
+  width:24px;
+  height:24px;
+  opacity:.95;
+}
+
+.badgeNew{
+  position:absolute;
+  top:-8px;
+  right:-8px;
+  background: linear-gradient(180deg, #ff4b3a, #d61e12);
+  color:white;
+  font-weight:950;
+  font-size:10px;
+  padding:4px 7px;
+  border-radius:999px;
+  border: 1px solid rgba(255,255,255,.25);
+  box-shadow: 0 10px 18px rgba(255,75,58,.25);
+}
+
+/* ✅ FIXED: board area fills remaining space and centers */
+.boardWrap{
+  flex: 1;                     /* 🔥 important */
+  display:flex;
+  align-items:center;          /* vertical center */
+  justify-content:center;
+  margin-top:8px;
+
+  /* space so board never clashes with bottom bar */
+  padding-bottom: 92px;
+}
+
+.boardFrame{
+  width:min(390px, 100%);
+  aspect-ratio: 1 / 1;
+  border-radius:22px;
+  background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+  border: 1px solid rgba(37,215,255,.12);
+  padding:14px;
+  box-shadow: 0 18px 38px rgba(0,0,0,.45);
+}
+
+canvas{
+  width:100%;
+  height:100%;
+  display:block;
+  border-radius:18px;
+  background: #111;
+}
+
+/* bottom buttons (keep absolute like your design) */
+.bottomBar{
+  position:absolute;
+  left:14px;
+  right:14px;
+  bottom:14px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+}
+
+.btn{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:12px 14px;
+  border-radius:18px;
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(37,215,255,.14);
+  box-shadow: 0 12px 22px rgba(0,0,0,.35);
+  color:var(--text);
+  font-weight:950;
+}
+
+.btn:active{ transform: translateY(1px); }
+
+.btnIcon{
+  width:26px; height:26px;
+  border-radius:10px;
+  background: rgba(37,215,255,.10);
+  border: 1px solid rgba(37,215,255,.18);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:16px;
+}
+
+.pill{
+  flex:1;
+  text-align:center;
+  font-weight:900;
+  color: var(--muted);
+  opacity:.95;
+}
+
+/* Desktop block */
+.desktopBlock {
   position: fixed;
   inset: 0;
+  display: none;
+  z-index: 9999;
+  background: rgba(0,0,0,0.35);
+  backdrop-filter: blur(6px);
+}
+.desktopBlock.show { display: block; }
+.desktopCard {
+  max-width: 320px;
+  margin: 180px auto 0;
+  padding: 18px 18px;
+  border-radius: 18px;
+}
+.desktopCard h2{ margin:0 0 10px; }
+.desktopCard p{ margin:0; color: var(--muted); line-height:1.35; }
+
+/* === Mobile-first lock === */
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;           /* no scroll */
+  touch-action: none;         /* stop page panning */
+  -webkit-user-select: none;
+  user-select: none;
+  background: #0b1220;
+  color: #e8f0ff;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+}
+
+#app {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: env(safe-area-inset-top) 12px env(safe-area-inset-bottom) 12px;
+  box-sizing: border-box;
+}
+
+/* Top bar (older layout) */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 6px;
+}
+
+.brand {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+}
+.brand .title {
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  font-size: 22px;
+}
+.brand .sub {
+  opacity: 0.7;
+  font-size: 12px;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 999px;
+  padding: 10px 12px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.10);
+  backdrop-filter: blur(10px);
+}
+
+.btn {
+  border: 0;
+  border-radius: 999px;
+  padding: 10px 14px;
+  font-weight: 700;
+  cursor: pointer;
+  background: #2dd4ff;
+  color: #07111f;
+}
+
+.btn:active { transform: scale(0.98); }
+
+.small {
+  font-size: 12px;
+  opacity: 0.85;
+}
+
+/* Game area (older) */
+.gamewrap {
+  flex: 1;
+  display: grid;
+  place-items: center;
+  padding: 10px 0;
+}
+
+canvas {
+  width: min(92vw, 420px);
+  height: min(92vw, 420px);
+  max-height: 70vh;
+  border-radius: 18px;
+  background: #0f1a2e;
+  border: 1px solid rgba(255,255,255,0.10);
+}
+
+/* --- Pi / Desktop locks --- */
+.fullscreenLock {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
   display: none;
   align-items: center;
   justify-content: center;
   padding: 18px;
-  z-index: 9999;
-  background: rgba(0,0,0,0.55);
-  backdrop-filter: blur(8px);
+  background: radial-gradient(1200px 800px at 50% 25%, rgba(20,30,60,.92), rgba(5,8,18,.98));
 }
 
-.overlayCard{
+.fullscreenLock .card {
   width: min(520px, 100%);
   border-radius: 22px;
-  padding: 18px;
-  border: 1px solid rgba(255,255,255,.14);
-  background: rgba(10,16,34,.80);
+  padding: 18px 18px 14px;
+  border: 1px solid rgba(255,255,255,.12);
+  background: rgba(0,0,0,.35);
   box-shadow: 0 18px 60px rgba(0,0,0,.55);
   color: rgba(240,247,255,.92);
 }
 
-.overlayCard h2{
-  margin: 0 0 10px;
-  font-size: 22px;
+.fullscreenLock h2 {
+  margin: 0 0 8px;
+  font-size: 20px;
 }
 
-.overlayCard p{
-  margin: 0 0 16px;
+.fullscreenLock p {
+  margin: 0 0 14px;
   opacity: .9;
+  line-height: 1.35;
 }
 
-.overlayRow{
+.fullscreenLock .row {
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
 }
 
-.overlayBtn{
+.fullscreenLock .lockBtn {
   height: 44px;
   padding: 0 14px;
   border-radius: 14px;
   border: 1px solid rgba(255,255,255,.16);
-  background: rgba(37,215,255,.85);
-  color: #07111f;
-  font-weight: 900;
+  background: rgba(18,28,60,.55);
+  color: #fff;
+  font-weight: 800;
   cursor: pointer;
 }
 
-.overlayBtn.alt{
-  background: rgba(18,28,60,.55);
-  color: #fff;
+.fullscreenLock .lockBtn:active { transform: translateY(1px); }
+
+.smallNote {
+  margin-top: 10px;
+  font-size: 12px;
+  opacity: .75;
 }
 
-.overlayBtn:disabled{
-  opacity: .55;
-  cursor: not-allowed;
+/* Hard desktop lock: */
+@media (min-width: 900px) and (hover: hover) and (pointer: fine) {
+  body {
+    overflow: hidden;
+  }
 }
+
+/* --- Ensure canvas is visible (prevents 0px height) --- */
+.boardWrap {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.boardFrame {
+  width: min(92vw, 520px);
+  aspect-ratio: 1 / 1;
+  height: auto;
+}
+
+#game {
+  width: 100%;
+  height: 100%;
+  display: block;
+  touch-action: none;
+}
+```0
