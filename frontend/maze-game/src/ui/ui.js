@@ -25,9 +25,8 @@ export function mountUI(app) {
         <div class="iconRow">
           ${iconBtn("settings", gearSVG(), "")}
           ${iconBtn("controls", joystickSVG(), "")}
-          ${iconBtn("paint", brushSVG(), "NEW")}
-          ${iconBtn("trophy", trophySVG(), "")}
-          ${iconBtn("noads", noAdsSVG(), "")}
+          ${iconBtn("paint", brushSVG(), "")}
+    
 
           <div class="loginWrap">
             <button class="iconBtnWide" id="loginBtn">
