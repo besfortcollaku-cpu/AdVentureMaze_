@@ -38,7 +38,7 @@ function setLevelIndex(n) {
   window.location.href = url.toString(); // simplest reliable "restart"
 }
 
-const LEVELS = [level242, level2];
+const LEVELS = [level242, level2, level3], level4], level5]];
 
 async function boot() {
   const ui = mountUI(document.querySelector("#app"));
