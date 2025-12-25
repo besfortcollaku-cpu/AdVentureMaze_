@@ -57,3 +57,35 @@
   opacity: .55;
   cursor: not-allowed;
 }
+
+/* --- FIX: prevent white space / keep board visible --- */
+#app{
+  height: 100dvh;
+}
+
+.phone{
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.boardWrap{
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 8px;
+}
+
+.boardFrame{
+  width: min(92vw, 390px);
+  aspect-ratio: 1 / 1;
+  border-radius: 22px;
+  padding: 14px;
+}
+
+#game{
+  width: 100%;
+  height: 100%;
+  display: block;
+}
