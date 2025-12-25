@@ -1,5 +1,6 @@
 // src/levels/index.js
-import { level1 } from "./level1.js";
+import { level242 as level1 } from "./level242.js";
+import { level2 } from "./level2.js";
 
-// Add level2 later when ready
-export const levels = [level1];
+// ✅ Order matters
+export const levels = [level1, level2];
