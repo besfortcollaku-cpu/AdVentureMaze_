@@ -21,6 +21,26 @@ function getCtx() {
   return audioCtx;
 }
 
+// ✅ call this once after first user gesture (pointerdown/tap)
+export async function ensureAudioUnlocked() {
+  try {
+    const ctx = getCtx();
+
+    // Some browsers need resume
+    if (ctx.state !== "running") {
+      await ctx.resume().catch(() => {});
+    }
+
+    // Some browsers need a silent "tick" to truly unlock.
+    const buffer = ctx.createBuffer(1, 1, ctx.sampleRate);
+    const src = ctx.createBufferSource();
+    src.buffer = buffer;
+    src.connect(ctx.destination);
+    src.start(0);
+    src.stop(0);
+  } catch {}
+}
+
 function clamp(v, a, b) {
   return Math.max(a, Math.min(b, v));
 }
@@ -108,6 +128,7 @@ export function stopRollSound() {
 }
 
 // Wall hit thump (short bassy pulse + tiny click)
+// (You said: disable sound when wall hit -> just don't call this anywhere)
 export function playWallThump(strength = 1) {
   const ctx = getCtx();
   const s = clamp(strength, 0.2, 2);

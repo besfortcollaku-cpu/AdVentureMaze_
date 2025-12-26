@@ -9,6 +9,9 @@ import { levels } from "./levels/index.js";
 
 import { getSettings, setSetting, subscribeSettings } from "./settings.js";
 
+// ✅ Audio unlock + stop when toggled off
+import { ensureAudioUnlocked, stopRollSound } from "./game/rollSound.js";
+
 const BACKEND = "https://adventuremaze.onrender.com";
 
 let CURRENT_USER = { username: "guest", uid: null };
@@ -31,19 +34,32 @@ async function boot() {
   ui = mountUI(document.querySelector("#app"));
   ui.setCoins(coins);
 
+  // ✅ unlock audio only after first real user gesture (mobile requirement)
+  ui.onFirstUserGesture(() => {
+    ensureAudioUnlocked();
+  });
+
   // init toggles from saved settings
   const s0 = getSettings();
   ui.setSoundEnabled(s0.sound);
   ui.setVibrationEnabled(s0.vibration);
 
   // when user toggles
-  ui.onSoundToggle((v) => setSetting("sound", v));
+  ui.onSoundToggle((v) => {
+    setSetting("sound", v);
+    // ✅ if user disables sound while rolling, stop immediately
+    if (!v) stopRollSound();
+  });
+
   ui.onVibrationToggle((v) => setSetting("vibration", v));
 
   // keep UI in sync if settings changed elsewhere
   subscribeSettings((s) => {
     ui.setSoundEnabled(s.sound);
     ui.setVibrationEnabled(s.vibration);
+
+    // ✅ if settings changed to sound=false from elsewhere, stop roll
+    if (!s.sound) stopRollSound();
   });
 
   // Pi environment

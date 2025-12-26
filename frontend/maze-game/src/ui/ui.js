@@ -368,6 +368,17 @@ export function mountUI(app) {
   let winNextHandler = null;
   let winAdHandler = null;
 
+  // ✅ first user gesture (for WebAudio unlock on mobile)
+  let firstGestureHandler = null;
+  window.addEventListener(
+    "pointerdown",
+    () => {
+      firstGestureHandler?.();
+      firstGestureHandler = null;
+    },
+    { once: true }
+  );
+
   function setCoins(n) {
     coinCountEl.textContent = String(n ?? 0);
   }
@@ -431,6 +442,11 @@ export function mountUI(app) {
     userPill: document.getElementById("userPill"),
 
     setCoins,
+
+    // ✅ audio unlock hook
+    onFirstUserGesture(fn) {
+      firstGestureHandler = fn;
+    },
 
     // Settings API
     setSoundEnabled,
