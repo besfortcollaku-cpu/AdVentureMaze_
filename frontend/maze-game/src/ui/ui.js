@@ -67,6 +67,25 @@ export function mountUI(app) {
       </div>
     </div>
 
+    <!-- ✅ LOGIN GATE (blocks game until Pi login ok) -->
+    <div class="loginGate" id="loginGate" aria-hidden="true">
+      <div class="loginGateCard">
+        <div class="loginGateGlow"></div>
+        <div class="loginGateTitle">Login required</div>
+        <div class="loginGateSub">Please login with Pi Network to play.</div>
+
+        <button class="loginGateBtn" id="gateLoginBtn">
+          Login with Pi
+        </button>
+
+        <div class="loginGateError" id="loginGateError" style="display:none;"></div>
+
+        <div class="loginGateNote">
+          Tip: If Pi asks permission, accept it to continue.
+        </div>
+      </div>
+    </div>
+
     <!-- ✅ SETTINGS OVERLAY -->
     <div class="settingsOverlay" id="settingsOverlay" aria-hidden="true">
       <div class="settingsCard">
@@ -133,7 +152,7 @@ export function mountUI(app) {
     </div>
   `;
 
-  // ✅ Inject missing UI styles for Settings + Win overlay + login wrap
+  // ✅ Inject missing UI styles for Settings + Win overlay + login wrap + login gate
   const extra = document.createElement("style");
   extra.textContent = `
     .loginWrap{ display:flex; gap:10px; align-items:center; margin-left:auto; }
@@ -158,6 +177,98 @@ export function mountUI(app) {
       .loginWrap{ width:100%; justify-content:space-between; margin-left:0; }
       .iconBtnWide{ flex:1; }
       .userPill{ flex:1; justify-content:center; }
+    }
+
+    /* ✅ LOGIN GATE */
+    .loginGate{
+      position:fixed; inset:0;
+      z-index: 1000000; /* above everything */
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding:16px;
+      background:
+        radial-gradient(1200px 800px at 50% 20%, rgba(37,215,255,.18), transparent 55%),
+        radial-gradient(900px 700px at 80% 30%, rgba(255,204,51,.14), transparent 60%),
+        rgba(0,0,0,.70);
+      backdrop-filter: blur(10px);
+    }
+    .loginGate.show{ display:flex; }
+
+    .loginGateCard{
+      width:min(520px, 100%);
+      border-radius:24px;
+      padding:18px;
+      border:1px solid rgba(37,215,255,.22);
+      background: radial-gradient(900px 520px at 50% 10%, rgba(37,215,255,.16), rgba(10,12,24,.92));
+      box-shadow: 0 22px 80px rgba(0,0,0,.65);
+      position:relative;
+      overflow:hidden;
+      text-align:center;
+    }
+    .loginGateGlow{
+      position:absolute; inset:-60px;
+      background:
+        radial-gradient(closest-side at 50% 30%, rgba(37,215,255,.22), transparent 70%),
+        radial-gradient(closest-side at 30% 70%, rgba(255,204,51,.14), transparent 70%);
+      opacity:.85;
+      animation: gateGlow 1.6s ease-in-out infinite;
+      pointer-events:none;
+    }
+    @keyframes gateGlow{
+      0%,100%{ transform: scale(1); opacity:.75; }
+      50%{ transform: scale(1.03); opacity:1; }
+    }
+    .loginGateTitle{
+      position:relative; z-index:2;
+      font-size:22px;
+      font-weight:950;
+      letter-spacing:.3px;
+      color: rgba(234,243,255,.96);
+    }
+    .loginGateSub{
+      position:relative; z-index:2;
+      margin-top:8px;
+      font-size:13px;
+      opacity:.82;
+      line-height:1.35;
+    }
+    .loginGateBtn{
+      position:relative; z-index:2;
+      margin-top:14px;
+      width:100%;
+      height:48px;
+      border-radius:16px;
+      border:1px solid rgba(37,215,255,.55);
+      background: linear-gradient(180deg, rgba(37,215,255,.95), rgba(0,183,255,.85));
+      color:#061020;
+      font-weight:950;
+      cursor:pointer;
+      box-shadow: 0 18px 34px rgba(37,215,255,.18);
+    }
+    .loginGateBtn:active{ transform: translateY(1px); }
+    .loginGateBtn:disabled{ opacity:.65; cursor:not-allowed; transform:none; }
+
+    .loginGateError{
+      position:relative; z-index:2;
+      margin-top:12px;
+      padding:10px 12px;
+      border-radius:14px;
+      background: rgba(255,75,58,.12);
+      border:1px solid rgba(255,75,58,.28);
+      color: rgba(255,220,220,.95);
+      font-weight:800;
+      font-size:12px;
+      line-height:1.35;
+      text-align:left;
+      white-space:pre-wrap;
+    }
+
+    .loginGateNote{
+      position:relative; z-index:2;
+      margin-top:10px;
+      font-size:12px;
+      opacity:.72;
     }
 
     /* SETTINGS */
@@ -346,6 +457,16 @@ export function mountUI(app) {
   // ---------------------------
   const coinCountEl = document.getElementById("coinCount");
 
+  // Login top
+  const loginBtn = document.getElementById("loginBtn");
+  const loginBtnText = document.getElementById("loginBtnText");
+  const userPill = document.getElementById("userPill");
+
+  // Login gate
+  const loginGate = document.getElementById("loginGate");
+  const gateLoginBtn = document.getElementById("gateLoginBtn");
+  const loginGateError = document.getElementById("loginGateError");
+
   // Settings
   const settingsBtn = document.getElementById("settingsBtn");
   const settingsOverlay = document.getElementById("settingsOverlay");
@@ -368,6 +489,8 @@ export function mountUI(app) {
   let winNextHandler = null;
   let winAdHandler = null;
 
+  let loginClickHandler = null;
+
   // ✅ first user gesture (for WebAudio unlock on mobile)
   let firstGestureHandler = null;
   window.addEventListener(
@@ -383,6 +506,47 @@ export function mountUI(app) {
     coinCountEl.textContent = String(n ?? 0);
   }
 
+  // ---------------------------
+  // Login gate API
+  // ---------------------------
+  function showLoginGate() {
+    // clear error
+    if (loginGateError) {
+      loginGateError.style.display = "none";
+      loginGateError.textContent = "";
+    }
+    loginGate?.classList.add("show");
+    loginGate?.setAttribute("aria-hidden", "false");
+  }
+
+  function hideLoginGate() {
+    loginGate?.classList.remove("show");
+    loginGate?.setAttribute("aria-hidden", "true");
+  }
+
+  function showLoginError(msg) {
+    if (!loginGateError) return;
+    loginGateError.textContent = msg || "Login failed. Please try again.";
+    loginGateError.style.display = "block";
+  }
+
+  function onLoginClick(fn) {
+    loginClickHandler = fn;
+  }
+
+  // wire BOTH buttons to same handler
+  loginBtn?.addEventListener("click", () => loginClickHandler?.());
+  gateLoginBtn?.addEventListener("click", () => loginClickHandler?.());
+
+  function setUser(user) {
+    const username = user?.username || "guest";
+    if (userPill) userPill.textContent = `User: ${username}`;
+    if (loginBtnText) loginBtnText.textContent = username === "guest" ? "Login with Pi" : "Logged in ✅";
+  }
+
+  // ---------------------------
+  // Settings
+  // ---------------------------
   function openSettings() {
     settingsOverlay.classList.add("show");
     settingsOverlay.setAttribute("aria-hidden", "false");
@@ -407,7 +571,17 @@ export function mountUI(app) {
     vibrationHandler?.(!!vibrationToggle.checked);
   });
 
-  // Win popup buttons
+  function setSoundEnabled(v) {
+    soundToggle.checked = !!v;
+  }
+
+  function setVibrationEnabled(v) {
+    vibrationToggle.checked = !!v;
+  }
+
+  // ---------------------------
+  // Win popup
+  // ---------------------------
   winNextBtn.addEventListener("click", () => winNextHandler?.());
   winAdBtn.addEventListener("click", () => winAdHandler?.());
 
@@ -427,19 +601,11 @@ export function mountUI(app) {
     winOverlay.setAttribute("aria-hidden", "true");
   }
 
-  function setSoundEnabled(v) {
-    soundToggle.checked = !!v;
-  }
-
-  function setVibrationEnabled(v) {
-    vibrationToggle.checked = !!v;
-  }
-
   return {
     canvas: document.getElementById("game"),
-    loginBtn: document.getElementById("loginBtn"),
-    loginBtnText: document.getElementById("loginBtnText"),
-    userPill: document.getElementById("userPill"),
+    loginBtn,
+    loginBtnText,
+    userPill,
 
     setCoins,
 
@@ -447,6 +613,13 @@ export function mountUI(app) {
     onFirstUserGesture(fn) {
       firstGestureHandler = fn;
     },
+
+    // ✅ login gate API (used by ensurePiLogin)
+    showLoginGate,
+    hideLoginGate,
+    showLoginError,
+    onLoginClick,
+    setUser,
 
     // Settings API
     setSoundEnabled,

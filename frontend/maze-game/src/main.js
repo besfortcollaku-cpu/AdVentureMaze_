@@ -2,8 +2,9 @@
 import "./style.css";
 
 import { mountUI } from "./ui/ui.js";
-import { setupPiLogin } from "./pi/piClient.js";
 import { enforcePiEnvironment } from "./pi/piDetect.js";
+import { ensurePiLogin } from "./pi/piClient.js";
+
 import { createGame } from "./game/game.js";
 import { levels } from "./levels/index.js";
 
@@ -47,6 +48,10 @@ async function boot() {
   // when user toggles
   ui.onSoundToggle((v) => {
     setSetting("sound", v);
+
+    // ✅ if user enables sound, try to unlock/resume (safe no-op if already unlocked)
+    if (v) ensureAudioUnlocked();
+
     // ✅ if user disables sound while rolling, stop immediately
     if (!v) stopRollSound();
   });
@@ -68,17 +73,23 @@ async function boot() {
   });
   if (!env.ok) return;
 
-  // Pi login
-  setupPiLogin({
+  // ✅ Mandatory Pi login BEFORE game starts (with session restore)
+  const loginRes = await ensurePiLogin({
     BACKEND,
-    loginBtn: ui.loginBtn,
-    loginBtnText: ui.loginBtnText,
-    userPill: ui.userPill,
+    ui,
     onLogin: ({ user, accessToken }) => {
       CURRENT_USER = user;
       CURRENT_ACCESS_TOKEN = accessToken;
+
+      // keep UI consistent
+      ui?.setUser?.(user);
+      if (ui?.userPill) ui.userPill.textContent = `User: ${user.username}`;
+      if (ui?.loginBtnText) ui.loginBtnText.textContent = "Logged in ✅";
     },
   });
+
+  // NOTE: with the fixed ensurePiLogin, this should always be ok:true eventually.
+  if (!loginRes?.ok) return;
 
   // popup button handlers (wire once)
   ui.onWinNext(() => {
@@ -96,7 +107,7 @@ async function boot() {
     goNextLevel({ viaAd: true });
   });
 
-  // create game once
+  // create game once (after login)
   levelIndex = clampLevelIndex(levelIndex);
   const firstLevel = levels[levelIndex];
 
@@ -118,6 +129,9 @@ function clampLevelIndex(i) {
 }
 
 function onLevelComplete() {
+  // ✅ stop rolling sound so popup is clean
+  stopRollSound();
+
   const isLastLevel = levelIndex >= levels.length - 1;
 
   // show popup (locked fullscreen)

@@ -176,4 +176,4 @@ export function playWallThump(strength = 1) {
 
   click.start(now);
   click.stop(now + 0.05);
-}
+}{
