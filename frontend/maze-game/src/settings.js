@@ -9,7 +9,6 @@ const DEFAULTS = {
 };
 
 let cache = load();
-
 const listeners = new Set();
 
 function load() {
@@ -28,9 +27,10 @@ function save(next) {
   try {
     localStorage.setItem(KEY, JSON.stringify(cache));
   } catch {}
+
   listeners.forEach((fn) => {
     try {
-      fn(cache);
+      fn({ ...cache });
     } catch {}
   });
 }

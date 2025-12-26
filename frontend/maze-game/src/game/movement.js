@@ -5,6 +5,7 @@ import { startRollSound, updateRollSound, stopRollSound } from "./rollSound.js";
 
 export function createMovement({ state, onMoveFinished }) {
   let moving = false;
+  let soundActive = false;
 
   let anim = {
     t0: 0,
@@ -63,7 +64,7 @@ export function createMovement({ state, onMoveFinished }) {
     const ddy = anim.ty - anim.sy;
     anim.dist = Math.max(1, Math.abs(ddx) + Math.abs(ddy)); // Manhattan tiles
 
-    // speed (already faster)
+    // ✅ faster movement
     const perTile = 45; // ms per tile
     anim.dur = Math.max(70, anim.dist * perTile);
 
@@ -72,7 +73,12 @@ export function createMovement({ state, onMoveFinished }) {
 
     // 🔊 start rolling sound (ONLY if enabled)
     const s = getSettings();
-    if (s.sound) startRollSound(Math.min(3, 0.8 + anim.dist * 0.25));
+    if (s.sound) {
+      startRollSound(Math.min(3, 0.8 + anim.dist * 0.25));
+      soundActive = true;
+    } else {
+      soundActive = false;
+    }
   }
 
   function easeOutCubic(t) {
@@ -82,6 +88,13 @@ export function createMovement({ state, onMoveFinished }) {
   function update(now) {
     if (!moving) return;
 
+    // ✅ if user turned sound OFF during rolling → stop immediately
+    const s = getSettings();
+    if (!s.sound && soundActive) {
+      stopRollSound();
+      soundActive = false;
+    }
+
     const t = (now - anim.t0) / anim.dur;
     const clamped = Math.max(0, Math.min(1, t));
     const k = easeOutCubic(clamped);
@@ -90,13 +103,18 @@ export function createMovement({ state, onMoveFinished }) {
     const fx = anim.sx + (anim.tx - anim.sx) * k;
     const fy = anim.sy + (anim.ty - anim.sy) * k;
 
-    // update roll pitch ONLY if sound enabled
-    if (getSettings().sound) {
+    // update rolling sound pitch ONLY if enabled + active
+    if (s.sound) {
+      if (!soundActive) {
+        // turned on mid-move: resume sound smoothly
+        startRollSound(1.2);
+        soundActive = true;
+      }
       const speedFeel = 1.2 + anim.dist * 0.25 * (1 - clamped);
       updateRollSound(Math.min(3, speedFeel));
     }
 
-    // Determine which cell we are "in" during slide:
+    // Determine which cell we are "in" during slide
     const cx = Math.round(fx);
     const cy = Math.round(fy);
 
@@ -121,7 +139,7 @@ export function createMovement({ state, onMoveFinished }) {
       anim.lastPaintCellY = cy;
     }
 
-    // At end, snap player to target
+    // End
     if (clamped >= 1) {
       state.player.x = anim.tx;
       state.player.y = anim.ty;
@@ -135,6 +153,7 @@ export function createMovement({ state, onMoveFinished }) {
 
       // stop rolling sound (always safe)
       stopRollSound();
+      soundActive = false;
 
       // 📳 vibration only (NO wall-hit sound)
       vibrate([18]);
@@ -144,13 +163,9 @@ export function createMovement({ state, onMoveFinished }) {
   }
 
   function getAnimatedPlayer(now) {
-    if (!moving)
-      return {
-        x: state.player.x,
-        y: state.player.y,
-        moving: false,
-        progress: 0,
-      };
+    if (!moving) {
+      return { x: state.player.x, y: state.player.y, moving: false, progress: 0 };
+    }
 
     const t = (now - anim.t0) / anim.dur;
     const clamped = Math.max(0, Math.min(1, t));

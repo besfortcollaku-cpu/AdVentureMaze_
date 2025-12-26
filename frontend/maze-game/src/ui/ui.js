@@ -23,7 +23,7 @@ export function mountUI(app) {
         </div>
 
         <div class="iconRow">
-          ${iconBtn("settings", gearSVG(), "")}
+          ${iconBtn("settingsBtn", gearSVG(), "")}
           ${iconBtn("controls", joystickSVG(), "")}
           ${iconBtn("paint", brushSVG(), "NEW")}
           ${iconBtn("trophy", trophySVG(), "")}
@@ -67,6 +67,42 @@ export function mountUI(app) {
       </div>
     </div>
 
+    <!-- ✅ SETTINGS OVERLAY -->
+    <div class="settingsOverlay" id="settingsOverlay" aria-hidden="true">
+      <div class="settingsCard">
+        <div class="settingsHeader">
+          <div class="settingsTitle">Settings</div>
+          <button class="settingsClose" id="settingsCloseBtn" aria-label="Close">✕</button>
+        </div>
+
+        <div class="settingsRow">
+          <div class="settingsLeft">
+            <div class="settingsLabel">Sound</div>
+            <div class="settingsSub">Rolling + victory (no wall-hit sound)</div>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="soundToggle" />
+            <span class="track"></span>
+          </label>
+        </div>
+
+        <div class="settingsRow">
+          <div class="settingsLeft">
+            <div class="settingsLabel">Vibration</div>
+            <div class="settingsSub">Small vibration when ball stops</div>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="vibrationToggle" />
+            <span class="track"></span>
+          </label>
+        </div>
+
+        <div class="settingsFoot">
+          <div class="settingsNote">Changes are saved automatically.</div>
+        </div>
+      </div>
+    </div>
+
     <!-- ✅ WIN POPUP -->
     <div class="winOverlay" id="winOverlay" aria-hidden="true">
       <div class="winCard">
@@ -97,64 +133,270 @@ export function mountUI(app) {
     </div>
   `;
 
-  // Small UI CSS injection (keeps your build simple)
+  // ✅ Inject missing UI styles for Settings + Win overlay + login wrap
   const extra = document.createElement("style");
   extra.textContent = `
     .loginWrap{ display:flex; gap:10px; align-items:center; margin-left:auto; }
     .iconBtnWide{
-      height:42px;
-      padding:0 14px;
-      border-radius:14px;
+      height:42px; padding:0 14px; border-radius:14px;
       border:1px solid rgba(255,255,255,.18);
       background: rgba(18,28,60,.55);
-      color:#fff;
-      font-weight:800;
-      letter-spacing:.2px;
-      cursor:pointer;
-      white-space:nowrap;
+      color:#fff; font-weight:800; letter-spacing:.2px;
+      cursor:pointer; white-space:nowrap;
     }
     .iconBtnWide:active{ transform: translateY(1px); }
     .iconBtnWide:disabled{ opacity:.6; cursor:not-allowed; transform:none; }
     .userPill{
-      height:42px;
-      display:flex;
-      align-items:center;
-      padding:0 12px;
-      border-radius:14px;
+      height:42px; display:flex; align-items:center;
+      padding:0 12px; border-radius:14px;
       border:1px solid rgba(255,255,255,.12);
       background: rgba(0,0,0,.22);
       color: rgba(234,243,255,.9);
-      font-weight:700;
-      font-size:13px;
-      white-space:nowrap;
+      font-weight:700; font-size:13px; white-space:nowrap;
     }
     @media (max-width: 420px){
       .loginWrap{ width:100%; justify-content:space-between; margin-left:0; }
       .iconBtnWide{ flex:1; }
       .userPill{ flex:1; justify-content:center; }
     }
+
+    /* SETTINGS */
+    .settingsOverlay{
+      position:fixed; inset:0; z-index:99999;
+      display:none; align-items:center; justify-content:center;
+      padding:16px;
+      background: rgba(0,0,0,.45);
+      backdrop-filter: blur(8px);
+    }
+    .settingsOverlay.show{ display:flex; }
+    .settingsCard{
+      width:min(520px, 100%);
+      border-radius:22px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(10,14,30,.88);
+      box-shadow: 0 18px 60px rgba(0,0,0,.55);
+      padding:16px;
+      color: rgba(240,247,255,.95);
+    }
+    .settingsHeader{
+      display:flex; align-items:center; justify-content:space-between;
+      margin-bottom:12px;
+    }
+    .settingsTitle{ font-size:18px; font-weight:900; letter-spacing:.3px; }
+    .settingsClose{
+      width:40px; height:40px; border-radius:14px;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.06);
+      color:#fff; font-weight:900;
+      cursor:pointer;
+    }
+    .settingsClose:active{ transform: translateY(1px); }
+    .settingsRow{
+      display:flex; align-items:center; justify-content:space-between;
+      gap:12px;
+      padding:12px 10px;
+      border-radius:16px;
+      background: rgba(255,255,255,.04);
+      border:1px solid rgba(255,255,255,.08);
+      margin-top:10px;
+    }
+    .settingsLeft{ display:flex; flex-direction:column; gap:3px; }
+    .settingsLabel{ font-weight:900; font-size:14px; }
+    .settingsSub{ opacity:.78; font-size:12px; line-height:1.25; }
+
+    .toggle{ position:relative; width:52px; height:30px; display:inline-block; }
+    .toggle input{ opacity:0; width:0; height:0; }
+    .toggle .track{
+      position:absolute; inset:0;
+      background: rgba(255,255,255,.12);
+      border:1px solid rgba(255,255,255,.14);
+      border-radius:999px;
+      transition: .15s ease;
+    }
+    .toggle .track::after{
+      content:"";
+      position:absolute;
+      width:24px; height:24px;
+      left:3px; top:2px;
+      border-radius:50%;
+      background: rgba(240,247,255,.95);
+      box-shadow: 0 10px 18px rgba(0,0,0,.35);
+      transition: .15s ease;
+    }
+    .toggle input:checked + .track{
+      background: rgba(37,215,255,.25);
+      border-color: rgba(37,215,255,.45);
+    }
+    .toggle input:checked + .track::after{
+      transform: translateX(22px);
+      background: #25d7ff;
+    }
+
+    .settingsFoot{ margin-top:12px; padding:8px 4px 0; }
+    .settingsNote{ opacity:.7; font-size:12px; }
+
+    /* WIN POPUP */
+    .winOverlay{
+      position:fixed; inset:0; z-index:99998;
+      display:none;
+      align-items:center; justify-content:center;
+      padding:16px;
+      background: rgba(0,0,0,.55);
+      backdrop-filter: blur(10px);
+    }
+    .winOverlay.show{ display:flex; }
+    .winCard{
+      width:min(560px, 100%);
+      border-radius:24px;
+      border:1px solid rgba(37,215,255,.22);
+      background: radial-gradient(900px 520px at 50% 10%, rgba(37,215,255,.18), rgba(10,12,24,.92));
+      box-shadow: 0 22px 80px rgba(0,0,0,.65);
+      padding:18px;
+      position:relative;
+      overflow:hidden;
+    }
+    .winSparkLayer{
+      position:absolute; inset:-40px;
+      background:
+        radial-gradient(10px 10px at 10% 20%, rgba(255,255,255,.7), transparent 60%),
+        radial-gradient(12px 12px at 80% 30%, rgba(37,215,255,.7), transparent 60%),
+        radial-gradient(9px 9px at 35% 70%, rgba(255,204,51,.7), transparent 60%),
+        radial-gradient(8px 8px at 65% 80%, rgba(255,255,255,.55), transparent 60%);
+      opacity:.35;
+      animation: sparks 1.6s linear infinite;
+      pointer-events:none;
+    }
+    @keyframes sparks{
+      0%{ transform: translateY(0); }
+      100%{ transform: translateY(18px); }
+    }
+    .winHeader{ position:relative; z-index:2; display:flex; flex-direction:column; gap:6px; }
+    .winBadge{
+      align-self:flex-start;
+      font-weight:950;
+      font-size:12px;
+      padding:6px 10px;
+      border-radius:999px;
+      background: linear-gradient(180deg, #ff4b3a, #d61e12);
+      box-shadow: 0 12px 22px rgba(255,75,58,.25);
+      border:1px solid rgba(255,255,255,.18);
+    }
+    .winTitle{ font-size:26px; font-weight:950; letter-spacing:.3px; }
+    .winSub{ opacity:.82; font-size:13px; }
+
+    .winMusic{
+      position:relative; z-index:2;
+      margin-top:14px;
+      display:flex; align-items:center; gap:10px;
+      padding:10px 12px;
+      border-radius:18px;
+      background: rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.10);
+    }
+    .winPulse{
+      width:34px; height:34px; border-radius:50%;
+      background: rgba(37,215,255,.22);
+      border:1px solid rgba(37,215,255,.35);
+      animation: pulse 1.1s ease-in-out infinite;
+    }
+    @keyframes pulse{
+      0%,100%{ transform: scale(1); opacity:.75; }
+      50%{ transform: scale(1.08); opacity:1; }
+    }
+    .winNote{ font-weight:950; font-size:18px; }
+    .winMusicText{ font-weight:900; opacity:.85; }
+
+    .winRow{ position:relative; z-index:2; display:flex; gap:10px; margin-top:16px; flex-wrap:wrap; }
+    .winBtnPrimary, .winBtnSecondary{
+      height:46px;
+      border-radius:16px;
+      border:1px solid rgba(255,255,255,.14);
+      font-weight:950;
+      cursor:pointer;
+      padding:0 14px;
+    }
+    .winBtnPrimary{
+      flex:1;
+      background: linear-gradient(180deg, rgba(37,215,255,.95), rgba(0,183,255,.85));
+      color:#061020;
+      border-color: rgba(37,215,255,.55);
+    }
+    .winBtnSecondary{
+      flex:1;
+      background: rgba(255,255,255,.06);
+      color: rgba(240,247,255,.95);
+    }
+    .winBtnPrimary:active, .winBtnSecondary:active{ transform: translateY(1px); }
+    .winPlus{ margin-left:6px; font-weight:950; color:#ffcc33; }
+    .winCoinDot{
+      display:inline-block;
+      width:14px; height:14px;
+      border-radius:50%;
+      margin-left:8px;
+      background: radial-gradient(circle at 30% 30%, #fff6c2, #ffcc33 55%, #d39a00);
+      vertical-align:-2px;
+      box-shadow: 0 8px 16px rgba(255,204,51,.18);
+    }
+    .winHint{ position:relative; z-index:2; margin-top:12px; font-size:12px; opacity:.75; }
   `;
   document.head.appendChild(extra);
 
+  // ---------------------------
+  // Elements
+  // ---------------------------
   const coinCountEl = document.getElementById("coinCount");
 
-  // win popup elements
+  // Settings
+  const settingsBtn = document.getElementById("settingsBtn");
+  const settingsOverlay = document.getElementById("settingsOverlay");
+  const settingsCloseBtn = document.getElementById("settingsCloseBtn");
+  const soundToggle = document.getElementById("soundToggle");
+  const vibrationToggle = document.getElementById("vibrationToggle");
+
+  // Win popup
   const winOverlay = document.getElementById("winOverlay");
   const winSubText = document.getElementById("winSubText");
   const winNextBtn = document.getElementById("winNextBtn");
   const winAdBtn = document.getElementById("winAdBtn");
 
+  // ---------------------------
+  // State + handlers
+  // ---------------------------
+  let soundHandler = null;
+  let vibrationHandler = null;
+
   let winNextHandler = null;
   let winAdHandler = null;
 
-  // close overlay if tap outside card (optional)
-  winOverlay.addEventListener("click", (e) => {
-    if (e.target === winOverlay) {
-      // do nothing (keep it locked), or allow close:
-      // hideWinPopup();
-    }
+  function setCoins(n) {
+    coinCountEl.textContent = String(n ?? 0);
+  }
+
+  function openSettings() {
+    settingsOverlay.classList.add("show");
+    settingsOverlay.setAttribute("aria-hidden", "false");
+  }
+
+  function closeSettings() {
+    settingsOverlay.classList.remove("show");
+    settingsOverlay.setAttribute("aria-hidden", "true");
+  }
+
+  settingsBtn?.addEventListener("click", openSettings);
+  settingsCloseBtn?.addEventListener("click", closeSettings);
+  settingsOverlay?.addEventListener("click", (e) => {
+    if (e.target === settingsOverlay) closeSettings();
   });
 
+  soundToggle.addEventListener("change", () => {
+    soundHandler?.(!!soundToggle.checked);
+  });
+
+  vibrationToggle.addEventListener("change", () => {
+    vibrationHandler?.(!!vibrationToggle.checked);
+  });
+
+  // Win popup buttons
   winNextBtn.addEventListener("click", () => winNextHandler?.());
   winAdBtn.addEventListener("click", () => winAdHandler?.());
 
@@ -174,8 +416,12 @@ export function mountUI(app) {
     winOverlay.setAttribute("aria-hidden", "true");
   }
 
-  function setCoins(n) {
-    coinCountEl.textContent = String(n ?? 0);
+  function setSoundEnabled(v) {
+    soundToggle.checked = !!v;
+  }
+
+  function setVibrationEnabled(v) {
+    vibrationToggle.checked = !!v;
   }
 
   return {
@@ -186,7 +432,17 @@ export function mountUI(app) {
 
     setCoins,
 
-    // win popup API
+    // Settings API
+    setSoundEnabled,
+    setVibrationEnabled,
+    onSoundToggle(fn) {
+      soundHandler = fn;
+    },
+    onVibrationToggle(fn) {
+      vibrationHandler = fn;
+    },
+
+    // Win popup API
     showWinPopup,
     hideWinPopup,
     onWinNext(fn) {
@@ -195,12 +451,6 @@ export function mountUI(app) {
     onWinAd(fn) {
       winAdHandler = fn;
     },
-
-    // keep compatibility with your existing settings toggles (if present in your build)
-    setSoundEnabled: (v) => {},
-    setVibrationEnabled: (v) => {},
-    onSoundToggle: (fn) => {},
-    onVibrationToggle: (fn) => {},
   };
 }
 
