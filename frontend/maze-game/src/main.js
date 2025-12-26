@@ -18,8 +18,18 @@ let levelIndex = 0;
 let game = null;
 let ui = null;
 
+// coins (local)
+const COINS_KEY = "am_coins";
+let coins = Number(localStorage.getItem(COINS_KEY) || "0");
+
+function saveCoins() {
+  localStorage.setItem(COINS_KEY, String(coins));
+  ui?.setCoins(coins);
+}
+
 async function boot() {
   ui = mountUI(document.querySelector("#app"));
+  ui.setCoins(coins);
 
   // init toggles from saved settings
   const s0 = getSettings();
@@ -54,7 +64,23 @@ async function boot() {
     },
   });
 
-  // --- start game once ---
+  // popup button handlers (wire once)
+  ui.onWinNext(() => {
+    ui.hideWinPopup();
+    goNextLevel({ viaAd: false });
+  });
+
+  ui.onWinAd(() => {
+    // ✅ later we connect real ad SDK
+    // for now: instantly reward +50
+    coins += 50;
+    saveCoins();
+
+    ui.hideWinPopup();
+    goNextLevel({ viaAd: true });
+  });
+
+  // create game once
   levelIndex = clampLevelIndex(levelIndex);
   const firstLevel = levels[levelIndex];
 
@@ -76,20 +102,28 @@ function clampLevelIndex(i) {
 }
 
 function onLevelComplete() {
-  // next level
-  levelIndex = clampLevelIndex(levelIndex + 1);
+  const isLastLevel = levelIndex >= levels.length - 1;
 
-  // loop back to level 1 after last
-  // (if you want an alert only when finishing last level)
-  // if (levelIndex === 0) alert("🎉 All levels complete! Restarting from Level 1.");
+  // show popup (locked fullscreen)
+  ui.showWinPopup({
+    levelNumber: levelIndex + 1,
+    isLastLevel,
+  });
+}
 
-  // small pause feels nicer
-  setTimeout(() => {
-    const nextLevel = levels[levelIndex];
-    if (game && typeof game.setLevel === "function") {
-      game.setLevel(nextLevel);
-    }
-  }, 250);
+function goNextLevel({ viaAd } = {}) {
+  // compute next index
+  const next = levelIndex + 1;
+
+  // if last -> restart
+  if (next >= levels.length) {
+    levelIndex = 0;
+    game.setLevel(levels[levelIndex]);
+    return;
+  }
+
+  levelIndex = next;
+  game.setLevel(levels[levelIndex]);
 }
 
 boot();

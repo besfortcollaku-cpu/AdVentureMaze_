@@ -18,15 +18,16 @@ export function mountUI(app) {
 
           <div class="coins" title="Coins">
             <div class="coinDot"></div>
-            <div id="coinCount">1888</div>
+            <div id="coinCount">0</div>
           </div>
         </div>
 
         <div class="iconRow">
           ${iconBtn("settings", gearSVG(), "")}
           ${iconBtn("controls", joystickSVG(), "")}
-          ${iconBtn("paint", brushSVG(), "")}
-    
+          ${iconBtn("paint", brushSVG(), "NEW")}
+          ${iconBtn("trophy", trophySVG(), "")}
+          ${iconBtn("noads", noAdsSVG(), "")}
 
           <div class="loginWrap">
             <button class="iconBtnWide" id="loginBtn">
@@ -66,39 +67,32 @@ export function mountUI(app) {
       </div>
     </div>
 
-    <!-- SETTINGS MODAL -->
-    <div class="settingsModal" id="settingsModal" style="display:none;">
-      <div class="settingsCard">
-        <div class="settingsTop">
-          <div class="settingsTitle">Settings</div>
-          <button class="settingsClose" id="settingsClose">✕</button>
+    <!-- ✅ WIN POPUP -->
+    <div class="winOverlay" id="winOverlay" aria-hidden="true">
+      <div class="winCard">
+        <div class="winSparkLayer"></div>
+
+        <div class="winHeader">
+          <div class="winBadge">CONGRATS!</div>
+          <div class="winTitle">Level Complete</div>
+          <div class="winSub" id="winSubText">You finished Level</div>
         </div>
 
-        <div class="settingsRow">
-          <div class="settingsLabel">
-            <div class="settingsName">Sound</div>
-            <div class="settingsSub">Rolling sound ON/OFF</div>
-          </div>
-          <label class="switch">
-            <input type="checkbox" id="toggleSound" />
-            <span class="slider"></span>
-          </label>
+        <div class="winMusic">
+          <div class="winPulse"></div>
+          <div class="winNote">♪</div>
+          <div class="winMusicText">Victory vibes</div>
         </div>
 
-        <div class="settingsRow">
-          <div class="settingsLabel">
-            <div class="settingsName">Vibration</div>
-            <div class="settingsSub">Vibrate on wall hit</div>
-          </div>
-          <label class="switch">
-            <input type="checkbox" id="toggleVibration" />
-            <span class="slider"></span>
-          </label>
+        <div class="winRow">
+          <button class="winBtnPrimary" id="winNextBtn">Next level</button>
+          <button class="winBtnSecondary" id="winAdBtn">
+            Watch Ad <span class="winPlus">+50</span>
+            <span class="winCoinDot" aria-hidden="true"></span>
+          </button>
         </div>
 
-        <div class="settingsNote">
-          Wall-hit sound is disabled.
-        </div>
+        <div class="winHint">Tip: Watch ad gives +50 coins</div>
       </div>
     </div>
   `;
@@ -139,125 +133,50 @@ export function mountUI(app) {
       .iconBtnWide{ flex:1; }
       .userPill{ flex:1; justify-content:center; }
     }
-
-    /* SETTINGS modal */
-    .settingsModal{
-      position:fixed;
-      inset:0;
-      z-index:10000;
-      background: rgba(0,0,0,.45);
-      backdrop-filter: blur(6px);
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      padding:16px;
-    }
-    .settingsCard{
-      width:min(520px, 100%);
-      border-radius:22px;
-      border:1px solid rgba(255,255,255,.14);
-      background: rgba(8,12,24,.85);
-      box-shadow: 0 18px 60px rgba(0,0,0,.6);
-      padding:16px;
-      color: rgba(234,243,255,.95);
-    }
-    .settingsTop{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      margin-bottom:10px;
-    }
-    .settingsTitle{
-      font-weight:950;
-      font-size:18px;
-      letter-spacing:.3px;
-    }
-    .settingsClose{
-      width:38px; height:38px;
-      border-radius:12px;
-      border:1px solid rgba(255,255,255,.16);
-      background: rgba(255,255,255,.06);
-      color:#fff;
-      font-weight:900;
-      cursor:pointer;
-    }
-    .settingsRow{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:12px;
-      padding:12px 10px;
-      border-radius:16px;
-      background: rgba(255,255,255,.05);
-      border: 1px solid rgba(255,255,255,.10);
-      margin-top:10px;
-    }
-    .settingsName{ font-weight:900; }
-    .settingsSub{ font-size:12px; opacity:.7; margin-top:2px; }
-    .settingsNote{
-      margin-top:12px;
-      font-size:12px;
-      opacity:.65;
-    }
-
-    /* Toggle switch */
-    .switch{ position:relative; display:inline-block; width:54px; height:32px; }
-    .switch input{ opacity:0; width:0; height:0; }
-    .slider{
-      position:absolute; cursor:pointer; inset:0;
-      background: rgba(255,255,255,.18);
-      border:1px solid rgba(255,255,255,.18);
-      transition:.2s;
-      border-radius:999px;
-    }
-    .slider:before{
-      position:absolute; content:"";
-      height:24px; width:24px;
-      left:4px; top:3px;
-      background:white;
-      transition:.2s;
-      border-radius:999px;
-    }
-    .switch input:checked + .slider{
-      background: rgba(37,215,255,.35);
-      border-color: rgba(37,215,255,.35);
-    }
-    .switch input:checked + .slider:before{
-      transform: translateX(22px);
-    }
   `;
   document.head.appendChild(extra);
 
-  const settingsBtn = document.getElementById("settings");
-  const settingsModal = document.getElementById("settingsModal");
-  const settingsClose = document.getElementById("settingsClose");
+  const coinCountEl = document.getElementById("coinCount");
 
-  const toggleSound = document.getElementById("toggleSound");
-  const toggleVibration = document.getElementById("toggleVibration");
+  // win popup elements
+  const winOverlay = document.getElementById("winOverlay");
+  const winSubText = document.getElementById("winSubText");
+  const winNextBtn = document.getElementById("winNextBtn");
+  const winAdBtn = document.getElementById("winAdBtn");
 
-  function openSettings() {
-    settingsModal.style.display = "flex";
+  let winNextHandler = null;
+  let winAdHandler = null;
+
+  // close overlay if tap outside card (optional)
+  winOverlay.addEventListener("click", (e) => {
+    if (e.target === winOverlay) {
+      // do nothing (keep it locked), or allow close:
+      // hideWinPopup();
+    }
+  });
+
+  winNextBtn.addEventListener("click", () => winNextHandler?.());
+  winAdBtn.addEventListener("click", () => winAdHandler?.());
+
+  function showWinPopup({ levelNumber, isLastLevel } = {}) {
+    winSubText.textContent = isLastLevel
+      ? `You finished the last level!`
+      : `You finished Level ${levelNumber}`;
+
+    winNextBtn.textContent = isLastLevel ? "Restart" : "Next level";
+
+    winOverlay.classList.add("show");
+    winOverlay.setAttribute("aria-hidden", "false");
   }
-  function closeSettings() {
-    settingsModal.style.display = "none";
+
+  function hideWinPopup() {
+    winOverlay.classList.remove("show");
+    winOverlay.setAttribute("aria-hidden", "true");
   }
 
-  settingsBtn?.addEventListener("click", openSettings);
-  settingsClose?.addEventListener("click", closeSettings);
-  settingsModal?.addEventListener("click", (e) => {
-    // click outside card closes
-    if (e.target === settingsModal) closeSettings();
-  });
-
-  let onSoundCb = null;
-  let onVibrationCb = null;
-
-  toggleSound?.addEventListener("change", () => {
-    onSoundCb?.(!!toggleSound.checked);
-  });
-  toggleVibration?.addEventListener("change", () => {
-    onVibrationCb?.(!!toggleVibration.checked);
-  });
+  function setCoins(n) {
+    coinCountEl.textContent = String(n ?? 0);
+  }
 
   return {
     canvas: document.getElementById("game"),
@@ -265,21 +184,23 @@ export function mountUI(app) {
     loginBtnText: document.getElementById("loginBtnText"),
     userPill: document.getElementById("userPill"),
 
-    // settings API
-    setSoundEnabled(v) {
-      if (toggleSound) toggleSound.checked = !!v;
+    setCoins,
+
+    // win popup API
+    showWinPopup,
+    hideWinPopup,
+    onWinNext(fn) {
+      winNextHandler = fn;
     },
-    setVibrationEnabled(v) {
-      if (toggleVibration) toggleVibration.checked = !!v;
+    onWinAd(fn) {
+      winAdHandler = fn;
     },
-    onSoundToggle(cb) {
-      onSoundCb = cb;
-    },
-    onVibrationToggle(cb) {
-      onVibrationCb = cb;
-    },
-    openSettings,
-    closeSettings,
+
+    // keep compatibility with your existing settings toggles (if present in your build)
+    setSoundEnabled: (v) => {},
+    setVibrationEnabled: (v) => {},
+    onSoundToggle: (fn) => {},
+    onVibrationToggle: (fn) => {},
   };
 }
 
