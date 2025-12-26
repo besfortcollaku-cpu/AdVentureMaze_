@@ -3,6 +3,7 @@ import "./style.css";
 
 import { mountUI } from "./ui/ui.js";
 import { enforcePiEnvironment } from "./pi/piDetect.js";
+import { initPi } from "./pi/piInit.js";
 import { ensurePiLogin } from "./pi/piClient.js";
 
 import { createGame } from "./game/game.js";
@@ -121,6 +122,9 @@ alert("Pi SDK available? " + (!!window.Pi));
     desktopBlockEl: document.getElementById("desktopBlock"),
   });
   if (!env.ok) return;
+  
+  // ✅ Init Pi SDK FIRST
+initPi();
 
   // ✅ Mandatory Pi login BEFORE game starts (with session restore)
   const loginRes = await ensurePiLogin({
