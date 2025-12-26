@@ -89,6 +89,8 @@ function clampLevelIndex(i) {
 // ---------------------------
 async function boot() {
   ui = mountUI(document.querySelector("#app"));
+  console.log("Pi SDK available?", !!window.Pi);
+alert("Pi SDK available? " + (!!window.Pi));
 
   // ✅ unlock audio only after first real user gesture (mobile requirement)
   ui.onFirstUserGesture(() => {
