@@ -22,18 +22,59 @@ let levelIndex = 0;
 let game = null;
 let ui = null;
 
-// coins (local)
-const COINS_KEY = "am_coins";
-let coins = Number(localStorage.getItem(COINS_KEY) || "0");
-
-function saveCoins() {
-  localStorage.setItem(COINS_KEY, String(coins));
-  ui?.setCoins(coins);
+// ---------------------------
+// ✅ Backend helpers
+// ---------------------------
+async function apiGetMe() {
+  const res = await fetch(`${BACKEND}/api/me`, {
+    headers: {
+      Authorization: `Bearer ${CURRENT_ACCESS_TOKEN}`,
+    },
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok || !data?.ok) throw new Error(data?.error || "api/me failed");
+  return data; // { ok:true, user, progress }
 }
 
+async function apiSetProgress({ uid, level, coins }) {
+  const res = await fetch(`${BACKEND}/progress`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${CURRENT_ACCESS_TOKEN}`,
+    },
+    body: JSON.stringify({ uid, level, coins }),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok || !data?.ok) throw new Error(data?.error || "progress save failed");
+  return data;
+}
+
+async function apiAddCoins({ uid, delta }) {
+  const res = await fetch(`${BACKEND}/api/users/coins`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${CURRENT_ACCESS_TOKEN}`,
+    },
+    body: JSON.stringify({ uid, delta }),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok || !data?.ok) throw new Error(data?.error || "coins update failed");
+  return data; // { ok:true, user }
+}
+
+function clampLevelIndex(i) {
+  if (i < 0) return 0;
+  if (i >= levels.length) return 0;
+  return i;
+}
+
+// ---------------------------
+// ✅ Boot
+// ---------------------------
 async function boot() {
   ui = mountUI(document.querySelector("#app"));
-  ui.setCoins(coins);
 
   // ✅ unlock audio only after first real user gesture (mobile requirement)
   ui.onFirstUserGesture(() => {
@@ -48,22 +89,14 @@ async function boot() {
   // when user toggles
   ui.onSoundToggle((v) => {
     setSetting("sound", v);
-
-    // ✅ if user enables sound, try to unlock/resume (safe no-op if already unlocked)
-    if (v) ensureAudioUnlocked();
-
-    // ✅ if user disables sound while rolling, stop immediately
     if (!v) stopRollSound();
   });
-
   ui.onVibrationToggle((v) => setSetting("vibration", v));
 
   // keep UI in sync if settings changed elsewhere
   subscribeSettings((s) => {
     ui.setSoundEnabled(s.sound);
     ui.setVibrationEnabled(s.vibration);
-
-    // ✅ if settings changed to sound=false from elsewhere, stop roll
     if (!s.sound) stopRollSound();
   });
 
@@ -81,34 +114,57 @@ async function boot() {
       CURRENT_USER = user;
       CURRENT_ACCESS_TOKEN = accessToken;
 
-      // keep UI consistent
-      ui?.setUser?.(user);
+      // Keep header UI consistent
       if (ui?.userPill) ui.userPill.textContent = `User: ${user.username}`;
       if (ui?.loginBtnText) ui.loginBtnText.textContent = "Logged in ✅";
     },
   });
 
-  // NOTE: with the fixed ensurePiLogin, this should always be ok:true eventually.
   if (!loginRes?.ok) return;
 
+  // ✅ Load server state (coins + progress)
+  let me;
+  try {
+    me = await apiGetMe();
+  } catch (e) {
+    alert("Failed to load profile: " + (e?.message || String(e)));
+    return;
+  }
+
+  const serverUser = me.user;
+  const serverProgress = me.progress;
+
+  // trust server as source of truth
+  CURRENT_USER = { username: serverUser.username, uid: serverUser.uid };
+
+  // coins on top bar
+  ui.setCoins(serverUser.coins || 0);
+
+  // start at saved level (progress.level is 1-based)
+  const savedLevel = Number(serverProgress?.level || 1);
+  levelIndex = clampLevelIndex(savedLevel - 1);
+
   // popup button handlers (wire once)
-  ui.onWinNext(() => {
+  ui.onWinNext(async () => {
     ui.hideWinPopup();
-    goNextLevel({ viaAd: false });
+    await goNextLevel({ viaAd: false });
   });
 
-  ui.onWinAd(() => {
-    // ✅ later we connect real ad SDK
-    // for now: instantly reward +50
-    coins += 50;
-    saveCoins();
+  ui.onWinAd(async () => {
+    try {
+      // +50 coins on backend
+      const out = await apiAddCoins({ uid: CURRENT_USER.uid, delta: 50 });
+      ui.setCoins(out?.user?.coins ?? 0);
+    } catch (e) {
+      alert("Coins update failed: " + (e?.message || String(e)));
+      // still allow next level if you want
+    }
 
     ui.hideWinPopup();
-    goNextLevel({ viaAd: true });
+    await goNextLevel({ viaAd: true });
   });
 
   // create game once (after login)
-  levelIndex = clampLevelIndex(levelIndex);
   const firstLevel = levels[levelIndex];
 
   game = createGame({
@@ -122,30 +178,40 @@ async function boot() {
   game.start();
 }
 
-function clampLevelIndex(i) {
-  if (i < 0) return 0;
-  if (i >= levels.length) return 0;
-  return i;
-}
-
-function onLevelComplete() {
-  // ✅ stop rolling sound so popup is clean
-  stopRollSound();
-
+// ---------------------------
+// ✅ Level flow
+// ---------------------------
+async function onLevelComplete() {
   const isLastLevel = levelIndex >= levels.length - 1;
 
-  // show popup (locked fullscreen)
+  // ✅ Save progress to backend right when completed
+  // next unlocked level is (levelIndex+2) because current is completed
+  const nextLevelNumber = isLastLevel ? 1 : levelIndex + 2;
+
+  try {
+    const me = await apiGetMe();
+    const coinsNow = Number(me?.user?.coins || 0);
+
+    await apiSetProgress({
+      uid: CURRENT_USER.uid,
+      level: nextLevelNumber,
+      coins: coinsNow,
+    });
+  } catch (e) {
+    // don't block popup if backend fails
+    console.warn("progress save failed:", e);
+  }
+
+  // show popup
   ui.showWinPopup({
     levelNumber: levelIndex + 1,
     isLastLevel,
   });
 }
 
-function goNextLevel({ viaAd } = {}) {
-  // compute next index
+async function goNextLevel({ viaAd } = {}) {
   const next = levelIndex + 1;
 
-  // if last -> restart
   if (next >= levels.length) {
     levelIndex = 0;
     game.setLevel(levels[levelIndex]);
