@@ -34,12 +34,15 @@ export function clearPiSession() {
  * If it fails, token is not usable anymore.
  */
 async function verifySessionWithBackend(BACKEND, accessToken) {
-  const res = await fetch(`${BACKEND.replace(/\/$/, "")}/api/me`, {
+  const base = BACKEND.replace(/\/$/, "");
+  const res = await fetch(`${base}/api/me`, {
     headers: { Authorization: `Bearer ${accessToken}` },
   });
 
   const data = await res.json().catch(() => ({}));
-  if (!res.ok || !data?.ok) return { ok: false, error: data?.error || "invalid session" };
+  if (!res.ok || !data?.ok) {
+    return { ok: false, error: data?.error || "invalid session" };
+  }
 
   // expected: { ok:true, user, progress }
   return { ok: true, data };
@@ -101,7 +104,7 @@ export function setupPiLogin({
   if (loginBtn) loginBtn.addEventListener("click", doPiLogin);
 
   return {
-    doPiLogin, // optional external call
+    doPiLogin,
     getUser: () => CURRENT_USER,
     getToken: () => CURRENT_ACCESS_TOKEN,
   };
@@ -119,9 +122,12 @@ export function setupPiLogin({
  * ui.onLoginClick(fn)
  */
 export async function ensurePiLogin({ BACKEND, ui, onLogin }) {
+  // prevent double-run / double-click
+  let isLoggingIn = false;
+
   // 1) Try restore
   const saved = loadSession();
-  if (saved?.accessToken && saved?.user) {
+  if (saved?.accessToken) {
     const check = await verifySessionWithBackend(BACKEND, saved.accessToken);
 
     if (check.ok) {
@@ -134,19 +140,23 @@ export async function ensurePiLogin({ BACKEND, ui, onLogin }) {
 
     // ❌ session invalid -> clear and continue to login
     clearPiSession();
+    ui?.showLoginError?.("Session expired. Please login again.");
   }
 
   // 2) Force login before game start
   ui?.showLoginGate?.();
 
   return await new Promise((resolve) => {
-    const hasGate = !!ui?.onLoginClick;
+    const hasGate = typeof ui?.onLoginClick === "function";
 
     const runLogin = async () => {
+      if (isLoggingIn) return; // block double clicks
+      isLoggingIn = true;
+
       try {
         ui?.showLoginError?.("");
 
-        // Pi login + backend verify (creates user in DB)
+        // Pi login + backend verify (creates user in DB via /api/pi/verify inside your piAuth)
         const { auth } = await piLoginAndVerify(BACKEND);
 
         const accessToken = auth?.accessToken || null;
@@ -165,16 +175,22 @@ export async function ensurePiLogin({ BACKEND, ui, onLogin }) {
 
         resolve({ ok: true, restored: false });
       } catch (e) {
-        ui?.showLoginError?.("Login failed. Please try again.");
+        ui?.showLoginError?.(
+          "Login failed. Please try again. (Make sure you are inside Pi Browser)"
+        );
         resolve({ ok: false, error: String(e?.message || e) });
+      } finally {
+        isLoggingIn = false;
       }
     };
 
+    // fallback: no UI gate implemented -> try immediately
     if (!hasGate) {
-      runLogin(); // fallback attempt immediately
+      runLogin();
       return;
     }
 
+    // gate button click triggers login (single handler)
     ui.onLoginClick(runLogin);
   });
 }

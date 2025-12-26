@@ -22,13 +22,25 @@ let levelIndex = 0;
 let game = null;
 let ui = null;
 
+// ✅ local cache (source of truth after /api/me)
+let COINS = 0;
+
 // ---------------------------
 // ✅ Backend helpers
 // ---------------------------
+function requireToken() {
+  if (!CURRENT_ACCESS_TOKEN) {
+    throw new Error("Missing access token. Please login again.");
+  }
+  return {
+    Authorization: `Bearer ${CURRENT_ACCESS_TOKEN}`,
+  };
+}
+
 async function apiGetMe() {
   const res = await fetch(`${BACKEND}/api/me`, {
     headers: {
-      Authorization: `Bearer ${CURRENT_ACCESS_TOKEN}`,
+      ...requireToken(),
     },
   });
   const data = await res.json().catch(() => ({}));
@@ -41,12 +53,13 @@ async function apiSetProgress({ uid, level, coins }) {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${CURRENT_ACCESS_TOKEN}`,
+      ...requireToken(),
     },
     body: JSON.stringify({ uid, level, coins }),
   });
   const data = await res.json().catch(() => ({}));
-  if (!res.ok || !data?.ok) throw new Error(data?.error || "progress save failed");
+  if (!res.ok || !data?.ok)
+    throw new Error(data?.error || "progress save failed");
   return data;
 }
 
@@ -55,12 +68,13 @@ async function apiAddCoins({ uid, delta }) {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${CURRENT_ACCESS_TOKEN}`,
+      ...requireToken(),
     },
     body: JSON.stringify({ uid, delta }),
   });
   const data = await res.json().catch(() => ({}));
-  if (!res.ok || !data?.ok) throw new Error(data?.error || "coins update failed");
+  if (!res.ok || !data?.ok)
+    throw new Error(data?.error || "coins update failed");
   return data; // { ok:true, user }
 }
 
@@ -138,7 +152,8 @@ async function boot() {
   CURRENT_USER = { username: serverUser.username, uid: serverUser.uid };
 
   // coins on top bar
-  ui.setCoins(serverUser.coins || 0);
+  COINS = Number(serverUser.coins || 0);
+  ui.setCoins(COINS);
 
   // start at saved level (progress.level is 1-based)
   const savedLevel = Number(serverProgress?.level || 1);
@@ -154,10 +169,10 @@ async function boot() {
     try {
       // +50 coins on backend
       const out = await apiAddCoins({ uid: CURRENT_USER.uid, delta: 50 });
-      ui.setCoins(out?.user?.coins ?? 0);
+      COINS = Number(out?.user?.coins ?? COINS);
+      ui.setCoins(COINS);
     } catch (e) {
       alert("Coins update failed: " + (e?.message || String(e)));
-      // still allow next level if you want
     }
 
     ui.hideWinPopup();
@@ -181,26 +196,25 @@ async function boot() {
 // ---------------------------
 // ✅ Level flow
 // ---------------------------
-async function onLevelComplete() {
+function onLevelComplete() {
   const isLastLevel = levelIndex >= levels.length - 1;
 
   // ✅ Save progress to backend right when completed
   // next unlocked level is (levelIndex+2) because current is completed
   const nextLevelNumber = isLastLevel ? 1 : levelIndex + 2;
 
-  try {
-    const me = await apiGetMe();
-    const coinsNow = Number(me?.user?.coins || 0);
-
-    await apiSetProgress({
-      uid: CURRENT_USER.uid,
-      level: nextLevelNumber,
-      coins: coinsNow,
-    });
-  } catch (e) {
-    // don't block popup if backend fails
-    console.warn("progress save failed:", e);
-  }
+  // fire-and-forget (don’t block UI)
+  (async () => {
+    try {
+      await apiSetProgress({
+        uid: CURRENT_USER.uid,
+        level: nextLevelNumber,
+        coins: COINS,
+      });
+    } catch (e) {
+      console.warn("progress save failed:", e);
+    }
+  })();
 
   // show popup
   ui.showWinPopup({

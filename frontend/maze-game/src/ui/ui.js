@@ -469,22 +469,26 @@ export function mountUI(app) {
   loginGateBtn?.addEventListener("click", () => loginGateClickHandler?.());
 
   function setCoins(n) {
-    coinCountEl.textContent = String(n ?? 0);
+    if (coinCountEl) coinCountEl.textContent = String(n ?? 0);
   }
 
   // ---------------------------
   // Login Gate API
   // ---------------------------
   function showLoginGate() {
+    if (!loginGate) return;
     loginGate.classList.add("show");
     loginGate.setAttribute("aria-hidden", "false");
     showLoginError(""); // clear
+    setGateLoading(false);
   }
 
   function hideLoginGate() {
+    if (!loginGate) return;
     loginGate.classList.remove("show");
     loginGate.setAttribute("aria-hidden", "true");
     showLoginError("");
+    setGateLoading(false);
   }
 
   function showLoginError(msg) {
@@ -492,25 +496,50 @@ export function mountUI(app) {
     loginGateError.textContent = msg ? String(msg) : "";
   }
 
-  function onLoginClick(fn) {
-    loginGateClickHandler = fn;
+  function setGateLoading(isLoading) {
+    if (!loginGateBtn) return;
+    loginGateBtn.disabled = !!isLoading;
+    loginGateBtn.textContent = isLoading ? "Logging in..." : "Login with Pi";
   }
+
+  // ensurePiLogin calls this
+  function onLoginClick(fn) {
+    loginGateClickHandler = async () => {
+      try {
+        setGateLoading(true);
+        await fn();
+      } finally {
+        // if login succeeded, gate will hide
+        // if login failed, ensurePiLogin shows error, we re-enable here
+        setGateLoading(false);
+      }
+    };
+  }
+
+  // allow header button to trigger the same login flow
+  loginBtn?.addEventListener("click", () => {
+    showLoginGate();
+    loginGateClickHandler?.();
+  });
 
   function setUser(user) {
     const name = user?.username || "guest";
     if (userPill) userPill.textContent = `User: ${name}`;
-    if (loginBtnText) loginBtnText.textContent = name === "guest" ? "Login with Pi" : "Logged in ✅";
+    if (loginBtnText)
+      loginBtnText.textContent = name === "guest" ? "Login with Pi" : "Logged in ✅";
   }
 
   // ---------------------------
   // Settings
   // ---------------------------
   function openSettings() {
+    if (!settingsOverlay) return;
     settingsOverlay.classList.add("show");
     settingsOverlay.setAttribute("aria-hidden", "false");
   }
 
   function closeSettings() {
+    if (!settingsOverlay) return;
     settingsOverlay.classList.remove("show");
     settingsOverlay.setAttribute("aria-hidden", "true");
   }
@@ -521,42 +550,47 @@ export function mountUI(app) {
     if (e.target === settingsOverlay) closeSettings();
   });
 
-  soundToggle.addEventListener("change", () => {
+  soundToggle?.addEventListener("change", () => {
     soundHandler?.(!!soundToggle.checked);
   });
 
-  vibrationToggle.addEventListener("change", () => {
+  vibrationToggle?.addEventListener("change", () => {
     vibrationHandler?.(!!vibrationToggle.checked);
   });
 
   // ---------------------------
   // Win popup
   // ---------------------------
-  winNextBtn.addEventListener("click", () => winNextHandler?.());
-  winAdBtn.addEventListener("click", () => winAdHandler?.());
+  winNextBtn?.addEventListener("click", () => winNextHandler?.());
+  winAdBtn?.addEventListener("click", () => winAdHandler?.());
 
   function showWinPopup({ levelNumber, isLastLevel } = {}) {
-    winSubText.textContent = isLastLevel
-      ? `You finished the last level!`
-      : `You finished Level ${levelNumber}`;
+    if (winSubText) {
+      winSubText.textContent = isLastLevel
+        ? `You finished the last level!`
+        : `You finished Level ${levelNumber}`;
+    }
 
-    winNextBtn.textContent = isLastLevel ? "Restart" : "Next level";
+    if (winNextBtn) winNextBtn.textContent = isLastLevel ? "Restart" : "Next level";
 
-    winOverlay.classList.add("show");
-    winOverlay.setAttribute("aria-hidden", "false");
+    if (winOverlay) {
+      winOverlay.classList.add("show");
+      winOverlay.setAttribute("aria-hidden", "false");
+    }
   }
 
   function hideWinPopup() {
+    if (!winOverlay) return;
     winOverlay.classList.remove("show");
     winOverlay.setAttribute("aria-hidden", "true");
   }
 
   function setSoundEnabled(v) {
-    soundToggle.checked = !!v;
+    if (soundToggle) soundToggle.checked = !!v;
   }
 
   function setVibrationEnabled(v) {
-    vibrationToggle.checked = !!v;
+    if (vibrationToggle) vibrationToggle.checked = !!v;
   }
 
   return {
