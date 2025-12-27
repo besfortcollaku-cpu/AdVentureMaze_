@@ -1,15 +1,12 @@
 // src/levels/level242.js
 
-// ✅ This file is LEVEL 1 now (we keep filename to avoid more path changes)
+// ✅ LEVEL 1 (we keep the filename, but rename the exported constant)
 
+export const levelOne = {
+  name: "LEVEL 1",
+  // ❌ zoom removed (UNDO STEP 13)
 
-
-export const level242 = {
-
-  name: "ERONI",
-
-  zoom: 1.0, // ✅ per level zoom (1 = normal, <1 zoom out, >1 zoom in)
-
+  
   start: { x: 1, y: 1 },
 
 
