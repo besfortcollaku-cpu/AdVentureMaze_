@@ -1,4 +1,4 @@
-// src/pi/piClient.js last change
+// src/pi/piClient.js
 import { piLoginAndVerify } from "./piAuth.js";
 
 /**

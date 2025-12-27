@@ -1,10 +1,4 @@
-
-  // ---------------------------
-  // Hint / Skip buttons
-  // ---------------------------
-  hintBtn?.addEventListener("click", () => hintHandler?.());
-  skipBtn?.addEventListener("click", () => skipHandler?.());
-// src/ui/ui.js
+// src/ui/ui.js last change
 
 export function mountUI(app) {
   app.innerHTML = `
@@ -427,11 +421,6 @@ export function mountUI(app) {
   // ---------------------------
   const coinCountEl = document.getElementById("coinCount");
 
-  // Bottom buttons
-  const hintBtn = document.getElementById("hintBtn");
-  const skipBtn = document.getElementById("x3Btn"); // treated as "Skip" for now
-
-
   // Header login UI
   const loginBtn = document.getElementById("loginBtn");
   const loginBtnText = document.getElementById("loginBtnText");
@@ -463,9 +452,6 @@ export function mountUI(app) {
 
   let winNextHandler = null;
   let winAdHandler = null;
-
-  let hintHandler = null;
-  let skipHandler = null;
 
   // ✅ first user gesture (for WebAudio unlock on mobile)
   let firstGestureHandler = null;
@@ -608,7 +594,9 @@ export function mountUI(app) {
   }
 
   return {
-    canvas: document.getElementById("game"),
+    onHint(fn) { hintHandler = fn; },
+    onSkip(fn) { skipHandler = fn; },
+canvas: document.getElementById("game"),
 
     // header login UI (kept for compatibility)
     loginBtn,
@@ -648,14 +636,6 @@ export function mountUI(app) {
     onWinAd(fn) {
       winAdHandler = fn;
     },
-    // Bottom buttons API
-    onHint(fn) {
-      hintHandler = fn;
-    },
-    onSkip(fn) {
-      skipHandler = fn;
-    },
-
   };
 }
 

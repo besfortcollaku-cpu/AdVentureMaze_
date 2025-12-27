@@ -1,4 +1,4 @@
-// src/main.js
+// src/main.js last change
 import "./style.css";
 
 import { mountUI } from "./ui/ui.js";
@@ -16,6 +16,39 @@ import { ensureAudioUnlocked, stopRollSound } from "./game/rollSound.js";
 
 const BACKEND = "https://adventuremaze.onrender.com";
 
+
+
+async function apiAuthPost(path, body, accessToken) {
+  const res = await fetch(`${BACKEND}${path}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${accessToken}`,
+    },
+    body: JSON.stringify(body || {}),
+  });
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok || json?.ok === false) {
+    throw new Error(json?.error || `Request failed: ${res.status}`);
+  }
+  return json;
+}
+
+async function apiAuthGet(path, accessToken) {
+  const res = await fetch(`${BACKEND}${path}`, {
+    method: "GET",
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok || json?.ok === false) {
+    throw new Error(json?.error || `Request failed: ${res.status}`);
+  }
+  return json;
+}
+
+function makeNonce(prefix = "n") {
+  return `${prefix}:${Date.now()}:${Math.random().toString(16).slice(2)}`;
+}
 let CURRENT_USER = { username: "guest", uid: null };
 let CURRENT_ACCESS_TOKEN = null;
 
@@ -49,47 +82,6 @@ async function apiGetMe() {
   return data; // { ok:true, user, progress }
 }
 
-async function apiClaimLevelComplete(level) {
-  const res = await fetch(`${BACKEND}/api/rewards/level-complete`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      ...requireToken(),
-    },
-    body: JSON.stringify({ level }),
-  });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok || !data?.ok) throw new Error(data?.error || "level-complete failed");
-  return data; // { ok:true, already, user }
-}
-
-async function apiSkip() {
-  const res = await fetch(`${BACKEND}/api/skip`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      ...requireToken(),
-    },
-  });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok || !data?.ok) throw new Error(data?.error || "skip failed");
-  return data; // { ok:true, mode, freeLeft, user }
-}
-
-async function apiHint() {
-  const res = await fetch(`${BACKEND}/api/hint`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      ...requireToken(),
-    },
-  });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok || !data?.ok) throw new Error(data?.error || "hint failed");
-  return data; // { ok:true, mode, freeLeft, user }
-}
-
-
 async function apiSetProgress({ uid, level, coins }) {
   const res = await fetch(`${BACKEND}/progress`, {
     method: "POST",
@@ -105,6 +97,7 @@ async function apiSetProgress({ uid, level, coins }) {
   return data;
 }
 
+// DEPRECATED: kept for debugging only (prefer /api/rewards/*)
 async function apiAddCoins({ uid, delta }) {
   const res = await fetch(`${BACKEND}/api/users/coins`, {
     method: "POST",
@@ -216,39 +209,6 @@ initPi();
     try {
       // +50 coins on backend
       const out = await apiAddCoins({ uid: CURRENT_USER.uid, delta: 50 });
-
-// ✅ Step B2: wire Hint / Skip buttons to backend
-ui.onHint(async () => {
-  try {
-    const out = await apiHint();
-    const newCoins = Number(out?.user?.coins ?? COINS);
-    COINS = newCoins;
-    ui.setCoins(COINS);
-    // Minimal UX for now
-    alert(out.mode === "free" ? `Hint used (free left: ${out.freeLeft})` : "Hint used (-50 coins)");
-  } catch (e) {
-    alert("Hint failed: " + (e?.message || String(e)));
-  }
-});
-
-ui.onSkip(async () => {
-  try {
-    const out = await apiSkip();
-    const newCoins = Number(out?.user?.coins ?? COINS);
-    COINS = newCoins;
-    ui.setCoins(COINS);
-
-    // advance to next level
-    levelIndex = Math.min(levelIndex + 1, LEVELS.length - 1);
-    game.setLevel(LEVELS[levelIndex]);
-    // save progress
-    await apiSetProgress({ uid: CURRENT_USER.uid, level: levelIndex + 1, coins: COINS });
-
-    alert(out.mode === "free" ? `Level skipped (free left: ${out.freeLeft})` : "Level skipped (-50 coins)");
-  } catch (e) {
-    alert("Skip failed: " + (e?.message || String(e)));
-  }
-});
       COINS = Number(out?.user?.coins ?? COINS);
       ui.setCoins(COINS);
     } catch (e) {
@@ -276,19 +236,7 @@ ui.onSkip(async () => {
 // ---------------------------
 // ✅ Level flow
 // ---------------------------
-async function onLevelComplete() {
-  // ✅ Step B2: award +1 coin for completing this level (server idempotent)
-  try {
-    const out = await apiClaimLevelComplete(levelIndex + 1);
-    if (out?.user?.coins != null) {
-      COINS = Number(out.user.coins);
-      ui.setCoins(COINS);
-    }
-  } catch (e) {
-    console.warn("level-complete reward failed:", e);
-  }
-
-
+function onLevelComplete() {
   const isLastLevel = levelIndex >= levels.length - 1;
 
   // ✅ Save progress to backend right when completed

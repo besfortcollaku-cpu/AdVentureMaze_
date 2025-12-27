@@ -1,4 +1,4 @@
-// src/game/game.js
+// src/game/game.js Last change
 import { createGameState } from "./state.js";
 import { createMovement } from "./movement.js";
 import { createRenderer } from "./render.js";
