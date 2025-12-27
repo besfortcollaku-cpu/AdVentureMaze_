@@ -94,7 +94,8 @@ export function setupPiLogin({
       if (onLogin)
         onLogin({ user: CURRENT_USER, accessToken: CURRENT_ACCESS_TOKEN });
     } catch (e) {
-      alert("Pi Login failed: " + (e?.message || String(e)));
+      const msg = String(e?.message || e || "Pi Login failed");
+      alert("Pi Login failed: " + msg);
       if (loginBtnText) loginBtnText.textContent = "Login with Pi";
     } finally {
       if (loginBtn) loginBtn.disabled = false;
@@ -175,10 +176,10 @@ export async function ensurePiLogin({ BACKEND, ui, onLogin }) {
 
         resolve({ ok: true, restored: false });
       } catch (e) {
-        ui?.showLoginError?.(
-          "Login failed. Please try again. (Make sure you are inside Pi Browser)"
-        );
-        resolve({ ok: false, error: String(e?.message || e) });
+        // ✅ IMPORTANT CHANGE: show the REAL error (no generic message)
+        const msg = String(e?.message || e || "Login failed");
+        ui?.showLoginError?.(msg);
+        resolve({ ok: false, error: msg });
       } finally {
         isLoggingIn = false;
       }
