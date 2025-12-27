@@ -1,14 +1,11 @@
-// src/levels/level242.js
-
-// ✅ This file is LEVEL 1 now (we keep filename to avoid more path changes)
+// src/levels/level1.js
 
 
+export const level1 = {
 
-export const level242 = {
+  name: "LEVEL 1",
 
-  name: "ERON",
-
-  zoom: 1.0, // ✅ per level zoom (1 = normal, <1 zoom out, >1 zoom in)
+  zoom: 1.0 // slightly zoomed-out (bigger maze feel)
 
   start: { x: 1, y: 1 },
 
