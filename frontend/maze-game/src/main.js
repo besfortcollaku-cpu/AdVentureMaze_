@@ -1,4 +1,4 @@
-// src/main.js
+// src/main.js last change
 import "./style.css";
 
 import { mountUI } from "./ui/ui.js";
