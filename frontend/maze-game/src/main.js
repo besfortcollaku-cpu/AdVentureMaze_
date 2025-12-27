@@ -1,4 +1,4 @@
-// src/main.js last change
+// src/main.js
 import "./style.css";
 
 import { mountUI } from "./ui/ui.js";
@@ -243,3 +243,37 @@ async function goNextLevel({ viaAd } = {}) {
 }
 
 boot();
+
+// === STEP B1 PATCH ===
+// Wire level complete, skip, hint to backend rewards API
+
+async function apiAuthFetch(path, options = {}) {
+  const token = window.__PI_ACCESS_TOKEN__;
+  if (!token) throw new Error("No Pi access token");
+  return fetch(path, {
+    ...options,
+    headers: {
+      ...(options.headers || {}),
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+  });
+}
+
+// Example hook when level is completed
+window.onLevelCompleted = async function(level) {
+  await apiAuthFetch("/api/rewards/level-complete", {
+    method: "POST",
+    body: JSON.stringify({ level }),
+  });
+};
+
+// Skip button
+window.onSkipPressed = async function() {
+  await apiAuthFetch("/api/skip", { method: "POST" });
+};
+
+// Hint button
+window.onHintPressed = async function() {
+  await apiAuthFetch("/api/hint", { method: "POST" });
+};
