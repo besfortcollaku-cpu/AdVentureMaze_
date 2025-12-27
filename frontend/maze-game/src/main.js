@@ -49,6 +49,47 @@ async function apiGetMe() {
   return data; // { ok:true, user, progress }
 }
 
+async function apiClaimLevelComplete(level) {
+  const res = await fetch(`${BACKEND}/api/rewards/level-complete`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...requireToken(),
+    },
+    body: JSON.stringify({ level }),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok || !data?.ok) throw new Error(data?.error || "level-complete failed");
+  return data; // { ok:true, already, user }
+}
+
+async function apiSkip() {
+  const res = await fetch(`${BACKEND}/api/skip`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...requireToken(),
+    },
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok || !data?.ok) throw new Error(data?.error || "skip failed");
+  return data; // { ok:true, mode, freeLeft, user }
+}
+
+async function apiHint() {
+  const res = await fetch(`${BACKEND}/api/hint`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...requireToken(),
+    },
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok || !data?.ok) throw new Error(data?.error || "hint failed");
+  return data; // { ok:true, mode, freeLeft, user }
+}
+
+
 async function apiSetProgress({ uid, level, coins }) {
   const res = await fetch(`${BACKEND}/progress`, {
     method: "POST",
@@ -175,6 +216,39 @@ initPi();
     try {
       // +50 coins on backend
       const out = await apiAddCoins({ uid: CURRENT_USER.uid, delta: 50 });
+
+// ✅ Step B2: wire Hint / Skip buttons to backend
+ui.onHint(async () => {
+  try {
+    const out = await apiHint();
+    const newCoins = Number(out?.user?.coins ?? COINS);
+    COINS = newCoins;
+    ui.setCoins(COINS);
+    // Minimal UX for now
+    alert(out.mode === "free" ? `Hint used (free left: ${out.freeLeft})` : "Hint used (-50 coins)");
+  } catch (e) {
+    alert("Hint failed: " + (e?.message || String(e)));
+  }
+});
+
+ui.onSkip(async () => {
+  try {
+    const out = await apiSkip();
+    const newCoins = Number(out?.user?.coins ?? COINS);
+    COINS = newCoins;
+    ui.setCoins(COINS);
+
+    // advance to next level
+    levelIndex = Math.min(levelIndex + 1, LEVELS.length - 1);
+    game.setLevel(LEVELS[levelIndex]);
+    // save progress
+    await apiSetProgress({ uid: CURRENT_USER.uid, level: levelIndex + 1, coins: COINS });
+
+    alert(out.mode === "free" ? `Level skipped (free left: ${out.freeLeft})` : "Level skipped (-50 coins)");
+  } catch (e) {
+    alert("Skip failed: " + (e?.message || String(e)));
+  }
+});
       COINS = Number(out?.user?.coins ?? COINS);
       ui.setCoins(COINS);
     } catch (e) {
@@ -202,7 +276,19 @@ initPi();
 // ---------------------------
 // ✅ Level flow
 // ---------------------------
-function onLevelComplete() {
+async function onLevelComplete() {
+  // ✅ Step B2: award +1 coin for completing this level (server idempotent)
+  try {
+    const out = await apiClaimLevelComplete(levelIndex + 1);
+    if (out?.user?.coins != null) {
+      COINS = Number(out.user.coins);
+      ui.setCoins(COINS);
+    }
+  } catch (e) {
+    console.warn("level-complete reward failed:", e);
+  }
+
+
   const isLastLevel = levelIndex >= levels.length - 1;
 
   // ✅ Save progress to backend right when completed
@@ -243,37 +329,3 @@ async function goNextLevel({ viaAd } = {}) {
 }
 
 boot();
-
-// === STEP B1 PATCH ===
-// Wire level complete, skip, hint to backend rewards API
-
-async function apiAuthFetch(path, options = {}) {
-  const token = window.__PI_ACCESS_TOKEN__;
-  if (!token) throw new Error("No Pi access token");
-  return fetch(path, {
-    ...options,
-    headers: {
-      ...(options.headers || {}),
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-  });
-}
-
-// Example hook when level is completed
-window.onLevelCompleted = async function(level) {
-  await apiAuthFetch("/api/rewards/level-complete", {
-    method: "POST",
-    body: JSON.stringify({ level }),
-  });
-};
-
-// Skip button
-window.onSkipPressed = async function() {
-  await apiAuthFetch("/api/skip", { method: "POST" });
-};
-
-// Hint button
-window.onHintPressed = async function() {
-  await apiAuthFetch("/api/hint", { method: "POST" });
-};
