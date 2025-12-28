@@ -195,3 +195,11 @@ export async function ensurePiLogin({ BACKEND, ui, onLogin }) {
     ui.onLoginClick(runLogin);
   });
 }
+export const api = {
+    getMe,
+      dailyLogin,
+        levelComplete,
+          adReward,
+            skip,
+              hint,
+            };
