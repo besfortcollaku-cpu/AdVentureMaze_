@@ -1,6 +1,6 @@
 
-import { api } from "./piClient.js";
-import { updateCoinsUI } from "./ui.js";
+import { api } from "./pi/piClient.js";
+import { updateCoinsUI } from "./ui/ui.js";
 
 let currentUser = null;
 
