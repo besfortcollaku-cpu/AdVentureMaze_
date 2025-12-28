@@ -277,3 +277,13 @@ async function goNextLevel({ viaAd } = {}) {
 }
 
 boot();
+async function apiLevelComplete(level) {
+  return fetch(API_BASE + "/api/rewards/level-complete", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: "Bearer " + piToken,
+    },
+    body: JSON.stringify({ level }),
+  }).then(r => r.json());
+}
