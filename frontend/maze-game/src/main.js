@@ -1,4 +1,4 @@
-// src/main.js last change
+// src/main.js
 import "./style.css";
 
 import { mountUI } from "./ui/ui.js";
@@ -16,39 +16,6 @@ import { ensureAudioUnlocked, stopRollSound } from "./game/rollSound.js";
 
 const BACKEND = "https://adventuremaze.onrender.com";
 
-
-
-async function apiAuthPost(path, body, accessToken) {
-  const res = await fetch(`${BACKEND}${path}`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${accessToken}`,
-    },
-    body: JSON.stringify(body || {}),
-  });
-  const json = await res.json().catch(() => ({}));
-  if (!res.ok || json?.ok === false) {
-    throw new Error(json?.error || `Request failed: ${res.status}`);
-  }
-  return json;
-}
-
-async function apiAuthGet(path, accessToken) {
-  const res = await fetch(`${BACKEND}${path}`, {
-    method: "GET",
-    headers: { Authorization: `Bearer ${accessToken}` },
-  });
-  const json = await res.json().catch(() => ({}));
-  if (!res.ok || json?.ok === false) {
-    throw new Error(json?.error || `Request failed: ${res.status}`);
-  }
-  return json;
-}
-
-function makeNonce(prefix = "n") {
-  return `${prefix}:${Date.now()}:${Math.random().toString(16).slice(2)}`;
-}
 let CURRENT_USER = { username: "guest", uid: null };
 let CURRENT_ACCESS_TOKEN = null;
 
@@ -97,7 +64,6 @@ async function apiSetProgress({ uid, level, coins }) {
   return data;
 }
 
-// DEPRECATED: kept for debugging only (prefer /api/rewards/*)
 async function apiAddCoins({ uid, delta }) {
   const res = await fetch(`${BACKEND}/api/users/coins`, {
     method: "POST",
@@ -277,13 +243,31 @@ async function goNextLevel({ viaAd } = {}) {
 }
 
 boot();
-async function apiLevelComplete(level) {
-  return fetch(API_BASE + "/api/rewards/level-complete", {
+// === DEBUG / STEP B4 PATCH ===
+// Force-test level complete, skip, hint bindings
+
+window.__testLevelComplete = async function(level){
+  console.log("TEST level complete", level);
+  const res = await fetch(API_BASE + "/api/rewards/level-complete", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: "Bearer " + piToken,
-    },
-    body: JSON.stringify({ level }),
-  }).then(r => r.json());
-}
+    headers: authHeaders(),
+    body: JSON.stringify({ level })
+  });
+  const j = await res.json();
+  console.log("level-complete result", j);
+  alert("Level complete response: " + JSON.stringify(j));
+};
+
+window.__testSkip = async function(){
+  const res = await fetch(API_BASE + "/api/skip", { method: "POST", headers: authHeaders() });
+  const j = await res.json();
+  console.log("skip result", j);
+  alert("Skip response: " + JSON.stringify(j));
+};
+
+window.__testHint = async function(){
+  const res = await fetch(API_BASE + "/api/hint", { method: "POST", headers: authHeaders() });
+  const j = await res.json();
+  console.log("hint result", j);
+  alert("Hint response: " + JSON.stringify(j));
+};
