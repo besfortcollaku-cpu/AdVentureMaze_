@@ -1,5 +1,5 @@
 
-import { useSkip, useHint } from "./src/main.js";
+import { useSkip, useHint } from "./main.js";
 
 export function updateCoinsUI(coins) {
   const el = document.getElementById("coinCount");
