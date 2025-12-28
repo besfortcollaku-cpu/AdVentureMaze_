@@ -5,7 +5,6 @@ import { mountUI } from "./ui/ui.js";
 import { enforcePiEnvironment } from "./pi/piDetect.js";
 import { initPi } from "./pi/piInit.js";
 import { ensurePiLogin } from "./pi/piClient.js";
-
 import { createGame } from "./game/game.js";
 import { levels } from "./levels/index.js";
 
