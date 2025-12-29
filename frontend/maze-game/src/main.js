@@ -289,4 +289,3 @@ async function boot() {
 }
 
 boot();
-```0
