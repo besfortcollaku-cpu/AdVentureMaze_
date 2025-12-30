@@ -31,8 +31,9 @@ let rewardedThisLevel = false;
 // Backend helpers
 // ---------------------------
 function authHeaders() {
-  if (!CURRENT_ACCESS_TOKEN)
+  if (!CURRENT_ACCESS_TOKEN) {
     throw new Error("Missing access token. Please login again.");
+  }
   return {
     Authorization: `Bearer ${CURRENT_ACCESS_TOKEN}`,
   };
@@ -46,17 +47,41 @@ function uuid() {
   }
 }
 
-// ✅ Fake ad delay helper (5s default)
-function fakeAdDelay(ms = 5000) {
+// ✅ UX delay helper (5s default)
+function delay(ms = 5000) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+// ✅ read response safely (JSON or text)
+async function readRes(res) {
+  const txt = await res.text().catch(() => "");
+  let data = {};
+  try {
+    data = txt ? JSON.parse(txt) : {};
+  } catch {
+    data = {};
+  }
+  return { txt, data };
+}
+
+function normalizeErr(e) {
+  return e?.message || String(e);
+}
+
+function handleAuthExpiredIfNeeded(msg) {
+  if (msg.includes("(HTTP 401)") || msg.toLowerCase().includes("invalid pi token")) {
+    alert("Session expired. Please login again.");
+    return true;
+  }
+  return false;
+}
+
 async function apiGetMe() {
-  const res = await fetch(`${BACKEND}/api/me`, {
-    headers: { ...authHeaders() },
-  });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok || !data?.ok) throw new Error(data?.error || "api/me failed");
+  const res = await fetch(`${BACKEND}/api/me`, { headers: { ...authHeaders() } });
+  const { data } = await readRes(res);
+  if (!res.ok || !data?.ok) {
+    throw new Error(`${data?.error || "api/me failed"} (HTTP ${res.status})`);
+  }
   return data;
 }
 
@@ -66,9 +91,11 @@ async function apiSetProgress({ uid, level, coins }) {
     headers: { "Content-Type": "application/json", ...authHeaders() },
     body: JSON.stringify({ uid, level, coins }),
   });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok || !data?.ok)
-    throw new Error(data?.error || "progress save failed");
+
+  const { data } = await readRes(res);
+  if (!res.ok || !data?.ok) {
+    throw new Error(`${data?.error || "progress save failed"} (HTTP ${res.status})`);
+  }
   return data;
 }
 
@@ -78,9 +105,11 @@ async function apiClaimLevelComplete(levelNumber) {
     headers: { "Content-Type": "application/json", ...authHeaders() },
     body: JSON.stringify({ level: levelNumber }),
   });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok || !data?.ok)
-    throw new Error(data?.error || "level-complete failed");
+
+  const { data } = await readRes(res);
+  if (!res.ok || !data?.ok) {
+    throw new Error(`${data?.error || "level-complete failed"} (HTTP ${res.status})`);
+  }
   return data; // { ok, already, user }
 }
 
@@ -90,9 +119,12 @@ async function apiAd50() {
     headers: { "Content-Type": "application/json", ...authHeaders() },
     body: JSON.stringify({ nonce: `ad50:${CURRENT_USER.uid}:${uuid()}` }),
   });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok || !data?.ok) throw new Error(data?.error || "ad-50 failed");
-  return data; // { ok, already, user }
+
+  const { data } = await readRes(res);
+  if (!res.ok || !data?.ok) {
+    throw new Error(`${data?.error || "ad-50 failed"} (HTTP ${res.status})`);
+  }
+  return data;
 }
 
 async function apiSkip() {
@@ -100,9 +132,12 @@ async function apiSkip() {
     method: "POST",
     headers: { ...authHeaders() },
   });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok || !data?.ok) throw new Error(data?.error || "skip failed");
-  return data; // { ok, mode, freeLeft, user }
+
+  const { data } = await readRes(res);
+  if (!res.ok || !data?.ok) {
+    throw new Error(`${data?.error || "skip failed"} (HTTP ${res.status})`);
+  }
+  return data;
 }
 
 async function apiHint() {
@@ -110,9 +145,12 @@ async function apiHint() {
     method: "POST",
     headers: { ...authHeaders() },
   });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok || !data?.ok) throw new Error(data?.error || "hint failed");
-  return data; // { ok, mode, freeLeft, user }
+
+  const { data } = await readRes(res);
+  if (!res.ok || !data?.ok) {
+    throw new Error(`${data?.error || "hint failed"} (HTTP ${res.status})`);
+  }
+  return data;
 }
 
 function clampLevelIndex(i) {
@@ -176,7 +214,8 @@ async function boot() {
   try {
     me = await apiGetMe();
   } catch (e) {
-    alert("Failed to load profile: " + (e?.message || String(e)));
+    const msg = normalizeErr(e);
+    if (!handleAuthExpiredIfNeeded(msg)) alert("Failed to load profile: " + msg);
     return;
   }
 
@@ -197,13 +236,11 @@ async function boot() {
     await goNextLevel();
   });
 
-  // ✅ Fake ad button: wait 5s, then grant reward
+  // ✅ Watch Ad: wait 5s then call backend
   ui.onWinAd(async () => {
     try {
-      // optional toast if your UI has it
       ui.showToast?.("Watching ad…");
-
-      await fakeAdDelay(5000);
+      await delay(5000);
 
       const out = await apiAd50();
       COINS = Number(out?.user?.coins ?? COINS);
@@ -211,7 +248,10 @@ async function boot() {
 
       ui.showToast?.("Reward granted +50");
     } catch (e) {
-      alert("Ad reward failed: " + (e?.message || String(e)));
+      const msg = normalizeErr(e);
+      if (!handleAuthExpiredIfNeeded(msg)) {
+        alert("Ad reward failed: " + msg);
+      }
     }
 
     ui.hideWinPopup();
@@ -219,27 +259,23 @@ async function boot() {
   });
 
   // ✅ Hook Skip / Hint buttons
-  // (IDs used in your UI: hintBtn and x3Btn)
   document.getElementById("x3Btn")?.addEventListener("click", async () => {
     if (!CURRENT_USER?.uid) return;
 
     try {
       ui.showToast?.("Processing skip…");
-
-      await fakeAdDelay(5000);
+      await delay(5000);
 
       const out = await apiSkip();
       COINS = Number(out?.user?.coins ?? COINS);
       ui.setCoins(COINS);
 
-      ui.showToast?.(
-        out?.mode === "free" ? "Free skip used" : "Skip used (-50 coins)"
-      );
+      ui.showToast?.(out?.mode === "free" ? "Free skip used" : "Skip used (-50 coins)");
 
-      // move to next level after successful skip
       await goNextLevel();
     } catch (e) {
-      alert(e?.message || String(e));
+      const msg = normalizeErr(e);
+      if (!handleAuthExpiredIfNeeded(msg)) alert(msg);
     }
   });
 
@@ -248,18 +284,17 @@ async function boot() {
 
     try {
       ui.showToast?.("Loading hint…");
-
-      await fakeAdDelay(5000);
+      await delay(5000);
 
       const out = await apiHint();
       COINS = Number(out?.user?.coins ?? COINS);
       ui.setCoins(COINS);
 
-      // confirm it worked
       const mode = out?.mode === "free" ? "Free hint used" : "Paid hint (-50)";
       ui.showToast?.(`${mode}. Free hints left: ${out?.freeLeft ?? 0}`);
     } catch (e) {
-      alert(e?.message || String(e));
+      const msg = normalizeErr(e);
+      if (!handleAuthExpiredIfNeeded(msg)) alert(msg);
     }
   });
 
