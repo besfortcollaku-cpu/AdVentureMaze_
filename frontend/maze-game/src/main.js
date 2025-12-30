@@ -31,7 +31,8 @@ let rewardedThisLevel = false;
 // Backend helpers
 // ---------------------------
 function authHeaders() {
-  if (!CURRENT_ACCESS_TOKEN) throw new Error("Missing access token. Please login again.");
+  if (!CURRENT_ACCESS_TOKEN)
+    throw new Error("Missing access token. Please login again.");
   return {
     Authorization: `Bearer ${CURRENT_ACCESS_TOKEN}`,
   };
@@ -45,8 +46,15 @@ function uuid() {
   }
 }
 
+// ✅ Fake ad delay helper (5s default)
+function fakeAdDelay(ms = 5000) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 async function apiGetMe() {
-  const res = await fetch(`${BACKEND}/api/me`, { headers: { ...authHeaders() } });
+  const res = await fetch(`${BACKEND}/api/me`, {
+    headers: { ...authHeaders() },
+  });
   const data = await res.json().catch(() => ({}));
   if (!res.ok || !data?.ok) throw new Error(data?.error || "api/me failed");
   return data;
@@ -59,7 +67,8 @@ async function apiSetProgress({ uid, level, coins }) {
     body: JSON.stringify({ uid, level, coins }),
   });
   const data = await res.json().catch(() => ({}));
-  if (!res.ok || !data?.ok) throw new Error(data?.error || "progress save failed");
+  if (!res.ok || !data?.ok)
+    throw new Error(data?.error || "progress save failed");
   return data;
 }
 
@@ -70,7 +79,8 @@ async function apiClaimLevelComplete(levelNumber) {
     body: JSON.stringify({ level: levelNumber }),
   });
   const data = await res.json().catch(() => ({}));
-  if (!res.ok || !data?.ok) throw new Error(data?.error || "level-complete failed");
+  if (!res.ok || !data?.ok)
+    throw new Error(data?.error || "level-complete failed");
   return data; // { ok, already, user }
 }
 
@@ -86,14 +96,20 @@ async function apiAd50() {
 }
 
 async function apiSkip() {
-  const res = await fetch(`${BACKEND}/api/skip`, { method: "POST", headers: { ...authHeaders() } });
+  const res = await fetch(`${BACKEND}/api/skip`, {
+    method: "POST",
+    headers: { ...authHeaders() },
+  });
   const data = await res.json().catch(() => ({}));
   if (!res.ok || !data?.ok) throw new Error(data?.error || "skip failed");
   return data; // { ok, mode, freeLeft, user }
 }
 
 async function apiHint() {
-  const res = await fetch(`${BACKEND}/api/hint`, { method: "POST", headers: { ...authHeaders() } });
+  const res = await fetch(`${BACKEND}/api/hint`, {
+    method: "POST",
+    headers: { ...authHeaders() },
+  });
   const data = await res.json().catch(() => ({}));
   if (!res.ok || !data?.ok) throw new Error(data?.error || "hint failed");
   return data; // { ok, mode, freeLeft, user }
@@ -181,11 +197,19 @@ async function boot() {
     await goNextLevel();
   });
 
+  // ✅ Fake ad button: wait 5s, then grant reward
   ui.onWinAd(async () => {
     try {
+      // optional toast if your UI has it
+      ui.showToast?.("Watching ad…");
+
+      await fakeAdDelay(5000);
+
       const out = await apiAd50();
       COINS = Number(out?.user?.coins ?? COINS);
       ui.setCoins(COINS);
+
+      ui.showToast?.("Reward granted +50");
     } catch (e) {
       alert("Ad reward failed: " + (e?.message || String(e)));
     }
@@ -198,10 +222,19 @@ async function boot() {
   // (IDs used in your UI: hintBtn and x3Btn)
   document.getElementById("x3Btn")?.addEventListener("click", async () => {
     if (!CURRENT_USER?.uid) return;
+
     try {
+      ui.showToast?.("Processing skip…");
+
+      await fakeAdDelay(5000);
+
       const out = await apiSkip();
       COINS = Number(out?.user?.coins ?? COINS);
       ui.setCoins(COINS);
+
+      ui.showToast?.(
+        out?.mode === "free" ? "Free skip used" : "Skip used (-50 coins)"
+      );
 
       // move to next level after successful skip
       await goNextLevel();
@@ -212,15 +245,19 @@ async function boot() {
 
   document.getElementById("hintBtn")?.addEventListener("click", async () => {
     if (!CURRENT_USER?.uid) return;
+
     try {
+      ui.showToast?.("Loading hint…");
+
+      await fakeAdDelay(5000);
+
       const out = await apiHint();
       COINS = Number(out?.user?.coins ?? COINS);
       ui.setCoins(COINS);
 
-      // your game currently has no “show hint path” logic,
-      // so we just confirm it worked.
+      // confirm it worked
       const mode = out?.mode === "free" ? "Free hint used" : "Paid hint (-50)";
-      alert(`${mode}. Free hints left: ${out?.freeLeft ?? 0}`);
+      ui.showToast?.(`${mode}. Free hints left: ${out?.freeLeft ?? 0}`);
     } catch (e) {
       alert(e?.message || String(e));
     }
