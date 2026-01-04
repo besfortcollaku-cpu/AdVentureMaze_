@@ -10,10 +10,11 @@ import { level5 } from "./level5.js";
 import { level6 } from "./level6.js";
 import { level7 } from "./level7.js";
 import { level8 } from "./level8.js";
+import { level8 } from "./level9.js";
 
 
 
-export const levels = [level1, level2, level3,level4,level5,level6,level7,level8];
+export const levels = [level1, level2, level3,level4,level5,level6,level7,level8,level9];
 
 export function getLevel(index) {
   return levels[index] || null;
