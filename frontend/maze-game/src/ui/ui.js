@@ -521,8 +521,7 @@ loginGateClickHandler?.();
 
 function setUser(user) {
 const name = user?.username || "guest";
-if (userPill) userPill.textContent = User: ${name};
-if (loginBtnText)
+if (userPill) userPill.textContent = `User: ${name}`;if (loginBtnText)
 loginBtnText.textContent = name === "guest" ? "Login with Pi" : "Logged in ✅";
 }
 
