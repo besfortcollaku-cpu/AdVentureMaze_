@@ -79,7 +79,9 @@ async function boot() {
   ui = mountUI(document.querySelector("#app"));
 
   // unlock audio after first gesture
+  if (ui.onFirstUserGesture) {
   ui.onFirstUserGesture(() => ensureAudioUnlocked());
+}
 
   // settings
   const s0 = getSettings();
