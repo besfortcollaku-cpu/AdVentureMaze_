@@ -721,3 +721,4 @@ function noAdsSVG() {
     </svg>
   `;
 }
+} // ✅ CLOSE mountUI
