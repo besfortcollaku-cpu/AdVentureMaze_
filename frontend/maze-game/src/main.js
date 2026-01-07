@@ -95,10 +95,16 @@ async function boot() {
   ui.onVibrationToggle((v) => setSetting("vibration", v));
 
   subscribeSettings((s) => {
+  if (ui.setSoundEnabled) {
     ui.setSoundEnabled(s.sound);
+  }
+
+  if (ui.setVibrationEnabled) {
     ui.setVibrationEnabled(s.vibration);
-    if (!s.sound) stopRollSound();
-  });
+  }
+
+  if (!s.sound) stopRollSound();
+});
 
   // ---------------------------
   // Pi environment check
