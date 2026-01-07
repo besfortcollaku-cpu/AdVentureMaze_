@@ -1,29 +1,20 @@
 /**
  * Pi Auth helper
  * - Requires Pi Browser
- * - Supports sandbox (?dev=true or pages.dev)
+ * - Supports sandbox (pages.dev or ?dev=true)
  * - Verifies token with backend
  */
 
 export function isPiBrowser() {
-  if (typeof window !== "undefined" && window.Pi) return true;
-
   const ua = (navigator.userAgent || "").toLowerCase();
-  if (ua.includes("pibrowser")) return true;
-
-  return false;
+  return ua.includes("pibrowser");
 }
 
 function isDevSandbox() {
   try {
     const url = new URL(window.location.href);
-
-    // explicit sandbox flag
     if (url.searchParams.get("dev") === "true") return true;
-
-    // pages.dev = sandbox by default
     if (window.location.hostname.includes("pages.dev")) return true;
-
     return false;
   } catch {
     return false;
@@ -31,32 +22,37 @@ function isDevSandbox() {
 }
 
 export async function piLoginAndVerify(BACKEND) {
-  if (!isPiBrowser()) {
-    throw new Error("Pi Browser required");
+  // 🔹 Do NOT hard-block here — Pi Browser injects Pi dynamically
+  if (typeof window === "undefined") {
+    throw new Error("Not running in browser");
   }
 
   if (!window.Pi) {
-    throw new Error("Pi SDK not available");
+    throw new Error("Pi SDK not loaded (are you in Pi Browser?)");
   }
 
   const sandbox = isDevSandbox();
 
-  // ✅ SAFE INIT (sandbox aware)
+  // ✅ CORRECT INIT (THIS WAS THE MAIN BUG)
   try {
     window.Pi.init({
-      version: "2.0",
+      version: "2", // ✅ MUST be "2"
       sandbox,
     });
-  } catch {
-    // already initialized
+  } catch (e) {
+    // already initialized — safe to ignore
   }
 
-  // ✅ AUTHENTICATE
-  const auth = await window.Pi.authenticate(["username"], (payment) => {
-    console.log("Incomplete payment:", payment);
-  });
+  // ✅ AUTHENTICATE (must be user-triggered)
+  const auth = await window.Pi.authenticate(
+    ["username"],
+    () => {
+      // required callback (can be empty)
+      return;
+    }
+  );
 
-  if (!auth?.accessToken) {
+  if (!auth || !auth.accessToken) {
     throw new Error("Pi did not return accessToken");
   }
 
@@ -68,7 +64,9 @@ export async function piLoginAndVerify(BACKEND) {
       "Content-Type": "application/json",
       Authorization: `Bearer ${auth.accessToken}`,
     },
-    body: JSON.stringify({ accessToken: auth.accessToken }),
+    body: JSON.stringify({
+      accessToken: auth.accessToken,
+    }),
   });
 
   const text = await res.text();
