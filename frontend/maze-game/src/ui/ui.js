@@ -562,11 +562,22 @@ winAdBtn?.addEventListener("click", () => winAdHandler?.());
 
 function showWinPopup({ levelNumber, isLastLevel } = {}) {
 if (winSubText) {
-winSubText.textContent = isLastLevel
-? You finished the last level!
-: You finished Level ${levelNumber};
-}
+function showWinPopup({ levelNumber, isLastLevel } = {}) {
+  if (winSubText) {
+    winSubText.textContent = isLastLevel
+      ? `You finished the last level!`
+      : `You finished Level ${levelNumber}`;
+  }
 
+  if (winNextBtn) {
+    winNextBtn.textContent = isLastLevel ? "Restart" : "Next level";
+  }
+
+  if (winOverlay) {
+    winOverlay.classList.add("show");
+    winOverlay.setAttribute("aria-hidden", "false");
+  }
+}
 if (winNextBtn) winNextBtn.textContent = isLastLevel ? "Restart" : "Next level";  
 
 if (winOverlay) {  
