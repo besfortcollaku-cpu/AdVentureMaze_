@@ -1,125 +1,137 @@
 // src/ui/ui.js
 
 export function mountUI(app) {
+  // ---------------------------
+  // HTML
+  // ---------------------------
   app.innerHTML = `
-  <div class="phone">
-    <div class="topbar">
-      <div class="topRow">
-        <div class="brand">
-          <div class="logoBox" title="Adventure Maze">
-            <img src="/logo.png" alt="Adventure Maze Logo" />
+    <div class="phone">
+      <div class="topbar">
+        <div class="topRow">
+          <div class="brand">
+            <div class="logoBox" title="Adventure Maze">
+              <img src="/logo.png" alt="Adventure Maze Logo" />
+            </div>
+          </div>
+
+          <div class="levelWrap">
+            <div class="levelNew">NEW!</div>
+            <div class="levelText">Adventure Maze</div>
+          </div>
+
+          <div class="coins" title="Coins">
+            <div class="coinDot"></div>
+            <div id="coinCount">0</div>
           </div>
         </div>
 
-        <div class="levelWrap">
-          <div class="levelNew">NEW!</div>
-          <div class="levelText">Adventure Maze</div>
-        </div>
+        <div class="iconRow">
+          ${iconBtn("settingsBtn", gearSVG(), "")}
+          ${iconBtn("controls", joystickSVG(), "")}
 
-        <div class="coins" title="Coins">
-          <div class="coinDot"></div>
-          <div id="coinCount">0</div>
-        </div>
-      </div>
-
-      <div class="iconRow">
-        ${iconBtn("settingsBtn", gearSVG(), "")}
-        ${iconBtn("controls", joystickSVG(), "")}
-
-        <div class="loginWrap">
-          <button class="iconBtnWide" id="loginBtn">
-            <span id="loginBtnText">Login with Pi</span>
-          </button>
-          <div class="userPill" id="userPill">User: guest</div>
+          <div class="loginWrap">
+            <button class="iconBtnWide" id="loginBtn">
+              <span id="loginBtnText">Login with Pi</span>
+            </button>
+            <div class="userPill" id="userPill">User: guest</div>
+          </div>
         </div>
       </div>
-    </div>
 
-    <div class="boardWrap">
-      <div class="boardFrame">
-        <canvas id="game"></canvas>
-      </div>
-    </div>
-
-    <div class="bottomBar">
-      <button class="btn" id="hintBtn">
-        <div class="btnIcon">🎬</div>
-        <div>HINT</div>
-      </button>
-
-      <div class="pill">Swipe to move</div>
-
-      <button class="btn" id="x3Btn">
-        <div class="btnIcon">⏩</div>
-        <div>×3</div>
-      </button>
-    </div>
-  </div>
-
-  <div class="desktopBlock" id="desktopBlock" style="display:none;">
-    <div class="desktopCard">
-      <h2>Mobile game</h2>
-      <p>This game is designed for smartphones.</p>
-    </div>
-  </div>
-
-  <div class="loginGate" id="loginGate" aria-hidden="true">
-    <div class="loginGateCard">
-      <div class="loginGateTitle">Login required</div>
-      <div class="loginGateSub">Please login with Pi to start playing.</div>
-      <button class="loginGateBtn" id="loginGateBtn">Login with Pi</button>
-      <div class="loginGateError" id="loginGateError"></div>
-      <div class="loginGateNote">Tip: open inside Pi Browser.</div>
-    </div>
-  </div>
-
-  <div class="settingsOverlay" id="settingsOverlay" aria-hidden="true">
-    <div class="settingsCard">
-      <div class="settingsHeader">
-        <div class="settingsTitle">Settings</div>
-        <button class="settingsClose" id="settingsCloseBtn">✕</button>
-      </div>
-
-      <div class="settingsRow">
-        <div class="settingsLeft">
-          <div class="settingsLabel">Sound</div>
-          <div class="settingsSub">Rolling + victory</div>
+      <div class="boardWrap">
+        <div class="boardFrame">
+          <canvas id="game"></canvas>
         </div>
-        <label class="toggle">
-          <input type="checkbox" id="soundToggle" />
-          <span class="track"></span>
-        </label>
       </div>
 
-      <div class="settingsRow">
-        <div class="settingsLeft">
-          <div class="settingsLabel">Vibration</div>
-          <div class="settingsSub">Ball stop vibration</div>
-        </div>
-        <label class="toggle">
-          <input type="checkbox" id="vibrationToggle" />
-          <span class="track"></span>
-        </label>
-      </div>
-    </div>
-  </div>
+      <div class="bottomBar">
+        <button class="btn" id="hintBtn">
+          <div class="btnIcon">🎬</div>
+          <div>HINT</div>
+        </button>
 
-  <div class="winOverlay" id="winOverlay" aria-hidden="true">
-    <div class="winCard">
-      <div class="winHeader">
-        <div class="winBadge">CONGRATS!</div>
-        <div class="winTitle">Level Complete</div>
-        <div class="winSub" id="winSubText"></div>
-      </div>
+        <div class="pill">Swipe to move</div>
 
-      <div class="winRow">
-        <button class="winBtnPrimary" id="winNextBtn">Next level</button>
-        <button class="winBtnSecondary" id="winAdBtn">
-          Watch Ad <span class="winPlus">+50</span>
+        <button class="btn" id="x3Btn">
+          <div class="btnIcon">⏩</div>
+          <div>×3</div>
         </button>
       </div>
     </div>
-  </div>
+
+    <div class="desktopBlock" id="desktopBlock" style="display:none;">
+      <div class="desktopCard">
+        <h2>Mobile game</h2>
+        <p>This game is designed for smartphones. Desktop is only for testing.</p>
+      </div>
+    </div>
+
+    <div class="loginGate" id="loginGate" aria-hidden="true">
+      <div class="loginGateCard">
+        <div class="loginGateTitle">Login required</div>
+        <div class="loginGateSub">
+          Please login with Pi to start playing.
+        </div>
+
+        <button class="loginGateBtn" id="loginGateBtn">
+          Login with Pi
+        </button>
+
+        <div class="loginGateError" id="loginGateError"></div>
+
+        <div class="loginGateNote">
+          Tip: open inside Pi Browser.
+        </div>
+      </div>
+    </div>
+
+    <div class="settingsOverlay" id="settingsOverlay" aria-hidden="true">
+      <div class="settingsCard">
+        <div class="settingsHeader">
+          <div class="settingsTitle">Settings</div>
+          <button class="settingsClose" id="settingsCloseBtn">✕</button>
+        </div>
+
+        <div class="settingsRow">
+          <div class="settingsLeft">
+            <div class="settingsLabel">Sound</div>
+            <div class="settingsSub">Rolling + victory</div>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="soundToggle" />
+            <span class="track"></span>
+          </label>
+        </div>
+
+        <div class="settingsRow">
+          <div class="settingsLeft">
+            <div class="settingsLabel">Vibration</div>
+            <div class="settingsSub">Ball stop vibration</div>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="vibrationToggle" />
+            <span class="track"></span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <div class="winOverlay" id="winOverlay" aria-hidden="true">
+      <div class="winCard">
+        <div class="winHeader">
+          <div class="winBadge">CONGRATS!</div>
+          <div class="winTitle">Level Complete</div>
+          <div class="winSub" id="winSubText"></div>
+        </div>
+
+        <div class="winRow">
+          <button class="winBtnPrimary" id="winNextBtn">Next level</button>
+          <button class="winBtnSecondary" id="winAdBtn">
+            Watch Ad <span class="winPlus">+50</span>
+          </button>
+        </div>
+      </div>
+    </div>
   `;
 
   // ---------------------------
@@ -146,41 +158,30 @@ export function mountUI(app) {
   const winAdBtn = document.getElementById("winAdBtn");
 
   // ---------------------------
-  // Handlers
+  // State
   // ---------------------------
   let soundHandler = null;
   let vibrationHandler = null;
   let winNextHandler = null;
   let winAdHandler = null;
-  let hintHandler = null;
-  let skipHandler = null;
-  let loginGateClickHandler = null;
-  let firstGestureHandler = null;
+  let loginHandler = null;
 
   // ---------------------------
-  // Login gate
+  // Helpers
   // ---------------------------
+  function setCoins(n) {
+    coinCountEl.textContent = String(n ?? 0);
+  }
+
   function showLoginGate() {
     loginGate.classList.add("show");
+    loginGateError.textContent = "";
   }
 
   function hideLoginGate() {
     loginGate.classList.remove("show");
+    loginGateError.textContent = "";
   }
-
-  function showLoginError(msg) {
-    loginGateError.textContent = msg || "";
-  }
-
-  function onLoginClick(fn) {
-    loginGateClickHandler = fn;
-  }
-
-  loginGateBtn.addEventListener("click", () => loginGateClickHandler?.());
-  loginBtn.addEventListener("click", () => {
-    showLoginGate();
-    loginGateClickHandler?.();
-  });
 
   function setUser(user) {
     const name = user?.username || "guest";
@@ -190,60 +191,78 @@ export function mountUI(app) {
   }
 
   // ---------------------------
-  // Win popup (FIXED)
+  // Events
   // ---------------------------
-  function showWinPopup({ levelNumber, isLastLevel }) {
-    winSubText.textContent = isLastLevel
-      ? "You finished the last level!"
-      : `You finished Level ${levelNumber}`;
+  loginGateBtn.addEventListener("click", async () => {
+    if (loginHandler) await loginHandler();
+  });
 
-    winNextBtn.textContent = isLastLevel ? "Restart" : "Next level";
-    winOverlay.classList.add("show");
-  }
+  loginBtn.addEventListener("click", () => {
+    showLoginGate();
+  });
 
-  function hideWinPopup() {
-    winOverlay.classList.remove("show");
-  }
+  settingsBtn.addEventListener("click", () =>
+    settingsOverlay.classList.add("show")
+  );
+
+  settingsCloseBtn.addEventListener("click", () =>
+    settingsOverlay.classList.remove("show")
+  );
+
+  soundToggle.addEventListener("change", () =>
+    soundHandler?.(soundToggle.checked)
+  );
+
+  vibrationToggle.addEventListener("change", () =>
+    vibrationHandler?.(vibrationToggle.checked)
+  );
 
   winNextBtn.addEventListener("click", () => winNextHandler?.());
   winAdBtn.addEventListener("click", () => winAdHandler?.());
 
   // ---------------------------
-  // Public API
+  // API
   // ---------------------------
   return {
     canvas: document.getElementById("game"),
 
-    loginBtn,
-    loginBtnText,
-    userPill,
-
-    setCoins(n) {
-      coinCountEl.textContent = n ?? 0;
-    },
-
-    onFirstUserGesture(fn) {
-      firstGestureHandler = fn;
-    },
+    setCoins,
+    setUser,
 
     showLoginGate,
     hideLoginGate,
-    showLoginError,
-    onLoginClick,
-    setUser,
+    showLoginError(msg) {
+      loginGateError.textContent = msg || "";
+    },
+
+    onLoginClick(fn) {
+      loginHandler = fn;
+    },
 
     onSoundToggle(fn) {
       soundHandler = fn;
     },
+
     onVibrationToggle(fn) {
       vibrationHandler = fn;
     },
 
-    showWinPopup,
-    hideWinPopup,
+    showWinPopup({ levelNumber, isLastLevel }) {
+      winSubText.textContent = isLastLevel
+        ? "You finished the last level!"
+        : `You finished Level ${levelNumber}`;
+      winNextBtn.textContent = isLastLevel ? "Restart" : "Next level";
+      winOverlay.classList.add("show");
+    },
+
+    hideWinPopup() {
+      winOverlay.classList.remove("show");
+    },
+
     onWinNext(fn) {
       winNextHandler = fn;
     },
+
     onWinAd(fn) {
       winAdHandler = fn;
     },
@@ -261,4 +280,10 @@ function iconBtn(id, svg, badgeText) {
 }
 
 /* --- SVGs (UNCHANGED) --- */
-${/* SVG functions exactly as you had them */""}
+${[
+gearSVG,
+joystickSVG,
+brushSVG,
+trophySVG,
+noAdsSVG,
+].map(fn => fn.toString()).join("\n")}
