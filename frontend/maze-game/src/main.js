@@ -194,21 +194,8 @@ async function boot() {
   // init Pi SDK
   initPi();
 
-  // login
-  const loginRes = await ensurePiLogin({
-    BACKEND,
-    ui,
-    onLogin: ({ user, accessToken }) => {
-      CURRENT_USER = user;
-      CURRENT_ACCESS_TOKEN = accessToken;
-
-      if (ui?.userPill) ui.userPill.textContent = `User: ${user.username}`;
-      if (ui?.loginBtnText) ui.loginBtnText.textContent = "Logged in ✅";
-    },
-  });
-
-  if (!loginRes?.ok) return;
-
+initPi();
+ 
   // load server state
   let me;
   try {
