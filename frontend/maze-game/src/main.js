@@ -165,6 +165,31 @@ function clampLevelIndex(i) {
 
 console.log("BOOT START");
 
+// ---------------------------
+  // 🔑 Wire UI login click to Pi login
+  // ---------------------------
+  ui.onLoginClick(async () => {
+    try {
+      const res = await ensurePiLogin({
+        BACKEND,
+        ui,
+        onLogin: ({ user, accessToken }) => {
+          CURRENT_USER = user;
+          CURRENT_ACCESS_TOKEN = accessToken;
+
+          ui.setUser(user);
+          ui.hideLoginGate();
+        },
+      });
+
+      if (!res?.ok) {
+        ui.showLoginError("Login failed. Please try again.");
+      }
+    } catch (err) {
+      console.error("Pi login error:", err);
+      ui.showLoginError(err?.message || "Pi login failed");
+    }
+  });
 ui = mountUI(document.querySelector("#app"));
 console.log("UI =", ui);
 
