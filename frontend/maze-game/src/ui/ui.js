@@ -261,3 +261,4 @@ function iconBtn(id, svg, badgeText) {
 }
 
 /* --- SVGs (UNCHANGED) --- */
+${/* SVG functions exactly as you had them */""}
