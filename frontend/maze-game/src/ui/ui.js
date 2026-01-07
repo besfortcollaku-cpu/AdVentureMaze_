@@ -280,10 +280,38 @@ function iconBtn(id, svg, badgeText) {
 }
 
 /* --- SVGs (UNCHANGED) --- */
-${[
-gearSVG,
-joystickSVG,
-brushSVG,
-trophySVG,
-noAdsSVG,
-].map(fn => fn.toString()).join("\n")}
+/* --- SVG functions --- */
+
+function gearSVG() {
+  return `
+    <svg viewBox="0 0 24 24" fill="none">
+      <path d="M12 15.2a3.2 3.2 0 1 0 0-6.4" />
+    </svg>
+  `;
+}
+
+function joystickSVG() {
+  return `
+    <svg viewBox="0 0 24 24" fill="none">
+      <path d="M9 8.5c0-1.7 1.3-3 3-3" />
+    </svg>
+  `;
+}
+
+function brushSVG() {
+  return `
+    <svg viewBox="0 0 24 24" fill="none"></svg>
+  `;
+}
+
+function trophySVG() {
+  return `
+    <svg viewBox="0 0 24 24" fill="none"></svg>
+  `;
+}
+
+function noAdsSVG() {
+  return `
+    <svg viewBox="0 0 24 24" fill="none"></svg>
+  `;
+}
