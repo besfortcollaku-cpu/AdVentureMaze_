@@ -650,7 +650,12 @@ onWinAd(fn) {
 
 /* ---------------- UI helpers ---------------- */
 function iconBtn(id, svg, badgeText) {
-return   <button class="iconBtn" id="${id}">   ${badgeText ?<div class="badgeNew">${badgeText}</div>: ""}   ${svg}   </button>  ;
+  return `
+    <button class="iconBtn" id="${id}">
+      ${badgeText ? `<div class="badgeNew">${badgeText}</div>` : ""}
+      ${svg}
+    </button>
+  `;
 }
 
 /* --- SVG functions --- */
