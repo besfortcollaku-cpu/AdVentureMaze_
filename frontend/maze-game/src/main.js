@@ -82,12 +82,16 @@ async function boot() {
   if (ui.onFirstUserGesture) {
   ui.onFirstUserGesture(() => ensureAudioUnlocked());
 }
+// settings
+const s0 = getSettings();
 
-  // settings
-  const s0 = getSettings();
+if (typeof ui.setSoundEnabled === "function") {
   ui.setSoundEnabled(s0.sound);
-  ui.setVibrationEnabled(s0.vibration);
+}
 
+if (typeof ui.setVibrationEnabled === "function") {
+  ui.setVibrationEnabled(s0.vibration);
+}
   ui.onSoundToggle((v) => {
     setSetting("sound", v);
     if (!v) stopRollSound();
