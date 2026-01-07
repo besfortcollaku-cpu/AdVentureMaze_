@@ -162,6 +162,12 @@ function clampLevelIndex(i) {
 // ---------------------------
 // Boot
 // ---------------------------
+
+console.log("BOOT START");
+
+ui = mountUI(document.querySelector("#app"));
+console.log("UI =", ui);
+
 async function boot() {
   ui = mountUI(document.querySelector("#app"));
 
