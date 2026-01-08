@@ -28,11 +28,12 @@ let COINS = 0;
 let rewardedThisLevel = false;
 
 // ---------------------------
-// Backend helpers (UNCHANGED)
+// Backend helpers (SAFE)
 // ---------------------------
 function authHeaders() {
   if (!CURRENT_ACCESS_TOKEN) {
-    throw new Error("Missing access token. Please login again.");
+    console.warn("authHeaders called without access token");
+    return {};
   }
   return {
     Authorization: `Bearer ${CURRENT_ACCESS_TOKEN}`,
@@ -65,7 +66,10 @@ function normalizeErr(e) {
 }
 
 function handleAuthExpiredIfNeeded(msg) {
-  if (msg.includes("(HTTP 401)") || msg.toLowerCase().includes("invalid pi token")) {
+  if (
+    msg.includes("(HTTP 401)") ||
+    msg.toLowerCase().includes("invalid pi token")
+  ) {
     alert("Session expired. Please login again.");
     return true;
   }
@@ -80,35 +84,34 @@ async function boot() {
 
   // unlock audio after first gesture
   if (ui.onFirstUserGesture) {
-  ui.onFirstUserGesture(() => ensureAudioUnlocked());
-}
-// settings
-const s0 = getSettings();
+    ui.onFirstUserGesture(() => ensureAudioUnlocked());
+  }
 
-if (typeof ui.setSoundEnabled === "function") {
-  ui.setSoundEnabled(s0.sound);
-}
+  // ---------------------------
+  // Settings
+  // ---------------------------
+  const s0 = getSettings();
 
-if (typeof ui.setVibrationEnabled === "function") {
-  ui.setVibrationEnabled(s0.vibration);
-}
+  if (typeof ui.setSoundEnabled === "function") {
+    ui.setSoundEnabled(s0.sound);
+  }
+
+  if (typeof ui.setVibrationEnabled === "function") {
+    ui.setVibrationEnabled(s0.vibration);
+  }
+
   ui.onSoundToggle((v) => {
     setSetting("sound", v);
     if (!v) stopRollSound();
   });
+
   ui.onVibrationToggle((v) => setSetting("vibration", v));
 
   subscribeSettings((s) => {
-  if (ui.setSoundEnabled) {
-    ui.setSoundEnabled(s.sound);
-  }
-
-  if (ui.setVibrationEnabled) {
-    ui.setVibrationEnabled(s.vibration);
-  }
-
-  if (!s.sound) stopRollSound();
-});
+    if (ui.setSoundEnabled) ui.setSoundEnabled(s.sound);
+    if (ui.setVibrationEnabled) ui.setVibrationEnabled(s.vibration);
+    if (!s.sound) stopRollSound();
+  });
 
   // ---------------------------
   // Pi environment check
@@ -118,11 +121,11 @@ if (typeof ui.setVibrationEnabled === "function") {
   });
   if (!env.ok) return;
 
-  // init Pi SDK (safe to call once)
+  // init Pi SDK
   initPi();
 
   // ---------------------------
-  // 🔑 LOGIN (RESTORE OR WAIT FOR CLICK)
+  // 🔑 LOGIN (restore or wait)
   // ---------------------------
   await ensurePiLogin({
     BACKEND,
@@ -135,12 +138,17 @@ if (typeof ui.setVibrationEnabled === "function") {
   });
 
   // ---------------------------
-  // Load server state AFTER login
+  // Load server state (ONLY if token exists)
   // ---------------------------
+  if (!CURRENT_ACCESS_TOKEN) {
+    console.warn("Skipping /api/me — no access token");
+    return;
+  }
+
   let me;
   try {
     const res = await fetch(`${BACKEND}/api/me`, {
-      headers: { ...authHeaders() },
+      headers: authHeaders(),
     });
     const { data } = await readRes(res);
     if (!res.ok || !data?.ok) {
@@ -149,14 +157,19 @@ if (typeof ui.setVibrationEnabled === "function") {
     me = data;
   } catch (e) {
     const msg = normalizeErr(e);
-    if (!handleAuthExpiredIfNeeded(msg)) alert("Failed to load profile: " + msg);
+    if (!handleAuthExpiredIfNeeded(msg)) {
+      alert("Failed to load profile: " + msg);
+    }
     return;
   }
 
   const serverUser = me.user;
   const serverProgress = me.progress;
 
-  CURRENT_USER = { username: serverUser.username, uid: serverUser.uid };
+  CURRENT_USER = {
+    username: serverUser.username,
+    uid: serverUser.uid,
+  };
 
   COINS = Number(serverUser.coins || 0);
   ui.setCoins(COINS);
@@ -180,7 +193,7 @@ if (typeof ui.setVibrationEnabled === "function") {
 }
 
 // ---------------------------
-// Level flow (UNCHANGED)
+// Level flow
 // ---------------------------
 function onLevelComplete() {
   const isLastLevel = levelIndex >= levels.length - 1;
@@ -189,14 +202,17 @@ function onLevelComplete() {
     rewardedThisLevel = true;
     (async () => {
       try {
-        const res = await fetch(`${BACKEND}/api/rewards/level-complete`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            ...authHeaders(),
-          },
-          body: JSON.stringify({ level: levelIndex + 1 }),
-        });
+        const res = await fetch(
+          `${BACKEND}/api/rewards/level-complete`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              ...authHeaders(),
+            },
+            body: JSON.stringify({ level: levelIndex + 1 }),
+          }
+        );
         const { data } = await readRes(res);
         COINS = Number(data?.user?.coins ?? COINS);
         ui.setCoins(COINS);
