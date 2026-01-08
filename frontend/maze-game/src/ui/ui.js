@@ -463,21 +463,47 @@ export function mountUI(app) {
   
   // Level select
 const levelSelectOverlay = document.getElementById("levelSelectOverlay");
-console.log("LEVEL OVERLAY:", levelSelectOverlay);
 const levelGrid = document.getElementById("levelGrid");
 const levelSelectClose = document.getElementById("levelSelectClose");
 
 let levelSelectHandler = null;
 
-function showLevelSelect({ unlockedLevel, totalLevels,currentLevel }) {
+function showLevelSelect({ totalLevels, isCompleted, currentLevel }) {
   if (!levelGrid) return;
 
   levelGrid.innerHTML = "";
 for (let i = 1; i <= totalLevels; i++) {
   const btn = document.createElement("button");
 
+  const completed =
+    typeof isCompleted === "function"
+      ? isCompleted(i)
+      : false;
+
+  const isCurrent = i === currentLevel;
+
+  btn.className =
+    "levelBtn" +
+    (completed ? "" : " locked") +
+    (isCurrent ? " current" : "");
+
+  btn.textContent = completed ? `✔ Level ${i}` : `🔒 ${i}`;
+
+  if (completed) {
+    btn.addEventListener("click", () => {
+      hideLevelSelect();
+      levelSelectHandler?.(i - 1);
+    });
+  }
+
+  levelGrid.appendChild(btn);
+}
+
   // ✅ completion & current-level checks
-  const completed = isCompleted?.(i);
+  const completed =
+  typeof isCompleted === "function"
+    ? isCompleted(i)
+    : false;
   const isCurrent = i === currentLevel;
 
   btn.className =
