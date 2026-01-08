@@ -468,26 +468,33 @@ const levelSelectClose = document.getElementById("levelSelectClose");
 
 let levelSelectHandler = null;
 
-function showLevelSelect({ unlockedLevel, totalLevels }) {
+function showLevelSelect({ unlockedLevel, totalLevels,currentLevel }) {
   if (!levelGrid) return;
 
   levelGrid.innerHTML = "";
+for (let i = 1; i <= totalLevels; i++) {
+  const btn = document.createElement("button");
 
-  for (let i = 1; i <= totalLevels; i++) {
-    const unlocked = i < unlockedLevel;
-    const btn = document.createElement("button");
-    btn.className = "levelBtn" + (unlocked ? "" : " locked");
-    btn.textContent = unlocked ? `Level ${i}` : `🔒 ${i}`;
+  // ✅ completion & current-level checks
+  const completed = isCompleted?.(i);
+  const isCurrent = i === currentLevel;
 
-    if (unlocked) {
-      btn.addEventListener("click", () => {
-        hideLevelSelect();
-        levelSelectHandler?.(i - 1);
-      });
-    }
+  btn.className =
+    "levelBtn" +
+    (completed ? "" : " locked") +
+    (isCurrent ? " current" : "");
 
-    levelGrid.appendChild(btn);
+  btn.textContent = completed ? `✔ Level ${i}` : `🔒 ${i}`;
+
+  if (completed) {
+    btn.addEventListener("click", () => {
+      hideLevelSelect();
+      levelSelectHandler?.(i - 1);
+    });
   }
+
+  levelGrid.appendChild(btn);
+}
 
   levelSelectOverlay.classList.add("show");
   levelSelectOverlay.setAttribute("aria-hidden", "false");
