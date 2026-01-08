@@ -21,22 +21,35 @@ let levelIndex = 0;
 let game = null;
 let ui = null;
 
+// local cache synced from /api/me
 let COINS = 0;
-let FREE_HINTS = 0;
-let FREE_SKIPS = 0;
 
+// prevent double reward per completion
 let rewardedThisLevel = false;
 
 // ---------------------------
 // Backend helpers (SAFE)
 // ---------------------------
 function authHeaders() {
-  if (!CURRENT_ACCESS_TOKEN) return {};
-  return { Authorization: `Bearer ${CURRENT_ACCESS_TOKEN}` };
+  if (!CURRENT_ACCESS_TOKEN) {
+    console.warn("authHeaders called without access token");
+    return {};
+  }
+  return {
+    Authorization: `Bearer ${CURRENT_ACCESS_TOKEN}`,
+  };
 }
 
-function delay(ms) {
-  return new Promise((r) => setTimeout(r, ms));
+function uuid() {
+  try {
+    return crypto.randomUUID();
+  } catch {
+    return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  }
+}
+
+function delay(ms = 5000) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 async function readRes(res) {
@@ -45,7 +58,22 @@ async function readRes(res) {
   try {
     data = txt ? JSON.parse(txt) : {};
   } catch {}
-  return { data };
+  return { txt, data };
+}
+
+function normalizeErr(e) {
+  return e?.message || String(e);
+}
+
+function handleAuthExpiredIfNeeded(msg) {
+  if (
+    msg.includes("(HTTP 401)") ||
+    msg.toLowerCase().includes("invalid pi token")
+  ) {
+    alert("Session expired. Please login again.");
+    return true;
+  }
+  return false;
 }
 
 // ---------------------------
@@ -54,28 +82,51 @@ async function readRes(res) {
 async function boot() {
   ui = mountUI(document.querySelector("#app"));
 
+  // unlock audio after first gesture
   if (ui.onFirstUserGesture) {
     ui.onFirstUserGesture(() => ensureAudioUnlocked());
   }
 
-  // settings (unchanged)
+  // ---------------------------
+  // Settings
+  // ---------------------------
   const s0 = getSettings();
+
+  if (typeof ui.setSoundEnabled === "function") {
+    ui.setSoundEnabled(s0.sound);
+  }
+
+  if (typeof ui.setVibrationEnabled === "function") {
+    ui.setVibrationEnabled(s0.vibration);
+  }
+
   ui.onSoundToggle((v) => {
     setSetting("sound", v);
     if (!v) stopRollSound();
   });
+
   ui.onVibrationToggle((v) => setSetting("vibration", v));
+
   subscribeSettings((s) => {
+    if (ui.setSoundEnabled) ui.setSoundEnabled(s.sound);
+    if (ui.setVibrationEnabled) ui.setVibrationEnabled(s.vibration);
     if (!s.sound) stopRollSound();
   });
 
+  // ---------------------------
+  // Pi environment check
+  // ---------------------------
   const env = await enforcePiEnvironment({
     desktopBlockEl: document.getElementById("desktopBlock"),
   });
   if (!env.ok) return;
 
+  // init Pi SDK
   initPi();
 
+  // ---------------------------
+  // 🔑 LOGIN (restore or wait)
+  // ---------------------------
   await ensurePiLogin({
     BACKEND,
     ui,
@@ -83,97 +134,51 @@ async function boot() {
       CURRENT_USER = user;
       CURRENT_ACCESS_TOKEN = accessToken;
       ui.setUser(user);
-      ui.hideLoginGate();
-      // ✅ defensive: close settings if open
-document.getElementById("settingsOverlay")?.classList.remove("show");
     },
   });
 
-  if (!CURRENT_ACCESS_TOKEN) return;
+  // ---------------------------
+  // Load server state (ONLY if token exists)
+  // ---------------------------
+  if (!CURRENT_ACCESS_TOKEN) {
+    console.warn("Skipping /api/me — no access token");
+    return;
+  }
 
-  const res = await fetch(`${BACKEND}/api/me`, {
-    headers: authHeaders(),
-  });
-  const { data } = await readRes(res);
+  let me;
+  try {
+    const res = await fetch(`${BACKEND}/api/me`, {
+      headers: authHeaders(),
+    });
+    const { data } = await readRes(res);
+    if (!res.ok || !data?.ok) {
+      throw new Error(`${data?.error || "api/me failed"} (HTTP ${res.status})`);
+    }
+    me = data;
+  } catch (e) {
+    const msg = normalizeErr(e);
+    if (!handleAuthExpiredIfNeeded(msg)) {
+      alert("Failed to load profile: " + msg);
+    }
+    return;
+  }
 
-  COINS = Number(data.user.coins || 0);
-  FREE_HINTS = Number(data.user.freeHintsLeft || 0);
-  FREE_SKIPS = Number(data.user.freeSkipsLeft || 0);
+  const serverUser = me.user;
+  const serverProgress = me.progress;
 
+  CURRENT_USER = {
+    username: serverUser.username,
+    uid: serverUser.uid,
+  };
+
+  COINS = Number(serverUser.coins || 0);
   ui.setCoins(COINS);
-  ui.setHintCount(FREE_HINTS);
-  ui.setSkipCount(FREE_SKIPS);
+
+  const savedLevel = Number(serverProgress?.level || 1);
+  levelIndex = Math.max(0, Math.min(savedLevel - 1, levels.length - 1));
 
   // ---------------------------
-  // Hint / Skip logic (NEW)
-  // ---------------------------
-  document.getElementById("hintBtn").onclick = () => {
-    ui.openActionPopup({
-      type: "hint",
-      freeLeft: FREE_HINTS,
-      coins: COINS,
-      onFree: async () => {
-        await fetch(`${BACKEND}/api/hint`, {
-          method: "POST",
-          headers: authHeaders(),
-        });
-        FREE_HINTS--;
-        ui.setHintCount(FREE_HINTS);
-      },
-      onPaid: async () => {
-        await fetch(`${BACKEND}/api/hint`, {
-          method: "POST",
-          headers: authHeaders(),
-        });
-        COINS -= 50;
-        ui.setCoins(COINS);
-      },
-      onAd: async () => {
-        await delay(3000);
-        await fetch(`${BACKEND}/api/hint`, {
-          method: "POST",
-          headers: authHeaders(),
-        });
-      },
-    });
-  };
-
-  document.getElementById("x3Btn").onclick = () => {
-    ui.openActionPopup({
-      type: "skip",
-      freeLeft: FREE_SKIPS,
-      coins: COINS,
-      onFree: async () => {
-        await fetch(`${BACKEND}/api/skip`, {
-          method: "POST",
-          headers: authHeaders(),
-        });
-        FREE_SKIPS--;
-        ui.setSkipCount(FREE_SKIPS);
-        goNextLevel();
-      },
-      onPaid: async () => {
-        await fetch(`${BACKEND}/api/skip`, {
-          method: "POST",
-          headers: authHeaders(),
-        });
-        COINS -= 50;
-        ui.setCoins(COINS);
-        goNextLevel();
-      },
-      onAd: async () => {
-        await delay(3000);
-        await fetch(`${BACKEND}/api/skip`, {
-          method: "POST",
-          headers: authHeaders(),
-        });
-        goNextLevel();
-      },
-    });
-  };
-
-  // ---------------------------
-  // Game setup (unchanged)
+  // Game setup
   // ---------------------------
   const firstLevel = levels[levelIndex];
   rewardedThisLevel = false;
@@ -187,15 +192,39 @@ document.getElementById("settingsOverlay")?.classList.remove("show");
   game.start();
 }
 
-function goNextLevel() {
-  levelIndex = (levelIndex + 1) % levels.length;
-  game.setLevel(levels[levelIndex]);
-}
-
+// ---------------------------
+// Level flow
+// ---------------------------
 function onLevelComplete() {
+  const isLastLevel = levelIndex >= levels.length - 1;
+
+  if (!rewardedThisLevel) {
+    rewardedThisLevel = true;
+    (async () => {
+      try {
+        const res = await fetch(
+          `${BACKEND}/api/rewards/level-complete`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              ...authHeaders(),
+            },
+            body: JSON.stringify({ level: levelIndex + 1 }),
+          }
+        );
+        const { data } = await readRes(res);
+        COINS = Number(data?.user?.coins ?? COINS);
+        ui.setCoins(COINS);
+      } catch (e) {
+        console.warn("level reward failed:", e);
+      }
+    })();
+  }
+
   ui.showWinPopup({
     levelNumber: levelIndex + 1,
-    isLastLevel: levelIndex >= levels.length - 1,
+    isLastLevel,
   });
 }
 
