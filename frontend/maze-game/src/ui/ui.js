@@ -150,25 +150,21 @@ export function mountUI(app) {
     </div>
     
     <!-- ✅ LEVEL SELECT POPUP -->
-<div class="levelSelectOverlay" id="levelSelectOverlay" aria-hidden="true">
-  <div class="winCard">
-    <div class="winHeader">
-      <div class="winBadge">LEVELS</div>
-      <div class="winTitle">Select Level</div>
-     
-    </div>
+    <div class="levelSelectOverlay" id="levelSelectOverlay" aria-hidden="true">
+      <div class="winCard">
+        <div class="winHeader">
+          <div class="winBadge">LEVELS</div>
+          <div class="winTitle">Select Level</div>
+        </div>
 
-    <div class="levelGrid" id="levelGrid"></div>
+        <div class="levelGrid" id="levelGrid"></div>
 
-    <div class="winRow">
-      <button class="winBtnSecondary" id="levelSelectClose">Close</button>
+        <div class="winRow">
+          <button class="winBtnSecondary" id="levelSelectClose">Close</button>
+        </div>
+      </div>
     </div>
-  </div>
-</div>
   `;
-  
-  
-  
 
   // ✅ Inject UI styles (Login Gate + Settings + Win overlay + login wrap)
   const extra = document.createElement("style");
@@ -462,80 +458,58 @@ export function mountUI(app) {
   const winAdBtn = document.getElementById("winAdBtn");
   
   // Level select
-const levelSelectOverlay = document.getElementById("levelSelectOverlay");
-const levelGrid = document.getElementById("levelGrid");
-const levelSelectClose = document.getElementById("levelSelectClose");
+  const levelSelectOverlay = document.getElementById("levelSelectOverlay");
+  const levelGrid = document.getElementById("levelGrid");
+  const levelSelectClose = document.getElementById("levelSelectClose");
 
-let levelSelectHandler = null;
+  let levelSelectHandler = null;
 
-function showLevelSelect({ totalLevels, isCompleted, currentLevel }) {
-  if (!levelGrid) return;
+  // ✅ FIXED (single correct implementation)
+  function showLevelSelect({ totalLevels, isCompleted, currentLevel }) {
+    if (!levelGrid || !levelSelectOverlay) return;
 
-  levelGrid.innerHTML = "";
-for (let i = 1; i <= totalLevels; i++) {
-  const btn = document.createElement("button");
+    levelGrid.innerHTML = "";
 
-  const completed =
-    typeof isCompleted === "function"
-      ? isCompleted(i)
-      : false;
+    for (let i = 1; i <= totalLevels; i++) {
+      const btn = document.createElement("button");
 
-  const isCurrent = i === currentLevel;
+      const completed =
+        typeof isCompleted === "function"
+          ? isCompleted(i)
+          : false;
 
-  btn.className =
-    "levelBtn" +
-    (completed ? "" : " locked") +
-    (isCurrent ? " current" : "");
+      const isCurrent = i === currentLevel;
 
-  btn.textContent = completed ? `✔ Level ${i}` : `🔒 ${i}`;
+      btn.className =
+        "levelBtn" +
+        (completed ? "" : " locked") +
+        (isCurrent ? " current" : "");
 
-  if (completed) {
-    btn.addEventListener("click", () => {
-      hideLevelSelect();
-      levelSelectHandler?.(i - 1);
-    });
+      btn.textContent = completed ? `✔ Level ${i}` : `🔒 ${i}`;
+
+      if (completed) {
+        btn.addEventListener("click", () => {
+          hideLevelSelect();
+          levelSelectHandler?.(i - 1);
+        });
+      }
+
+      levelGrid.appendChild(btn);
+    }
+
+    levelSelectOverlay.classList.add("show");
+    levelSelectOverlay.setAttribute("aria-hidden", "false");
   }
 
-  levelGrid.appendChild(btn);
-}
-
-  // ✅ completion & current-level checks
-  const completed =
-  typeof isCompleted === "function"
-    ? isCompleted(i)
-    : false;
-  const isCurrent = i === currentLevel;
-
-  btn.className =
-    "levelBtn" +
-    (completed ? "" : " locked") +
-    (isCurrent ? " current" : "");
-
-  btn.textContent = completed ? `✔ Level ${i}` : `🔒 ${i}`;
-
-  if (completed) {
-    btn.addEventListener("click", () => {
-      hideLevelSelect();
-      levelSelectHandler?.(i - 1);
-    });
+  function hideLevelSelect() {
+    levelSelectOverlay?.classList.remove("show");
+    levelSelectOverlay?.setAttribute("aria-hidden", "true");
   }
 
-  levelGrid.appendChild(btn);
-}
-
-  levelSelectOverlay.classList.add("show");
-  levelSelectOverlay.setAttribute("aria-hidden", "false");
-}
-
-function hideLevelSelect() {
-  levelSelectOverlay?.classList.remove("show");
-  levelSelectOverlay?.setAttribute("aria-hidden", "true");
-}
-
-levelSelectClose?.addEventListener("click", hideLevelSelect);
-levelSelectOverlay?.addEventListener("click", (e) => {
-  if (e.target === levelSelectOverlay) hideLevelSelect();
-});
+  levelSelectClose?.addEventListener("click", hideLevelSelect);
+  levelSelectOverlay?.addEventListener("click", (e) => {
+    if (e.target === levelSelectOverlay) hideLevelSelect();
+  });
 
   // ---------------------------
   // State + handlers
@@ -602,8 +576,6 @@ levelSelectOverlay?.addEventListener("click", (e) => {
         setGateLoading(true);
         await fn();
       } finally {
-        // if login succeeded, gate will hide
-        // if login failed, ensurePiLogin shows error, we re-enable here
         setGateLoading(false);
       }
     };
@@ -689,7 +661,7 @@ levelSelectOverlay?.addEventListener("click", (e) => {
   return {
     onHint(fn) { hintHandler = fn; },
     onSkip(fn) { skipHandler = fn; },
-canvas: document.getElementById("game"),
+    canvas: document.getElementById("game"),
 
     // header login UI (kept for compatibility)
     loginBtn,
@@ -720,16 +692,7 @@ canvas: document.getElementById("game"),
       vibrationHandler = fn;
     },
 
-    // Win popup API
-    showWinPopup,
-    hideWinPopup,
-    onWinNext(fn) {
-      winNextHandler = fn;
-    },
-    onWinAd(fn) {
-      winAdHandler = fn;
-    },
-    // Win popup API
+    // Win popup API (✅ kept only once)
     showWinPopup,
     hideWinPopup,
     onWinNext(fn) {
@@ -746,8 +709,7 @@ canvas: document.getElementById("game"),
       levelSelectHandler = fn;
     },
   };
-  ;
-
+}
 
 /* ---------------- UI helpers ---------------- */
 function iconBtn(id, svg, badgeText) {
