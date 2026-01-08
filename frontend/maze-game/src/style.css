@@ -824,3 +824,40 @@ canvas {
   z-index: 2;
   position: relative;
 }
+/* LEVEL SELECT */
+.levelSelectOverlay{
+  position:fixed;
+  inset:0;
+  z-index:999999;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:16px;
+  background: rgba(0,0,0,.55);
+  backdrop-filter: blur(10px);
+}
+.levelSelectOverlay.show{ display:flex; }
+
+.levelGrid{
+  margin:16px 0 6px;
+  display:grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap:10px;
+}
+
+.levelBtn{
+  height:46px;
+  border-radius:14px;
+  border:1px solid rgba(255,255,255,.14);
+  background: rgba(255,255,255,.08);
+  color: rgba(234,243,255,.95);
+  font-weight:900;
+  cursor:pointer;
+}
+.levelBtn:active{ transform: translateY(1px); }
+
+.levelBtn.locked{
+  opacity:.45;
+  cursor:not-allowed;
+  background: rgba(255,255,255,.04);
+}

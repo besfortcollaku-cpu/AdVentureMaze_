@@ -149,6 +149,22 @@ export function mountUI(app) {
       </div>
     </div>
   `;
+  <!-- ✅ LEVEL SELECT POPUP -->
+<div class="levelSelectOverlay" id="levelSelectOverlay" aria-hidden="true">
+  <div class="winCard">
+    <div class="winHeader">
+      <div class="winBadge">LEVELS</div>
+      <div class="winTitle">Select Level</div>
+      <div class="winSub">Replay completed levels or see what’s locked</div>
+    </div>
+
+    <div class="levelGrid" id="levelGrid"></div>
+
+    <div class="winRow">
+      <button class="winBtnSecondary" id="levelSelectClose">Close</button>
+    </div>
+  </div>
+</div>
 
   // ✅ Inject UI styles (Login Gate + Settings + Win overlay + login wrap)
   const extra = document.createElement("style");
@@ -440,6 +456,49 @@ export function mountUI(app) {
   const winSubText = document.getElementById("winSubText");
   const winNextBtn = document.getElementById("winNextBtn");
   const winAdBtn = document.getElementById("winAdBtn");
+
+// Level select
+const levelSelectOverlay = document.getElementById("levelSelectOverlay");
+const levelGrid = document.getElementById("levelGrid");
+const levelSelectClose = document.getElementById("levelSelectClose");
+
+let levelSelectHandler = null;
+
+function showLevelSelect({ unlockedLevel, totalLevels }) {
+  if (!levelGrid) return;
+
+  levelGrid.innerHTML = "";
+
+  for (let i = 1; i <= totalLevels; i++) {
+    const unlocked = i < unlockedLevel;
+    const btn = document.createElement("button");
+    btn.className = "levelBtn" + (unlocked ? "" : " locked");
+    btn.textContent = unlocked ? `Level ${i}` : `🔒 ${i}`;
+
+    if (unlocked) {
+      btn.addEventListener("click", () => {
+        hideLevelSelect();
+        levelSelectHandler?.(i - 1);
+      });
+    }
+
+    levelGrid.appendChild(btn);
+  }
+
+  levelSelectOverlay.classList.add("show");
+  levelSelectOverlay.setAttribute("aria-hidden", "false");
+}
+
+function hideLevelSelect() {
+  levelSelectOverlay?.classList.remove("show");
+  levelSelectOverlay?.setAttribute("aria-hidden", "true");
+}
+
+levelSelectClose?.addEventListener("click", hideLevelSelect);
+levelSelectOverlay?.addEventListener("click", (e) => {
+  if (e.target === levelSelectOverlay) hideLevelSelect();
+});
+
 
   // ---------------------------
   // State + handlers

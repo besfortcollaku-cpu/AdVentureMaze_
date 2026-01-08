@@ -165,6 +165,20 @@ function clampLevelIndex(i) {
 async function boot() {
   ui = mountUI(document.querySelector("#app"));
 
+
+// Level select via joystick icon
+document.getElementById("controls")?.addEventListener("click", () => {
+  ui.showLevelSelect({
+    unlockedLevel: UNLOCKED_LEVEL,
+    totalLevels: levels.length,
+  });
+});
+
+ui.onLevelSelect((selectedIndex) => {
+  levelIndex = clampLevelIndex(selectedIndex);
+  rewardedThisLevel = true; // prevent reward on replay
+  game.setLevel(levels[levelIndex]);
+});
   // unlock audio after first gesture
   ui.onFirstUserGesture(() => ensureAudioUnlocked());
 
@@ -229,6 +243,8 @@ async function boot() {
 
   const savedLevel = Number(serverProgress?.level || 1);
   levelIndex = clampLevelIndex(savedLevel - 1);
+  
+  const UNLOCKED_LEVEL = savedLevel;
 
   // WIN popup actions
   ui.onWinNext(async () => {
