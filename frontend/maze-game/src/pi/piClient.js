@@ -14,29 +14,36 @@ export async function ensurePiLogin({ BACKEND, ui, onLogin }) {
   // ---------------------------
   const saved = loadSession();
   if (saved?.accessToken && saved?.user) {
+    console.log("✅ Restoring Pi session");
+
+    // update app state
     onLogin({
       user: saved.user,
       accessToken: saved.accessToken,
     });
-    ui.hideLoginGate();
+
+    // update UI explicitly
+    ui.setUser?.(saved.user);
+    ui.hideLoginGate?.();
+
     return { ok: true, restored: true };
   }
 
   // ---------------------------
-  // Register UI login click
+  // Register UI login click (once)
   // ---------------------------
   ui.onLoginClick(async () => {
     try {
       ui.showLoginError("");
       await loginFlow({ BACKEND, ui, onLogin });
     } catch (e) {
-      console.error("Pi login failed:", e);
+      console.error("❌ Pi login failed:", e);
       ui.showLoginError(e.message || "Login failed");
     }
   });
 
-  // Show gate immediately
-  ui.showLoginGate();
+  // Show gate immediately (no session)
+  ui.showLoginGate?.();
 
   return { ok: false, restored: false };
 }
@@ -86,8 +93,8 @@ async function loginFlow({ BACKEND, ui, onLogin }) {
 
   // Update app
   onLogin({ user, accessToken });
-  ui.setUser(user);
-  ui.hideLoginGate();
+  ui.setUser?.(user);
+  ui.hideLoginGate?.();
 
   return { ok: true };
 }
@@ -98,7 +105,9 @@ async function loginFlow({ BACKEND, ui, onLogin }) {
 function saveSession(session) {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
-  } catch {}
+  } catch (e) {
+    console.warn("Failed to save Pi session", e);
+  }
 }
 
 function loadSession() {
