@@ -1,129 +1,197 @@
 // src/pi/piClient.js
-
-const STORAGE_KEY = "pi_session_v1";
+import { piLoginAndVerify } from "./piAuth.js";
 
 /**
- * Ensure Pi login.
- * - Restores session from localStorage
- * - Handles UI login gate
- * - Calls backend /api/pi/verify
+ * Session persistence
+ * We store: { user: {username, uid}, accessToken }
  */
-export async function ensurePiLogin({ BACKEND, ui, onLogin }) {
-  // ---------------------------
-  // Restore previous session
-  // ---------------------------
-  const saved = loadSession();
-  if (saved?.accessToken && saved?.user) {
-    console.log("✅ Restoring Pi session");
-
-    // update app state
-    onLogin({
-      user: saved.user,
-      accessToken: saved.accessToken,
-    });
-
-    // update UI explicitly
-    ui.setUser?.(saved.user);
-    ui.hideLoginGate?.();
-
-    return { ok: true, restored: true };
-  }
-
-  // ---------------------------
-  // Register UI login click (once)
-  // ---------------------------
-  ui.onLoginClick(async () => {
-    try {
-      ui.showLoginError("");
-      await loginFlow({ BACKEND, ui, onLogin });
-    } catch (e) {
-      console.error("❌ Pi login failed:", e);
-      ui.showLoginError(e.message || "Login failed");
-    }
-  });
-
-  // Show gate immediately (no session)
-  ui.showLoginGate?.();
-
-  return { ok: false, restored: false };
-}
-
-// ---------------------------
-// Core login flow
-// ---------------------------
-async function loginFlow({ BACKEND, ui, onLogin }) {
-  if (!window.Pi) {
-    throw new Error("Pi SDK not available. Open in Pi Browser.");
-  }
-
-  // Ask Pi for auth
-  const auth = await window.Pi.authenticate(
-    ["username", "payments"],
-    "AdventureMaze Login"
-  );
-
-  if (!auth?.accessToken) {
-    throw new Error("Pi authentication failed");
-  }
-
-  // Verify token with backend
-  const res = await fetch(`${BACKEND}/api/pi/verify`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      accessToken: auth.accessToken,
-    }),
-  });
-
-  let data;
-  try {
-    data = await res.json();
-  } catch {
-    throw new Error("Invalid server response");
-  }
-
-  if (!res.ok || !data?.ok) {
-    throw new Error(data?.error || "Server verification failed");
-  }
-
-  const { user, accessToken } = data;
-
-  // Persist session
-  saveSession({ user, accessToken });
-
-  // Update app
-  onLogin({ user, accessToken });
-  ui.setUser?.(user);
-  ui.hideLoginGate?.();
-
-  return { ok: true };
-}
-
-// ---------------------------
-// Persistence helpers
-// ---------------------------
-function saveSession(session) {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
-  } catch (e) {
-    console.warn("Failed to save Pi session", e);
-  }
-}
+const SESSION_KEY = "pi_session_v1";
 
 function loadSession() {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : null;
+    const raw = localStorage.getItem(SESSION_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw);
   } catch {
     return null;
   }
 }
 
-/**
- * Optional helper if you ever want logout later
- */
+function saveSession(session) {
+  try {
+    localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+  } catch {}
+}
+
 export function clearPiSession() {
   try {
-    localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(SESSION_KEY);
   } catch {}
+}
+
+/**
+ * Verify token by calling backend /api/me.
+ * If it fails, token is not usable anymore.
+ */
+async function verifySessionWithBackend(BACKEND, accessToken) {
+  const base = BACKEND.replace(/\/$/, "");
+  const res = await fetch(`${base}/api/me`, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok || !data?.ok) {
+    return { ok: false, error: data?.error || "invalid session" };
+  }
+
+  // expected: { ok:true, user, progress }
+  return { ok: true, data };
+}
+
+/**
+ * Existing behavior (manual login button).
+ * Kept for compatibility.
+ */
+export function setupPiLogin({
+  BACKEND,
+  loginBtn,
+  loginBtnText,
+  userPill,
+  onLogin,
+}) {
+  let CURRENT_USER = { username: "guest", uid: null };
+  let CURRENT_ACCESS_TOKEN = null;
+
+  async function doPiLogin() {
+    try {
+      if (!loginBtn) return;
+
+      loginBtn.disabled = true;
+      if (loginBtnText) loginBtnText.textContent = "Logging in...";
+
+      const { auth, verifiedUser } = await piLoginAndVerify(BACKEND);
+
+      CURRENT_ACCESS_TOKEN = auth?.accessToken || null;
+
+      const username =
+        verifiedUser?.username || auth?.user?.username || "unknown";
+
+      const uid = verifiedUser?.uid || auth?.user?.uid || null;
+
+      CURRENT_USER = { username, uid };
+
+      if (userPill) userPill.textContent = `User: ${CURRENT_USER.username}`;
+      if (loginBtnText) loginBtnText.textContent = "Logged in ✅";
+
+      // ✅ persist
+      if (CURRENT_ACCESS_TOKEN) {
+        saveSession({
+          user: CURRENT_USER,
+          accessToken: CURRENT_ACCESS_TOKEN,
+        });
+      }
+
+      if (onLogin)
+        onLogin({ user: CURRENT_USER, accessToken: CURRENT_ACCESS_TOKEN });
+    } catch (e) {
+      const msg = String(e?.message || e || "Pi Login failed");
+      alert("Pi Login failed: " + msg);
+      if (loginBtnText) loginBtnText.textContent = "Login with Pi";
+    } finally {
+      if (loginBtn) loginBtn.disabled = false;
+    }
+  }
+
+  if (loginBtn) loginBtn.addEventListener("click", doPiLogin);
+
+  return {
+    doPiLogin,
+    getUser: () => CURRENT_USER,
+    getToken: () => CURRENT_ACCESS_TOKEN,
+  };
+}
+
+/**
+ * ✅ Mandatory login gate helper
+ * - tries to restore session from localStorage
+ * - verifies token by calling backend /api/me
+ * - if invalid -> clears session and forces login
+ *
+ * UI requirements:
+ * ui.showLoginGate() / ui.hideLoginGate() / ui.showLoginError(msg)
+ * ui.setUser(user)
+ * ui.onLoginClick(fn)
+ */
+export async function ensurePiLogin({ BACKEND, ui, onLogin }) {
+  // prevent double-run / double-click
+  let isLoggingIn = false;
+
+  // 1) Try restore
+  const saved = loadSession();
+  if (saved?.accessToken) {
+    const check = await verifySessionWithBackend(BACKEND, saved.accessToken);
+
+    if (check.ok) {
+      // ✅ session is valid
+      onLogin?.({ user: check.data.user, accessToken: saved.accessToken });
+      ui?.setUser?.(check.data.user);
+      ui?.hideLoginGate?.();
+      return { ok: true, restored: true };
+    }
+
+    // ❌ session invalid -> clear and continue to login
+    clearPiSession();
+    ui?.showLoginError?.("Session expired. Please login again.");
+  }
+
+  // 2) Force login before game start
+  ui?.showLoginGate?.();
+
+  return await new Promise((resolve) => {
+    const hasGate = typeof ui?.onLoginClick === "function";
+
+    const runLogin = async () => {
+      if (isLoggingIn) return; // block double clicks
+      isLoggingIn = true;
+
+      try {
+        ui?.showLoginError?.("");
+
+        // Pi login + backend verify (creates user in DB via /api/pi/verify inside your piAuth)
+        const { auth } = await piLoginAndVerify(BACKEND);
+
+        const accessToken = auth?.accessToken || null;
+        if (!accessToken) throw new Error("Missing accessToken");
+
+        // ✅ confirm backend accepts token and returns /api/me
+        const check = await verifySessionWithBackend(BACKEND, accessToken);
+        if (!check.ok) throw new Error(check.error || "Session verify failed");
+
+        // persist
+        saveSession({ user: check.data.user, accessToken });
+
+        onLogin?.({ user: check.data.user, accessToken });
+        ui?.setUser?.(check.data.user);
+        ui?.hideLoginGate?.();
+
+        resolve({ ok: true, restored: false });
+      } catch (e) {
+        // ✅ IMPORTANT CHANGE: show the REAL error (no generic message)
+        const msg = String(e?.message || e || "Login failed");
+        ui?.showLoginError?.(msg);
+        resolve({ ok: false, error: msg });
+      } finally {
+        isLoggingIn = false;
+      }
+    };
+
+    // fallback: no UI gate implemented -> try immediately
+    if (!hasGate) {
+      runLogin();
+      return;
+    }
+
+    // gate button click triggers login (single handler)
+    ui.onLoginClick(runLogin);
+  });
 }
