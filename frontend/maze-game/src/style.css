@@ -10,7 +10,12 @@
   --muted:rgba(234,243,255,.65);
 }
 
-*{ box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
+/* ================= RESET ================= */
+
+*{
+  box-sizing:border-box;
+  -webkit-tap-highlight-color: transparent;
+}
 
 html,body{
   height:100%;
@@ -44,10 +49,13 @@ html,body{
   background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
   box-shadow: 0 18px 70px rgba(0,0,0,.55);
   padding:14px;
-  position:relative;
-  border: 1px solid rgba(37,215,255,.10);
+  border:1px solid rgba(37,215,255,.10);
+
   display:flex;
   flex-direction:column;
+
+  position:relative;        /* 🔑 overlay anchor */
+  overflow:hidden;          /* 🔑 prevents bleed */
 }
 
 /* ================= TOP BAR ================= */
@@ -64,17 +72,15 @@ html,body{
   gap:10px;
 }
 
-.brand{
-  min-width:46px;
-}
+.brand{ min-width:46px; }
 
 .logoBox{
   width:46px;
   height:46px;
   border-radius:14px;
   background: rgba(255,255,255,.06);
-  border: 1px solid rgba(37,215,255,.18);
-  box-shadow: 0 12px 22px rgba(0,0,0,.35);
+  border:1px solid rgba(37,215,255,.18);
+  box-shadow:0 12px 22px rgba(0,0,0,.35);
   display:flex;
   align-items:center;
   justify-content:center;
@@ -117,7 +123,7 @@ html,body{
   padding:8px 12px;
   border-radius:16px;
   background: rgba(255,255,255,.06);
-  border: 1px solid rgba(255,204,51,.25);
+  border:1px solid rgba(255,204,51,.25);
   font-weight:950;
 }
 
@@ -132,30 +138,27 @@ html,body{
 
 .iconRow{
   display:flex;
-  align-items:center;
   justify-content:center;
   gap:6px;
   flex-wrap:wrap;
 }
 
-/* FIX undefinedundefined */
 .iconBtn{
   width:36px;
   height:36px;
   border-radius:12px;
   background: rgba(255,255,255,.06);
-  border: 1px solid rgba(255,255,255,.12);
+  border:1px solid rgba(255,255,255,.12);
   display:flex;
   align-items:center;
   justify-content:center;
   cursor:pointer;
-  font-size:0;
+  font-size:0;               /* fixes undefinedundefined */
 }
 
 .iconBtn svg{
   width:24px;
   height:24px;
-  font-size:initial;
 }
 
 /* ================= BOARD ================= */
@@ -173,7 +176,7 @@ html,body{
   aspect-ratio:1/1;
   border-radius:22px;
   background: rgba(255,255,255,.04);
-  border: 1px solid rgba(37,215,255,.12);
+  border:1px solid rgba(37,215,255,.12);
   padding:14px;
 }
 
@@ -201,7 +204,7 @@ canvas{
   padding:12px 14px;
   border-radius:18px;
   background: rgba(255,255,255,.06);
-  border: 1px solid rgba(37,215,255,.14);
+  border:1px solid rgba(37,215,255,.14);
   color:var(--text);
   font-weight:950;
 }
@@ -223,26 +226,34 @@ canvas{
   color:var(--muted);
 }
 
-/* ================= OVERLAYS (STACKED) ================= */
+/* ================= OVERLAYS (PHONE-SCOPED) ================= */
 
-.loginGate{ z-index:1000000; }
-.settingsOverlay{ z-index:900000; }
-.winOverlay{ z-index:800000; }
-.levelSelectOverlay{ z-index:700000; }
-
-/* ================= LEVEL SELECT ================= */
-
+.loginGate,
+.settingsOverlay,
+.winOverlay,
 .levelSelectOverlay{
-  position:fixed;
+  position:absolute;       /* 🔑 FIX */
   inset:0;
   display:none;
   align-items:center;
   justify-content:center;
   padding:16px;
-  background: rgba(0,0,0,.55);
   backdrop-filter: blur(10px);
 }
-.levelSelectOverlay.show{ display:flex; }
+
+.loginGate{ z-index:1000; background: rgba(0,0,0,.65); }
+.settingsOverlay{ z-index:900; background: rgba(0,0,0,.55); }
+.winOverlay{ z-index:800; background: rgba(0,0,0,.55); }
+.levelSelectOverlay{ z-index:700; background: rgba(0,0,0,.55); }
+
+.loginGate.show,
+.settingsOverlay.show,
+.winOverlay.show,
+.levelSelectOverlay.show{
+  display:flex;
+}
+
+/* ================= LEVEL SELECT ================= */
 
 .levelGrid{
   max-height:50vh;
@@ -251,6 +262,7 @@ canvas{
   grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
   gap:10px;
   margin:14px 0;
+  padding-right:4px;
 }
 
 .levelBtn{
@@ -261,7 +273,9 @@ canvas{
   color: rgba(234,243,255,.95);
   font-weight:900;
 }
+
 .levelBtn.locked{
   opacity:.45;
   background: rgba(255,255,255,.04);
+  cursor:not-allowed;
 }
