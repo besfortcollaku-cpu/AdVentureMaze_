@@ -148,8 +148,8 @@ export function mountUI(app) {
         <div class="winHint">Tip: Watch ad gives +50 coins</div>
       </div>
     </div>
-  `;
-  <!-- ✅ LEVEL SELECT POPUP -->
+    
+    <!-- ✅ LEVEL SELECT POPUP -->
 <div class="levelSelectOverlay" id="levelSelectOverlay" aria-hidden="true">
   <div class="winCard">
     <div class="winHeader">
@@ -165,6 +165,10 @@ export function mountUI(app) {
     </div>
   </div>
 </div>
+  `;
+  
+  
+  
 
   // ✅ Inject UI styles (Login Gate + Settings + Win overlay + login wrap)
   const extra = document.createElement("style");
@@ -456,8 +460,8 @@ export function mountUI(app) {
   const winSubText = document.getElementById("winSubText");
   const winNextBtn = document.getElementById("winNextBtn");
   const winAdBtn = document.getElementById("winAdBtn");
-
-// Level select
+  
+  // Level select
 const levelSelectOverlay = document.getElementById("levelSelectOverlay");
 const levelGrid = document.getElementById("levelGrid");
 const levelSelectClose = document.getElementById("levelSelectClose");
@@ -498,7 +502,6 @@ levelSelectClose?.addEventListener("click", hideLevelSelect);
 levelSelectOverlay?.addEventListener("click", (e) => {
   if (e.target === levelSelectOverlay) hideLevelSelect();
 });
-
 
   // ---------------------------
   // State + handlers
@@ -692,6 +695,23 @@ canvas: document.getElementById("game"),
     onWinAd(fn) {
       winAdHandler = fn;
     },
+    // Win popup API
+    showWinPopup,
+    hideWinPopup,
+    onWinNext(fn) {
+      winNextHandler = fn;
+    },
+    onWinAd(fn) {
+      winAdHandler = fn;
+    },
+
+    // ✅ Level select API
+    showLevelSelect,
+    hideLevelSelect,
+    onLevelSelect(fn) {
+      levelSelectHandler = fn;
+    },
+  };
   };
 }
 
