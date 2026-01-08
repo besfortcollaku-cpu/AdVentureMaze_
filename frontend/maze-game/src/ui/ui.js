@@ -463,6 +463,7 @@ export function mountUI(app) {
   
   // Level select
 const levelSelectOverlay = document.getElementById("levelSelectOverlay");
+console.log("LEVEL OVERLAY:", levelSelectOverlay);
 const levelGrid = document.getElementById("levelGrid");
 const levelSelectClose = document.getElementById("levelSelectClose");
 
