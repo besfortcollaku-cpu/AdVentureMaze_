@@ -23,8 +23,8 @@ export function mountUI(app) {
         </div>
 
         <div class="iconRow">
-          ${iconBtn("settingsBtn", gearSVG(), "")}
-          ${iconBtn("controls", joystickSVG(), "")}
+          ${iconBtn("settingsBtn", gearSVG())}
+          ${iconBtn("controlsBtn", joystickSVG())}
 
           <div class="loginWrap">
             <button class="iconBtnWide" id="loginBtn">
@@ -43,7 +43,7 @@ export function mountUI(app) {
 
       <div class="bottomBar">
         <button class="btn" id="hintBtn">
-          <div class="btnIcon">🎬</div>
+          <div class="btnIcon">💡</div>
           <div>HINT</div>
         </button>
 
@@ -53,13 +53,6 @@ export function mountUI(app) {
           <div class="btnIcon">⏩</div>
           <div>×3</div>
         </button>
-      </div>
-    </div>
-
-    <div class="desktopBlock" id="desktopBlock" style="display:none;">
-      <div class="desktopCard">
-        <h2>Mobile game</h2>
-        <p>This game is designed for smartphones.</p>
       </div>
     </div>
 
@@ -133,7 +126,7 @@ export function mountUI(app) {
   `;
 
   // ---------------------------
-  // DOM Elements
+  // Elements
   // ---------------------------
   const el = {
     coinCount: document.getElementById("coinCount"),
@@ -152,6 +145,8 @@ export function mountUI(app) {
     soundToggle: document.getElementById("soundToggle"),
     vibrationToggle: document.getElementById("vibrationToggle"),
 
+    controlsBtn: document.getElementById("controlsBtn"),
+
     winOverlay: document.getElementById("winOverlay"),
     winSubText: document.getElementById("winSubText"),
     winNextBtn: document.getElementById("winNextBtn"),
@@ -165,91 +160,105 @@ export function mountUI(app) {
   // ---------------------------
   // State
   // ---------------------------
-  let soundHandler = null;
-  let vibrationHandler = null;
+  let levelSelectHandler = null;
   let winNextHandler = null;
   let winAdHandler = null;
-  let levelSelectHandler = null;
-  let firstGestureHandler = null;
 
+  // ---------------------------
+  // Core helpers
+  // ---------------------------
   function setCoins(n) {
-    if (el.coinCount) el.coinCount.textContent = String(n ?? 0);
+    el.coinCount.textContent = String(n ?? 0);
   }
 
   function showLoginGate() {
-    el.loginGate?.classList.add("show");
+    el.loginGate.classList.add("show");
   }
 
   function hideLoginGate() {
-    el.loginGate?.classList.remove("show");
+    el.loginGate.classList.remove("show");
   }
 
   function showLoginError(msg) {
-    if (el.loginGateError) el.loginGateError.textContent = msg || "";
+    el.loginGateError.textContent = msg || "";
   }
 
   function onLoginClick(fn) {
-    el.loginGateBtn?.addEventListener("click", fn);
+    el.loginGateBtn.onclick = fn;
   }
 
   function setUser(user) {
     const name = user?.username || "guest";
-    if (el.userPill) el.userPill.textContent = `User: ${name}`;
-    if (el.loginBtnText)
-      el.loginBtnText.textContent = name === "guest" ? "Login with Pi" : "Logged in ✅";
+    el.userPill.textContent = `User: ${name}`;
+    el.loginBtnText.textContent =
+      name === "guest" ? "Login with Pi" : "Logged in ✅";
   }
 
-  function showWinPopup({ levelNumber, isLastLevel } = {}) {
-    if (el.winSubText) {
-      el.winSubText.textContent = isLastLevel
-        ? "You finished the last level!"
-        : `You finished Level ${levelNumber}`;
-    }
-    el.winOverlay?.classList.add("show");
-  }
+  // ---------------------------
+  // Settings
+  // ---------------------------
+  el.settingsBtn.onclick = () => el.settingsOverlay.classList.add("show");
+  el.settingsCloseBtn.onclick = () =>
+    el.settingsOverlay.classList.remove("show");
 
-  function hideWinPopup() {
-    el.winOverlay?.classList.remove("show");
-  }
+  // ---------------------------
+  // Level Select
+  // ---------------------------
+  el.controlsBtn.onclick = () =>
+    el.levelSelectOverlay.classList.add("show");
+
+  el.levelSelectClose.onclick = () =>
+    el.levelSelectOverlay.classList.remove("show");
 
   function showLevelSelect({ totalLevels, isCompleted, currentLevel }) {
-    if (!el.levelGrid) return;
     el.levelGrid.innerHTML = "";
 
     for (let i = 1; i <= totalLevels; i++) {
       const btn = document.createElement("button");
       const completed = isCompleted?.(i);
+
       btn.className =
         "levelBtn" +
         (completed ? "" : " locked") +
         (i === currentLevel ? " current" : "");
+
       btn.textContent = completed ? `✔ Level ${i}` : `🔒 ${i}`;
+
       if (completed) {
         btn.onclick = () => {
-          hideLevelSelect();
+          el.levelSelectOverlay.classList.remove("show");
           levelSelectHandler?.(i - 1);
         };
       }
+
       el.levelGrid.appendChild(btn);
     }
 
-    el.levelSelectOverlay?.classList.add("show");
+    el.levelSelectOverlay.classList.add("show");
   }
 
-  function hideLevelSelect() {
-    el.levelSelectOverlay?.classList.remove("show");
+  // ---------------------------
+  // Win popup
+  // ---------------------------
+  el.winNextBtn.onclick = () => winNextHandler?.();
+  el.winAdBtn.onclick = () => winAdHandler?.();
+
+  function showWinPopup({ levelNumber, isLastLevel } = {}) {
+    el.winSubText.textContent = isLastLevel
+      ? "You finished the last level!"
+      : `You finished Level ${levelNumber}`;
+    el.winOverlay.classList.add("show");
   }
 
-  el.levelSelectClose?.addEventListener("click", hideLevelSelect);
+  function hideWinPopup() {
+    el.winOverlay.classList.remove("show");
+  }
 
   return {
     canvas: document.getElementById("game"),
     setCoins,
 
     loginBtn: el.loginBtn,
-    loginBtnText: el.loginBtnText,
-    userPill: el.userPill,
-
     showLoginGate,
     hideLoginGate,
     showLoginError,
@@ -258,30 +267,31 @@ export function mountUI(app) {
 
     showWinPopup,
     hideWinPopup,
-    onWinNext(fn) { winNextHandler = fn; },
-    onWinAd(fn) { winAdHandler = fn; },
+    onWinNext(fn) {
+      winNextHandler = fn;
+    },
+    onWinAd(fn) {
+      winAdHandler = fn;
+    },
 
     showLevelSelect,
-    hideLevelSelect,
-    onLevelSelect(fn) { levelSelectHandler = fn; },
-
-    onSoundToggle(fn) { soundHandler = fn; },
-    onVibrationToggle(fn) { vibrationHandler = fn; },
-    onFirstUserGesture(fn) { firstGestureHandler = fn; },
+    onLevelSelect(fn) {
+      levelSelectHandler = fn;
+    },
   };
 }
 
 /* ---------------- UI helpers ---------------- */
-function iconBtn(id, svg, badgeText) {
+function iconBtn(id, svg, badgeText = null) {
   return `
     <button class="iconBtn" id="${id}">
       ${badgeText ? `<div class="badgeNew">${badgeText}</div>` : ""}
-      ${svg}
+      ${svg || ""}
     </button>
   `;
 }
 
-/* SVG helpers unchanged below */
+/* SVG helpers unchanged */
 function gearSVG() { /* unchanged */ }
 function joystickSVG() { /* unchanged */ }
 function brushSVG() { /* unchanged */ }
