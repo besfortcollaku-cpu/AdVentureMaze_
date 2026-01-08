@@ -155,7 +155,7 @@ export function mountUI(app) {
     <div class="winHeader">
       <div class="winBadge">LEVELS</div>
       <div class="winTitle">Select Level</div>
-      <div class="winSub">Replay completed levels or see what’s locked</div>
+     
     </div>
 
     <div class="levelGrid" id="levelGrid"></div>
