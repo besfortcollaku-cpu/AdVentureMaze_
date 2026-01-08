@@ -713,7 +713,7 @@ canvas: document.getElementById("game"),
     },
   };
   };
-}
+
 
 /* ---------------- UI helpers ---------------- */
 function iconBtn(id, svg, badgeText) {
