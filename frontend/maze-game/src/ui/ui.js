@@ -746,7 +746,7 @@ canvas: document.getElementById("game"),
       levelSelectHandler = fn;
     },
   };
-  
+  ;
 
 
 /* ---------------- UI helpers ---------------- */
