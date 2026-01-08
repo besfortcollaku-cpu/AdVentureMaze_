@@ -83,6 +83,9 @@ async function boot() {
       CURRENT_USER = user;
       CURRENT_ACCESS_TOKEN = accessToken;
       ui.setUser(user);
+      ui.hideLoginGate();
+      // ✅ defensive: close settings if open
+document.getElementById("settingsOverlay")?.classList.remove("show");
     },
   });
 
