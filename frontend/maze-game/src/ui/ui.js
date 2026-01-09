@@ -149,7 +149,7 @@ export function mountUI(app) {
       </div>
     </div>
     
-    <!-- ✅ LEVEL SELECT POPUP -->
+  //   ✅ LEVEL SELECT POPUP 
     <div class="levelSelectOverlay" id="levelSelectOverlay" aria-hidden="true">
       <div class="winCard">
         <div class="winHeader">
