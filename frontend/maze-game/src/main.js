@@ -222,70 +222,48 @@ if (!window.Pi || !Pi.authenticate) {
 }
 
 // helper to finalize login
-async function onAuthSuccess({ user, accessToken }) {
-  CURRENT_USER = user;
-  CURRENT_ACCESS_TOKEN = accessToken;
 
-  ui.setUser(user);
+async function onAuthSuccess(auth) {
+  console.log("✅ Pi auth success", auth);
 
-  // load progress from backend
-  const serverProgress = await fetchPlayerProgress({
-    BACKEND,
-    accessToken,
-  });
+  // 1️⃣ Update UI immediately (IMPORTANT)
+  ui.setUser({ username: auth.user.username });
 
-  const savedLevel = Number(serverProgress?.level || 1);
-  levelIndex = clampLevelIndex(savedLevel - 1);
+  // 2️⃣ Load profile from backend
+  let me;
+  try {
+    me = await apiGetMe();
+  } catch (err) {
+    console.error("❌ apiGetMe failed", err);
+    ui.showLoginError("Failed to load profile. Please reopen app.");
+    return;
+  }
 
-  // 🔥 AFTER AUTOLOGIN → OPEN LEVEL SELECT
+  const serverUser = me.user;
+  const serverProgress = me.progress || {};
+  
+  ui.loginBtn?.style.setProperty("display", "none");
+  
+  ui.userPill?.classList.add("active");
+
+  // 3️⃣ Sync coins
+  COINS = Number(serverUser.coins || 0);
+  ui.setCoins(COINS);
+
+  // 4️⃣ Resolve level state
+  const savedLevel = Number(serverProgress.level || 1);
+  levelIndex = Math.max(0, savedLevel - 1);
+
+  // 5️⃣ OPEN LEVEL SELECT (THIS WAS MISSING / NOT REACHED)
   ui.showLevelSelect({
     totalLevels: TOTAL_LEVELS,
     currentLevel: levelIndex + 1,
     isCompleted: (lvl) => lvl < savedLevel,
   });
+
+  console.log("🎮 Level select opened");
 }
 
-(async () => {
-  let silentAuthSucceeded = false;
-
-  try {
-    const auth = await Pi.authenticate([], {
-      onIncompletePaymentFound: () => {},
-    });
-    silentAuthSucceeded = true;
-    await onAuthSuccess(auth);
-  } catch (err) {
-    silentAuthSucceeded = false;
-  }
-
-  if (!silentAuthSucceeded) {
-    ui.showLoginGate();
-
-    ui.onLoginClick(async () => {
-      try {
-        const auth = await Pi.authenticate([], {
-          onIncompletePaymentFound: () => {},
-        });
-
-        ui.hideLoginGate();
-        await onAuthSuccess(auth);
-      } catch (err) {
-        ui.showLoginError("Login failed. Please try again.");
-      }
-    });
-  }
-})();
-
-
-  CURRENT_USER = { username: serverUser.username, uid: serverUser.uid };
-
-  COINS = Number(serverUser.coins || 0);
-  ui.setCoins(COINS);
-
-  const savedLevel = Number(serverProgress?.level || 1);
-  levelIndex = clampLevelIndex(savedLevel - 1);
-  
-  const UNLOCKED_LEVEL = savedLevel;
 
   // WIN popup actions
   ui.onWinNext(async () => {
