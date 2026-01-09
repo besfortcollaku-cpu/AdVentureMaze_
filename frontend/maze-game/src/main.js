@@ -224,20 +224,35 @@ if (!window.Pi || !Pi.authenticate) {
 // helper to finalize login
 
 async function onAuthSuccess(auth) {
-  console.log("✅ Pi auth success", auth);
+    PI_ACCESS_TOKEN = auth.accessToken; // ⬅️ THIS IS THE KEY
 
-  // 1️⃣ Update UI immediately (IMPORTANT)
-  ui.setUser({ username: auth.user.username });
+      // 🔐 LOGIN TO BACKEND
+        const res = await fetch(`${API_URL}/auth/pi`, {
+            method: "POST",
+                headers: {
+                      Authorization: `Bearer ${PI_ACCESS_TOKEN}`,
+                          },
+                            });
 
-  // 2️⃣ Load profile from backend
-  let me;
-  try {
-    me = await apiGetMe();
-  } catch (err) {
-    console.error("❌ apiGetMe failed", err);
-    ui.showLoginError("Failed to load profile. Please reopen app.");
-    return;
-  }
+                              if (!res.ok) {
+                                  throw new Error("Backend login failed");
+                                    }
+
+                                      // ✅ NOW YOU ARE REALLY LOGGED IN
+                                        const me = await apiGetMe(); // now works
+                                          COINS = Number(me.user.coins || 0);
+                                            ui.setCoins(COINS);
+
+                                              ui.setUser({ username: auth.user.username });
+
+                                                // open level select
+                                                  ui.showLevelSelect({
+                                                      totalLevels: TOTAL_LEVELS,
+                                                          currentLevel: me.progress.level,
+                                                              isCompleted: (lvl) => lvl < me.progress.level,
+                                                                });
+                                                                }
+                                                 
 
   const serverUser = me.user;
   const serverProgress = me.progress || {};
