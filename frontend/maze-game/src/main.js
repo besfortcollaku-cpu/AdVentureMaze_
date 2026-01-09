@@ -35,14 +35,14 @@ function authHeaders() {
 async function readRes(res) {
   const txt = await res.text().catch(() => "");
   let data = {};
-  try { data = txt ? JSON.parse(txt) : {}; } catch {}
+  try {
+    data = txt ? JSON.parse(txt) : {};
+  } catch {}
   return { txt, data };
 }
 
 async function apiGetMe() {
-  const res = await fetch(`${BACKEND}/api/me`, {
-    headers: authHeaders(),
-  });
+  const res = await fetch(`${BACKEND}/api/me`, { headers: authHeaders() });
   const { data } = await readRes(res);
   if (!res.ok || !data?.ok) {
     throw new Error(data?.error || "api/me failed");
@@ -73,6 +73,12 @@ async function apiClaimLevelComplete(level) {
   const { data } = await readRes(res);
   if (!res.ok || !data?.ok) throw new Error(data?.error);
   return data;
+}
+
+function clampLevelIndex(i) {
+  if (i < 0) return 0;
+  if (i >= levels.length) return 0;
+  return i;
 }
 
 // ---------------------------
@@ -109,7 +115,7 @@ async function boot() {
   initPi();
 
   // ---------------------------
-  // 🔐 PI AUTO LOGIN (CORRECT)
+  // 🔐 PI AUTO LOGIN (FINAL)
   // ---------------------------
   if (!window.Pi?.authenticate) {
     alert("This game works only inside Pi Browser.");
@@ -119,7 +125,6 @@ async function boot() {
   async function onAuthSuccess(auth) {
     CURRENT_ACCESS_TOKEN = auth.accessToken;
 
-    // 🔥 THIS IS THE LOGIN
     const me = await apiGetMe();
 
     CURRENT_USER = {
@@ -132,8 +137,9 @@ async function boot() {
     ui.setUser({ username: me.user.username });
 
     const savedLevel = Number(me.progress?.level || 1);
-    levelIndex = Math.max(0, savedLevel - 1);
+    levelIndex = clampLevelIndex(savedLevel - 1);
 
+    // 🔥 OPEN LEVEL SELECT AFTER LOGIN
     ui.showLevelSelect({
       totalLevels: levels.length,
       currentLevel: levelIndex + 1,
@@ -143,6 +149,7 @@ async function boot() {
     startGame();
   }
 
+  // Silent login first
   try {
     const auth = await Pi.authenticate([], {
       onIncompletePaymentFound: () => {},
@@ -162,6 +169,32 @@ async function boot() {
       }
     });
   }
+
+  // ---------------------------
+  // UI HOOKS
+  // ---------------------------
+
+  // Joystick → open level select
+  document.getElementById("controls")?.addEventListener("click", () => {
+    ui.showLevelSelect({
+      totalLevels: levels.length,
+      currentLevel: levelIndex + 1,
+      isCompleted: (lvl) => lvl <= levelIndex + 1,
+    });
+  });
+
+  // Level select click
+  ui.onLevelSelect((selectedIndex) => {
+    levelIndex = clampLevelIndex(selectedIndex);
+    rewardedThisLevel = true;
+    game.setLevel(levels[levelIndex]);
+  });
+
+  // Win → next
+  ui.onWinNext(async () => {
+    ui.hideWinPopup();
+    goNextLevel();
+  });
 }
 
 // ---------------------------
@@ -205,6 +238,12 @@ function onLevelComplete() {
     levelNumber: levelIndex + 1,
     isLastLevel,
   });
+}
+
+function goNextLevel() {
+  levelIndex = clampLevelIndex(levelIndex + 1);
+  rewardedThisLevel = false;
+  game.setLevel(levels[levelIndex]);
 }
 
 boot();
