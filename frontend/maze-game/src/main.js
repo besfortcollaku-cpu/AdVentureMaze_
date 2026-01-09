@@ -361,7 +361,7 @@ async function onAuthSuccess(auth) {
   });
 
   game.start();
-}
+
 
 // ---------------------------
 // Level flow
