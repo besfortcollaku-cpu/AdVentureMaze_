@@ -20,7 +20,7 @@ let CURRENT_ACCESS_TOKEN = null;
 let levelIndex = 0;
 let game = null;
 let ui = null;
-
+let PI_ACCESS_TOKEN = null;
 // local cache synced from /api/me
 let COINS = 0;
 
