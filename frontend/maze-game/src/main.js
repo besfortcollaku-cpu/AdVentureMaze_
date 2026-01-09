@@ -286,9 +286,7 @@ if (!window.Pi || !Pi.authenticate) {
                                                         }
                                                                                         }
                                    
-          }
-    }
-}                          
+                       
 
   const serverUser = me.user;
   const serverProgress = me.progress || {};
