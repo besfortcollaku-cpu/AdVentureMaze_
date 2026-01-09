@@ -311,7 +311,6 @@ if (!window.Pi || !Pi.authenticate) {
   });
 
   console.log("🎮 Level select opened");
-}
 
 
   // WIN popup actions
@@ -324,7 +323,7 @@ if (!window.Pi || !Pi.authenticate) {
   ui.onWinAd(async () => {
     try {
       ui.showToast?.("Watching ad…");
-      await delay(5000);
+      await delay(3000);
 
       const out = await apiAd50();
       COINS = Number(out?.user?.coins ?? COINS);
