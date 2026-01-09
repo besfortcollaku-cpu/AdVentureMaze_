@@ -245,54 +245,37 @@ async function onAuthSuccess({ user, accessToken }) {
   });
 }
 
-let silentAuthSucceeded = false;
+(async () => {
+  let silentAuthSucceeded = false;
 
-// 2️⃣ Try SILENT auth first
-try {
-  const auth = await Pi.authenticate([], { onIncompletePaymentFound: () => {} });
-  silentAuthSucceeded = true;
-  await onAuthSuccess(auth);
-} catch (err) {
-  silentAuthSucceeded = false;
-}
-
-// 3️⃣ If silent auth failed → show login gate
-if (!silentAuthSucceeded) {
-  ui.showLoginGate();
-
-  ui.onLoginClick(async () => {
-    try {
-      const auth = await Pi.authenticate([], {
-        onIncompletePaymentFound: () => {},
-      });
-
-      ui.hideLoginGate();
-      await onAuthSuccess(auth);
-    } catch (err) {
-      ui.showLoginError("Login failed. Please try again.");
-    }
-  });
-}
-
-      if (ui?.userPill) ui.userPill.textContent = `User: ${user.username}`;
-      if (ui?.loginBtnText) ui.loginBtnText.textContent = "Logged in ✅";
-    },
-  });
-
-  if (!loginRes?.ok) return;
-
-  // load server state
-  let me;
   try {
-    me = await apiGetMe();
-  } catch (e) {
-    const msg = normalizeErr(e);
-    if (!handleAuthExpiredIfNeeded(msg)) alert("Failed to load profile: " + msg);
-    return;
+    const auth = await Pi.authenticate([], {
+      onIncompletePaymentFound: () => {},
+    });
+    silentAuthSucceeded = true;
+    await onAuthSuccess(auth);
+  } catch (err) {
+    silentAuthSucceeded = false;
   }
 
-  const serverUser = me.user;
-  const serverProgress = me.progress;
+  if (!silentAuthSucceeded) {
+    ui.showLoginGate();
+
+    ui.onLoginClick(async () => {
+      try {
+        const auth = await Pi.authenticate([], {
+          onIncompletePaymentFound: () => {},
+        });
+
+        ui.hideLoginGate();
+        await onAuthSuccess(auth);
+      } catch (err) {
+        ui.showLoginError("Login failed. Please try again.");
+      }
+    });
+  }
+})();
+
 
   CURRENT_USER = { username: serverUser.username, uid: serverUser.uid };
 
