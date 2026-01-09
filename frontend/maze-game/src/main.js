@@ -22,12 +22,10 @@ let ui = null;
 let COINS = 0;
 let rewardedThisLevel = false;
 
-// ---------------------------
-// Backend helpers
-// ---------------------------
+/* ---------------- Backend helpers ---------------- */
 function authHeaders() {
   if (!CURRENT_ACCESS_TOKEN) {
-    throw new Error("Missing access token. Please login again.");
+    throw new Error("Missing access token");
   }
   return { Authorization: `Bearer ${CURRENT_ACCESS_TOKEN}` };
 }
@@ -35,14 +33,14 @@ function authHeaders() {
 async function readRes(res) {
   const txt = await res.text().catch(() => "");
   let data = {};
-  try {
-    data = txt ? JSON.parse(txt) : {};
-  } catch {}
+  try { data = txt ? JSON.parse(txt) : {}; } catch {}
   return { txt, data };
 }
 
 async function apiGetMe() {
-  const res = await fetch(`${BACKEND}/api/me`, { headers: authHeaders() });
+  const res = await fetch(`${BACKEND}/api/me`, {
+    headers: authHeaders(),
+  });
   const { data } = await readRes(res);
   if (!res.ok || !data?.ok) {
     throw new Error(data?.error || "api/me failed");
@@ -75,21 +73,12 @@ async function apiClaimLevelComplete(level) {
   return data;
 }
 
-function clampLevelIndex(i) {
-  if (i < 0) return 0;
-  if (i >= levels.length) return 0;
-  return i;
-}
-
-// ---------------------------
-// Boot
-// ---------------------------
+/* ---------------- Boot ---------------- */
 async function boot() {
   ui = mountUI(document.querySelector("#app"));
 
   ui.onFirstUserGesture(() => ensureAudioUnlocked());
 
-  // settings
   const s0 = getSettings();
   ui.setSoundEnabled(s0.sound);
   ui.setVibrationEnabled(s0.vibration);
@@ -106,7 +95,6 @@ async function boot() {
     if (!s.sound) stopRollSound();
   });
 
-  // Pi environment
   const env = await enforcePiEnvironment({
     desktopBlockEl: document.getElementById("desktopBlock"),
   });
@@ -114,9 +102,6 @@ async function boot() {
 
   initPi();
 
-  // ---------------------------
-  // 🔐 PI AUTO LOGIN (FINAL)
-  // ---------------------------
   if (!window.Pi?.authenticate) {
     alert("This game works only inside Pi Browser.");
     return;
@@ -137,9 +122,8 @@ async function boot() {
     ui.setUser({ username: me.user.username });
 
     const savedLevel = Number(me.progress?.level || 1);
-    levelIndex = clampLevelIndex(savedLevel - 1);
+    levelIndex = Math.max(0, savedLevel - 1);
 
-    // 🔥 OPEN LEVEL SELECT AFTER LOGIN
     ui.showLevelSelect({
       totalLevels: levels.length,
       currentLevel: levelIndex + 1,
@@ -149,7 +133,6 @@ async function boot() {
     startGame();
   }
 
-  // Silent login first
   try {
     const auth = await Pi.authenticate([], {
       onIncompletePaymentFound: () => {},
@@ -169,37 +152,9 @@ async function boot() {
       }
     });
   }
-
-  // ---------------------------
-  // UI HOOKS
-  // ---------------------------
-
-  // Joystick → open level select
-  document.getElementById("controls")?.addEventListener("click", () => {
-    ui.showLevelSelect({
-      totalLevels: levels.length,
-      currentLevel: levelIndex + 1,
-      isCompleted: (lvl) => lvl <= levelIndex + 1,
-    });
-  });
-
-  // Level select click
-  ui.onLevelSelect((selectedIndex) => {
-    levelIndex = clampLevelIndex(selectedIndex);
-    rewardedThisLevel = true;
-    game.setLevel(levels[levelIndex]);
-  });
-
-  // Win → next
-  ui.onWinNext(async () => {
-    ui.hideWinPopup();
-    goNextLevel();
-  });
 }
 
-// ---------------------------
-// Game
-// ---------------------------
+/* ---------------- Game ---------------- */
 function startGame() {
   rewardedThisLevel = false;
 
@@ -238,12 +193,6 @@ function onLevelComplete() {
     levelNumber: levelIndex + 1,
     isLastLevel,
   });
-}
-
-function goNextLevel() {
-  levelIndex = clampLevelIndex(levelIndex + 1);
-  rewardedThisLevel = false;
-  game.setLevel(levels[levelIndex]);
 }
 
 boot();
