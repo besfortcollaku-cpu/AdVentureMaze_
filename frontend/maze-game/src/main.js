@@ -22,10 +22,12 @@ let ui = null;
 let COINS = 0;
 let rewardedThisLevel = false;
 
-/* ---------------- Backend helpers ---------------- */
+// ---------------------------
+// Backend helpers
+// ---------------------------
 function authHeaders() {
   if (!CURRENT_ACCESS_TOKEN) {
-    throw new Error("Missing access token");
+    throw new Error("Missing access token. Please login again.");
   }
   return { Authorization: `Bearer ${CURRENT_ACCESS_TOKEN}` };
 }
@@ -73,12 +75,15 @@ async function apiClaimLevelComplete(level) {
   return data;
 }
 
-/* ---------------- Boot ---------------- */
+// ---------------------------
+// Boot
+// ---------------------------
 async function boot() {
   ui = mountUI(document.querySelector("#app"));
 
   ui.onFirstUserGesture(() => ensureAudioUnlocked());
 
+  // settings
   const s0 = getSettings();
   ui.setSoundEnabled(s0.sound);
   ui.setVibrationEnabled(s0.vibration);
@@ -95,6 +100,7 @@ async function boot() {
     if (!s.sound) stopRollSound();
   });
 
+  // Pi environment
   const env = await enforcePiEnvironment({
     desktopBlockEl: document.getElementById("desktopBlock"),
   });
@@ -102,6 +108,9 @@ async function boot() {
 
   initPi();
 
+  // ---------------------------
+  // 🔐 PI AUTO LOGIN (CORRECT)
+  // ---------------------------
   if (!window.Pi?.authenticate) {
     alert("This game works only inside Pi Browser.");
     return;
@@ -110,6 +119,7 @@ async function boot() {
   async function onAuthSuccess(auth) {
     CURRENT_ACCESS_TOKEN = auth.accessToken;
 
+    // 🔥 THIS IS THE LOGIN
     const me = await apiGetMe();
 
     CURRENT_USER = {
@@ -154,7 +164,9 @@ async function boot() {
   }
 }
 
-/* ---------------- Game ---------------- */
+// ---------------------------
+// Game
+// ---------------------------
 function startGame() {
   rewardedThisLevel = false;
 
