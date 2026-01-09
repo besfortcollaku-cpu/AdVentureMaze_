@@ -210,12 +210,69 @@ ui.onLevelSelect((selectedIndex) => {
   initPi();
 
   // login
-  const loginRes = await ensurePiLogin({
+  // ---------------------------
+// 🔐 PI AUTO-LOGIN FLOW
+// ---------------------------
+
+// 1️⃣ Detect Pi SDK
+if (!window.Pi || !Pi.authenticate) {
+  // Not Pi Browser → hard stop (Step B will improve UI)
+  console.warn("Pi SDK not detected");
+  return;
+}
+
+// helper to finalize login
+async function onAuthSuccess({ user, accessToken }) {
+  CURRENT_USER = user;
+  CURRENT_ACCESS_TOKEN = accessToken;
+
+  ui.setUser(user);
+
+  // load progress from backend
+  const serverProgress = await fetchPlayerProgress({
     BACKEND,
-    ui,
-    onLogin: ({ user, accessToken }) => {
-      CURRENT_USER = user;
-      CURRENT_ACCESS_TOKEN = accessToken;
+    accessToken,
+  });
+
+  const savedLevel = Number(serverProgress?.level || 1);
+  levelIndex = clampLevelIndex(savedLevel - 1);
+
+  // 🔥 AFTER AUTOLOGIN → OPEN LEVEL SELECT
+  ui.showLevelSelect({
+    totalLevels: TOTAL_LEVELS,
+    currentLevel: levelIndex + 1,
+    isCompleted: (lvl) => lvl < savedLevel,
+  });
+}
+
+let silentAuthSucceeded = false;
+
+// 2️⃣ Try SILENT auth first
+try {
+  const auth = await Pi.authenticate([], { onIncompletePaymentFound: () => {} });
+  silentAuthSucceeded = true;
+  await onAuthSuccess(auth);
+} catch (err) {
+  silentAuthSucceeded = false;
+}
+
+// 3️⃣ If silent auth failed → show login gate
+if (!silentAuthSucceeded) {
+  ui.showLoginGate();
+
+  ui.onLoginClick(async () => {
+    try {
+      const auth = await Pi.authenticate([], {
+        onIncompletePaymentFound: () => {},
+      });
+
+      ui.hideLoginGate();
+      await onAuthSuccess(auth);
+    } catch (err) {
+      ui.showLoginError("Login failed. Please try again.");
+    }
+  });
+}
 
       if (ui?.userPill) ui.userPill.textContent = `User: ${user.username}`;
       if (ui?.loginBtnText) ui.loginBtnText.textContent = "Logged in ✅";
