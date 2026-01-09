@@ -177,8 +177,10 @@ document.getElementById("controls")?.addEventListener("click", () => {
 
 ui.onLevelSelect((selectedIndex) => {
   levelIndex = clampLevelIndex(selectedIndex);
-  rewardedThisLevel = true; // prevent reward on replay
+  rewardedThisLevel = true;
+
   game.setLevel(levels[levelIndex]);
+  game.start(); // ▶️ start AFTER welcome + selection
 });
   // unlock audio after first gesture
   ui.onFirstUserGesture(() => ensureAudioUnlocked());
@@ -246,6 +248,8 @@ ui.onLevelSelect((selectedIndex) => {
   levelIndex = clampLevelIndex(savedLevel - 1);
   
   const UNLOCKED_LEVEL = savedLevel;
+  // 🔑 make accessible after login
+window.__UNLOCKED_LEVEL__ = savedLevel;
   
   
   // ---------------------------
@@ -283,6 +287,7 @@ ui.onWelcomeStart?.(() => {
       const out = await apiAd50();
       COINS = Number(out?.user?.coins ?? COINS);
       ui.setCoins(COINS);
+      
 
       ui.showToast?.("Reward granted +50");
     } catch (e) {
@@ -341,15 +346,14 @@ ui.onWelcomeStart?.(() => {
   rewardedThisLevel = false;
 
   game = createGame({
-    BACKEND,
-    canvas: ui.canvas,
-    getCurrentUser: () => CURRENT_USER,
-    level: firstLevel,
-    onLevelComplete,
-  });
+  BACKEND,
+  canvas: ui.canvas,
+  getCurrentUser: () => CURRENT_USER,
+  level: firstLevel,
+  onLevelComplete,
+});
 
-  game.start();
-}
+// ❌ do NOT auto start here
 
 // ---------------------------
 // Level flow

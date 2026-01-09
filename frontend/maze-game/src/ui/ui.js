@@ -151,6 +151,18 @@ export function mountUI(app) {
     
     <!-- ✅ LEVEL SELECT POPUP -->
     <div class="levelSelectOverlay" id="levelSelectOverlay" aria-hidden="true">
+      <!-- ✅ WELCOME OVERLAY -->
+<div class="welcomeOverlay" id="welcomeOverlay" aria-hidden="true">
+  <div class="welcomeCard">
+    <h2 id="welcomeTitle">Welcome</h2>
+    <p id="welcomeText">
+      Navigate the maze, collect coins, and unlock levels.
+    </p>
+    <button class="welcomeBtn" id="welcomeStartBtn">
+      Start Playing
+    </button>
+  </div>
+</div>
       <div class="winCard">
         <div class="winHeader">
           <div class="winBadge">LEVELS</div>
@@ -461,8 +473,44 @@ export function mountUI(app) {
   const levelSelectOverlay = document.getElementById("levelSelectOverlay");
   const levelGrid = document.getElementById("levelGrid");
   const levelSelectClose = document.getElementById("levelSelectClose");
+  // Welcome overlay
+const welcomeOverlay = document.getElementById("welcomeOverlay");
+const welcomeTitle = document.getElementById("welcomeTitle");
+const welcomeText = document.getElementById("welcomeText");
+const welcomeStartBtn = document.getElementById("welcomeStartBtn");
 
   let levelSelectHandler = null;
+  
+  let welcomeStartHandler = null;
+
+function showWelcome(isReturning = false) {
+  if (!welcomeOverlay) return;
+
+  welcomeTitle.textContent = isReturning
+    ? "Welcome back 👋"
+    : "Welcome to Adventure Maze";
+
+  welcomeText.textContent = isReturning
+    ? "Continue your journey and unlock new levels."
+    : "Swipe to move, finish mazes, and earn rewards.";
+
+  welcomeOverlay.classList.add("show");
+  welcomeOverlay.setAttribute("aria-hidden", "false");
+}
+
+function hideWelcome() {
+  welcomeOverlay?.classList.remove("show");
+  welcomeOverlay?.setAttribute("aria-hidden", "true");
+}
+
+function onWelcomeStart(fn) {
+  welcomeStartHandler = fn;
+}
+
+welcomeStartBtn?.addEventListener("click", () => {
+  hideWelcome();
+  welcomeStartHandler?.();
+});
 
   // ✅ FIXED (single correct implementation)
   function showLevelSelect({ totalLevels, isCompleted, currentLevel }) {
