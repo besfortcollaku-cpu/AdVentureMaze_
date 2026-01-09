@@ -211,48 +211,84 @@ ui.onLevelSelect((selectedIndex) => {
 
   // login
   // ---------------------------
-// 🔐 PI AUTO-LOGIN FLOW
+// ---------------------------
+// 🔐 PI AUTO-LOGIN FLOW (FIXED)
 // ---------------------------
 
-// 1️⃣ Detect Pi SDK
 if (!window.Pi || !Pi.authenticate) {
-  // Not Pi Browser → hard stop (Step B will improve UI)
-  console.warn("Pi SDK not detected");
-  return;
-}
+    alert("This game is available only in Pi Browser.");
+      return;
+    }
 
-// helper to finalize login
+    async function onAuthSuccess(auth) {
+        // 1️⃣ Store tokens
+        CURRENT_ACCESS_TOKEN = auth.accessToken;
+          CURRENT_USER = {
+                username: auth.user.username,
+                    uid: auth.user.uid,
+                      };
 
-async function onAuthSuccess(auth) {
-    PI_ACCESS_TOKEN = auth.accessToken; // ⬅️ THIS IS THE KEY
+                        // 2️⃣ Login to backend
+                        const res = await fetch(`${BACKEND}/auth/pi`, {
+                              method: "POST",
+                                  headers: {
+                                          Authorization: `Bearer ${CURRENT_ACCESS_TOKEN}`,
+                                              },
+                                                });
 
-      // 🔐 LOGIN TO BACKEND
-        const res = await fetch(`${API_URL}/auth/pi`, {
-            method: "POST",
-                headers: {
-                      Authorization: `Bearer ${PI_ACCESS_TOKEN}`,
-                          },
-                            });
+                          if (!res.ok) {
+                                throw new Error("Backend login failed");
+                                  }
 
-                              if (!res.ok) {
-                                  throw new Error("Backend login failed");
-                                    }
+                                    // 3️⃣ Load backend state
+                                    const me = await apiGetMe();
 
-                                      // ✅ NOW YOU ARE REALLY LOGGED IN
-                                        const me = await apiGetMe(); // now works
-                                          COINS = Number(me.user.coins || 0);
-                                            ui.setCoins(COINS);
+                                      COINS = Number(me.user.coins || 0);
+                                        ui.setCoins(COINS);
 
-                                              ui.setUser({ username: auth.user.username });
+                                          ui.setUser({ username: me.user.username });
 
-                                                // open level select
-                                                  ui.showLevelSelect({
-                                                      totalLevels: TOTAL_LEVELS,
-                                                          currentLevel: me.progress.level,
-                                                              isCompleted: (lvl) => lvl < me.progress.level,
+                                            // 4️⃣ Resolve progress
+                                            const savedLevel = Number(me.progress?.level || 1);
+                                              levelIndex = clampLevelIndex(savedLevel - 1);
+
+                                                // 5️⃣ Open level select
+                                                ui.showLevelSelect({
+                                                      totalLevels: levels.length,
+                                                          currentLevel: levelIndex + 1,
+                                                              isCompleted: (lvl) => lvl < savedLevel,
                                                                 });
-                                                                }
-                                                 
+
+                                                  console.log("✅ Logged in as", me.user.username);
+                                                }
+
+                                                // 1️⃣ Try silent login
+                                                try {
+                                                    const auth = await Pi.authenticate([], {
+                                                          onIncompletePaymentFound: () => {},
+                                                            });
+                                                      await onAuthSuccess(auth);
+                                                    } catch {
+                                                        // 2️⃣ Show login gate if silent auth fails
+                                                        ui.showLoginGate();
+
+                                                          ui.onLoginClick(async () => {
+                                                                try {
+                                                                        const auth = await Pi.authenticate([], {
+                                                                                  onIncompletePaymentFound: () => {},
+                                                                                        });
+                                                                              ui.hideLoginGate();
+                                                                                    await onAuthSuccess(auth);
+                                                                                        } catch (e) {
+                                                                                                ui.showLoginError("Login failed. Please try again.");
+                                                                                                    }
+                                                                                                      });
+                                                        }
+                                                                                        }
+                                   
+          }
+    }
+}                          
 
   const serverUser = me.user;
   const serverProgress = me.progress || {};
