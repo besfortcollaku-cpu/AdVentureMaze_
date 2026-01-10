@@ -254,28 +254,6 @@ ui.onLevelSelect((selectedIndex) => {
   
   const isReturning = savedLevel > 1;
 ui.showWelcome(isReturning);
-  
-
-  // 🔑 make accessible after login
-window.__UNLOCKED_LEVEL__ = savedLevel;
-  
-  
-  // ---------------------------
-// WELCOME FLOW (PATCH ONLY)
-// ---------------------------
-
-// when user presses "Start" on welcome
-ui.onWelcomeStart?.(() => {
-  ui.hideWelcome?.();
-
-  ui.showLevelSelect({
-    totalLevels: levels.length,
-    currentLevel: levelIndex + 1,
-    isCompleted: (lvl) => lvl < UNLOCKED_LEVEL,
-  });
-});
-
-
 
   // WIN popup actions
   ui.onWinNext(async () => {
@@ -358,6 +336,11 @@ ui.onWelcomeStart?.(() => {
   onLevelComplete,
 });
 
+
+ui.onWelcomeStart?.(() => {
+  ui.hideWelcome?.();
+  game.start();
+});
 // ❌ do NOT auto start here
 
 // ---------------------------
