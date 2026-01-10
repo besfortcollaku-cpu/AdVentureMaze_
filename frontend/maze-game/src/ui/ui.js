@@ -519,6 +519,7 @@ function onWelcomeStart(fn) {
 }
 
 welcomeStartBtn?.addEventListener("click", () => {
+  console.log("[UI] Welcome Start clicked");
   hideWelcome();
   welcomeStartHandler?.();
 });

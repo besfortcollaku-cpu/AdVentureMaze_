@@ -171,6 +171,8 @@ function clampLevelIndex(i) {
 // ---------------------------
 async function boot() {
   ui = mountUI(document.querySelector("#app"));
+  ui.showWelcome(false);
+console.log("[BOOT] Welcome forced visible");
   ui.hideGame();       // ⬅ hide entire game UI
 ui.showWelcome(false); // ⬅ show welcome instantly
 
@@ -264,9 +266,13 @@ ui.onLevelSelect((selectedIndex) => {
   UNLOCKED_LEVEL = savedLevel;
   
   LOGIN_READY = true;
-  
-ui.onWelcomeStart(() => {
-  if (!LOGIN_READY) return; // ⛔ still authenticating
+ ui.onWelcomeStart(() => {
+  console.log("[MAIN] onWelcomeStart fired", { LOGIN_READY });
+
+  if (!LOGIN_READY) {
+    console.log("[MAIN] Login not ready yet");
+    return;
+  }
 
   ui.hideWelcome();
 
