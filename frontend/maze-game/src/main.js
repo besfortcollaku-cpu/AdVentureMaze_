@@ -266,8 +266,8 @@ ui.onWelcomeStart(() => {
     currentLevel: levelIndex + 1,
     isCompleted: (lvl) => lvl <= UNLOCKED_LEVEL,
   });
-});UNLOCKED_LEVEL,
-  };
+});
+  
 
 
   // WIN popup actions
