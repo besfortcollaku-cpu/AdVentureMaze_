@@ -168,11 +168,13 @@ async function boot() {
 
 // Level select via joystick icon
 document.getElementById("controls")?.addEventListener("click", () => {
+  if (!CURRENT_USER?.uid) return; // 🔒 prevent pre-login
+
   ui.showLevelSelect({
-  totalLevels: levels.length,
-  currentLevel: levelIndex + 1,
-  isCompleted: (lvl) => lvl < UNLOCKED_LEVEL,
-});
+    totalLevels: levels.length,
+    currentLevel: levelIndex + 1,
+    isCompleted: (lvl) => lvl < UNLOCKED_LEVEL,
+  });
 });
 
 ui.onLevelSelect((selectedIndex) => {
@@ -180,7 +182,6 @@ ui.onLevelSelect((selectedIndex) => {
   rewardedThisLevel = true;
 
   game.setLevel(levels[levelIndex]);
-  game.start(); // ▶️ start AFTER welcome + selection
 });
   // unlock audio after first gesture
   ui.onFirstUserGesture(() => ensureAudioUnlocked());
@@ -224,16 +225,7 @@ ui.onLevelSelect((selectedIndex) => {
     },
   });
 
-  if (!loginRes?.ok) return;
-  
-  // 🆕 Show welcome after successful login
-const isReturningUser = savedLevel > 1;
-
-ui.showWelcome(isReturningUser);
-
-ui.onWelcomeStart(() => {
-  // start game after welcome
-  game.start();
+ 
 });
 
   // load server state
@@ -257,7 +249,11 @@ ui.onWelcomeStart(() => {
   const savedLevel = Number(serverProgress?.level || 1);
   levelIndex = clampLevelIndex(savedLevel - 1);
   
-  const UNLOCKED_LEVEL = savedLevel;
+  UNLOCKED_LEVEL = savedLevel;
+  onWelcomeStart(() => {
+  game.start();
+});
+
   // 🔑 make accessible after login
 window.__UNLOCKED_LEVEL__ = savedLevel;
   
