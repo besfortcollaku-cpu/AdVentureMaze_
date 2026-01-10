@@ -148,12 +148,9 @@ export function mountUI(app) {
         <div class="winHint">Tip: Watch ad gives +50 coins</div>
       </div>
     </div>
-    
-    <!-- ✅ LEVEL SELECT POPUP -->
-    <div class="levelSelectOverlay" id="levelSelectOverlay" aria-hidden="true">
-      <!-- ✅ WELCOME OVERLAY -->
+    <!-- ✅ WELCOME OVERLAY -->
 <div class="welcomeOverlay" id="welcomeOverlay" aria-hidden="true">
-  <div class="welcomeCard">
+<div class="welcomeCard">
     <h2 id="welcomeTitle">Welcome</h2>
     <p id="welcomeText">
       Navigate the maze, collect coins, and unlock levels.
@@ -161,7 +158,10 @@ export function mountUI(app) {
     <button class="welcomeBtn" id="welcomeStartBtn">
       Start Playing
     </button>
-  </div>
+</div>
+    <!-- ✅ LEVEL SELECT POPUP -->
+    <div class="levelSelectOverlay" id="levelSelectOverlay" aria-hidden="true">
+      
 </div>
       <div class="winCard">
         <div class="winHeader">
