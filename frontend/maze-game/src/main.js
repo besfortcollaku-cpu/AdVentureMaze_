@@ -20,6 +20,7 @@ let CURRENT_ACCESS_TOKEN = null;
 let levelIndex = 0;
 let game = null;
 let ui = null;
+let UNLOCKED_LEVEL = 1;
 
 // local cache synced from /api/me
 let COINS = 0;
