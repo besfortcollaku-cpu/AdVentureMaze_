@@ -225,6 +225,16 @@ ui.onLevelSelect((selectedIndex) => {
   });
 
   if (!loginRes?.ok) return;
+  
+  // 🆕 Show welcome after successful login
+const isReturningUser = savedLevel > 1;
+
+ui.showWelcome(isReturningUser);
+
+ui.onWelcomeStart(() => {
+  // start game after welcome
+  game.start();
+});
 
   // load server state
   let me;
