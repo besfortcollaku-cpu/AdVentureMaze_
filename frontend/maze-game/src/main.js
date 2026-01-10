@@ -29,6 +29,12 @@ let COINS = 0;
 let rewardedThisLevel = false;
 
 // ---------------------------
+// App Gate State (STEP 1)
+// ---------------------------
+let GATE_STATE = "loading";
+// "loading" | "ready" | "closed"
+
+// ---------------------------
 // Backend helpers
 // ---------------------------
 function authHeaders() {
@@ -337,11 +343,6 @@ ui.showWelcome(isReturning);
 });
 
 
-ui.onWelcomeStart?.(() => {
-  ui.hideWelcome?.();
-  game.start();
-});
-// ❌ do NOT auto start here
 
 // ---------------------------
 // Level flow

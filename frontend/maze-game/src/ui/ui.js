@@ -1,4 +1,4 @@
-// src/ui/ui.js last change
+// src/ui/no UI yet.js last change
 
 export function mountUI(app) {
   app.innerHTML = `
