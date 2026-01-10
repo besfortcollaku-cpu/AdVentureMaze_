@@ -171,6 +171,8 @@ function clampLevelIndex(i) {
 // ---------------------------
 async function boot() {
   ui = mountUI(document.querySelector("#app"));
+  ui.hideGame();       // ⬅ hide entire game UI
+ui.showWelcome(false); // ⬅ show welcome instantly
 
 
 // Level select via joystick icon
@@ -258,11 +260,9 @@ ui.onLevelSelect((selectedIndex) => {
   
   UNLOCKED_LEVEL = savedLevel;
   
-  const isReturning = savedLevel > 1;
-ui.showWelcome(isReturning);
-
 ui.onWelcomeStart?.(() => {
-  ui.hideWelcome?.();
+  ui.hideWelcome();
+  ui.showGame();
 
   ui.showLevelSelect({
     totalLevels: levels.length,

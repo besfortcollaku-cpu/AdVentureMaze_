@@ -6,7 +6,7 @@ export function mountUI(app) {
       <div class="topbar">
         <div class="topRow">
           <div class="brand">
-            <div class="logoBox" title="Adventure Maze">
+            <div class="logoBox" title="AdVenture Maze">
               <img src="/logo.png" alt="Adventure Maze Logo" />
             </div>
           </div>
@@ -21,6 +21,7 @@ export function mountUI(app) {
             <div id="coinCount">0</div>
           </div>
         </div>
+        
 
         <div class="iconRow">
           ${iconBtn("settingsBtn", gearSVG(), "")}
@@ -43,7 +44,7 @@ export function mountUI(app) {
 
       <div class="bottomBar">
         <button class="btn" id="hintBtn">
-          <div class="btnIcon">🎬</div>
+          <div class="btnIcon">💡</div>
           <div>HINT</div>
         </button>
 
@@ -60,7 +61,7 @@ export function mountUI(app) {
     <div class="desktopBlock" id="desktopBlock" style="display:none;">
       <div class="desktopCard">
         <h2>Mobile game</h2>
-        <p>This game is designed for smartphones. Use swipe on mobile. Desktop is only for testing (arrow keys).</p>
+        <p>This game is designed ONLY for smartphones. Use swipe on mobile. Desktop is only for testing (arrow keys).</p>
       </div>
     </div>
 
@@ -177,6 +178,7 @@ export function mountUI(app) {
       </div>
     </div>
   `;
+  const root = app.querySelector(".phone");
 
   // ✅ Inject UI styles (Login Gate + Settings + Win overlay + login wrap)
   const extra = document.createElement("style");
@@ -440,6 +442,14 @@ export function mountUI(app) {
     .winHint{ position:relative; z-index:2; margin-top:12px; font-size:12px; opacity:.75; }
   `;
   document.head.appendChild(extra);
+  
+  function hideGame() {
+  root?.classList.add("game-hidden");
+}
+
+function showGame() {
+  root?.classList.remove("game-hidden");
+}
 
   // ---------------------------
   // Elements
@@ -713,6 +723,8 @@ welcomeStartBtn?.addEventListener("click", () => {
 showWelcome,
 hideWelcome,
 onWelcomeStart,
+hideGame,
+showGame,
     onHint(fn) { hintHandler = fn; },
     onSkip(fn) { skipHandler = fn; },
     canvas: document.getElementById("game"),
