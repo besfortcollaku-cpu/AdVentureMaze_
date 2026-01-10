@@ -226,7 +226,7 @@ ui.onLevelSelect((selectedIndex) => {
   });
 
  
-});
+};
 
   // load server state
   let me;
