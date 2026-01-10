@@ -1,6 +1,7 @@
 // src/ui/no UI yet.js last change
 
 export function mountUI(app) {
+  app.classList.add("game-hidden");
   app.innerHTML = `
     <div class="phone">
       <div class="topbar">
@@ -25,7 +26,7 @@ export function mountUI(app) {
 
         <div class="iconRow">
           ${iconBtn("settingsBtn", gearSVG(), "")}
-          ${iconBtn("controls", joystickSVG(), "")}
+          ${iconBtn("controls", levelSVG(), "")}
         
           <div class="loginWrap">
             <button class="iconBtnWide" id="loginBtn">

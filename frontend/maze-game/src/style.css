@@ -918,6 +918,9 @@ canvas {
 .welcomeBtn:active{
   transform: translateY(1px);
 }
+
+
 .game-hidden {
-  display: none;
+  visibility: hidden;
+  pointer-events: none;
 }
