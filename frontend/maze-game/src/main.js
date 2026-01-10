@@ -267,7 +267,7 @@ ui.onWelcomeStart(() => {
     isCompleted: (lvl) => lvl <= UNLOCKED_LEVEL,
   });
 });
-  
+
 
 
   // WIN popup actions
@@ -417,6 +417,4 @@ async function goNextLevel() {
     console.warn("progress save failed:", e);
   }
 }
-
-
-boot();
+}
