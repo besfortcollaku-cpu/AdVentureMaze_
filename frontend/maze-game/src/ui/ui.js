@@ -568,22 +568,7 @@ welcomeStartBtn?.addEventListener("click", () => {
   let winNextHandler = null;
   let winAdHandler = null;
   
-  // ---------------------------
-// Welcome (PATCH ONLY – no UI yet)
-// ---------------------------
-let welcomeStartHandler = null;
 
-function showWelcome() {
-  // UI will be added later
-}
-
-function hideWelcome() {
-  // UI will be added later
-}
-
-function onWelcomeStart(fn) {
-  welcomeStartHandler = fn;
-}
 
   // ✅ first user gesture (for WebAudio unlock on mobile)
   let firstGestureHandler = null;
