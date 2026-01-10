@@ -251,6 +251,9 @@ ui.onLevelSelect((selectedIndex) => {
   
   UNLOCKED_LEVEL = savedLevel;
   
+  const isReturning = savedLevel > 1;
+ui.showWelcome(isReturning);
+  
 
   // 🔑 make accessible after login
 window.__UNLOCKED_LEVEL__ = savedLevel;
