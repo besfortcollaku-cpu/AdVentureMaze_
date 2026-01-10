@@ -425,6 +425,5 @@ async function goNextLevel() {
     console.warn("progress save failed:", e);
   }
 }
-}
 
 boot();
