@@ -260,14 +260,13 @@ ui.onLevelSelect((selectedIndex) => {
   
   UNLOCKED_LEVEL = savedLevel;
   
-ui.onWelcomeStart?.(() => {
-  ui.hideWelcome();
-  ui.showGame();
-
+ui.onWelcomeStart(() => {
   ui.showLevelSelect({
     totalLevels: levels.length,
     currentLevel: levelIndex + 1,
     isCompleted: (lvl) => lvl <= UNLOCKED_LEVEL,
+  });
+});UNLOCKED_LEVEL,
   });
 });
 
