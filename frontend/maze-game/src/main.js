@@ -173,7 +173,7 @@ async function boot() {
   ui = mountUI(document.querySelector("#app"));
   ui.showWelcome(false);
 console.log("[BOOT] Welcome forced visible");
-  ui.hideGame();       // ⬅ hide entire game UI
+   //ui.hideGame();       ⬅ hide entire game UI
 ui.showWelcome(false); // ⬅ show welcome instantly
 
 
@@ -264,6 +264,7 @@ ui.onLevelSelect((selectedIndex) => {
   levelIndex = clampLevelIndex(savedLevel - 1);
   
   UNLOCKED_LEVEL = savedLevel;
+  ui.showWelcome(savedLevel > 1);
   
   LOGIN_READY = true;
  ui.onWelcomeStart(() => {

@@ -151,15 +151,22 @@ export function mountUI(app) {
       </div>
     </div>
     <!-- ✅ WELCOME OVERLAY -->
+<!-- ✅ WELCOME OVERLAY -->
 <div class="welcomeOverlay" id="welcomeOverlay" aria-hidden="true">
-<div class="welcomeCard">
+  <div class="welcomeCard">
     <h2 id="welcomeTitle">Welcome</h2>
-    <p id="welcomeText">
-      Navigate the maze, collect coins, and unlock levels.
-    </p>
+    <p id="welcomeText"></p>
     <button class="welcomeBtn" id="welcomeStartBtn">
       Start Playing
     </button>
+  </div>
+</div>
+
+<!-- ✅ LEVEL SELECT POPUP -->
+<div class="levelSelectOverlay" id="levelSelectOverlay" aria-hidden="true">
+  <div class="winCard">
+    ...
+  </div>
 </div>
     <!-- ✅ LEVEL SELECT POPUP -->
     <div class="levelSelectOverlay" id="levelSelectOverlay" aria-hidden="true">
