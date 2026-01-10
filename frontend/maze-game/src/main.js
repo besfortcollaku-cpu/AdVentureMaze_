@@ -178,10 +178,12 @@ document.getElementById("controls")?.addEventListener("click", () => {
 });
 
 ui.onLevelSelect((selectedIndex) => {
+  if (!game) return; // 🔒 guard
+
   levelIndex = clampLevelIndex(selectedIndex);
   rewardedThisLevel = true;
-
   game.setLevel(levels[levelIndex]);
+  game.start();
 });
   // unlock audio after first gesture
   ui.onFirstUserGesture(() => ensureAudioUnlocked());
@@ -225,8 +227,6 @@ ui.onLevelSelect((selectedIndex) => {
     },
   });
 
- 
-};
 
   // load server state
   let me;
@@ -250,9 +250,7 @@ ui.onLevelSelect((selectedIndex) => {
   levelIndex = clampLevelIndex(savedLevel - 1);
   
   UNLOCKED_LEVEL = savedLevel;
-  onWelcomeStart(() => {
-  game.start();
-});
+  
 
   // 🔑 make accessible after login
 window.__UNLOCKED_LEVEL__ = savedLevel;
@@ -261,9 +259,6 @@ window.__UNLOCKED_LEVEL__ = savedLevel;
   // ---------------------------
 // WELCOME FLOW (PATCH ONLY)
 // ---------------------------
-
-// show welcome (logic only, UI comes later)
-ui.showWelcome?.();
 
 // when user presses "Start" on welcome
 ui.onWelcomeStart?.(() => {
@@ -424,6 +419,7 @@ async function goNextLevel() {
   } catch (e) {
     console.warn("progress save failed:", e);
   }
+}
 }
 
 boot();
