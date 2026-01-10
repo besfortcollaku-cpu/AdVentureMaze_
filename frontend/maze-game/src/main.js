@@ -261,6 +261,16 @@ ui.onLevelSelect((selectedIndex) => {
   const isReturning = savedLevel > 1;
 ui.showWelcome(isReturning);
 
+ui.onWelcomeStart?.(() => {
+  ui.hideWelcome?.();
+
+  ui.showLevelSelect({
+    totalLevels: levels.length,
+    currentLevel: levelIndex + 1,
+    isCompleted: (lvl) => lvl <= UNLOCKED_LEVEL,
+  });
+});
+
   // WIN popup actions
   ui.onWinNext(async () => {
     ui.hideWinPopup();
