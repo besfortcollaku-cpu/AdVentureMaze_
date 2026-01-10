@@ -502,6 +502,17 @@ const welcomeStartBtn = document.getElementById("welcomeStartBtn");
   let welcomeStartHandler = null;
 
 function showWelcome(isReturning = false) {
+  console.log("FORCE showWelcome");
+
+  if (!welcomeOverlay) {
+    console.error("welcomeOverlay missing");
+    return;
+  }
+
+  welcomeOverlay.style.display = "flex";   // 🔥 FORCE
+  welcomeOverlay.classList.add("show");
+  welcomeOverlay.setAttribute("aria-hidden", "false");
+}
   if (!welcomeOverlay) return;
 
   welcomeTitle.textContent = isReturning
