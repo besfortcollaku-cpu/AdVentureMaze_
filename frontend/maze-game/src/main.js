@@ -185,12 +185,15 @@ document.getElementById("controls")?.addEventListener("click", () => {
     isCompleted: (lvl) => lvl <= UNLOCKED_LEVEL,
   });
 });
-
 ui.onLevelSelect((selectedIndex) => {
-  if (!game) return; // 🔒 guard
+  if (!game) return;
+
+  ui.hideLevelSelect();
+  ui.showGame();          // ✅ THIS WAS MISSING
 
   levelIndex = clampLevelIndex(selectedIndex);
   rewardedThisLevel = true;
+
   game.setLevel(levels[levelIndex]);
   game.start();
 });
@@ -260,14 +263,19 @@ ui.onLevelSelect((selectedIndex) => {
   
   UNLOCKED_LEVEL = savedLevel;
   
+  LOGIN_READY = true;
+  
 ui.onWelcomeStart(() => {
+  if (!LOGIN_READY) return; // ⛔ still authenticating
+
+  ui.hideWelcome();
+
   ui.showLevelSelect({
     totalLevels: levels.length,
     currentLevel: levelIndex + 1,
     isCompleted: (lvl) => lvl <= UNLOCKED_LEVEL,
   });
 });
-
 
 
   // WIN popup actions
