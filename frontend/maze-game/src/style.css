@@ -947,3 +947,29 @@ canvas {
     transform: translateY(0);
   }
 }
+
+.welcomeLoader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.spinner {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 3px solid rgba(255,255,255,.2);
+  border-top-color: #25d7ff;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.loadingText {
+  font-size: 13px;
+  opacity: .75;
+}

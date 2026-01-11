@@ -173,9 +173,14 @@ export function mountUI(app) {
 
   <div class="userPill" id="userPill">U:guest</div>
 
+<div class="welcomeLoader" id="welcomeLoader">
+  <div class="spinner"></div>
+  <div class="loadingText">Authenticating…</div>
+</div>
+
   <!-- ✅ NEW: TEST button (hidden by default) -->
   <button class="iconBtnWide" id="testBtn" style="display:none;">
-    TEST
+    Start playing
   </button>
 
   <p class="welcomeText">Loading...</p>
