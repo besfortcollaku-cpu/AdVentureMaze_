@@ -173,7 +173,7 @@ function clampLevelIndex(i) {
 async function boot() {
   ui = mountUI(document.querySelector("#app"));
   
-ui.showWelcome(false);
+
 
 // Level select via joystick icon
 document.getElementById("controls")?.addEventListener("click", () => {
