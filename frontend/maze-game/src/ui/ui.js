@@ -467,6 +467,18 @@ export function mountUI(app) {
   const soundToggle = document.getElementById("soundToggle");
   const vibrationToggle = document.getElementById("vibrationToggle");
 
+
+function hideLoginUI() {
+  loginBtn && (loginBtn.style.display = "none");
+  userPill && (userPill.style.display = "none");
+}
+
+function showLoginUI() {
+  loginBtn && (loginBtn.style.display = "");
+  userPill && (userPill.style.display = "");
+}
+
+
   // Win popup
   const winOverlay = document.getElementById("winOverlay");
   const winSubText = document.getElementById("winSubText");
@@ -620,6 +632,7 @@ function hideWelcome() {
   if (loginBtnText) {
     loginBtnText.textContent =
       name === "guest" ? "Login with Pi" : "Logged in ✅";
+      hideLoginUI();
   }
 
   // ✅ NEW: toggle buttons after login
