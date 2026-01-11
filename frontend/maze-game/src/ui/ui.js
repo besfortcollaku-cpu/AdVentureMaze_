@@ -621,20 +621,7 @@ function hideWelcome() {
       name === "guest" ? "Login with Pi" : "Logged in ✅";
   }
 
-  // ✅ NEW: toggle buttons after login
-  const = document.getElementById("testBtn");
-
-  testBtn?.addEventListener("click", () => {
-  hideWelcome();
-
-  // TEMP: open level select with dummy data
-  showLevelSelect({
-    totalLevels: 10,
-    currentLevel: 1,
-    isCompleted: () => true
-  });
-});
-
+ 
   if (name !== "guest") {
     // logged in
     loginBtn?.style.setProperty("display", "none");
