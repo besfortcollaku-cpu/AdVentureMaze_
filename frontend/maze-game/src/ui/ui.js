@@ -27,7 +27,7 @@ export function mountUI(app) {
             <button class="iconBtnWide" id="loginBtn">
               <span id="loginBtnText">Login</span>
             </button>
-            <div class="userPill" id="userPill">U: guest</div>
+            <div class="userPill" id="userPill">U:guest</div>
               <div class="coins" title="Coins">
                  <div class="coinDot"></div>
               <div id="coinCount">0</div>
@@ -70,11 +70,11 @@ export function mountUI(app) {
       <div class="loginGateCard">
         <div class="loginGateTitle">Login required</div>
         <div class="loginGateSub">
-          Please login with Pi to start playing.
+          Please login with Pi to start playing. This Game works on on Pi Network Browser
         </div>
 
         <button class="loginGateBtn" id="loginGateBtn">
-          Login with Pi
+          Login
         </button>
 
         <div class="loginGateError" id="loginGateError"></div>
