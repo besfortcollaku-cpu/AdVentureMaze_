@@ -750,7 +750,7 @@ function joystickSVG() {
     <path d="M7.3 15.3h2.4M16.3 15.3h-2.4" stroke="rgba(37,215,255,.95)" stroke-width="2.1" stroke-linecap="round"/>
   </svg>`;
 }
-}
+
 
 
 
