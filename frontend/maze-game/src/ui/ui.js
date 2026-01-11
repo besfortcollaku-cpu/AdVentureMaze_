@@ -61,7 +61,7 @@ export function mountUI(app) {
     <div class="desktopBlock" id="desktopBlock" style="display:none;">
       <div class="desktopCard">
         <h2>Mobile game</h2>
-        <p>This Game is designed Pi Network Browser Only!</p>
+        <p>This Game is designed for Pi Network Browser Only!</p>
       </div>
     </div>
 
@@ -70,7 +70,7 @@ export function mountUI(app) {
       <div class="loginGateCard">
         <div class="loginGateTitle">Login required</div>
         <div class="loginGateSub">
-          Please login with Pi to start playing. 
+          Please login with Pi account to start playing. 
         </div>
 
         <button class="loginGateBtn" id="loginGateBtn">
@@ -165,6 +165,14 @@ export function mountUI(app) {
         </div>
       </div>
     </div>
+    
+    <!-- ✅ FULLSCREEN WELCOME OVERLAY -->
+<div class="welcomeOverlay" id="welcomeOverlay" aria-hidden="false">
+  <div class="welcomeCard">
+    <h1 class="welcomeTitle">Welcome to Adventure Maze</h1>
+    <p class="welcomeText">Preparing your adventure…</p>
+  </div>
+</div>
   `;
 
   // ✅ Inject UI styles (Login Gate + Settings + Win overlay + login wrap)
