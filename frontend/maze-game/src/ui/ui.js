@@ -645,7 +645,7 @@ function hideWelcome() {
     // logged out / guest
     loginBtn?.style.setProperty("display", "none");
     userPill?.style.setProperty("display", "none");
-    if (testBtn) testBtn.style.display = "none";
+    if (testBtn) testBtn.style.display = "true";
   }
 }
 
