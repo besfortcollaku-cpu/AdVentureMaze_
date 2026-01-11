@@ -713,14 +713,13 @@ function hideWelcome() {
   }
 
   return {
-    showWelcome,
     hideWelcome,
     onWelcomeStart,
     onHint(fn) { hintHandler = fn; },
     onSkip(fn) { skipHandler = fn; },
     canvas: document.getElementById("game"),
 
-    // header login UI (kept for compatibility)
+    // header login UI
     loginBtn,
     loginBtnText,
     userPill,
@@ -763,7 +762,7 @@ function hideWelcome() {
     showLevelSelect,
     hideLevelSelect,
     onLevelSelect(fn) {
-      levelSelectHandler = fn;
+    levelSelectHandler = fn;
     },
   };
 }
