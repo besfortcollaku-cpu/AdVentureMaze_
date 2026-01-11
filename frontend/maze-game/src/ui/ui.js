@@ -604,11 +604,30 @@ export function mountUI(app) {
   });
 
   function setUser(user) {
-    const name = user?.username || "guest";
-    if (userPill) userPill.textContent = `User: ${name}`;
-    if (loginBtnText)
-      loginBtnText.textContent = name === "guest" ? "Login with Pi" : "Logged in ✅";
+  const name = user?.username || "guest";
+
+  // update text
+  if (userPill) userPill.textContent = `User: ${name}`;
+  if (loginBtnText) {
+    loginBtnText.textContent =
+      name === "guest" ? "Login with Pi" : "Logged in ✅";
   }
+
+  // ✅ NEW: toggle buttons after login
+  const testBtn = document.getElementById("testBtn");
+
+  if (name !== "guest") {
+    // logged in
+    loginBtn?.style.setProperty("display", "none");
+    userPill?.style.setProperty("display", "none");
+    if (testBtn) testBtn.style.display = "inline-flex";
+  } else {
+    // logged out / guest
+    loginBtn?.style.setProperty("display", "inline-flex");
+    userPill?.style.setProperty("display", "inline-flex");
+    if (testBtn) testBtn.style.display = "none";
+  }
+}
 
   // ---------------------------
   // Settings
