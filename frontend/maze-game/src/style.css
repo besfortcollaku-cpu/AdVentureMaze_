@@ -910,7 +910,25 @@ canvas {
   flex-wrap:wrap;
 }
 
-.welcomeLogin .iconBtnWide,
-.welcomeLogin .userPill{
-  min-width:140px;
+
+.welcomeOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2000000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(
+    900px 700px at 50% 20%,
+    rgba(37,215,255,0.25),
+    #050816 70%
+  );
+}
+
+.welcomeCard {
+  width: 100%;
+  max-width: 420px;
+  padding: 28px;
+  text-align: center;
+  animation: fadeUp 0.6s ease;
 }
