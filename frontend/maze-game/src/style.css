@@ -910,7 +910,10 @@ canvas {
   flex-wrap:wrap;
 }
 
-
+.welcomeLogin .iconBtnWide,
+.welcomeLogin .userPill{
+  min-width:140px;
+}
 .welcomeOverlay {
   position: fixed;
   inset: 0;
