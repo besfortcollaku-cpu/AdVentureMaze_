@@ -733,67 +733,60 @@ welcomeStartBtn?.addEventListener("click", () => {
   }
   hideGame();
 
-  return {
-      showWelcome,
-        hideWelcome,
-          onWelcomeStart,
+return {
+showWelcome,
+hideWelcome,
+onWelcomeStart,
 
-            showGame,
-              hideGame,
+showGame,
+hideGame,
 
-                showLevelSelect,
-                  hideLevelSelect,
-                    onLevelSelect,
+showLevelSelect,
+hideLevelSelect,
+onLevelSelect,
 
-                      onHint(fn) {
-                            hintHandler = fn;
-                              },
+onHint(fn) {
+hintHandler = fn;
+},
 
-                                onSkip(fn) {
-                                      skipHandler = fn;
-                                        },
+onSkip(fn) {
+skipHandler = fn;
+},
 
-                    canvas: document.getElementById("game"),
+canvas: document.getElementById("game"),
 
-                                            // header login UI
-                                            loginBtn,
-                                                  loginBtnText,
-                                                    userPill,
+// header login UI
+loginBtn,
+loginBtnText,
+userPill,
 
-                                                      setCoins,
+setCoins,
 
-                                                        onFirstUserGesture(fn) {
-                                                              firstGestureHandler = fn;
-                                                                },
+onFirstUserGesture(fn) {
+firstGestureHandler = fn;
+},
 
-                                                                  showLoginGate,
-                                                                    hideLoginGate,
-                                                                      showLoginError,
-                                                                        onLoginClick,
-                                                                          setUser,
+showLoginGate,
+hideLoginGate,
+showLoginError,
+onLoginClick,
+setUser,
 
-                                                                            setSoundEnabled,
-                                                                              setVibrationEnabled,
+setSoundEnabled,
+setVibrationEnabled,
 
-                                                                            onSoundToggle(fn) {
-                                                                                  soundHandler = fn;
-                                                                                    },
+onSoundToggle(fn) {
+soundHandler = fn;
+},
 
-                                                                                      onVibrationToggle(fn) {
-                                                                                            vibrationHandler = fn;
-                                                                                              },
+onVibrationToggle(fn) {
+vibrationHandler = fn;
+},
 
-                                                                                                showWinPopup,
-                                                                                                  hideWinPopup,
+showWinPopup,
 
-                                                                                                    onWinNext(fn) {
-                                                                                                          winNextHandler = fn;
-                                                                                                           },
-
-                                                                                                              onWinAd(fn) {
-                                                                                                                    winAdHandler = fn;
-                                                                                                                      }, },
-                                                                                                                                                                 
+},
+  
     // Win popup API (✅ kept only once)
     showWinPopup,
     hideWinPopup,
@@ -838,5 +831,5 @@ function joystickSVG() {
     <path d="M7.3 15.3h2.4M16.3 15.3h-2.4" stroke="rgba(37,215,255,.95)" stroke-width="2.1" stroke-linecap="round"/>
   </svg>`;
 }
-
+}
 
