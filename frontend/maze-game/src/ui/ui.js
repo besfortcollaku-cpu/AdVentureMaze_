@@ -167,12 +167,18 @@ export function mountUI(app) {
   <div class="welcomeCard">
     <h1 class="welcomeTitle">Welcome to Adventure Maze</h1>
     <div class="loginWrap">
-            <button class="iconBtnWide" id="loginBtn">
-              <span id="loginBtnText">Login</span>
-            </button>
-            <div class="userPill" id="userPill">U:guest</div>
-    <p class="welcomeText">Preparing your adventure…</p>
-  </div>
+  <button class="iconBtnWide" id="loginBtn">
+    <span id="loginBtnText">Login</span>
+  </button>
+
+  <div class="userPill" id="userPill">U:guest</div>
+
+  <!-- ✅ NEW: TEST button (hidden by default) -->
+  <button class="iconBtnWide" id="testBtn" style="display:none;">
+    TEST
+  </button>
+
+  <p class="welcomeText">Preparing your adventure...</p>
 </div>
   `;
 
