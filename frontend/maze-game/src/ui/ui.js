@@ -454,7 +454,17 @@ function showGame() {
   // Elements
   // ---------------------------
   const coinCountEl = document.getElementById("coinCount");
+const gameRoot = document.querySelector(".boardWrap");
 
+function showGame() {
+  if (!gameRoot) return;
+  gameRoot.style.display = "block";
+}
+
+function hideGame() {
+  if (!gameRoot) return;
+  gameRoot.style.display = "none";
+}
   // Header login UI
   const loginBtn = document.getElementById("loginBtn");
   const loginBtnText = document.getElementById("loginBtnText");
@@ -721,15 +731,22 @@ welcomeStartBtn?.addEventListener("click", () => {
   function setVibrationEnabled(v) {
     if (vibrationToggle) vibrationToggle.checked = !!v;
   }
+  hideGame();
 
   return {
-      // 🆕 Welcome API (PATCH ONLY)
-hideGame,
-showGame,
-showWelcome,
-hideWelcome,
-showLevelSelect,
-hideLevelSelect,
+  showWelcome,
+  hideWelcome,
+  onWelcomeStart,
+
+  showGame,
+  hideGame,
+
+  showLevelSelect,
+  hideLevelSelect,
+  onLevelSelect,
+
+  // rest stays untouched
+};
     onHint(fn) { hintHandler = fn; },
     onSkip(fn) { skipHandler = fn; },
     canvas: document.getElementById("game"),

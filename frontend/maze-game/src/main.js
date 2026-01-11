@@ -262,12 +262,7 @@ document.getElementById("controls")?.addEventListener("click", () => {
   
   LOGIN_READY = true;
  ui.onWelcomeStart(() => {
-  console.log("[MAIN] onWelcomeStart fired", { LOGIN_READY });
-
-  if (!LOGIN_READY) {
-    console.log("[MAIN] Login not ready yet");
-    return;
-  }
+  if (!LOGIN_READY) return;
 
   ui.hideWelcome();
 
