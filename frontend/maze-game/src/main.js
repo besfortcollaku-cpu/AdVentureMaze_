@@ -20,20 +20,12 @@ let CURRENT_ACCESS_TOKEN = null;
 let levelIndex = 0;
 let game = null;
 let ui = null;
-let UNLOCKED_LEVEL = 1;
 
 // local cache synced from /api/me
 let COINS = 0;
 
 // prevent double reward per completion
 let rewardedThisLevel = false;
-
-let LOGIN_READY = false;
-// ---------------------------
-// App Gate State (STEP 1)
-// ---------------------------
-let GATE_STATE = "loading";
-// "loading" | "ready" | "closed"
 
 // ---------------------------
 // Backend helpers
@@ -172,27 +164,22 @@ function clampLevelIndex(i) {
 // ---------------------------
 async function boot() {
   ui = mountUI(document.querySelector("#app"));
-  
 
 
 // Level select via joystick icon
 document.getElementById("controls")?.addEventListener("click", () => {
-  if (!CURRENT_USER?.uid) return; // 🔒 prevent pre-login
-
   ui.showLevelSelect({
-    totalLevels: levels.length,
-    currentLevel: levelIndex + 1,
-    isCompleted: (lvl) => lvl <= UNLOCKED_LEVEL,
-  });
-});ui.onLevelSelect((selectedIndex) => {
-    if (!game) return;
-    ui.hideLevelSelect();
-    ui.showGame();
-    levelIndex = clampLevelIndex(selectedIndex);
-    rewardedThisLevel = true;
-    game.setLevel(levels[levelIndex]);
-    game.start();
-  });
+  totalLevels: levels.length,
+  currentLevel: levelIndex + 1,
+  isCompleted: (lvl) => lvl < UNLOCKED_LEVEL,
+});
+});
+
+ui.onLevelSelect((selectedIndex) => {
+  levelIndex = clampLevelIndex(selectedIndex);
+  rewardedThisLevel = true; // prevent reward on replay
+  game.setLevel(levels[levelIndex]);
+});
   // unlock audio after first gesture
   ui.onFirstUserGesture(() => ensureAudioUnlocked());
 
@@ -235,6 +222,7 @@ document.getElementById("controls")?.addEventListener("click", () => {
     },
   });
 
+  if (!loginRes?.ok) return;
 
   // load server state
   let me;
@@ -257,22 +245,7 @@ document.getElementById("controls")?.addEventListener("click", () => {
   const savedLevel = Number(serverProgress?.level || 1);
   levelIndex = clampLevelIndex(savedLevel - 1);
   
-  UNLOCKED_LEVEL = savedLevel;
-  ui.showWelcome(savedLevel > 1);
-  
-  LOGIN_READY = true;
- ui.onWelcomeStart(() => {
-  if (!LOGIN_READY) return;
-
-  ui.hideWelcome();
-
-  ui.showLevelSelect({
-    totalLevels: levels.length,
-    currentLevel: levelIndex + 1,
-    isCompleted: (lvl) => lvl <= UNLOCKED_LEVEL,
-  });
-});
-
+  const UNLOCKED_LEVEL = savedLevel;
 
   // WIN popup actions
   ui.onWinNext(async () => {
@@ -289,7 +262,6 @@ document.getElementById("controls")?.addEventListener("click", () => {
       const out = await apiAd50();
       COINS = Number(out?.user?.coins ?? COINS);
       ui.setCoins(COINS);
-      
 
       ui.showToast?.("Reward granted +50");
     } catch (e) {
@@ -348,14 +320,15 @@ document.getElementById("controls")?.addEventListener("click", () => {
   rewardedThisLevel = false;
 
   game = createGame({
-  BACKEND,
-  canvas: ui.canvas,
-  getCurrentUser: () => CURRENT_USER,
-  level: firstLevel,
-  onLevelComplete,
-});
+    BACKEND,
+    canvas: ui.canvas,
+    getCurrentUser: () => CURRENT_USER,
+    level: firstLevel,
+    onLevelComplete,
+  });
 
-
+  game.start();
+}
 
 // ---------------------------
 // Level flow
@@ -421,5 +394,5 @@ async function goNextLevel() {
     console.warn("progress save failed:", e);
   }
 }
-}
-boot().catch(console.error);
+
+boot();
