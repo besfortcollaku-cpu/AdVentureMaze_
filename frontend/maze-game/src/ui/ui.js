@@ -175,7 +175,7 @@ export function mountUI(app) {
 
   <!-- ✅ NEW: TEST button (hidden by default) -->
   <button class="iconBtnWide" id="testBtn" style="display:none;">
-    Start Game
+    TEST
   </button>
 
   <p class="welcomeText">Loading...</p>
@@ -621,7 +621,20 @@ function hideWelcome() {
       name === "guest" ? "Login with Pi" : "Logged in ✅";
   }
 
- 
+  // ✅ NEW: toggle buttons after login
+  const testBtn = document.getElementById("testBtn");
+
+  testBtn?.addEventListener("click", () => {
+  hideWelcome();
+
+  // TEMP: open level select with dummy data
+  showLevelSelect({
+    totalLevels: 10,
+    currentLevel: 1,
+    isCompleted: () => true
+  });
+});
+
   if (name !== "guest") {
     // logged in
     loginBtn?.style.setProperty("display", "none");
@@ -722,9 +735,6 @@ function hideWelcome() {
     showLoginError,
     onLoginClick,
     setUser,
-    
-    
-    hideWelcome,
 
     // Settings API
     setSoundEnabled,
