@@ -491,7 +491,6 @@ const welcomeStartBtn = document.getElementById("welcomeStartBtn");
   let levelSelectHandler = null;
   
   let welcomeStartHandler = null;
-
 function showWelcome(isReturning = false) {
   console.log("FORCE showWelcome");
 
@@ -499,12 +498,6 @@ function showWelcome(isReturning = false) {
     console.error("welcomeOverlay missing");
     return;
   }
-
-  welcomeOverlay.style.display = "flex";   // 🔥 FORCE
-  welcomeOverlay.classList.add("show");
-  welcomeOverlay.setAttribute("aria-hidden", "false");
-}
-  if (!welcomeOverlay) return;
 
   welcomeTitle.textContent = isReturning
     ? "Welcome back 👋"
