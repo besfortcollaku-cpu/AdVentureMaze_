@@ -529,8 +529,6 @@ export function mountUI(app) {
     if (e.target === levelSelectOverlay) hideLevelSelect();
   });
 function hideWelcome() {
-  
-  if (!welcomeOverlay) return;
 
   welcomeOverlay.classList.remove("show");
   welcomeOverlay.setAttribute("aria-hidden", "true");
@@ -715,7 +713,7 @@ function hideWelcome() {
   }
 
   return {
-      
+     hideWelcome
     onHint(fn) { hintHandler = fn; },
     onSkip(fn) { skipHandler = fn; },
     canvas: document.getElementById("game"),
