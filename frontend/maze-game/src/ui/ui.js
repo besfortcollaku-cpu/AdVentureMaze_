@@ -714,7 +714,9 @@ testBtn?.addEventListener("click", () => {
   }
 
   return {
+      showWelcome,
       hideWelcome,
+      onWelcomeStart,
     onHint(fn) { hintHandler = fn; },
     onSkip(fn) { skipHandler = fn; },
     canvas: document.getElementById("game"),
