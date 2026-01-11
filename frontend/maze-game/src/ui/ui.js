@@ -820,6 +820,6 @@ vibrationHandler = fn;
     onLevelSelect(fn) {
       levelSelectHandler = fn;
     },
-  };
+  } };
 
 
