@@ -734,52 +734,67 @@ welcomeStartBtn?.addEventListener("click", () => {
   hideGame();
 
   return {
-  showWelcome,
-  hideWelcome,
-  onWelcomeStart,
+      showWelcome,
+        hideWelcome,
+          onWelcomeStart,
 
-  showGame,
-  hideGame,
+            showGame,
+              hideGame,
 
-  showLevelSelect,
-  hideLevelSelect,
-  onLevelSelect,
+                showLevelSelect,
+                  hideLevelSelect,
+                    onLevelSelect,
 
-  // rest stays untouched
-};
-    onHint(fn) { hintHandler = fn; },
-    onSkip(fn) { skipHandler = fn; },
-    canvas: document.getElementById("game"),
+                      onHint(fn) {
+                            hintHandler = fn;
+                              },
 
-    // header login UI (kept for compatibility)
-    loginBtn,
-    loginBtnText,
-    userPill,
+                                onSkip(fn) {
+                                      skipHandler = fn;
+                                        },
 
-    setCoins,
+                                          canvas: document.getElementById("game"),
 
-    // ✅ audio unlock hook
-    onFirstUserGesture(fn) {
-      firstGestureHandler = fn;
-    },
+                                            // header login UI
+                                            loginBtn,
+                                              loginBtnText,
+                                                userPill,
 
-    // ✅ login gate methods for ensurePiLogin()
-    showLoginGate,
-    hideLoginGate,
-    showLoginError,
-    onLoginClick,
-    setUser,
+                                                  setCoins,
 
-    // Settings API
-    setSoundEnabled,
-    setVibrationEnabled,
-    onSoundToggle(fn) {
-      soundHandler = fn;
-    },
-    onVibrationToggle(fn) {
-      vibrationHandler = fn;
-    },
+                                                    onFirstUserGesture(fn) {
+                                                          firstGestureHandler = fn;
+                                                            },
 
+                                                              showLoginGate,
+                                                                hideLoginGate,
+                                                                  showLoginError,
+                                                                    onLoginClick,
+                                                                      setUser,
+
+                                                                        setSoundEnabled,
+                                                                          setVibrationEnabled,
+
+                                                                            onSoundToggle(fn) {
+                                                                                  soundHandler = fn;
+                                                                                    },
+
+                                                                                      onVibrationToggle(fn) {
+                                                                                            vibrationHandler = fn;
+                                                                                              },
+
+                                                                                                showWinPopup,
+                                                                                                  hideWinPopup,
+
+                                                                                                    onWinNext(fn) {
+                                                                                                          winNextHandler = fn;
+                                                                                                           },
+
+                                                                                                              onWinAd(fn) {
+                                                                                                                    winAdHandler = fn;
+                                                                                                                      },
+                                                                                                                    };
+                                                                                                              }                                                  
     // Win popup API (✅ kept only once)
     showWinPopup,
     hideWinPopup,
