@@ -175,7 +175,7 @@ export function mountUI(app) {
 
   <!-- ✅ NEW: TEST button (hidden by default) -->
   <button class="iconBtnWide" id="testBtn" style="display:none;">
-    TEST
+    Start Game
   </button>
 
   <p class="welcomeText">Loading...</p>
@@ -622,7 +622,7 @@ function hideWelcome() {
   }
 
   // ✅ NEW: toggle buttons after login
-  const testBtn = document.getElementById("testBtn");
+  const , = document.getElementById("testBtn");
 
   testBtn?.addEventListener("click", () => {
   hideWelcome();
@@ -735,6 +735,9 @@ function hideWelcome() {
     showLoginError,
     onLoginClick,
     setUser,
+    
+    
+    hideWelcome,
 
     // Settings API
     setSoundEnabled,
