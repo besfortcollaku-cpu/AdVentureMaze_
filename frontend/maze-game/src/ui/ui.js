@@ -61,7 +61,7 @@ export function mountUI(app) {
     <div class="desktopBlock" id="desktopBlock" style="display:none;">
       <div class="desktopCard">
         <h2>Mobile game</h2>
-        <p>This game is designed for smartphones. Use swipe on mobile. Desktop is only for testing (arrow keys).</p>
+        <p>This Game is designed Pi Network Browser Only!</p>
       </div>
     </div>
 
@@ -70,7 +70,7 @@ export function mountUI(app) {
       <div class="loginGateCard">
         <div class="loginGateTitle">Login required</div>
         <div class="loginGateSub">
-          Please login with Pi to start playing. This Game works on on Pi Network Browser
+          Please login with Pi to start playing. 
         </div>
 
         <button class="loginGateBtn" id="loginGateBtn">
