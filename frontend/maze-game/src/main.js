@@ -217,8 +217,8 @@ ui.onLevelSelect((selectedIndex) => {
       CURRENT_USER = user;
       CURRENT_ACCESS_TOKEN = accessToken;
 
-      if (ui?.userPill) ui.userPill.textContent = `User: ${user.username}`;
-      if (ui?.loginBtnText) ui.loginBtnText.textContent = "Logged in ✅";
+      if (ui?.userPill) ui.userPill.textContent = `${user.username}`;
+      if (ui?.loginBtnText) ui.loginBtnText.textContent = "✅";
     },
   });
 

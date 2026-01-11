@@ -16,10 +16,7 @@ export function mountUI(app) {
             <div class="levelText">Adventure Maze</div>
           </div>
 
-          <div class="coins" title="Coins">
-            <div class="coinDot"></div>
-            <div id="coinCount">0</div>
-          </div>
+          
         </div>
 
         <div class="iconRow">
@@ -28,9 +25,13 @@ export function mountUI(app) {
         
           <div class="loginWrap">
             <button class="iconBtnWide" id="loginBtn">
-              <span id="loginBtnText">Login with Pi</span>
+              <span id="loginBtnText">Login</span>
             </button>
             <div class="userPill" id="userPill">U: guest</div>
+              <div class="coins" title="Coins">
+                 <div class="coinDot"></div>
+              <div id="coinCount">0</div>
+          </div>
           </div>
         </div>
       </div>
