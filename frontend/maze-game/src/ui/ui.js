@@ -624,10 +624,11 @@ function hideWelcome() {
   // ✅ NEW: toggle buttons after login
   const testBtn = document.getElementById("testBtn");
 
-  testBtn?.addEventListener("click", () => {
+  const testBtn = document.getElementById("testBtn");
+
+testBtn?.addEventListener("click", () => {
   hideWelcome();
 
-  // TEMP: open level select with dummy data
   showLevelSelect({
     totalLevels: 10,
     currentLevel: 1,
@@ -713,8 +714,7 @@ function hideWelcome() {
   }
 
   return {
-    hideWelcome,
-    showWelcome,
+      hideWelcome,
     onHint(fn) { hintHandler = fn; },
     onSkip(fn) { skipHandler = fn; },
     canvas: document.getElementById("game"),
