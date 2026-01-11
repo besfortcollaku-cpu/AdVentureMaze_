@@ -640,12 +640,12 @@ function hideWelcome() {
     // logged in
     loginBtn?.style.setProperty("display", "none");
     userPill?.style.setProperty("display", "none");
-    if (testBtn) testBtn.style.display = "none";
+    if (testBtn) testBtn.style.display = "inline-flex";
   } else {
     // logged out / guest
     loginBtn?.style.setProperty("display", "none");
     userPill?.style.setProperty("display", "none");
-    if (testBtn) testBtn.style.display = "true";
+    if (testBtn) testBtn.style.display = "none";
   }
 }
 
