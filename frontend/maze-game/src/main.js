@@ -28,6 +28,7 @@ let COINS = 0;
 // prevent double reward per completion
 let rewardedThisLevel = false;
 
+let LOGIN_READY = false;
 // ---------------------------
 // App Gate State (STEP 1)
 // ---------------------------
@@ -171,12 +172,7 @@ function clampLevelIndex(i) {
 // ---------------------------
 async function boot() {
   ui = mountUI(document.querySelector("#app"));
-  ui.showWelcome(false);
-return; // ⛔ STOP EVERYTHING ELSE
-  ui.showWelcome(false);
-console.log("[BOOT] Welcome forced visible");
-   //ui.hideGame();       ⬅ hide entire game UI
-ui.showWelcome(false); // ⬅ show welcome instantly
+  
 
 
 // Level select via joystick icon
