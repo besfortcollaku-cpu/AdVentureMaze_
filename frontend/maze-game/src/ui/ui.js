@@ -178,7 +178,7 @@ export function mountUI(app) {
     TEST
   </button>
 
-  <p class="welcomeText">Preparing your adventure...</p>
+  <p class="welcomeText">Loading...</p>
 </div>
   `;
 
