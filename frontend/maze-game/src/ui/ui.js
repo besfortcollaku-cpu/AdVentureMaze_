@@ -713,8 +713,6 @@ function hideWelcome() {
   }
 
   return {
-      showWelcome,
-      hideWelcome,        // ✅ ADD THIS LINE
     onHint(fn) { hintHandler = fn; },
     onSkip(fn) { skipHandler = fn; },
     canvas: document.getElementById("game"),
