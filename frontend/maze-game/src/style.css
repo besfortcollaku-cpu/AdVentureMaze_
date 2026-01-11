@@ -901,3 +901,16 @@ canvas {
   opacity:.8;
   color:#eaf3ff;
 }
+/* ✅ Welcome login layout */
+.welcomeLogin{
+  margin-top:18px;
+  display:flex;
+  gap:12px;
+  justify-content:center;
+  flex-wrap:wrap;
+}
+
+.welcomeLogin .iconBtnWide,
+.welcomeLogin .userPill{
+  min-width:140px;
+}

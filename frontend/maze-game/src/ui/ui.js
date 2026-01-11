@@ -23,11 +23,7 @@ export function mountUI(app) {
           ${iconBtn("settingsBtn", gearSVG(), "")}
           ${iconBtn("controls", joystickSVG(), "")}
         
-          <div class="loginWrap">
-            <button class="iconBtnWide" id="loginBtn">
-              <span id="loginBtnText">Login</span>
-            </button>
-            <div class="userPill" id="userPill">U:guest</div>
+          
               <div class="coins" title="Coins">
                  <div class="coinDot"></div>
               <div id="coinCount">0</div>
@@ -170,6 +166,11 @@ export function mountUI(app) {
 <div class="welcomeOverlay" id="welcomeOverlay" aria-hidden="false">
   <div class="welcomeCard">
     <h1 class="welcomeTitle">Welcome to Adventure Maze</h1>
+    <div class="loginWrap">
+            <button class="iconBtnWide" id="loginBtn">
+              <span id="loginBtnText">Login</span>
+            </button>
+            <div class="userPill" id="userPill">U:guest</div>
     <p class="welcomeText">Preparing your adventure…</p>
   </div>
 </div>
