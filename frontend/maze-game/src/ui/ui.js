@@ -529,8 +529,9 @@ export function mountUI(app) {
     if (e.target === levelSelectOverlay) hideLevelSelect();
   });
 function hideWelcome() {
+  if (!welcomeOverlay) return;
 
-  welcomeOverlay.classList.remove("show");
+  welcomeOverlay.style.display = "none";
   welcomeOverlay.setAttribute("aria-hidden", "true");
 }
 
