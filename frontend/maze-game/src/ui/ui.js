@@ -745,7 +745,7 @@ showGame,
 showWelcome,
 hideWelcome,
 showLevelSelect,
-hideLevelSelect
+hideLevelSelect,
     onHint(fn) { hintHandler = fn; },
     onSkip(fn) { skipHandler = fn; },
     canvas: document.getElementById("game"),
