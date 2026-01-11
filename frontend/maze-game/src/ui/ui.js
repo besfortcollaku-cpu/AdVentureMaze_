@@ -624,9 +624,10 @@ function hideWelcome() {
   // ✅ NEW: toggle buttons after login
   const testBtn = document.getElementById("testBtn");
 
-testBtn?.addEventListener("click", () => {
+  testBtn?.addEventListener("click", () => {
   hideWelcome();
 
+  // TEMP: open level select with dummy data
   showLevelSelect({
     totalLevels: 10,
     currentLevel: 1,
@@ -712,9 +713,6 @@ testBtn?.addEventListener("click", () => {
   }
 
   return {
-      showWelcome,
-      hideWelcome,
-      onWelcomeStart,
     onHint(fn) { hintHandler = fn; },
     onSkip(fn) { skipHandler = fn; },
     canvas: document.getElementById("game"),
