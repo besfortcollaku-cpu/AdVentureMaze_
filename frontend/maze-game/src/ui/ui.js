@@ -473,6 +473,8 @@ export function mountUI(app) {
   const winNextBtn = document.getElementById("winNextBtn");
   const winAdBtn = document.getElementById("winAdBtn");
   
+  const welcomeOverlay = document.getElementById("welcomeOverlay");
+  
   // Level select
   const levelSelectOverlay = document.getElementById("levelSelectOverlay");
   const levelGrid = document.getElementById("levelGrid");
@@ -527,7 +529,7 @@ export function mountUI(app) {
     if (e.target === levelSelectOverlay) hideLevelSelect();
   });
 function hideWelcome() {
-  const welcomeOverlay = document.getElementById("welcomeOverlay");
+  
   if (!welcomeOverlay) return;
 
   welcomeOverlay.classList.remove("show");
@@ -713,6 +715,7 @@ function hideWelcome() {
   }
 
   return {
+      
     onHint(fn) { hintHandler = fn; },
     onSkip(fn) { skipHandler = fn; },
     canvas: document.getElementById("game"),
