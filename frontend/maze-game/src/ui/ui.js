@@ -676,9 +676,7 @@ function hideWelcome() {
 const welcomeLoader = document.getElementById("welcomeLoader");
 const welcomeStartBtn = document.getElementById("testBtn"); // Start Adventure
 
-// Welcome screen elements
-const welcomeLoader = document.getElementById("welcomeLoader");
-const welcomeStartBtn = document.getElementById("testBtn"); // Start Adventure
+
 
   // ---------------------------
   // Settings
