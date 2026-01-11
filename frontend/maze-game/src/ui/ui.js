@@ -784,8 +784,6 @@ vibrationHandler = fn;
 },
 
 showWinPopup,
-
-},
   
     // Win popup API (✅ kept only once)
     showWinPopup,
