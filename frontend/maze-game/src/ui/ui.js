@@ -753,7 +753,7 @@ welcomeStartBtn?.addEventListener("click", () => {
                                       skipHandler = fn;
                                         },
 
-                                          canvas: document.getElementById("game"),
+                    canvas: document.getElementById("game"),
 
                                             // header login UI
                                             loginBtn,
@@ -792,9 +792,8 @@ welcomeStartBtn?.addEventListener("click", () => {
 
                                                                                                               onWinAd(fn) {
                                                                                                                     winAdHandler = fn;
-                                                                                                                      },
-                                                                                                                    };
-                                                                                                              }                                                  
+                                                                                                                      }, },
+                                                                                                                                                                 
     // Win popup API (✅ kept only once)
     showWinPopup,
     hideWinPopup,
