@@ -30,7 +30,7 @@ export function mountUI(app) {
             <button class="iconBtnWide" id="loginBtn">
               <span id="loginBtnText">Login with Pi</span>
             </button>
-            <div class="userPill" id="userPill">User: guest</div>
+            <div class="userPill" id="userPill">U: guest</div>
           </div>
         </div>
       </div>
