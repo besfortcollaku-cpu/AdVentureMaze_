@@ -624,8 +624,6 @@ function hideWelcome() {
   // ✅ NEW: toggle buttons after login
   const testBtn = document.getElementById("testBtn");
 
-  const testBtn = document.getElementById("testBtn");
-
 testBtn?.addEventListener("click", () => {
   hideWelcome();
 
