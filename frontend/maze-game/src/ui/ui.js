@@ -526,6 +526,14 @@ export function mountUI(app) {
   levelSelectOverlay?.addEventListener("click", (e) => {
     if (e.target === levelSelectOverlay) hideLevelSelect();
   });
+function hideWelcome() {
+  const welcomeOverlay = document.getElementById("welcomeOverlay");
+  if (!welcomeOverlay) return;
+
+  welcomeOverlay.classList.remove("show");
+  welcomeOverlay.setAttribute("aria-hidden", "true");
+}
+
 
   // ---------------------------
   // State + handlers
@@ -615,6 +623,17 @@ export function mountUI(app) {
 
   // ✅ NEW: toggle buttons after login
   const testBtn = document.getElementById("testBtn");
+
+  testBtn?.addEventListener("click", () => {
+  hideWelcome();
+
+  // TEMP: open level select with dummy data
+  showLevelSelect({
+    totalLevels: 10,
+    currentLevel: 1,
+    isCompleted: () => true
+  });
+});
 
   if (name !== "guest") {
     // logged in
