@@ -792,7 +792,7 @@ welcomeStartBtn?.addEventListener("click", () => {
 
                                                                                                               onWinAd(fn) {
                                                                                                                     winAdHandler = fn;
-                                                                                                                      }, },
+                                                                                                                      }, };
                                                                                                                                                                  
     // Win popup API (✅ kept only once)
     showWinPopup,
