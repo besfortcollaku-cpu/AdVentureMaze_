@@ -622,7 +622,7 @@ function hideWelcome() {
   }
 
   // ✅ NEW: toggle buttons after login
-  const , = document.getElementById("testBtn");
+  const = document.getElementById("testBtn");
 
   testBtn?.addEventListener("click", () => {
   hideWelcome();
