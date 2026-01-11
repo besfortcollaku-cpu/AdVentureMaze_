@@ -740,11 +740,12 @@ welcomeStartBtn?.addEventListener("click", () => {
 
   return {
       // 🆕 Welcome API (PATCH ONLY)
-showWelcome,
-hideWelcome,
-onWelcomeStart,
 hideGame,
 showGame,
+showWelcome,
+hideWelcome,
+showLevelSelect,
+hideLevelSelect
     onHint(fn) { hintHandler = fn; },
     onSkip(fn) { skipHandler = fn; },
     canvas: document.getElementById("game"),

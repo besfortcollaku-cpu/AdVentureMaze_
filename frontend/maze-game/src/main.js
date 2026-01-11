@@ -431,3 +431,4 @@ async function goNextLevel() {
   }
 }
 }
+boot().catch(console.error);
