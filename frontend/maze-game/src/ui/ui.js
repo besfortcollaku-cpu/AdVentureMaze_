@@ -180,10 +180,9 @@ export function mountUI(app) {
 
   <!-- ✅ NEW: TEST button (hidden by default) -->
   <button class="iconBtnWide" id="testBtn" style="display:none;">
-    Start playing
+    Start Adventure
   </button>
 
-  <p class="welcomeText">Loading...</p>
 </div>
   `;
 
@@ -638,12 +637,17 @@ function hideWelcome() {
     loginBtnText.textContent =
       name === "guest" ? "Login with Pi" : "Logged in ✅";
       hideLoginUI();
+
+      if (user && welcomeLoader && welcomeStartBtn) {
+  welcomeLoader.style.display = "none";
+  welcomeStartBtn.style.display = "inline-flex";
+}
   }
 
   // ✅ NEW: toggle buttons after login
-  const testBtn = document.getElementById("testBtn");
+  const startBtn = document.getElementById("testBtn");
 
-  testBtn?.addEventListener("click", () => {
+ startBtn?.addEventListener("click", () => {
   hideWelcome();
 
   // TEMP: open level select with dummy data
@@ -666,6 +670,15 @@ function hideWelcome() {
     if (testBtn) testBtn.style.display = "none";
   }
 }
+
+
+// Welcome screen elements
+const welcomeLoader = document.getElementById("welcomeLoader");
+const welcomeStartBtn = document.getElementById("testBtn"); // Start Adventure
+
+// Welcome screen elements
+const welcomeLoader = document.getElementById("welcomeLoader");
+const welcomeStartBtn = document.getElementById("testBtn"); // Start Adventure
 
   // ---------------------------
   // Settings
