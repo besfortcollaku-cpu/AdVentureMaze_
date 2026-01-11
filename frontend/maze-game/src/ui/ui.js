@@ -150,7 +150,6 @@ export function mountUI(app) {
         <div class="winHint">Tip: Watch ad gives +50 coins</div>
       </div>
     </div>
-    <!-- ✅ WELCOME OVERLAY -->
 <!-- ✅ WELCOME OVERLAY -->
 <div class="welcomeOverlay" id="welcomeOverlay" aria-hidden="true">
   <div class="welcomeCard">
@@ -162,29 +161,21 @@ export function mountUI(app) {
   </div>
 </div>
 
-<!-- ✅ LEVEL SELECT POPUP -->
+    <!-- ✅ LEVEL SELECT POPUP -->
 <div class="levelSelectOverlay" id="levelSelectOverlay" aria-hidden="true">
   <div class="winCard">
-    ...
+    <div class="winHeader">
+      <div class="winBadge">LEVELS</div>
+      <div class="winTitle">Select Level</div>
+    </div>
+
+    <div class="levelGrid" id="levelGrid"></div>
+
+    <div class="winRow">
+      <button class="winBtnSecondary" id="levelSelectClose">Close</button>
+    </div>
   </div>
 </div>
-    <!-- ✅ LEVEL SELECT POPUP -->
-    <div class="levelSelectOverlay" id="levelSelectOverlay" aria-hidden="true">
-      
-</div>
-      <div class="winCard">
-        <div class="winHeader">
-          <div class="winBadge">LEVELS</div>
-          <div class="winTitle">Select Level</div>
-        </div>
-
-        <div class="levelGrid" id="levelGrid"></div>
-
-        <div class="winRow">
-          <button class="winBtnSecondary" id="levelSelectClose">Close</button>
-        </div>
-      </div>
-    </div>
   `;
   const root = app.querySelector(".phone");
 
