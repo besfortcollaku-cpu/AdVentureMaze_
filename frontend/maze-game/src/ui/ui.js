@@ -713,6 +713,20 @@ const welcomeStartBtn = document.getElementById("testBtn"); // Start Adventure
   winNextBtn?.addEventListener("click", () => winNextHandler?.());
   winAdBtn?.addEventListener("click", () => winAdHandler?.());
 
+// ---------------------------
+// Welcome → Levels START BUTTON
+// ---------------------------
+startBtn?.addEventListener("click", () => {
+  // animate welcome out
+  welcomeOverlay.classList.add("fadeOut");
+
+  setTimeout(() => {
+    hideWelcome();
+    // open levels (already works in your app)
+    showLevelSelect();
+  }, 450);
+});
+
   function showWinPopup({ levelNumber, isLastLevel } = {}) {
     if (winSubText) {
       winSubText.textContent = isLastLevel

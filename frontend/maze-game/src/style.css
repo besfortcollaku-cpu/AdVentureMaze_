@@ -973,3 +973,19 @@ canvas {
   font-size: 13px;
   opacity: .75;
 }
+
+/* Welcome exit animation */
+.welcomeOverlay.fadeOut {
+  animation: welcomeFadeOut 0.45s ease forwards;
+}
+
+@keyframes welcomeFadeOut {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}
