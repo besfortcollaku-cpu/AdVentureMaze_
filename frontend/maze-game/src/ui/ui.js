@@ -471,7 +471,9 @@ function hideLoginUI() {
   loginBtn && (loginBtn.style.display = "none");
   userPill && (userPill.style.display = "none");
 }
-
+//
+function showLoginUI() {
+  loginBtn && (loginBt
 
 
   // Win popup
@@ -620,9 +622,21 @@ function hideWelcome() {
   });
 
   function setUser(user) {
-      welcomeLoader.style.display = "none";
-testBtn.style.display = "inline-flex";
+  const name = user?.username || "guest";
+
+  // update text
+  if (userPill) userPill.textContent = `User: ${name}`;
+  if (loginBtnText) {
+    loginBtnText.textContent =
+      name === "guest" ? "Login with Pi" : "Logged in ✅";
+      hideLoginUI();
+
+      if (user && welcomeLoader && welcomeStartBtn) {
+  welcomeLoader.style.display = "none";
+  welcomeStartBtn.style.display = "inline-flex";
+}
   }
+
 
   // ✅ NEW: toggle buttons after login
   const startBtn = document.getElementById("testBtn");
@@ -774,7 +788,7 @@ const welcomeStartBtn = document.getElementById("testBtn"); // Start Adventure
     levelSelectHandler = fn;
     },
   };
-
+}
 
 /* ---------------- UI helpers ---------------- */
 function iconBtn(id, svg, badgeText) {
