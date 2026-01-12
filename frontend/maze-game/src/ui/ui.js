@@ -471,9 +471,11 @@ function hideLoginUI() {
   loginBtn && (loginBtn.style.display = "none");
   userPill && (userPill.style.display = "none");
 }
-//
+
 function showLoginUI() {
-  loginBtn && (loginBt
+  loginBtn && (loginBtn.style.display = "");
+  userPill && (userPill.style.display = "");
+}
 
 
   // Win popup
@@ -636,7 +638,6 @@ function hideWelcome() {
   welcomeStartBtn.style.display = "inline-flex";
 }
   }
-
 
   // ✅ NEW: toggle buttons after login
   const startBtn = document.getElementById("testBtn");
