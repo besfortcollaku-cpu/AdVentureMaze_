@@ -774,7 +774,7 @@ const welcomeStartBtn = document.getElementById("testBtn"); // Start Adventure
     levelSelectHandler = fn;
     },
   };
-}
+
 
 /* ---------------- UI helpers ---------------- */
 function iconBtn(id, svg, badgeText) {
