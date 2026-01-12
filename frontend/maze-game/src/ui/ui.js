@@ -620,19 +620,8 @@ function hideWelcome() {
   });
 
   function setUser(user) {
-  const name = user?.username || "guest";
-
-  // update text
-  if (userPill) userPill.textContent = `User: ${name}`;
-  if (loginBtnText) {
-    loginBtnText.textContent =
-      name === "guest" ? "Login with Pi" : "Logged in ✅";
-      hideLoginUI();
-
-      if (user && welcomeLoader && welcomeStartBtn) {
-  welcomeLoader.style.display = "none";
-  welcomeStartBtn.style.display = "inline-flex";
-}
+      welcomeLoader.style.display = "none";
+testBtn.style.display = "inline-flex";
   }
 
   // ✅ NEW: toggle buttons after login
