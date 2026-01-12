@@ -472,10 +472,6 @@ function hideLoginUI() {
   userPill && (userPill.style.display = "none");
 }
 
-function showLoginUI() {
-  loginBtn && (loginBtn.style.display = "");
-  userPill && (userPill.style.display = "");
-}
 
 
   // Win popup
