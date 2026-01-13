@@ -606,10 +606,9 @@ export function mountUI(app) {
   };
 }
   // allow header button to trigger the same login flow
-  loginBtn?.addEventListener("click", () => {
-    showLoginGate();
-    loginGateClickHandler?.();
-  });
+  onLoginClick(async () => {
+  await piLogin();
+});
 
   function setUser(user) {
   if (loginBtnText) {

@@ -915,6 +915,9 @@ canvas {
   min-width:140px;
 }
 
+/* ===============================
+   Pi Login Spinner
+================================ */
 .piSpinner {
   width: 22px;
   height: 22px;
@@ -930,11 +933,16 @@ canvas {
   to { transform: rotate(360deg); }
 }
 
+/* ===============================
+   Utility
+================================ */
 .hidden {
   display: none !important;
 }
 
-/* fade-out animation */
+/* ===============================
+   Welcome fade-out animation
+================================ */
 #welcomeOverlay {
   transition: opacity 0.6s ease, transform 0.6s ease;
 }
