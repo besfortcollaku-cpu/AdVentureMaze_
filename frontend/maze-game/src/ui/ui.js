@@ -167,17 +167,12 @@ export function mountUI(app) {
   <div class="welcomeCard">
     <h1 class="welcomeTitle">Welcome to Adventure Maze</h1>
     <div class="loginWrap">
-
-<div class="welcomeLoader" id="welcomeLoader">
-  <div class="spinner"></div>
-  <div class="loadingText">Authenticating…</div>
-</div>
-
-  <!-- ✅ NEW: TEST button (hidden by default) -->
-  <button class="iconBtnWide" id="testBtn" style="display:none;">
-    Start Adventure
-  </button>
-
+            <button class="iconBtnWide" id="loginBtn">
+              <span id="loginBtnText">Login</span>
+            </button>
+            <div class="userPill" id="userPill">U:guest</div>
+    <p class="welcomeText">Preparing your adventure…</p>
+  </div>
 </div>
   `;
 
@@ -466,25 +461,11 @@ export function mountUI(app) {
   const soundToggle = document.getElementById("soundToggle");
   const vibrationToggle = document.getElementById("vibrationToggle");
 
-
-function hideLoginUI() {
-  loginBtn && (loginBtn.style.display = "none");
-  userPill && (userPill.style.display = "none");
-}
-
-function showLoginUI() {
-  loginBtn && (loginBtn.style.display = "");
-  userPill && (userPill.style.display = "");
-}
-
-
   // Win popup
   const winOverlay = document.getElementById("winOverlay");
   const winSubText = document.getElementById("winSubText");
   const winNextBtn = document.getElementById("winNextBtn");
   const winAdBtn = document.getElementById("winAdBtn");
-  
-  const welcomeOverlay = document.getElementById("welcomeOverlay");
   
   // Level select
   const levelSelectOverlay = document.getElementById("levelSelectOverlay");
@@ -539,13 +520,6 @@ function showLoginUI() {
   levelSelectOverlay?.addEventListener("click", (e) => {
     if (e.target === levelSelectOverlay) hideLevelSelect();
   });
-function hideWelcome() {
-  if (!welcomeOverlay) return;
-
-  welcomeOverlay.style.display = "none";
-  welcomeOverlay.setAttribute("aria-hidden", "true");
-}
-
 
   // ---------------------------
   // State + handlers
@@ -624,54 +598,11 @@ function hideWelcome() {
   });
 
   function setUser(user) {
-  const name = user?.username || "guest";
-
-  // update text
-  if (userPill) userPill.textContent = `User: ${name}`;
-  if (loginBtnText) {
-    loginBtnText.textContent =
-      name === "guest" ? "Login with Pi" : "Logged in ✅";
-      hideLoginUI();
-
-      if (user && welcomeLoader && welcomeStartBtn) {
-  welcomeLoader.style.display = "none";
-  welcomeStartBtn.style.display = "inline-flex";
-}
+    const name = user?.username || "guest";
+    if (userPill) userPill.textContent = `User: ${name}`;
+    if (loginBtnText)
+      loginBtnText.textContent = name === "guest" ? "Login with Pi" : "Logged in ✅";
   }
-
-  // ✅ NEW: toggle buttons after login
-  const startBtn = document.getElementById("testBtn");
-
- startBtn?.addEventListener("click", () => {
-  hideWelcome();
-
-  // TEMP: open level select with dummy data
-  showLevelSelect({
-    totalLevels: 10,
-    currentLevel: 1,
-    isCompleted: () => true
-  });
-});
-
-  if (name !== "guest") {
-    // logged in
-    loginBtn?.style.setProperty("display", "none");
-    userPill?.style.setProperty("display", "none");
-    if (testBtn) testBtn.style.display = "inline-flex";
-  } else {
-    // logged out / guest
-    loginBtn?.style.setProperty("display", "none");
-    userPill?.style.setProperty("display", "none");
-    if (testBtn) testBtn.style.display = "none";
-  }
-}
-
-
-// Welcome screen elements
-const welcomeLoader = document.getElementById("welcomeLoader");
-const welcomeStartBtn = document.getElementById("testBtn"); // Start Adventure
-
-
 
   // ---------------------------
   // Settings
@@ -738,12 +669,11 @@ const welcomeStartBtn = document.getElementById("testBtn"); // Start Adventure
   }
 
   return {
-    hideWelcome,
     onHint(fn) { hintHandler = fn; },
     onSkip(fn) { skipHandler = fn; },
     canvas: document.getElementById("game"),
 
-    // header login UI
+    // header login UI (kept for compatibility)
     loginBtn,
     loginBtnText,
     userPill,
@@ -786,7 +716,7 @@ const welcomeStartBtn = document.getElementById("testBtn"); // Start Adventure
     showLevelSelect,
     hideLevelSelect,
     onLevelSelect(fn) {
-    levelSelectHandler = fn;
+      levelSelectHandler = fn;
     },
   };
 }
