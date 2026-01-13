@@ -914,3 +914,38 @@ canvas {
 .welcomeLogin .userPill{
   min-width:140px;
 }
+
+
+const style = document.createElement("style");
+style.textContent = `
+.piSpinner {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 3px solid rgba(255,255,255,0.25);
+  border-top-color: #f4c430; /* Pi gold */
+  animation: piSpin 0.9s linear infinite;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+@keyframes piSpin {
+  to { transform: rotate(360deg); }
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* fade-out animation */
+#welcomeOverlay {
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+#welcomeOverlay.fadeOut {
+  opacity: 0;
+  transform: scale(0.98);
+  pointer-events: none;
+}
+`;
+document.head.appendChild(style);

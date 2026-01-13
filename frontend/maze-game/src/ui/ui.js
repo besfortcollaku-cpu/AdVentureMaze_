@@ -168,8 +168,9 @@ export function mountUI(app) {
     <h1 class="welcomeTitle">Welcome to Adventure Maze</h1>
     <div class="loginWrap">
   <button class="iconBtnWide" id="loginBtn">
-    <span id="loginBtnText">Authenticating…</span>
-  </button>
+  <span class="piSpinner hidden" id="piSpinner"></span>
+  <span id="loginBtnText">Login</span>
+</button>
 </div>
 </div>
   `;
@@ -580,18 +581,27 @@ export function mountUI(app) {
   // ensurePiLogin calls this
   function onLoginClick(fn) {
   loginGateClickHandler = async () => {
+    const spinner = document.getElementById("piSpinner");
+
     try {
-      if (loginBtnText) loginBtnText.textContent = "Authenticating…";
+      // start animation
+      if (spinner) spinner.classList.remove("hidden");
+      if (loginBtnText) loginBtnText.textContent = "";
       loginBtn.disabled = true;
 
-      await fn();
+      await fn(); // Pi auto-login
 
+      // success state
+      if (spinner) spinner.classList.add("hidden");
       if (loginBtnText) loginBtnText.textContent = "Logged in ✅";
+
+      fadeOutWelcome();
     } catch (e) {
+      // rollback
+      if (spinner) spinner.classList.add("hidden");
       if (loginBtnText) loginBtnText.textContent = "Login";
-      throw e;
-    } finally {
       loginBtn.disabled = false;
+      throw e;
     }
   };
 }
@@ -607,6 +617,19 @@ export function mountUI(app) {
       
   }
 }
+
+function fadeOutWelcome() {
+  const w = document.getElementById("welcomeOverlay");
+  if (!w) return;
+
+  w.classList.add("fadeOut");
+
+  setTimeout(() => {
+    w.style.display = "none";
+  }, 650);
+}
+
+
 
   // ---------------------------
   // Settings
