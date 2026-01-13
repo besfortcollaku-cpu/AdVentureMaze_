@@ -167,12 +167,10 @@ export function mountUI(app) {
   <div class="welcomeCard">
     <h1 class="welcomeTitle">Welcome to Adventure Maze</h1>
     <div class="loginWrap">
-            <button class="iconBtnWide" id="loginBtn">
-              <span id="loginBtnText">Login</span>
-            </button>
-            <div class="userPill" id="userPill">U:guest</div>
-    <p class="welcomeText">Preparing your adventure…</p>
-  </div>
+  <button class="iconBtnWide" id="loginBtn">
+    <span id="loginBtnText">Authenticating…</span>
+  </button>
+</div>
 </div>
   `;
 
@@ -581,16 +579,22 @@ export function mountUI(app) {
 
   // ensurePiLogin calls this
   function onLoginClick(fn) {
-    loginGateClickHandler = async () => {
-      try {
-        setGateLoading(true);
-        await fn();
-      } finally {
-        setGateLoading(false);
-      }
-    };
-  }
+  loginGateClickHandler = async () => {
+    try {
+      if (loginBtnText) loginBtnText.textContent = "Authenticating…";
+      loginBtn.disabled = true;
 
+      await fn();
+
+      if (loginBtnText) loginBtnText.textContent = "Logged in ✅";
+    } catch (e) {
+      if (loginBtnText) loginBtnText.textContent = "Login";
+      throw e;
+    } finally {
+      loginBtn.disabled = false;
+    }
+  };
+}
   // allow header button to trigger the same login flow
   loginBtn?.addEventListener("click", () => {
     showLoginGate();
@@ -598,11 +602,10 @@ export function mountUI(app) {
   });
 
   function setUser(user) {
-    const name = user?.username || "guest";
-    if (userPill) userPill.textContent = `User: ${name}`;
-    if (loginBtnText)
-      loginBtnText.textContent = name === "guest" ? "Login with Pi" : "Logged in ✅";
+  if (loginBtnText) {
+    loginBtnText.textContent = "StaRt To Play;
   }
+}
 
   // ---------------------------
   // Settings
