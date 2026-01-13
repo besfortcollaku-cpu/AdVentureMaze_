@@ -947,5 +947,3 @@ style.textContent = `
   transform: scale(0.98);
   pointer-events: none;
 }
-`;
-document.head.appendChild(style);
