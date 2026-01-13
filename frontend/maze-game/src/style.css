@@ -916,8 +916,7 @@ canvas {
 }
 
 
-const style = document.createElement("style");
-style.textContent = `
+.textContent = `
 .piSpinner {
   width: 22px;
   height: 22px;
