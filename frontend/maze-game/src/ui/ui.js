@@ -603,7 +603,8 @@ export function mountUI(app) {
 
   function setUser(user) {
   if (loginBtnText) {
-    loginBtnText.textContent = "StaRt To Play;
+    loginBtnText.textContent = "Logged in ✅"; 
+      
   }
 }
 
