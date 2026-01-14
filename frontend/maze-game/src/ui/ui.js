@@ -462,6 +462,8 @@ export function mountUI(app) {
   const settingsCloseBtn = document.getElementById("settingsCloseBtn");
   const soundToggle = document.getElementById("soundToggle");
   const vibrationToggle = document.getElementById("vibrationToggle");
+  const MIN_WELCOME_TIME = 5000; // 5 seconds
+let welcomeShownAt = Date.now();
 
   // Win popup
   const winOverlay = document.getElementById("winOverlay");
@@ -631,6 +633,22 @@ setTimeout(() => {
     }
   };
 }
+
+function showWelcome(isReturning = false) {
+  welcomeShownAt = Date.now(); // ✅ record when welcome appeared
+
+  welcomeTitle.textContent = isReturning
+    ? "Welcome back 👋"
+    : "Welcome to Adventure Maze";
+
+  welcomeText.textContent = isReturning
+    ? "Continue your journey and unlock new levels."
+    : "Swipe to move, finish mazes, and earn rewards.";
+
+  welcomeOverlay.classList.add("show");
+  welcomeOverlay.setAttribute("aria-hidden", "false");
+}
+
   // allow header button to trigger the same login flow
   loginBtn?.addEventListener("click", () => {
     showLoginGate();
@@ -638,12 +656,23 @@ setTimeout(() => {
   });
 
   function setUser(user) {
-  if (loginBtnText) {
-    loginBtnText.textContent = "Logged in ✅"; 
-      
-  }
-}
+ function setUser(user) {
+  const name = user?.username || "guest";
 
+  const elapsed = Date.now() - welcomeShownAt;
+  const wait = Math.max(0, MIN_WELCOME_TIME - elapsed);
+
+  setTimeout(() => {
+    if (loginBtnText) {
+      loginBtnText.textContent =
+        name === "guest" ? "Login with Pi" : "Start to Play";
+    }
+
+    if (userPill) {
+      userPill.textContent = `User: ${name}`;
+    }
+  }, wait);
+}
   // ---------------------------
   // Settings
   // ---------------------------
