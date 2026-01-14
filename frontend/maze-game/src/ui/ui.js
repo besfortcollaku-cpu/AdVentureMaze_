@@ -122,13 +122,15 @@ export function mountUI(app) {
     <h1 class="welcomeTitle">Adventure Maze</h1>
 
     <p class="welcomeText">
-      Tilt, roll and escape the maze.<br />
+  Roll through mind-bending mazes.<br>
+  Collect coins. Unlock levels. Escape.
+</p>
       Collect coins. Beat all levels.
     </p>
 
     <button class="welcomeBtn hidden" id="startAdventureBtn">
-      Start Adventure
-    </button>
+  Tap anywhere to start
+</button>
   </div>
 </div>
     <!-- ✄1�7 WIN POPUP -->
@@ -194,10 +196,15 @@ setTimeout(() => {
 
 // start game
 startBtn?.addEventListener("click", () => {
-  welcomeOverlay.classList.remove("show");
-  welcomeOverlay.style.display = "none";
+  document.body.classList.remove("welcomeActive");
+  
+  document.body.classList.add("welcomeActive");
 
-  // open level select (or start level 1)
+  welcomeOverlay.classList.add("fadeOut");
+  setTimeout(() => {
+    welcomeOverlay.style.display = "none";
+  }, 600);
+
   showLevelSelect?.({
     totalLevels: 20,
     currentLevel: 1,
@@ -239,6 +246,14 @@ if (legacyLogin) {
   const levelSelectClose = document.getElementById("levelSelectClose");
 
   let levelSelectHandler = null;
+  
+  
+  
+  welcomeOverlay?.addEventListener("click", () => {
+  if (!startBtn.classList.contains("hidden")) {
+    startBtn.click();
+  }
+});
 
   // ✄1�7 FIXED (single correct implementation)
   function showLevelSelect({ totalLevels, isCompleted, currentLevel }) {
