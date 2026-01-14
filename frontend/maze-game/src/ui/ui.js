@@ -424,9 +424,6 @@ function vibrate(ms = 15) {
 
 
 
-let soundEnabled = true;
-let vibrationEnabled = true;
-
 // unlock audio on first user interaction (mobile-safe)
 firstGestureHandler = () => {
   Object.values(SFX).forEach(a => {
