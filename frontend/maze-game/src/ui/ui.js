@@ -286,9 +286,9 @@ loginGateBtn?.addEventListener("click", () => {
 function onLoginClick(fn) {
   loginGateClickHandler = async () => {
     try {
-      await fn(); // Pi login happens here
-    } catch (err) {
-      console.error("Login failed", err);
+      await fn(); // Pi login
+    } catch (e) {
+      console.error("Login failed", e);
       showLoginError?.("Login failed");
     }
   };
