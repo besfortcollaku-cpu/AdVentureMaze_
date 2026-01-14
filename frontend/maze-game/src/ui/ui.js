@@ -227,6 +227,52 @@ if (legacyLogin) {
   legacyLogin.style.display = "none";
 }
 
+// ---------------------------
+// Sound + Haptics Engine
+// ---------------------------
+const SFX = {
+  tap: new Audio("/sfx/tap.mp3"),
+  victory: new Audio("/sfx/victory.mp3"),
+};
+
+Object.values(SFX).forEach(a => {
+  a.preload = "auto";
+  a.volume = 0.6;
+});
+
+let soundEnabled = true;
+let vibrationEnabled = true;
+
+// unlock audio on first gesture (mobile safe)
+firstGestureHandler = () => {
+  Object.values(SFX).forEach(a => {
+    try {
+      a.play().then(() => {
+        a.pause();
+        a.currentTime = 0;
+      }).catch(() => {});
+    } catch {}
+  });
+};
+
+function playSound(name) {
+  if (!soundEnabled) return;
+  const a = SFX[name];
+  if (!a) return;
+
+  try {
+    a.currentTime = 0;
+    a.play().catch(() => {});
+  } catch {}
+}
+
+function vibrate(ms = 15) {
+  if (!vibrationEnabled) return;
+  if (navigator.vibrate) {
+    navigator.vibrate(ms);
+  }
+}
+
   // Settings
   const settingsBtn = document.getElementById("settingsBtn");
   const settingsOverlay = document.getElementById("settingsOverlay");
@@ -306,12 +352,95 @@ if (legacyLogin) {
   // ---------------------------
   let soundHandler = null;
   let vibrationHandler = null;
+  let soundEnabled = true;
+let vibrationEnabled = true;
+
+let audioCtx = null;
+
+function getAudioCtx() {
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  return audioCtx;
+}
+
+function playClickSound() {
+  if (!soundEnabled) return;
+
+  const ctx = getAudioCtx();
+  const o = ctx.createOscillator();
+  const g = ctx.createGain();
+
+  o.type = "square";
+  o.frequency.value = 800;
+  g.gain.value = 0.05;
+
+  o.connect(g);
+  g.connect(ctx.destination);
+
+  o.start();
+  o.stop(ctx.currentTime + 0.05);
+}
+function vibrate(ms = 20) {
+  if (!vibrationEnabled) return;
+  if (!navigator.vibrate) return;
+
+  navigator.vibrate(ms);
+}
 
   let winNextHandler = null;
   let winAdHandler = null;
 
   // ✄1�7 first user gesture (for WebAudio unlock on mobile)
   let firstGestureHandler = null;
+  // ---------------------------
+// Sound + Haptics Engine
+// ---------------------------
+const SFX = {
+  tap: new Audio("/sfx/tap.mp3"),
+  victory: new Audio("/sfx/victory.mp3"),
+};
+
+Object.values(SFX).forEach(a => {
+  a.preload = "auto";
+  a.volume = 0.6;
+});
+
+function playSound(name) {
+  if (!soundEnabled) return;
+  const a = SFX[name];
+  if (!a) return;
+
+  try {
+    a.currentTime = 0;
+    a.play().catch(() => {});
+  } catch {}
+}
+
+function vibrate(ms = 15) {
+  if (!vibrationEnabled) return;
+  if (navigator.vibrate) {
+    navigator.vibrate(ms);
+  }
+}
+
+
+
+let soundEnabled = true;
+let vibrationEnabled = true;
+
+// unlock audio on first user interaction (mobile-safe)
+firstGestureHandler = () => {
+  Object.values(SFX).forEach(a => {
+    try {
+      a.play().then(() => {
+        a.pause();
+        a.currentTime = 0;
+      }).catch(() => {});
+    } catch {}
+  });
+};
+
   window.addEventListener(
     "pointerdown",
     () => {
@@ -390,6 +519,15 @@ loginGateBtn.addEventListener("click", () => {
     }
   };
 }
+document.addEventListener("click", (e) => {
+  const btn = e.target.closest("button");
+  if (!btn) return;
+
+  playSound("tap");
+  vibrate(10);
+});
+
+
 
   // allow header button to trigger the same login flow
   loginBtn?.addEventListener("click", () => {
@@ -495,11 +633,18 @@ loginGateBtn.addEventListener("click", () => {
     setSoundEnabled,
     setVibrationEnabled,
     onSoundToggle(fn) {
-      soundHandler = fn;
-    },
-    onVibrationToggle(fn) {
-      vibrationHandler = fn;
-    },
+  soundHandler = (v) => {
+    soundEnabled = v;
+    fn?.(v);
+  };
+},
+
+onVibrationToggle(fn) {
+  vibrationHandler = (v) => {
+    vibrationEnabled = v;
+    fn?.(v);
+  };
+},
 
     // Win popup API (✄1�7 kept only once)
     showWinPopup,

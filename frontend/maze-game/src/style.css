@@ -1077,3 +1077,10 @@ body.welcomeActive .phone {
     filter: drop-shadow(0 0 32px rgba(37,215,255,.9));
   }
 }
+
+.btn:active,
+.iconBtn:active,
+.loginGateBtn:active {
+  transform: scale(0.96);
+  filter: brightness(1.1);
+}
