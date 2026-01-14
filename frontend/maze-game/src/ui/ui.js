@@ -539,10 +539,22 @@ export function mountUI(app) {
     { once: true }
   );
 
-  // ✅ login gate click
-  let loginGateClickHandler = null;
-  loginGateBtn?.addEventListener("click", () => loginGateClickHandler?.());
 
+ // ✅ login gate click
+let loginGateClickHandler = null;
+
+loginGateBtn?.addEventListener("click", () => {
+  showLoginGate();
+  loginGateClickHandler?.();
+});
+
+// 🚀 AUTO LOGIN (only after handler is registered)
+setTimeout(() => {
+  if (loginGateClickHandler) {
+    showLoginGate();
+    loginGateClickHandler();
+  }
+}, 300);
   function setCoins(n) {
     if (coinCountEl) coinCountEl.textContent = String(n ?? 0);
   }
@@ -581,12 +593,28 @@ export function mountUI(app) {
   function onLoginClick(fn) {
   loginGateClickHandler = async () => {
     try {
-      if (loginBtnText) loginBtnText.textContent = "Authenticating…";
+      // 🔄 spinner instead of text
+      if (loginBtnText) {
+        loginBtnText.innerHTML = `<span class="piSpinner"></span>`;
+      }
       loginBtn.disabled = true;
 
-      await fn();
+      await fn(); // Pi login happens here
 
-      if (loginBtnText) loginBtnText.textContent = "Logged in ✅";
+      // ✅ logged in
+      if (loginBtnText) {
+        loginBtnText.textContent = "Logged in ✅";
+      }
+
+      // ✨ fade out welcome screen
+      const welcome = document.getElementById("welcomeOverlay");
+      if (welcome) {
+        welcome.classList.add("fadeOut");
+        setTimeout(() => {
+          welcome.style.display = "none";
+        }, 600);
+      }
+
     } catch (e) {
       if (loginBtnText) loginBtnText.textContent = "Login";
       throw e;
