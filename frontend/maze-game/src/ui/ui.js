@@ -240,8 +240,6 @@ Object.values(SFX).forEach(a => {
   a.volume = 0.6;
 });
 
-let soundEnabled = true;
-let vibrationEnabled = true;
 
 // unlock audio on first gesture (mobile safe)
 firstGestureHandler = () => {
