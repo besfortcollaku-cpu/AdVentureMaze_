@@ -47,7 +47,7 @@ export function mountUI(app) {
         <div class="pill">Swipe to move</div>
 
         <button class="btn" id="x3Btn">
-          <div class="btnIcon">‚è©</div>
+          <div class="btnIcon">‚èÑ1§7</div>
           <div>√ó3</div>
         </button>
       </div>
@@ -61,7 +61,7 @@ export function mountUI(app) {
       </div>
     </div>
 
-    <!-- ‚úÖ LOGIN GATE (blocks game until Pi login) -->
+    <!-- ‚úÑ1§7 LOGIN GATE (blocks game until Pi login) -->
     <div class="loginGate" id="loginGate" aria-hidden="true">
       <div class="loginGateCard">
         <div class="loginGateTitle">Login required</div>
@@ -81,12 +81,12 @@ export function mountUI(app) {
       </div>
     </div>
 
-    <!-- ‚úÖ SETTINGS OVERLAY -->
+    <!-- ‚úÑ1§7 SETTINGS OVERLAY -->
     <div class="settingsOverlay" id="settingsOverlay" aria-hidden="true">
       <div class="settingsCard">
         <div class="settingsHeader">
           <div class="settingsTitle">Settings</div>
-          <button class="settingsClose" id="settingsCloseBtn" aria-label="Close">‚úï</button>
+          <button class="settingsClose" id="settingsCloseBtn" aria-label="Close">‚úÑ1§7</button>
         </div>
 
         <div class="settingsRow">
@@ -117,7 +117,7 @@ export function mountUI(app) {
       </div>
     </div>
 
-    <!-- ‚úÖ WIN POPUP -->
+    <!-- ‚úÑ1§7 WIN POPUP -->
     <div class="winOverlay" id="winOverlay" aria-hidden="true">
       <div class="winCard">
         <div class="winSparkLayer"></div>
@@ -130,7 +130,7 @@ export function mountUI(app) {
 
         <div class="winMusic">
           <div class="winPulse"></div>
-          <div class="winNote">‚ô™</div>
+          <div class="winNote">‚ôÑ1§7</div>
           <div class="winMusicText">Victory vibes</div>
         </div>
 
@@ -146,7 +146,7 @@ export function mountUI(app) {
       </div>
     </div>
     
-    <!-- ‚úÖ LEVEL SELECT POPUP -->
+    <!-- ‚úÑ1§7 LEVEL SELECT POPUP -->
     <div class="levelSelectOverlay" id="levelSelectOverlay" aria-hidden="true">
       <div class="winCard">
         <div class="winHeader">
@@ -162,19 +162,32 @@ export function mountUI(app) {
       </div>
     </div>
     
-    <!-- ‚úÖ FULLSCREEN WELCOME OVERLAY -->
+    <!-- ‚úÑ1§7 FULLSCREEN WELCOME OVERLAY -->
 <div class="welcomeOverlay" id="welcomeOverlay" aria-hidden="false">
   <div class="welcomeCard">
     <h1 class="welcomeTitle">Welcome to Adventure Maze</h1>
-    <div class="loginWrap">
-  <button class="iconBtnWide" id="loginBtn">
-    <span id="loginBtnText">Star Game</span>
-  </button>
-</div>
+    <div class="welcomeCard">
+  <div class="winBadge">WELCOME</div>
+
+  <div class="winTitle">Adventure Maze</div>
+  <div class="winSub">
+    Tilt, swipe, and solve mazes.<br />
+    Earn coins. Unlock levels. Compete.
+  </div>
+
+  <div class="winRow" style="margin-top:18px">
+    <button class="winBtnPrimary" id="loginBtn">
+      <span id="loginBtnText">Authenticating°≠</span>
+    </button>
+  </div>
+
+  <div class="winHint">
+    Logging in with Pi Network
+  </div>
 </div>
   `;
 
-  // ‚úÖ Inject UI styles (Login Gate + Settings + Win overlay + login wrap)
+  // ‚úÑ1§7 Inject UI styles (Login Gate + Settings + Win overlay + login wrap)
   const extra = document.createElement("style");
   extra.textContent = `
     .loginWrap{ display:flex; gap:10px; align-items:center; margin-left:auto; }
@@ -201,7 +214,7 @@ export function mountUI(app) {
       .userPill{ flex:1; justify-content:center; }
     }
 
-    /* ‚úÖ LOGIN GATE */
+    /* ‚úÑ1§7 LOGIN GATE */
     .loginGate{
       position:fixed; inset:0; z-index:1000000;
       display:none; align-items:center; justify-content:center;
@@ -472,7 +485,7 @@ export function mountUI(app) {
 
   let levelSelectHandler = null;
 
-  // ‚úÖ FIXED (single correct implementation)
+  // ‚úÑ1§7 FIXED (single correct implementation)
   function showLevelSelect({ totalLevels, isCompleted, currentLevel }) {
     if (!levelGrid || !levelSelectOverlay) return;
 
@@ -493,7 +506,7 @@ export function mountUI(app) {
         (completed ? "" : " locked") +
         (isCurrent ? " current" : "");
 
-      btn.textContent = completed ? `‚úî Level ${i}` : `üîí ${i}`;
+      btn.textContent = completed ? `‚úÑ1§7 Level ${i}` : `üîí ${i}`;
 
       if (completed) {
         btn.addEventListener("click", () => {
@@ -528,7 +541,7 @@ export function mountUI(app) {
   let winNextHandler = null;
   let winAdHandler = null;
 
-  // ‚úÖ first user gesture (for WebAudio unlock on mobile)
+  // ‚úÑ1§7 first user gesture (for WebAudio unlock on mobile)
   let firstGestureHandler = null;
   window.addEventListener(
     "pointerdown",
@@ -540,7 +553,7 @@ export function mountUI(app) {
   );
 
 
- // ‚úÖ login gate click
+ // ‚úÑ1§7 login gate click
 let loginGateClickHandler = null;
 
 loginGateBtn?.addEventListener("click", () => {
@@ -605,12 +618,12 @@ setTimeout(() => {
 
       await fn(); // Pi login happens here
 
-      // ‚úÖ logged in
+      // ‚úÑ1§7 logged in
       if (loginBtnText) {
-        loginBtnText.textContent = "Logged in ‚úÖ";
+        loginBtnText.textContent = "Logged in ‚úÑ1§7";
       }
 
-      // ‚ú® fade out welcome screen
+      // ‚úÑ1§7 fade out welcome screen
       const welcome = document.getElementById("welcomeOverlay");
       if (welcome) {
         welcome.classList.add("fadeOut");
@@ -635,7 +648,7 @@ setTimeout(() => {
 
   function setUser(user) {
   if (loginBtnText) {
-    loginBtnText.textContent = "Logged in ‚úÖ"; 
+    loginBtnText.textContent = "Logged in ‚úÑ1§7"; 
       
   }
 }
@@ -716,12 +729,12 @@ setTimeout(() => {
 
     setCoins,
 
-    // ‚úÖ audio unlock hook
+    // ‚úÑ1§7 audio unlock hook
     onFirstUserGesture(fn) {
       firstGestureHandler = fn;
     },
 
-    // ‚úÖ login gate methods for ensurePiLogin()
+    // ‚úÑ1§7 login gate methods for ensurePiLogin()
     showLoginGate,
     hideLoginGate,
     showLoginError,
@@ -738,7 +751,7 @@ setTimeout(() => {
       vibrationHandler = fn;
     },
 
-    // Win popup API (‚úÖ kept only once)
+    // Win popup API (‚úÑ1§7 kept only once)
     showWinPopup,
     hideWinPopup,
     onWinNext(fn) {
@@ -748,7 +761,7 @@ setTimeout(() => {
       winAdHandler = fn;
     },
 
-    // ‚úÖ Level select API
+    // ‚úÑ1§7 Level select API
     showLevelSelect,
     hideLevelSelect,
     onLevelSelect(fn) {
