@@ -227,18 +227,7 @@ if (legacyLogin) {
   legacyLogin.style.display = "none";
 }
 
-// ---------------------------
-// Sound + Haptics Engine
-// ---------------------------
-const SFX = {
-  tap: new Audio("/sfx/tap.mp3"),
-  victory: new Audio("/sfx/victory.mp3"),
-};
 
-Object.values(SFX).forEach(a => {
-  a.preload = "auto";
-  a.volume = 0.6;
-});
 
 
 // unlock audio on first gesture (mobile safe)
