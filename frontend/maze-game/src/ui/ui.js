@@ -115,7 +115,22 @@ export function mountUI(app) {
         </div>
       </div>
     </div>
+<div class="welcomeOverlay show" id="welcomeOverlay">
+  <div class="welcomeCard">
+    <img src="/logo.png" class="welcomeLogo" alt="Adventure Maze" />
 
+    <h1 class="welcomeTitle">Adventure Maze</h1>
+
+    <p class="welcomeText">
+      Tilt, roll and escape the maze.<br />
+      Collect coins. Beat all levels.
+    </p>
+
+    <button class="welcomeBtn hidden" id="startAdventureBtn">
+      Start Adventure
+    </button>
+  </div>
+</div>
     <!-- ✄1�7 WIN POPUP -->
     <div class="winOverlay" id="winOverlay" aria-hidden="true">
       <div class="winCard">
@@ -168,6 +183,27 @@ export function mountUI(app) {
   // ---------------------------
   // Elements
   // ---------------------------
+  
+  const startBtn = document.getElementById("startAdventureBtn");
+const welcomeOverlay = document.getElementById("welcomeOverlay");
+
+// delay button appearance
+setTimeout(() => {
+  startBtn?.classList.remove("hidden");
+}, 5000);
+
+// start game
+startBtn?.addEventListener("click", () => {
+  welcomeOverlay.classList.remove("show");
+  welcomeOverlay.style.display = "none";
+
+  // open level select (or start level 1)
+  showLevelSelect?.({
+    totalLevels: 20,
+    currentLevel: 1,
+    isCompleted: () => true
+  });
+});
   const coinCountEl = document.getElementById("coinCount");
 
   // Header login UI
