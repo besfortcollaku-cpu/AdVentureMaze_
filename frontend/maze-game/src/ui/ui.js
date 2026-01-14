@@ -244,7 +244,7 @@ export function mountUI(app) {
         (completed ? "" : " locked") +
         (isCurrent ? " current" : "");
 
-      btn.textContent = completed ? `✄1�7 Level ${i}` : `🔒 ${i}`;
+      btn.textContent = completed ? Level ${i}` : `🔒 ${i}`;
 
       if (completed) {
         btn.addEventListener("click", () => {
