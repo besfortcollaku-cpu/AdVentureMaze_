@@ -168,7 +168,7 @@ export function mountUI(app) {
     <h1 class="welcomeTitle">Welcome to Adventure Maze</h1>
     <div class="loginWrap">
   <button class="iconBtnWide" id="loginBtn">
-    <span id="loginBtnText">Authenticating…</span>
+    <span id="loginBtnText">Star Game</span>
   </button>
 </div>
 </div>
