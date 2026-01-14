@@ -47,7 +47,7 @@ export function mountUI(app) {
         <div class="pill">Swipe to move</div>
 
         <button class="btn" id="x3Btn">
-          <div class="btnIcon">⏄1�7</div>
+          <div class="btnIcon">⏄1�7</div>
           <div>×3</div>
         </button>
       </div>
@@ -61,7 +61,7 @@ export function mountUI(app) {
       </div>
     </div>
 
-    <!-- ✄1�7 LOGIN GATE (blocks game until Pi login) -->
+    <!-- ✄1�7 LOGIN GATE  Test(blocks game until Pi login) -->
     <div class="loginGate" id="loginGate" aria-hidden="true">
       <div class="loginGateCard">
         <div class="loginGateTitle">Login required</div>
@@ -81,12 +81,12 @@ export function mountUI(app) {
       </div>
     </div>
 
-    <!-- ✄1�7 SETTINGS OVERLAY -->
+    <!-- ✄1�7 SETTINGS OVERLAY -->
     <div class="settingsOverlay" id="settingsOverlay" aria-hidden="true">
       <div class="settingsCard">
         <div class="settingsHeader">
           <div class="settingsTitle">Settings</div>
-          <button class="settingsClose" id="settingsCloseBtn" aria-label="Close">✄1�7</button>
+          <button class="settingsClose" id="settingsCloseBtn" aria-label="Close">✄1�7</button>
         </div>
 
         <div class="settingsRow">
@@ -117,7 +117,7 @@ export function mountUI(app) {
       </div>
     </div>
 
-    <!-- ✄1�7 WIN POPUP -->
+    <!-- ✄1�7 WIN POPUP -->
     <div class="winOverlay" id="winOverlay" aria-hidden="true">
       <div class="winCard">
         <div class="winSparkLayer"></div>
@@ -130,7 +130,7 @@ export function mountUI(app) {
 
         <div class="winMusic">
           <div class="winPulse"></div>
-          <div class="winNote">♄1�7</div>
+          <div class="winNote">♄1�7</div>
           <div class="winMusicText">Victory vibes</div>
         </div>
 
@@ -146,7 +146,7 @@ export function mountUI(app) {
       </div>
     </div>
     
-    <!-- ✄1�7 LEVEL SELECT POPUP -->
+    <!-- ✄1�7 LEVEL SELECT POPUP -->
     <div class="levelSelectOverlay" id="levelSelectOverlay" aria-hidden="true">
       <div class="winCard">
         <div class="winHeader">
@@ -162,7 +162,7 @@ export function mountUI(app) {
       </div>
     </div>
     
-    <!-- ✄1�7 FULLSCREEN WELCOME OVERLAY -->
+    <!-- ✄1�7 FULLSCREEN WELCOME OVERLAY -->
 <div class="welcomeOverlay" id="welcomeOverlay" aria-hidden="false">
   <div class="welcomeCard">
     <h1 class="welcomeTitle">Welcome to Adventure Maze</h1>
@@ -177,7 +177,7 @@ export function mountUI(app) {
 
   <div class="winRow" style="margin-top:18px">
     <button class="winBtnPrimary" id="loginBtn">
-      <span id="loginBtnText">Authenticating��</span>
+      <span id="loginBtnText">Authenticating��</span>
     </button>
   </div>
 
@@ -187,7 +187,7 @@ export function mountUI(app) {
 </div>
   `;
 
-  // ✄1�7 Inject UI styles (Login Gate + Settings + Win overlay + login wrap)
+  // Inject UI styles (Login Gate + Settings + Win overlay + login wrap)
   const extra = document.createElement("style");
   extra.textContent = `
     .loginWrap{ display:flex; gap:10px; align-items:center; margin-left:auto; }
@@ -214,7 +214,7 @@ export function mountUI(app) {
       .userPill{ flex:1; justify-content:center; }
     }
 
-    /* ✄1�7 LOGIN GATE */
+    /* ✄1�7 LOGIN GATE */
     .loginGate{
       position:fixed; inset:0; z-index:1000000;
       display:none; align-items:center; justify-content:center;
@@ -485,7 +485,7 @@ export function mountUI(app) {
 
   let levelSelectHandler = null;
 
-  // ✄1�7 FIXED (single correct implementation)
+  // ✄1�7 FIXED (single correct implementation)
   function showLevelSelect({ totalLevels, isCompleted, currentLevel }) {
     if (!levelGrid || !levelSelectOverlay) return;
 
@@ -506,7 +506,7 @@ export function mountUI(app) {
         (completed ? "" : " locked") +
         (isCurrent ? " current" : "");
 
-      btn.textContent = completed ? `✄1�7 Level ${i}` : `🔒 ${i}`;
+      btn.textContent = completed ? `✄1�7 Level ${i}` : `🔒 ${i}`;
 
       if (completed) {
         btn.addEventListener("click", () => {
@@ -541,7 +541,7 @@ export function mountUI(app) {
   let winNextHandler = null;
   let winAdHandler = null;
 
-  // ✄1�7 first user gesture (for WebAudio unlock on mobile)
+  // ✄1�7 first user gesture (for WebAudio unlock on mobile)
   let firstGestureHandler = null;
   window.addEventListener(
     "pointerdown",
@@ -553,7 +553,7 @@ export function mountUI(app) {
   );
 
 
- // ✄1�7 login gate click
+ // ✄1�7 login gate click
 let loginGateClickHandler = null;
 
 loginGateBtn?.addEventListener("click", () => {
@@ -618,12 +618,12 @@ setTimeout(() => {
 
       await fn(); // Pi login happens here
 
-      // ✄1�7 logged in
+      // ✄1�7 logged in
       if (loginBtnText) {
-        loginBtnText.textContent = "Logged in ✄1�7";
+        loginBtnText.textContent = "Logged in ✄1�7";
       }
 
-      // ✄1�7 fade out welcome screen
+      // ✄1�7 fade out welcome screen
       const welcome = document.getElementById("welcomeOverlay");
       if (welcome) {
         welcome.classList.add("fadeOut");
@@ -648,7 +648,7 @@ setTimeout(() => {
 
   function setUser(user) {
   if (loginBtnText) {
-    loginBtnText.textContent = "Logged in ✄1�7"; 
+    loginBtnText.textContent = "Logged in ✄1�7"; 
       
   }
 }
@@ -729,12 +729,12 @@ setTimeout(() => {
 
     setCoins,
 
-    // ✄1�7 audio unlock hook
+    // ✄1�7 audio unlock hook
     onFirstUserGesture(fn) {
       firstGestureHandler = fn;
     },
 
-    // ✄1�7 login gate methods for ensurePiLogin()
+    // ✄1�7 login gate methods for ensurePiLogin()
     showLoginGate,
     hideLoginGate,
     showLoginError,
@@ -751,7 +751,7 @@ setTimeout(() => {
       vibrationHandler = fn;
     },
 
-    // Win popup API (✄1�7 kept only once)
+    // Win popup API (✄1�7 kept only once)
     showWinPopup,
     hideWinPopup,
     onWinNext(fn) {
@@ -761,7 +761,7 @@ setTimeout(() => {
       winAdHandler = fn;
     },
 
-    // ✄1�7 Level select API
+    // ✄1�7 Level select API
     showLevelSelect,
     hideLevelSelect,
     onLevelSelect(fn) {
