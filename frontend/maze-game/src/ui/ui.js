@@ -787,7 +787,7 @@ function showWelcome(isReturning = false) {
     onLevelSelect(fn) {
       levelSelectHandler = fn;
     },
-  };
+  };}
 }
 
 /* ---------------- UI helpers ---------------- */
