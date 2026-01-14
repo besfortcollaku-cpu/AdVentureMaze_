@@ -162,29 +162,7 @@ export function mountUI(app) {
       </div>
     </div>
     
-    <!-- ✄1�7 FULLSCREEN WELCOME OVERLAY -->
-<div class="welcomeOverlay" id="welcomeOverlay" aria-hidden="false">
-  <div class="welcomeCard">
-    <h1 class="welcomeTitle">Welcome to Adventure Maze</h1>
-    <div class="welcomeCard">
-  <div class="winBadge">WELCOME</div>
 
-  <div class="winTitle">Adventure Maze</div>
-  <div class="winSub">
-    Tilt, swipe, and solve mazes.<br />
-    Earn coins. Unlock levels. Compete.
-  </div>
-
-  <div class="winRow" style="margin-top:18px">
-    <button class="winBtnPrimary" id="loginBtn">
-      <span id="loginBtnText">Authenticating��</span>
-    </button>
-  </div>
-
-  <div class="winHint">
-    Logging in with Pi Network
-  </div>
-</div>
 `;
  
   document.head.appendChild(extra);
