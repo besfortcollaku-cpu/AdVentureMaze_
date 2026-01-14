@@ -548,7 +548,13 @@ loginGateBtn?.addEventListener("click", () => {
   loginGateClickHandler?.();
 });
 
-
+// 🚀 AUTO LOGIN (only after handler is registered)
+setTimeout(() => {
+  if (loginGateClickHandler) {
+    showLoginGate();
+    loginGateClickHandler();
+  }
+}, 300);
   function setCoins(n) {
     if (coinCountEl) coinCountEl.textContent = String(n ?? 0);
   }
@@ -557,12 +563,16 @@ loginGateBtn?.addEventListener("click", () => {
   // Login Gate API
   // ---------------------------
   function showLoginGate() {
-  if (!loginGate) return;
-  loginGate.classList.add("show");
-  loginGate.setAttribute("aria-hidden", "false");
-  showLoginError("");
-  setGateLoading(false);
-}
+      // 🚀 auto trigger login once visible
+setTimeout(() => {
+  loginGateClickHandler?.();
+}, 200);
+    if (!loginGate) return;
+    loginGate.classList.add("show");
+    loginGate.setAttribute("aria-hidden", "false");
+    showLoginError(""); // clear
+    setGateLoading(false);
+  }
 
   function hideLoginGate() {
     if (!loginGate) return;
@@ -599,59 +609,37 @@ loginGateBtn?.addEventListener("click", () => {
       if (loginBtnText) {
         loginBtnText.textContent = "Logged in ✅";
       }
-      
-      function setUser(user) {
-  if (loginBtnText) {
-    loginBtnText.textContent = "Start to Play";
-  }
 
-  // make sure button is clickable again
-  if (loginBtn) {
-    loginBtn.disabled = false;
-  }
-}
-
-
-  // allow header button to trigger the same login flow
-  loginBtn?.addEventListener("click", () => {
-  // if already logged in → START GAME
-  if (loginBtnText?.textContent === "Start to Play") {
-    const welcome = document.getElementById("welcomeOverlay");
-    if (welcome) {
-      welcome.classList.add("fadeOut");
-      setTimeout(() => {
-        welcome.style.display = "none";
-      }, 600);
-    }
-
-    // 🔥 open level select
-    showLevelSelect({
-      totalLevels: 50,
-      currentLevel: 1,
-      isCompleted: () => true // adjust later if needed
-    });
-
-    return;
-  }
-
-  // otherwise → normal login flow
-  showLoginGate();
-  loginGateClickHandler?.();
-});
-
-    
-} catch (err) {
-      console.error("[LOGIN ERROR]", err);
-
-      if (loginBtnText) {
-        loginBtnText.textContent = "Login";
+      // ✨ fade out welcome screen
+      const welcome = document.getElementById("welcomeOverlay");
+      if (welcome) {
+        welcome.classList.add("fadeOut");
+        setTimeout(() => {
+          welcome.style.display = "none";
+        }, 600);
       }
-      if (loginBtn) {
-        loginBtn.disabled = false;
-      }
+
+    } catch (e) {
+      if (loginBtnText) loginBtnText.textContent = "Login";
+      throw e;
+    } finally {
+      loginBtn.disabled = false;
     }
   };
 }
+  // allow header button to trigger the same login flow
+  loginBtn?.addEventListener("click", () => {
+    showLoginGate();
+    loginGateClickHandler?.();
+  });
+
+  function setUser(user) {
+  if (loginBtnText) {
+    loginBtnText.textContent = "Logged in ✅"; 
+      
+  }
+}
+
   // ---------------------------
   // Settings
   // ---------------------------
@@ -768,7 +756,6 @@ loginGateBtn?.addEventListener("click", () => {
     },
   };
 }
-
 
 /* ---------------- UI helpers ---------------- */
 function iconBtn(id, svg, badgeText) {
