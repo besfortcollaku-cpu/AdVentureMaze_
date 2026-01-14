@@ -650,7 +650,18 @@ setTimeout(() => {
 });
 
     }
+} catch (err) {
+      console.error("[LOGIN ERROR]", err);
 
+      if (loginBtnText) {
+        loginBtnText.textContent = "Login";
+      }
+      if (loginBtn) {
+        loginBtn.disabled = false;
+      }
+    }
+  };
+}
   // ---------------------------
   // Settings
   // ---------------------------
