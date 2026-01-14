@@ -295,15 +295,6 @@ function onLoginClick(fn) {
 }
 
       loginGateBtn.textContent = "Start Adventure";
-    } catch (e) {
-      loginGateBtn.textContent = "Login";
-      throw e;
-    } finally {
-      loginGateBtn.disabled = false;
-    }
-  };
-}
-
 loginGateBtn.addEventListener("click", () => {
   if (loginGateBtn.textContent.includes("Start")) {
     hideLoginGate();
