@@ -766,7 +766,8 @@ setTimeout(() => {
       levelSelectHandler = fn;
     },
   };
-}
+}}
+
 
 /* ---------------- UI helpers ---------------- */
 function iconBtn(id, svg, badgeText) {
