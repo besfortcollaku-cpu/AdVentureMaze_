@@ -286,9 +286,13 @@ loginGateBtn?.addEventListener("click", () => {
 function onLoginClick(fn) {
   loginGateClickHandler = async () => {
     try {
-      loginGateBtn.disabled = true;
-      loginGateBtn.innerHTML = `<span class="piSpinner"></span> Authenticating…`;
-
+      await fn(); // Pi login happens here
+    } catch (err) {
+      console.error("Login failed", err);
+      showLoginError?.("Login failed");
+    }
+  };
+}
       await fn(); // Pi login
 
       loginGateBtn.textContent = "Start Adventure";
