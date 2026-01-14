@@ -290,7 +290,7 @@ function onLoginClick(fn) {
     } catch (e) {
       console.error("Login failed", e);
       showLoginError?.("Login failed");
-    }
+    }}
   };
 }
 
@@ -325,18 +325,20 @@ loginGateBtn.addEventListener("click", () => {
   function onLoginClick(fn) {
   loginGateClickHandler = async () => {
     try {
-      // 🔄 spinner instead of text
-      if (loginBtnText) {
-        loginBtnText.innerHTML = `<span class="piSpinner"></span>`;
-      }
-      loginBtn.disabled = true;
+      setGateLoading(true);
+      showLoginError("");
 
       await fn(); // Pi login happens here
 
-      // ✄1�7 logged in
-      if (loginBtnText) {
-        loginBtnText.textContent = "Logged in";
-      }
+      hideLoginGate();
+    } catch (e) {
+      showLoginError(e?.message || "Login failed");
+      throw e;
+    } finally {
+      setGateLoading(false);
+    }
+  };
+}
 
   // allow header button to trigger the same login flow
   loginBtn?.addEventListener("click", () => {
