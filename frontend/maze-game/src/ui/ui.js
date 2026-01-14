@@ -649,7 +649,7 @@ setTimeout(() => {
   loginGateClickHandler?.();
 });
 
-    }
+    };
 } catch (err) {
       console.error("[LOGIN ERROR]", err);
 
