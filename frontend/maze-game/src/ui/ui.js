@@ -293,7 +293,6 @@ function onLoginClick(fn) {
     }
   };
 }
-      await fn(); // Pi login
 
       loginGateBtn.textContent = "Start Adventure";
     } catch (e) {
