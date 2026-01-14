@@ -540,37 +540,33 @@ export function mountUI(app) {
   );
 
 
-// ✅ login gate click
+ // ✅ login gate click
 let loginGateClickHandler = null;
 
-// single place that triggers the login flow
-function startLoginFlow() {
+loginGateBtn?.addEventListener("click", () => {
   showLoginGate();
   loginGateClickHandler?.();
-}
+});
 
-// keep click as a fallback (still works if auto-login fails)
-loginGateBtn?.addEventListener("click", startLoginFlow);
-
-// 🚀 AUTO LOGIN (no tap needed) — wait until handler exists, then run once
-(function autoLoginOnce() {
-  let tries = 0;
-  const t = setInterval(() => {
-    tries++;
-    if (loginGateClickHandler) {
-      clearInterval(t);
-      startLoginFlow();
-    }
-    // stop trying after ~3 seconds
-    if (tries > 30) clearInterval(t);
-  }, 100);
-})();
+// 🚀 AUTO LOGIN (only after handler is registered)
+setTimeout(() => {
+  if (loginGateClickHandler) {
+    showLoginGate();
+    loginGateClickHandler();
+  }
+}, 300);
+  function setCoins(n) {
+    if (coinCountEl) coinCountEl.textContent = String(n ?? 0);
+  }
 
   // ---------------------------
   // Login Gate API
   // ---------------------------
   function showLoginGate() {
-
+      // 🚀 auto trigger login once visible
+setTimeout(() => {
+  loginGateClickHandler?.();
+}, 200);
     if (!loginGate) return;
     loginGate.classList.add("show");
     loginGate.setAttribute("aria-hidden", "false");
@@ -613,36 +609,47 @@ loginGateBtn?.addEventListener("click", startLoginFlow);
       if (loginBtnText) {
         loginBtnText.textContent = "Logged in ✅";
       }
-
-      // ✨ fade out welcome screen
-      const welcome = document.getElementById("welcomeOverlay");
-      if (welcome) {
-        welcome.classList.add("fadeOut");
-        setTimeout(() => {
-          welcome.style.display = "none";
-        }, 600);
-      }
-
-    } catch (e) {
-      if (loginBtnText) loginBtnText.textContent = "Login";
-      throw e;
-    } finally {
-      loginBtn.disabled = false;
-    }
-  };
-}
-  // allow header button to trigger the same login flow
-  loginBtn?.addEventListener("click", () => {
-    showLoginGate();
-    loginGateClickHandler?.();
-  });
-
-  function setUser(user) {
-  if (loginBtnText) {
-    loginBtnText.textContent = "Logged in ✅"; 
       
+      function setUser(user) {
+  if (loginBtnText) {
+    loginBtnText.textContent = "Start to Play";
+  }
+
+  // make sure button is clickable again
+  if (loginBtn) {
+    loginBtn.disabled = false;
   }
 }
+
+
+  // allow header button to trigger the same login flow
+  loginBtn?.addEventListener("click", () => {
+  // if already logged in → START GAME
+  if (loginBtnText?.textContent === "Start to Play") {
+    const welcome = document.getElementById("welcomeOverlay");
+    if (welcome) {
+      welcome.classList.add("fadeOut");
+      setTimeout(() => {
+        welcome.style.display = "none";
+      }, 600);
+    }
+
+    // 🔥 open level select
+    showLevelSelect({
+      totalLevels: 50,
+      currentLevel: 1,
+      isCompleted: () => true // adjust later if needed
+    });
+
+    return;
+  }
+
+  // otherwise → normal login flow
+  showLoginGate();
+  loginGateClickHandler?.();
+});
+
+  
 
   // ---------------------------
   // Settings
