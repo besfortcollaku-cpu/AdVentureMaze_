@@ -352,7 +352,7 @@ loginGateBtn.addEventListener("click", () => {
 
   function setUser(user) {
   if (loginBtnText) {
-    loginBtnText.textContent = "Logged in;
+    loginBtnText.textContent = "Logged in";
   }
 }
 
