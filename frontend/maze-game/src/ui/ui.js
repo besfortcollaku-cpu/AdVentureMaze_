@@ -563,6 +563,10 @@ setTimeout(() => {
   // Login Gate API
   // ---------------------------
   function showLoginGate() {
+      // 🚀 auto trigger login once visible
+setTimeout(() => {
+  loginGateClickHandler?.();
+}, 200);
     if (!loginGate) return;
     loginGate.classList.add("show");
     loginGate.setAttribute("aria-hidden", "false");
