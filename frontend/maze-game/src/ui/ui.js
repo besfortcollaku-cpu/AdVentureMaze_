@@ -341,7 +341,7 @@ loginGateBtn.addEventListener("click", () => {
 
       // ✄1�7 logged in
       if (loginBtnText) {
-        loginBtnText.textContent = "Logged in;
+        loginBtnText.textContent = "Logged in";
       }
 
   // allow header button to trigger the same login flow
