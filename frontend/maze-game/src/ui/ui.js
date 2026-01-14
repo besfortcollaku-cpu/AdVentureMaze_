@@ -540,33 +540,37 @@ export function mountUI(app) {
   );
 
 
- // ✅ login gate click
+// ✅ login gate click
 let loginGateClickHandler = null;
 
-loginGateBtn?.addEventListener("click", () => {
+// single place that triggers the login flow
+function startLoginFlow() {
   showLoginGate();
   loginGateClickHandler?.();
-});
+}
 
-// 🚀 AUTO LOGIN (only after handler is registered)
-setTimeout(() => {
-  if (loginGateClickHandler) {
-    showLoginGate();
-    loginGateClickHandler();
-  }
-}, 300);
-  function setCoins(n) {
-    if (coinCountEl) coinCountEl.textContent = String(n ?? 0);
-  }
+// keep click as a fallback (still works if auto-login fails)
+loginGateBtn?.addEventListener("click", startLoginFlow);
+
+// 🚀 AUTO LOGIN (no tap needed) — wait until handler exists, then run once
+(function autoLoginOnce() {
+  let tries = 0;
+  const t = setInterval(() => {
+    tries++;
+    if (loginGateClickHandler) {
+      clearInterval(t);
+      startLoginFlow();
+    }
+    // stop trying after ~3 seconds
+    if (tries > 30) clearInterval(t);
+  }, 100);
+})();
 
   // ---------------------------
   // Login Gate API
   // ---------------------------
   function showLoginGate() {
-      // 🚀 auto trigger login once visible
-setTimeout(() => {
-  loginGateClickHandler?.();
-}, 200);
+
     if (!loginGate) return;
     loginGate.classList.add("show");
     loginGate.setAttribute("aria-hidden", "false");
