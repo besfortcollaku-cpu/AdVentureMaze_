@@ -649,7 +649,7 @@ setTimeout(() => {
   loginGateClickHandler?.();
 });
 
-  
+    }
 
   // ---------------------------
   // Settings
@@ -766,7 +766,7 @@ setTimeout(() => {
       levelSelectHandler = fn;
     },
   };
-}}
+}
 
 
 /* ---------------- UI helpers ---------------- */
