@@ -548,13 +548,7 @@ loginGateBtn?.addEventListener("click", () => {
   loginGateClickHandler?.();
 });
 
-// 🚀 AUTO LOGIN (only after handler is registered)
-setTimeout(() => {
-  if (loginGateClickHandler) {
-    showLoginGate();
-    loginGateClickHandler();
-  }
-}, 300);
+
   function setCoins(n) {
     if (coinCountEl) coinCountEl.textContent = String(n ?? 0);
   }
@@ -563,16 +557,12 @@ setTimeout(() => {
   // Login Gate API
   // ---------------------------
   function showLoginGate() {
-      // 🚀 auto trigger login once visible
-setTimeout(() => {
-  loginGateClickHandler?.();
-}, 200);
-    if (!loginGate) return;
-    loginGate.classList.add("show");
-    loginGate.setAttribute("aria-hidden", "false");
-    showLoginError(""); // clear
-    setGateLoading(false);
-  }
+  if (!loginGate) return;
+  loginGate.classList.add("show");
+  loginGate.setAttribute("aria-hidden", "false");
+  showLoginError("");
+  setGateLoading(false);
+}
 
   function hideLoginGate() {
     if (!loginGate) return;
