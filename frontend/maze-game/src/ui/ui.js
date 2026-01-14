@@ -166,6 +166,10 @@ export function mountUI(app) {
 <div class="welcomeOverlay" id="welcomeOverlay" aria-hidden="false">
   <div class="welcomeCard">
     <h1 class="welcomeTitle">Welcome to Adventure Maze</h1>
+    <p id="welcomeText">
+  Swipe through challenging mazes, unlock levels,
+  and earn rewards as you progress.
+</p>
     <div class="loginWrap">
   <button class="iconBtnWide" id="loginBtn">
     <span id="loginBtnText">Star Game</span>
