@@ -40,15 +40,14 @@ export function mountUI(app) {
 
       <div class="bottomBar">
         <button class="btn" id="hintBtn">
-          <div class="btnIcon">🎬</div>
+         <div class="btnIcon">💡</div>
+          <div>×3</div></div>
           <div>HINT</div>
         </button>
-
-        <div class="pill">Swipe to move</div>
-
-        <button class="btn" id="x3Btn">
-          <div class="btnIcon">⏄1�7</div>
-          <div>×3</div>
+        <button class="btn" id="skipBtn">
+         <div class="btnIcon">⏭️</div>
+          <div>×3</div></div>
+          <div>SKIP</div>
         </button>
       </div>
     </div>
@@ -165,7 +164,6 @@ export function mountUI(app) {
 
 `;
  
-  document.head.appendChild(extra);
 
   // ---------------------------
   // Elements
@@ -173,8 +171,7 @@ export function mountUI(app) {
   const coinCountEl = document.getElementById("coinCount");
 
   // Header login UI
-  const loginBtn = document.getElementById("loginBtn");
-  const loginBtnText = document.getElementById("loginBtnText");
+  
   const userPill = document.getElementById("userPill");
 
   // Login gate
@@ -282,32 +279,35 @@ loginGateBtn?.addEventListener("click", () => {
   loginGateClickHandler?.();
 });
 
-// 🚀 AUTO LOGIN (only after handler is registered)
-setTimeout(() => {
-  if (loginGateClickHandler) {
-    showLoginGate();
-    loginGateClickHandler();
-  }
-}, 300);
-  function setCoins(n) {
-    if (coinCountEl) coinCountEl.textContent = String(n ?? 0);
-  }
-
   // ---------------------------
   // Login Gate API
   // ---------------------------
   function showLoginGate() {
-      // 🚀 auto trigger login once visible
-setTimeout(() => {
-  loginGateClickHandler?.();
-}, 200);
-    if (!loginGate) return;
-    loginGate.classList.add("show");
-    loginGate.setAttribute("aria-hidden", "false");
-    showLoginError(""); // clear
-    setGateLoading(false);
-  }
+function onLoginClick(fn) {
+  loginGateClickHandler = async () => {
+    try {
+      loginGateBtn.disabled = true;
+      loginGateBtn.innerHTML = `<span class="piSpinner"></span> Authenticating…`;
 
+      await fn(); // Pi login
+
+      loginGateBtn.textContent = "Start Adventure";
+    } catch (e) {
+      loginGateBtn.textContent = "Login";
+      throw e;
+    } finally {
+      loginGateBtn.disabled = false;
+    }
+  };
+}
+
+loginGateBtn.addEventListener("click", () => {
+  if (loginGateBtn.textContent.includes("Start")) {
+    hideLoginGate();
+  } else {
+    loginGateClickHandler?.();
+  }
+});
   function hideLoginGate() {
     if (!loginGate) return;
     loginGate.classList.remove("show");
@@ -341,26 +341,9 @@ setTimeout(() => {
 
       // ✄1�7 logged in
       if (loginBtnText) {
-        loginBtnText.textContent = "Logged in ✄1�7";
+        loginBtnText.textContent = "Logged in;
       }
 
-      // ✄1�7 fade out welcome screen
-      const welcome = document.getElementById("welcomeOverlay");
-      if (welcome) {
-        welcome.classList.add("fadeOut");
-        setTimeout(() => {
-          welcome.style.display = "none";
-        }, 600);
-      }
-
-    } catch (e) {
-      if (loginBtnText) loginBtnText.textContent = "Login";
-      throw e;
-    } finally {
-      loginBtn.disabled = false;
-    }
-  };
-}
   // allow header button to trigger the same login flow
   loginBtn?.addEventListener("click", () => {
     showLoginGate();
@@ -369,8 +352,7 @@ setTimeout(() => {
 
   function setUser(user) {
   if (loginBtnText) {
-    loginBtnText.textContent = "Logged in ✄1�7"; 
-      
+    loginBtnText.textContent = "Logged in;
   }
 }
 
