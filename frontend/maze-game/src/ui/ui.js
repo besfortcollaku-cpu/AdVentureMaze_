@@ -166,10 +166,6 @@ export function mountUI(app) {
 <div class="welcomeOverlay" id="welcomeOverlay" aria-hidden="false">
   <div class="welcomeCard">
     <h1 class="welcomeTitle">Welcome to Adventure Maze</h1>
-    <p id="welcomeText">
-  Swipe through challenging mazes, unlock levels,
-  and earn rewards as you progress.
-</p>
     <div class="loginWrap">
   <button class="iconBtnWide" id="loginBtn">
     <span id="loginBtnText">Star Game</span>
@@ -462,8 +458,6 @@ export function mountUI(app) {
   const settingsCloseBtn = document.getElementById("settingsCloseBtn");
   const soundToggle = document.getElementById("soundToggle");
   const vibrationToggle = document.getElementById("vibrationToggle");
-  const MIN_WELCOME_TIME = 5000; // 5 seconds
-let welcomeShownAt = Date.now();
 
   // Win popup
   const winOverlay = document.getElementById("winOverlay");
@@ -633,22 +627,6 @@ setTimeout(() => {
     }
   };
 }
-
-function showWelcome(isReturning = false) {
-  welcomeShownAt = Date.now(); // ✅ record when welcome appeared
-
-  welcomeTitle.textContent = isReturning
-    ? "Welcome back 👋"
-    : "Welcome to Adventure Maze";
-
-  welcomeText.textContent = isReturning
-    ? "Continue your journey and unlock new levels."
-    : "Swipe to move, finish mazes, and earn rewards.";
-
-  welcomeOverlay.classList.add("show");
-  welcomeOverlay.setAttribute("aria-hidden", "false");
-}
-
   // allow header button to trigger the same login flow
   loginBtn?.addEventListener("click", () => {
     showLoginGate();
@@ -656,23 +634,12 @@ function showWelcome(isReturning = false) {
   });
 
   function setUser(user) {
- function setUser(user) {
-  const name = user?.username || "guest";
-
-  const elapsed = Date.now() - welcomeShownAt;
-  const wait = Math.max(0, MIN_WELCOME_TIME - elapsed);
-
-  setTimeout(() => {
-    if (loginBtnText) {
-      loginBtnText.textContent =
-        name === "guest" ? "Login with Pi" : "Start to Play";
-    }
-
-    if (userPill) {
-      userPill.textContent = `User: ${name}`;
-    }
-  }, wait);
+  if (loginBtnText) {
+    loginBtnText.textContent = "Logged in ✅"; 
+      
+  }
 }
+
   // ---------------------------
   // Settings
   // ---------------------------
@@ -787,7 +754,7 @@ function showWelcome(isReturning = false) {
     onLevelSelect(fn) {
       levelSelectHandler = fn;
     },
-  };}
+  };
 }
 
 /* ---------------- UI helpers ---------------- */
