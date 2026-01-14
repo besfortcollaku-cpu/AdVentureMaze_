@@ -647,7 +647,7 @@ setTimeout(() => {
   // otherwise → normal login flow
   showLoginGate();
   loginGateClickHandler?.();
-});
+})
 
     };
 } catch (err) {
