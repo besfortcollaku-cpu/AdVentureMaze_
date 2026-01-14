@@ -185,7 +185,7 @@ export function mountUI(app) {
     Logging in with Pi Network
   </div>
 </div>
-;
+`;
  
   document.head.appendChild(extra);
 
