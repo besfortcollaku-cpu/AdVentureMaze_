@@ -181,6 +181,11 @@ export function mountUI(app) {
   const loginGate = document.getElementById("loginGate");
   const loginGateBtn = document.getElementById("loginGateBtn");
   const loginGateError = document.getElementById("loginGateError");
+  // 🔒 hide legacy login-required UI
+const legacyLogin = document.querySelector(".loginRequired");
+if (legacyLogin) {
+  legacyLogin.style.display = "none";
+}
 
   // Settings
   const settingsBtn = document.getElementById("settingsBtn");
