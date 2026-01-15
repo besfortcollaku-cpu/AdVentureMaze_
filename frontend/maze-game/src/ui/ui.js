@@ -204,11 +204,9 @@ bootOverlay?.addEventListener("pointerdown", () => {
 
   showBootOverlay("Logging in...");
   loginGateClickHandler?.();
-};
-
-  // ONLY trigger login callback
-  loginGateClickHandler?.();
 });
+
+  
   const startBtn = document.getElementById("startAdventureBtn");
 // delay button appearance
 setTimeout(() => {
