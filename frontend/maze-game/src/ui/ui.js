@@ -123,7 +123,7 @@ export function mountUI(app) {
 
     <p class="welcomeText">
   Roll through mind-bending mazes.<br>
-  Collect coins. Unlock levels. Escape.
+  Collect coins. Unlock levels.
 </p>
       Collect coins. Beat all levels.
     </p>
@@ -209,6 +209,22 @@ startBtn?.addEventListener("click", () => {
 
   startGameHandler?.(); // 👈 REAL GAME START
 });
+
+const welcomeOverlay = document.getElementById("welcomeOverlay");
+if (welcomeOverlay) {
+  welcomeOverlay.addEventListener("pointerdown", () => {
+    // 1. Hide welcome screen
+    welcomeOverlay.classList.add("fadeOut");
+
+    setTimeout(() => {
+      welcomeOverlay.style.display = "none";
+    }, 400);
+
+    // 2. Tell the game to start
+    startGameHandler?.();
+  });
+}
+
   const coinCountEl = document.getElementById("coinCount");
 
   // Header login UI
