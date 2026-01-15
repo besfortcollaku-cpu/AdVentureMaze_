@@ -189,8 +189,6 @@ export function mountUI(app) {
 
   
   const startBtn = document.getElementById("startAdventureBtn");
-const welcomeOverlay = document.getElementById("welcomeOverlay");
-
 // delay button appearance
 setTimeout(() => {
   startBtn?.classList.remove("hidden");
