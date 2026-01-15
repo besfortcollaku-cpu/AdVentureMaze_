@@ -186,7 +186,7 @@ export function mountUI(app) {
   // Elements
   // ---------------------------
   
-let startGameHandler = null;
+
   
   const startBtn = document.getElementById("startAdventureBtn");
 const welcomeOverlay = document.getElementById("welcomeOverlay");
@@ -281,9 +281,14 @@ function vibrate(ms = 15) {
   
   
   welcomeOverlay?.addEventListener("click", () => {
-  if (!startBtn.classList.contains("hidden")) {
-    startBtn.click();
-  }
+  welcomeOverlay.classList.add("fadeOut");
+
+  setTimeout(() => {
+    welcomeOverlay.style.display = "none";
+
+    // ✅ THIS must exist and be wired
+    startGameHandler?.();
+  }, 600);
 });
 
   // ✄1�7 FIXED (single correct implementation)
@@ -375,6 +380,7 @@ function vibrate(ms = 20) {
 
   let winNextHandler = null;
   let winAdHandler = null;
+  let startGameHandler = null;
 
   // ✄1�7 first user gesture (for WebAudio unlock on mobile)
   let firstGestureHandler = null;
