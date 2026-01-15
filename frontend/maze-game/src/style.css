@@ -1190,3 +1190,42 @@ body.welcomeActive .phone {
   opacity: 1;
   pointer-events: auto;
 }
+
+
+.bootOverlay {
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(ellipse at top, #0c2b2f, #030b10);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+}
+
+.bootOverlay.show {
+  display: flex;
+}
+
+.bootCard {
+  text-align: center;
+  color: #eaf3ff;
+}
+
+.bootSpinner {
+  width: 54px;
+  height: 54px;
+  border: 3px solid rgba(255,255,255,.2);
+  border-top-color: #25d7ff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 18px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.bootText {
+  font-size: 15px;
+  opacity: .85;
+}

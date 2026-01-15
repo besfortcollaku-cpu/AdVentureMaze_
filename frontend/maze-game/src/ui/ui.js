@@ -115,6 +115,12 @@ export function mountUI(app) {
         </div>
       </div>
     </div>
+    <div class="bootOverlay show" id="bootOverlay">
+  <div class="bootCard">
+    <div class="bootSpinner"></div>
+    <div class="bootText">Tap to continue</div>
+  </div>
+</div>
 <div class="welcomeOverlay show" id="welcomeOverlay">
   <div class="welcomeCard">
     <img src="/logo.png" class="welcomeLogo" alt="Adventure Maze" />
@@ -186,8 +192,22 @@ export function mountUI(app) {
   // Elements
   // ---------------------------
   
-
+const bootOverlay = document.getElementById("bootOverlay");
+let bootTapped = false;
   
+  bootOverlay?.addEventListener("pointerdown", async () => {
+  if (bootTapped) return;
+  bootTapped = true;
+
+  // visually lock
+  bootOverlay.querySelector(".bootText").textContent = "Logging in...";
+  
+  // trigger Pi login
+  showLoginGate();
+  loginGateClickHandler?.();
+});
+
+
   const startBtn = document.getElementById("startAdventureBtn");
 // delay button appearance
 setTimeout(() => {
@@ -511,7 +531,12 @@ loginGateBtn.addEventListener("click", () => {
       showLoginError("");
 
       await fn(); // Pi login happens here
+// hide boot screen
+bootOverlay.classList.remove("show");
 
+// show welcome screen
+welcomeOverlay.style.display = "flex";
+welcomeOverlay.classList.remove("fadeOut");
       hideLoginGate();
     } catch (e) {
       showLoginError(e?.message || "Login failed");
@@ -521,6 +546,7 @@ loginGateBtn.addEventListener("click", () => {
     }
   };
 }
+
 document.addEventListener("click", (e) => {
   const btn = e.target.closest("button");
   if (!btn) return;
