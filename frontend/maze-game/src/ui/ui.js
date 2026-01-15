@@ -199,8 +199,11 @@ const bootOverlay = document.getElementById("bootOverlay");
   if (bootTapped) return;
   bootTapped = true;
 
-  firstGestureHandler?.();      // audio unlock
-  loginGateClickHandler?.();    // START PI LOGIN
+  // visual only
+  bootOverlay.querySelector(".bootText").textContent = "Logging in...";
+
+  // ONLY trigger login callback
+  loginGateClickHandler?.();
 });
   const startBtn = document.getElementById("startAdventureBtn");
 // delay button appearance
@@ -485,16 +488,7 @@ loginGateBtn.addEventListener("click", () => {
     loginGateClickHandler?.();
   }
 });
-function onLoginClick(fn) {
-  loginGateClickHandler = async () => {
-    try {
-      await fn(); // calls ensurePiLogin()
-    } catch (e) {
-      console.error("Login failed", e);
-      showLoginError?.("Login failed");
-    }
-  };
-}
+
   function hideLoginGate() {
     if (!loginGate) return;
     loginGate.classList.remove("show");
@@ -514,7 +508,7 @@ function onLoginClick(fn) {
     loginGateBtn.textContent = isLoading ? "Logging in..." : "Login with Pi";
   }
 
-  // ensurePiLogin calls this
+  // ensurePiLogin calls this( Keep)
   function onLoginClick(fn) {
   loginGateClickHandler = async () => {
     try {
