@@ -115,13 +115,13 @@ export function mountUI(app) {
         </div>
       </div>
     </div>
-    <div class="bootOverlay show" id="bootOverlay">
+    <div class="bootOverlay hidden" id="bootOverlay">
   <div class="bootCard">
     <div class="bootSpinner"></div>
     <div class="bootText">Tap to continue</div>
   </div>
 </div>
-<div class="welcomeOverlay" id="welcomeOverlay">
+<div class="welcomeOverlay hidden" id="welcomeOverlay">
   <div class="welcomeCard">
     <img src="/logo.png" class="welcomeLogo" alt="Adventure Maze" />
 
@@ -195,12 +195,16 @@ let loginGateClickHandler = null;
 
 const bootOverlay = document.getElementById("bootOverlay");
   
-  bootOverlay?.addEventListener("pointerdown", () => {
+  let bootTapped = false;
+  showBootOverlay("Tap to continue");
+
+bootOverlay?.addEventListener("pointerdown", () => {
   if (bootTapped) return;
   bootTapped = true;
 
-  // visual only
-  bootOverlay.querySelector(".bootText").textContent = "Logging in...";
+  showBootOverlay("Logging in...");
+  loginGateClickHandler?.();
+});
 
   // ONLY trigger login callback
   loginGateClickHandler?.();
@@ -270,7 +274,18 @@ firstGestureHandler = () => {
     } catch {}
   });
 };
+function showBootOverlay(text = "Tap to continue") {
+  if (!bootOverlay) return;
+  bootOverlay.classList.remove("hidden");
+  bootOverlay.classList.add("show");
+  bootOverlay.querySelector(".bootText").textContent = text;
+}
 
+function hideBootOverlay() {
+  if (!bootOverlay) return;
+  bootOverlay.classList.remove("show");
+  bootOverlay.classList.add("hidden");
+}
 function playSound(name) {
   if (!soundEnabled) return;
   const a = SFX[name];
@@ -476,7 +491,7 @@ firstGestureHandler = () => {
   
   
   function showLoginGate() {
-  bootOverlay?.classList.add("visible");
+  
   bootText.textContent = "Logging in...";
 }
 
@@ -516,8 +531,8 @@ loginGateBtn.addEventListener("click", () => {
       showLoginError("");
 
       await fn(); // Pi login happens here
-// hide boot screen
-bootOverlay.classList.remove("show");
+
+
 
 // show welcome screen
 welcomeOverlay.classList.remove("fadeOut");

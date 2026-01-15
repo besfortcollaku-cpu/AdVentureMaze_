@@ -210,7 +210,7 @@ ui.onLevelSelect((selectedIndex) => {
   initPi();
 ui.onLoginClick(async () => {
   try {
-    ui.setBootText?.("Logging in...");
+    
 
     const loginRes = await ensurePiLogin({
       BACKEND,
