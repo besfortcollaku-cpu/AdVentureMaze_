@@ -209,7 +209,6 @@ startBtn?.addEventListener("click", () => {
 
   startGameHandler?.(); // 👈 REAL GAME START
 });
-});
   const coinCountEl = document.getElementById("coinCount");
 
   // Header login UI
