@@ -62,7 +62,7 @@ export function mountUI(app) {
 
     <!-- ✄1�7 LOGIN GATE  Test(blocks game until Pi login) -->
     <div class="loginGate" id="loginGate" aria-hidden="true">
-      <div class="loginGateCard">
+      <div class="loginGateCard welcomeCard">
         <div class="loginGateTitle">Login required</div>
         <div class="loginGateSub">
           Please login with Pi account to start playing. 

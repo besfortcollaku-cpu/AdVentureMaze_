@@ -1137,3 +1137,56 @@ body.welcomeActive .phone {
   border: 2px solid #25d7ff;
   box-shadow: 0 0 12px rgba(37,215,255,0.5);
 }
+
+.loginGate {
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(circle at top, rgba(37,215,255,0.15), transparent 60%),
+    linear-gradient(180deg, #070b14, #05080f);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+.welcomeCard {
+  width: 92%;
+  max-width: 420px;
+  padding: 28px 22px;
+  border-radius: 22px;
+  background: rgba(10,16,30,0.9);
+  backdrop-filter: blur(14px);
+  box-shadow:
+    0 0 50px rgba(37,215,255,0.25),
+    inset 0 0 20px rgba(255,255,255,0.04);
+  text-align: center;
+  animation: welcomeFloat 3.5s ease-in-out infinite;
+}
+@keyframes welcomeFloat {
+  0%   { transform: translateY(0); }
+  50%  { transform: translateY(-6px); }
+  100% { transform: translateY(0); }
+}
+.loginGateTitle {
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  margin-bottom: 10px;
+}
+
+.loginGateSub {
+  font-size: 15px;
+  line-height: 1.45;
+  opacity: 0.85;
+  margin-bottom: 22px;
+}
+.loginGate {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.5s ease;
+}
+
+.loginGate.show {
+  opacity: 1;
+  pointer-events: auto;
+}
