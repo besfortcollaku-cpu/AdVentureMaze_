@@ -186,6 +186,8 @@ export function mountUI(app) {
   // Elements
   // ---------------------------
   
+let startGameHandler = null;
+  
   const startBtn = document.getElementById("startAdventureBtn");
 const welcomeOverlay = document.getElementById("welcomeOverlay");
 
@@ -205,11 +207,8 @@ startBtn?.addEventListener("click", () => {
     welcomeOverlay.style.display = "none";
   }, 600);
 
-  showLevelSelect?.({
-    totalLevels: 20,
-    currentLevel: 1,
-    isCompleted: () => true
-  });
+  startGameHandler?.(); // 👈 REAL GAME START
+});
 });
   const coinCountEl = document.getElementById("coinCount");
 
@@ -605,6 +604,10 @@ document.addEventListener("click", (e) => {
     onFirstUserGesture(fn) {
       firstGestureHandler = fn;
     },
+    
+    onStartGame(fn) {
+    startGameHandler = fn;
+  },
 
     // ✄1�7 login gate methods for ensurePiLogin()
     showLoginGate,
