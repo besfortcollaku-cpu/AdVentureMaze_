@@ -121,7 +121,7 @@ export function mountUI(app) {
     <div class="bootText">Tap to continue</div>
   </div>
 </div>
-<div class="welcomeOverlay show" id="welcomeOverlay">
+<div class="welcomeOverlay" id="welcomeOverlay">
   <div class="welcomeCard">
     <img src="/logo.png" class="welcomeLogo" alt="Adventure Maze" />
 
