@@ -473,14 +473,6 @@ firstGestureHandler = () => {
   );
 
 
- // ✄1�7 login gate click
-let loginGateClickHandler = null;
-
-loginGateBtn?.addEventListener("click", () => {
-  showLoginGate();
-  loginGateClickHandler?.();
-});
-
   // ---------------------------
   // Login Gate API
   // ---------------------------
@@ -535,7 +527,6 @@ loginGateBtn.addEventListener("click", () => {
 bootOverlay.classList.remove("show");
 
 // show welcome screen
-welcomeOverlay.style.display = "flex";
 welcomeOverlay.classList.remove("fadeOut");
       hideLoginGate();
     } catch (e) {
