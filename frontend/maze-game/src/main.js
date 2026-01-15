@@ -208,22 +208,48 @@ ui.onLevelSelect((selectedIndex) => {
 
   // init Pi SDK
   initPi();
+ui.onLoginClick(async () => {
+  try {
+    ui.setBootText?.("Logging in...");
 
-  // login
-  const loginRes = await ensurePiLogin({
-    BACKEND,
-    ui,
-    onLogin: ({ user, accessToken }) => {
-      CURRENT_USER = user;
-      CURRENT_ACCESS_TOKEN = accessToken;
+    const loginRes = await ensurePiLogin({
+      BACKEND,
+      ui,
+      onLogin: ({ user, accessToken }) => {
+        CURRENT_USER = user;
+        CURRENT_ACCESS_TOKEN = accessToken;
 
-      if (ui?.userPill) ui.userPill.textContent = `${user.username}`;
-      if (ui?.loginBtnText) ui.loginBtnText.textContent = "✅";
-    },
-  });
+        ui.setUser?.(user);
+      },
+    });
 
-  if (!loginRes?.ok) return;
+    if (!loginRes?.ok) return;
 
+    // NOW continue boot AFTER login
+    await continueAfterLogin();
+  } catch (e) {
+    alert("Login failed: " + e.message);
+  }
+});
+
+async function continueAfterLogin() {
+  const me = await apiGetMe();
+
+  const serverUser = me.user;
+  const serverProgress = me.progress;
+
+  CURRENT_USER = { username: serverUser.username, uid: serverUser.uid };
+
+  COINS = Number(serverUser.coins || 0);
+  ui.setCoins(COINS);
+
+  const savedLevel = Number(serverProgress?.level || 1);
+  levelIndex = clampLevelIndex(savedLevel - 1);
+
+  ui.hideBootOverlay();
+  ui.showWelcomeScreen();
+}
+  
   // load server state
   let me;
   try {

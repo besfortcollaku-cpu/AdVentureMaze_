@@ -196,11 +196,12 @@ let loginGateClickHandler = null;
 const bootOverlay = document.getElementById("bootOverlay");
   
   bootOverlay?.addEventListener("pointerdown", () => {
-  firstGestureHandler?.(); // audio unlock ONLY
-  loginGateClickHandler?.(); // start Pi login
+  if (bootTapped) return;
+  bootTapped = true;
+
+  firstGestureHandler?.();      // audio unlock
+  loginGateClickHandler?.();    // START PI LOGIN
 });
-
-
   const startBtn = document.getElementById("startAdventureBtn");
 // delay button appearance
 setTimeout(() => {
@@ -631,6 +632,7 @@ document.addEventListener("click", (e) => {
     loginBtn,
     loginBtnText,
     userPill,
+   
 
     setCoins,
 
@@ -647,14 +649,16 @@ document.addEventListener("click", (e) => {
     showLoginGate,
     hideLoginGate,
     showLoginError,
-    onLoginClick,
+     onLoginClick(fn) {
+    loginGateClickHandler = fn;
+  },
     setUser,
 
     // Settings API
     setSoundEnabled,
     setVibrationEnabled,
     onSoundToggle(fn) {
-  soundHandler = (v) => {
+   soundHandler = (v) => {
     soundEnabled = v;
     fn?.(v);
   };
