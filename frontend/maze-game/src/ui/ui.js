@@ -204,7 +204,7 @@ bootOverlay?.addEventListener("pointerdown", () => {
 
   showBootOverlay("Logging in...");
   loginGateClickHandler?.();
-});
+};
 
   // ONLY trigger login callback
   loginGateClickHandler?.();
