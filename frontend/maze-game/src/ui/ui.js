@@ -191,20 +191,13 @@ export function mountUI(app) {
   // ---------------------------
   // Elements
   // ---------------------------
-  
-const bootOverlay = document.getElementById("bootOverlay");
-let bootTapped = false;
-  
-  bootOverlay?.addEventListener("pointerdown", async () => {
-  if (bootTapped) return;
-  bootTapped = true;
+let loginGateClickHandler = null;
 
-  // visually lock
-  bootOverlay.querySelector(".bootText").textContent = "Logging in...";
+const bootOverlay = document.getElementById("bootOverlay");
   
-  // trigger Pi login
-  showLoginGate();
-  loginGateClickHandler?.();
+  bootOverlay?.addEventListener("pointerdown", () => {
+  firstGestureHandler?.(); // audio unlock ONLY
+  loginGateClickHandler?.(); // start Pi login
 });
 
 
@@ -476,19 +469,14 @@ firstGestureHandler = () => {
   // ---------------------------
   // Login Gate API
   // ---------------------------
+  
+  
   function showLoginGate() {
-function onLoginClick(fn) {
-  loginGateClickHandler = async () => {
-    try {
-      await fn(); // Pi login
-    } catch (e) {
-      console.error("Login failed", e);
-      showLoginError?.("Login failed");
-    }}
-  };
+  bootOverlay?.classList.add("visible");
+  bootText.textContent = "Logging in...";
 }
 
-      loginGateBtn.textContent = "Start Adventure";
+   loginGateBtn.textContent = "Start Adventure";
 loginGateBtn.addEventListener("click", () => {
   if (loginGateBtn.textContent.includes("Start")) {
     hideLoginGate();
@@ -496,6 +484,16 @@ loginGateBtn.addEventListener("click", () => {
     loginGateClickHandler?.();
   }
 });
+function onLoginClick(fn) {
+  loginGateClickHandler = async () => {
+    try {
+      await fn(); // calls ensurePiLogin()
+    } catch (e) {
+      console.error("Login failed", e);
+      showLoginError?.("Login failed");
+    }
+  };
+}
   function hideLoginGate() {
     if (!loginGate) return;
     loginGate.classList.remove("show");
