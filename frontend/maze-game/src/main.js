@@ -207,27 +207,29 @@ ui.onLevelSelect((selectedIndex) => {
   if (!env.ok) return;
 
   // init Pi SDK
-  initPi();
-ui.onLoginClick(async () => {
+  initPi();ui.onLoginClick(async () => {
   try {
-    
-
     const loginRes = await ensurePiLogin({
       BACKEND,
       ui,
       onLogin: ({ user, accessToken }) => {
         CURRENT_USER = user;
         CURRENT_ACCESS_TOKEN = accessToken;
-
         ui.setUser?.(user);
-      },
+      }
     });
 
     if (!loginRes?.ok) {
-  ui.showBootOverlay("Login failed. Tap to retry");
-  return;
-}
-await continueAfterLogin();
+      ui.showBootOverlay("Login failed. Tap to retry");
+      return;
+    }
+
+    await continueAfterLogin();
+
+  } catch (e) {
+    console.error("Login error:", e);
+    ui.showBootOverlay("Login error. Tap to retry");
+  }
 });
 
 async function continueAfterLogin() {
