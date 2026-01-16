@@ -1,111 +1,100 @@
 // src/ui/ui.js
+
+let loginGateHandler = null;
+let welcomeContinueHandler = null;
+let firstGestureHandler = null;
+
 export function mountUI(app) {
   app.innerHTML = `
-    <div id="gameUI">
+    <div class="phone">
+      <div id="bootOverlay" class="bootOverlay">
+        <div class="spinner"></div>
+        <div id="bootText">Tap to continue</div>
+      </div>
+
       <div class="topbar">
-        <div class="coins">
-          <span id="coinCount">0</span>
-        </div>
-        <button id="controls">☰</button>
+        <div class="title">Adventure Maze</div>
+        <div class="coins"><span id="coinCount">0</span></div>
       </div>
 
       <canvas id="gameCanvas"></canvas>
 
-      <div class="actions">
-        <button id="hintBtn">Hint</button>
-        <button id="x3Btn">Skip</button>
-      </div>
-
-      <div id="winPopup" class="hidden">
-        <button id="winNextBtn">Next</button>
-        <button id="winAdBtn">Watch Ad</button>
-      </div>
-
-      <div id="levelSelect" class="hidden"></div>
-    </div>
-
-    <div id="bootOverlay" class="overlay hidden">
-      <div class="spinner"></div>
-      <div id="bootText">Tap to continue</div>
-    </div>
-
-    <div id="welcomeOverlay" class="overlay hidden">
-      <div class="welcome">
+      <div id="welcomeScreen" class="welcomeScreen">
         <h1>Welcome</h1>
-        <button id="welcomeContinue">Tap anywhere to start</button>
+        <p>Guide the ball through the maze.<br/>Tap anywhere to start</p>
+      </div>
+
+      <div id="winPopup" class="winPopup hidden">
+        <button id="winNextBtn">Next</button>
       </div>
     </div>
   `;
 
-  const ui = {
-    canvas: document.getElementById("gameCanvas"),
+  const canvas = document.getElementById("gameCanvas");
+  const bootOverlay = document.getElementById("bootOverlay");
+  const bootText = document.getElementById("bootText");
+  const welcomeScreen = document.getElementById("welcomeScreen");
+  const winPopup = document.getElementById("winPopup");
 
-    // ---------- overlays ----------
+  bootOverlay.addEventListener("click", () => {
+    if (loginGateHandler) loginGateHandler();
+    if (firstGestureHandler) firstGestureHandler();
+  });
+
+  welcomeScreen.addEventListener("click", () => {
+    if (welcomeContinueHandler) welcomeContinueHandler();
+  });
+
+  return {
+    canvas,
+
     showBootOverlay(text) {
-      const el = document.getElementById("bootOverlay");
-      el.classList.remove("hidden");
-      if (text) document.getElementById("bootText").textContent = text;
-    },
-    hideBootOverlay() {
-      document.getElementById("bootOverlay").classList.add("hidden");
-    },
-    showWelcomeScreen() {
-      document.getElementById("welcomeOverlay").classList.remove("hidden");
-    },
-    hideWelcomeScreen() {
-      document.getElementById("welcomeOverlay").classList.add("hidden");
+      bootText.textContent = text;
+      bootOverlay.classList.remove("hidden");
     },
 
-    // ---------- coins ----------
+    hideBootOverlay() {
+      bootOverlay.classList.add("hidden");
+    },
+
+    showWelcomeScreen() {
+      welcomeScreen.classList.add("active");
+    },
+
+    hideWelcomeScreen() {
+      welcomeScreen.classList.remove("active");
+    },
+
     setCoins(v) {
       document.getElementById("coinCount").textContent = v;
     },
 
-    // ---------- events ----------
-    onFirstUserGesture(fn) {
-      document.getElementById("bootOverlay")
-        .addEventListener("pointerdown", fn, { once: true });
+    showWinPopup() {
+      winPopup.classList.remove("hidden");
+    },
+
+    hideWinPopup() {
+      winPopup.classList.add("hidden");
     },
 
     onLoginGateClick(fn) {
-      document.getElementById("bootOverlay")
-        .addEventListener("pointerdown", fn);
+      loginGateHandler = fn;
     },
 
     onWelcomeContinue(fn) {
-      document.getElementById("welcomeContinue")
-        .addEventListener("click", fn);
+      welcomeContinueHandler = fn;
+    },
+
+    onFirstUserGesture(fn) {
+      firstGestureHandler = fn;
     },
 
     onWinNext(fn) {
       document.getElementById("winNextBtn").onclick = fn;
     },
 
-    onWinAd(fn) {
-      document.getElementById("winAdBtn").onclick = fn;
-    },
-
-    showWinPopup() {
-      document.getElementById("winPopup").classList.remove("hidden");
-    },
-
-    hideWinPopup() {
-      document.getElementById("winPopup").classList.add("hidden");
-    },
-
-    showLevelSelect(cfg) {
-      document.getElementById("levelSelect").classList.remove("hidden");
-    },
-
-    onLevelSelect(fn) {
-      // existing logic preserved
-    },
-
-    onSoundToggle() {},
-    onVibrationToggle() {},
     setSoundEnabled() {},
     setVibrationEnabled() {},
+    setUser() {},
   };
-
-  return ui;
 }
