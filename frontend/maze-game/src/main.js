@@ -208,8 +208,7 @@ ui.onLevelSelect((selectedIndex) => {
 
   // init Pi SDK
   initPi();
-  ui.onLoginClick(async () => {
-
+  
 
   ui.onLoginGateClick(async () => {
   try {
