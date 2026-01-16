@@ -4,15 +4,17 @@ export function onLoginGateClick(fn) {
   loginGateClickHandler = fn;
 }
 
-// ----------------------------
-// Welcome screen handler
-// ----------------------------
 let welcomeContinueHandler = null;
 
 export function onWelcomeContinue(fn) {
   welcomeContinueHandler = fn;
 
 }
+
+// ----------------------------
+// Welcome screen handler
+// ----------------------------
+
 export function showWelcomeScreen() {
   const el = document.getElementById("welcomeOverlay");
   if (!el) return;
