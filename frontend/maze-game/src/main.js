@@ -162,6 +162,24 @@ function clampLevelIndex(i) {
 // ---------------------------
 // Boot
 // ---------------------------
+async function continueAfterLogin() {
+  const me = await apiGetMe();
+
+  const serverUser = me.user;
+  const serverProgress = me.progress;
+
+  CURRENT_USER = { username: serverUser.username, uid: serverUser.uid };
+
+  COINS = Number(serverUser.coins || 0);
+  ui.setCoins(COINS);
+
+  const savedLevel = Number(serverProgress?.level || 1);
+  levelIndex = clampLevelIndex(savedLevel - 1);
+
+  ui.hideBootOverlay();
+  ui.showWelcomeScreen();
+}
+  
 async function boot() {
   ui = mountUI(document.querySelector("#app"));
 
@@ -235,24 +253,7 @@ ui.onLevelSelect((selectedIndex) => {
     ui.showBootOverlay("Login error. Tap to retry");
   }
 });
-async function continueAfterLogin() {
-  const me = await apiGetMe();
 
-  const serverUser = me.user;
-  const serverProgress = me.progress;
-
-  CURRENT_USER = { username: serverUser.username, uid: serverUser.uid };
-
-  COINS = Number(serverUser.coins || 0);
-  ui.setCoins(COINS);
-
-  const savedLevel = Number(serverProgress?.level || 1);
-  levelIndex = clampLevelIndex(savedLevel - 1);
-
-  ui.hideBootOverlay();
-  ui.showWelcomeScreen();
-}
-  
 
 
   // WIN popup actions
@@ -403,4 +404,4 @@ async function goNextLevel() {
   }
 }
 
-boot();}
+boot();
