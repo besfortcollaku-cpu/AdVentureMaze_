@@ -1,4 +1,4 @@
-// src/main.js
+// src/main.js Tets
 import "./style.css";
 
 import { mountUI } from "./ui/ui.js";
