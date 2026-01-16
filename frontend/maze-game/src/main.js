@@ -26,6 +26,31 @@ let COINS = 0;
 
 // prevent double reward per completion
 let rewardedThisLevel = false;
+ui.onLoginGateClick(async () => {
+  try {
+    ui.showBootOverlay("Logging in...");
+
+    const loginRes = await ensurePiLogin({
+      BACKEND,
+      ui,
+      onLogin: ({ user, accessToken }) => {
+        CURRENT_USER = user;
+        CURRENT_ACCESS_TOKEN = accessToken;
+        ui.setUser?.(user);
+      },
+    });
+
+    if (!loginRes?.ok) {
+      ui.showBootOverlay("Login failed. Tap to retry");
+      return;
+    }
+
+    await continueAfterLogin();
+  } catch (e) {
+    console.error("Login error:", e);
+    ui.showBootOverlay("Login error. Tap to retry");
+  }
+});
 
 // ---------------------------
 // Backend helpers
@@ -228,32 +253,7 @@ ui.onLevelSelect((selectedIndex) => {
   initPi();
   
 
-  ui.onLoginGateClick(async () => {
-  try {
-    ui.showBootOverlay("Logging in...");
-
-    const loginRes = await ensurePiLogin({
-      BACKEND,
-      ui,
-      onLogin: ({ user, accessToken }) => {
-        CURRENT_USER = user;
-        CURRENT_ACCESS_TOKEN = accessToken;
-        ui.setUser?.(user);
-      },
-    });
-
-    if (!loginRes?.ok) {
-      ui.showBootOverlay("Login failed. Tap to retry");
-      return;
-    }
-
-    await continueAfterLogin();
-  } catch (e) {
-    console.error("Login error:", e);
-    ui.showBootOverlay("Login error. Tap to retry");
-  }
-});
-
+  
 
 
   // WIN popup actions
