@@ -188,15 +188,15 @@ export function mountUI(app) {
 `;
  
 
+export function onLoginGateClick(fn) {
+  loginGateClickHandler = fn;
+}
   // ---------------------------
   // Elements
   // ---------------------------
 let loginGateClickHandler = null;
 const bootOverlay = document.getElementById("bootOverlay");
 
-export function onLoginGateClick(fn) {
-  loginGateClickHandler = fn;
-}
   
   let bootTapped = false;
   showBootOverlay("Tap to continue");
