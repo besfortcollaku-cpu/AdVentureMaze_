@@ -232,7 +232,7 @@ const bootOverlay = document.getElementById("bootOverlay");
 
   
   let bootTapped = false;
-  showBootOverlay("Tap to continue");
+  
 
 
   
@@ -724,6 +724,7 @@ onVibrationToggle(fn) {
       levelSelectHandler = fn;
     },
   };
+  showBootOverlay("Tap to continue");
 }
 
 /* ---------------- UI helpers ---------------- */
