@@ -1,4 +1,5 @@
 // src/main.js
+let IS_LOGGED_IN = false;
 import "./style.css";
 
 import { mountUI } from "./ui/ui.js";
@@ -39,6 +40,16 @@ function authHeaders() {
   };
 }
 
+function startGameAfterLogin() {
+  ui.hideWelcomeScreen?.();
+
+  // restore saved level AFTER login
+  if (LAST_UNLOCKED_LEVEL != null) {
+    levelIndex = clampLevelIndex(LAST_UNLOCKED_LEVEL - 1);
+  }
+
+  startGame();
+}
 function uuid() {
   try {
     return crypto.randomUUID();
@@ -164,6 +175,7 @@ function clampLevelIndex(i) {
 // ---------------------------
 async function continueAfterLogin() {
   const me = await apiGetMe();
+  LAST_UNLOCKED_LEVEL = me.progress?.level || 1;
 
   const serverUser = me.user;
   const serverProgress = me.progress;
@@ -176,11 +188,17 @@ async function continueAfterLogin() {
   const savedLevel = Number(serverProgress?.level || 1);
   levelIndex = clampLevelIndex(savedLevel - 1);
 
-  ui.hideBootOverlay();
-  ui.showWelcomeScreen();
+  ui.onWelcomeContinue(() => {
+  startGameAfterLogin();
 }
   
 async function boot() {
+    
+    // 🚫 BLOCK GAME IF NOT LOGGED IN
+  if (!IS_LOGGED_IN) {
+    console.warn("Game start blocked: not logged in");
+    return;
+  }
   ui = mountUI(document.querySelector("#app"));
 
 
@@ -238,6 +256,7 @@ ui.onLevelSelect((selectedIndex) => {
       onLogin: ({ user, accessToken }) => {
         CURRENT_USER = user;
         CURRENT_ACCESS_TOKEN = accessToken;
+        IS_LOGGED_IN = true;
         ui.setUser?.(user);
       },
     });

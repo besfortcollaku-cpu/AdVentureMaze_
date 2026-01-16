@@ -1,9 +1,34 @@
 // src/ui/ui.js last change
-
+let loginGateClickHandler = null;
 export function onLoginGateClick(fn) {
   loginGateClickHandler = fn;
 }
 
+// ----------------------------
+// Welcome screen handler
+// ----------------------------
+let welcomeContinueHandler = null;
+
+export function onWelcomeContinue(fn) {
+  welcomeContinueHandler = fn;
+
+
+export function showWelcomeScreen() {
+  const el = document.getElementById("welcomeOverlay");
+  if (!el) return;
+
+  el.classList.add("show");
+
+  // allow continue after 5s OR tap
+  setTimeout(() => {
+    const handler = () => {
+      el.classList.remove("show");
+      welcomeContinueHandler?.();
+    };
+
+    el.addEventListener("pointerdown", handler, { once: true });
+  }, 5000);
+}
 export function mountUI(app) {
   app.innerHTML = `
     <div class="phone">
@@ -196,7 +221,7 @@ export function mountUI(app) {
   // ---------------------------
   // Elements
   // ---------------------------
-let loginGateClickHandler = null;
+
 const bootOverlay = document.getElementById("bootOverlay");
 
   
