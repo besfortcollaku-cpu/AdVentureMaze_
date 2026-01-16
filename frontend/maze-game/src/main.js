@@ -223,13 +223,11 @@ ui.onLoginClick(async () => {
       },
     });
 
-    if (!loginRes?.ok) return;
-
-    // NOW continue boot AFTER login
-    await continueAfterLogin();
-  } catch (e) {
-    alert("Login failed: " + e.message);
-  }
+    if (!loginRes?.ok) {
+  ui.showBootOverlay("Login failed. Tap to retry");
+  return;
+}
+await continueAfterLogin();
 });
 
 async function continueAfterLogin() {
@@ -250,28 +248,7 @@ async function continueAfterLogin() {
   ui.showWelcomeScreen();
 }
   
-  // load server state
-  let me;
-  try {
-    me = await apiGetMe();
-  } catch (e) {
-    const msg = normalizeErr(e);
-    if (!handleAuthExpiredIfNeeded(msg)) alert("Failed to load profile: " + msg);
-    return;
-  }
 
-  const serverUser = me.user;
-  const serverProgress = me.progress;
-
-  CURRENT_USER = { username: serverUser.username, uid: serverUser.uid };
-
-  COINS = Number(serverUser.coins || 0);
-  ui.setCoins(COINS);
-
-  const savedLevel = Number(serverProgress?.level || 1);
-  levelIndex = clampLevelIndex(savedLevel - 1);
-  
-  const UNLOCKED_LEVEL = savedLevel;
 
   // WIN popup actions
   ui.onWinNext(async () => {
