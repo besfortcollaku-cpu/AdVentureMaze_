@@ -19,7 +19,7 @@ export function mountUI(app) {
 
       <canvas id="gameCanvas"></canvas>
 
-      <div id="welcomeScreen" class="welcomeScreen">
+      <div id="welcomeScreen" class="welcomeScreen hidden">
         <h1>Welcome</h1>
         <p>Guide the ball through the maze.<br/>Tap anywhere to start</p>
       </div>
@@ -36,11 +36,13 @@ export function mountUI(app) {
   const welcomeScreen = document.getElementById("welcomeScreen");
   const winPopup = document.getElementById("winPopup");
 
+  // 🔴 TAP TO LOGIN
   bootOverlay.addEventListener("click", () => {
-    if (loginGateHandler) loginGateHandler();
     if (firstGestureHandler) firstGestureHandler();
+    if (loginGateHandler) loginGateHandler();
   });
 
+  // 🔴 TAP TO START GAME
   welcomeScreen.addEventListener("click", () => {
     if (welcomeContinueHandler) welcomeContinueHandler();
   });
@@ -48,7 +50,7 @@ export function mountUI(app) {
   return {
     canvas,
 
-    showBootOverlay(text) {
+    showBootOverlay(text = "Tap to continue") {
       bootText.textContent = text;
       bootOverlay.classList.remove("hidden");
     },
@@ -58,11 +60,11 @@ export function mountUI(app) {
     },
 
     showWelcomeScreen() {
-      welcomeScreen.classList.add("active");
+      welcomeScreen.classList.remove("hidden");
     },
 
     hideWelcomeScreen() {
-      welcomeScreen.classList.remove("active");
+      welcomeScreen.classList.add("hidden");
     },
 
     setCoins(v) {
