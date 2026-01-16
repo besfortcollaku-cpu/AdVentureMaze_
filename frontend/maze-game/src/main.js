@@ -196,6 +196,7 @@ async function continueAfterLogin() {
 }
   
 async function boot() {
+    ui = mountUI(document.querySelector("#app"));
     
 
 // Level select via joystick icon
