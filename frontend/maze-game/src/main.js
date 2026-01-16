@@ -207,7 +207,17 @@ ui.onLevelSelect((selectedIndex) => {
   if (!env.ok) return;
 
   // init Pi SDK
-  initPi();ui.onLoginClick(async () => {
+  initPi();
+  ui.onLoginClick(async () => {
+     console.log("LOGIN BUTTON CLICKED");
+
+  ui.showBootOverlay("Logging in...");
+
+  console.log("CALLING ensurePiLogin");
+  const loginRes = await ensurePiLogin(...);
+
+  console.log("LOGIN RESULT:", loginRes);
+
   try {
     const loginRes = await ensurePiLogin({
       BACKEND,

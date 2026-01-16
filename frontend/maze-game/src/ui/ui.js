@@ -199,11 +199,10 @@ const bootOverlay = document.getElementById("bootOverlay");
   showBootOverlay("Tap to continue");
 
 bootOverlay?.addEventListener("pointerdown", () => {
-  if (bootTapped) return;
+    if (bootTapped) return;
   bootTapped = true;
-
-  showBootOverlay("Logging in...");
-  loginGateClickHandler?.();
+  hideBootOverlay();
+  showLoginGate();
 });
 
   
