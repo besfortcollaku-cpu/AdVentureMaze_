@@ -12,7 +12,7 @@ let welcomeContinueHandler = null;
 export function onWelcomeContinue(fn) {
   welcomeContinueHandler = fn;
 
-
+}
 export function showWelcomeScreen() {
   const el = document.getElementById("welcomeOverlay");
   if (!el) return;
