@@ -214,7 +214,7 @@ ui.onLevelSelect((selectedIndex) => {
   ui.showBootOverlay("Logging in...");
 
   console.log("CALLING ensurePiLogin");
-  const loginRes = await ensurePiLogin(...);
+  
 
   console.log("LOGIN RESULT:", loginRes);
 
