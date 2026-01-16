@@ -404,4 +404,4 @@ async function goNextLevel() {
   }
 }
 
-boot();
+boot();}
