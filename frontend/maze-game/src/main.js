@@ -337,7 +337,7 @@ async function continueAfterLogin() {
   });
 
   game.start();
-}
+});
 
 // ---------------------------
 // Level flow
