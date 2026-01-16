@@ -1,5 +1,9 @@
 // src/ui/ui.js last change
 
+export function onLoginGateClick(fn) {
+  loginGateClickHandler = fn;
+}
+
 export function mountUI(app) {
   app.innerHTML = `
     <div class="phone">
@@ -188,9 +192,7 @@ export function mountUI(app) {
 `;
  
 
-export function onLoginGateClick(fn) {
-  loginGateClickHandler = fn;
-}
+
   // ---------------------------
   // Elements
   // ---------------------------
