@@ -175,32 +175,28 @@ function clampLevelIndex(i) {
 // ---------------------------
 async function continueAfterLogin() {
   const me = await apiGetMe();
+
   LAST_UNLOCKED_LEVEL = me.progress?.level || 1;
 
-  const serverUser = me.user;
-  const serverProgress = me.progress;
+  CURRENT_USER = {
+    username: me.user.username,
+    uid: me.user.uid,
+  };
 
-  CURRENT_USER = { username: serverUser.username, uid: serverUser.uid };
+  CURRENT_ACCESS_TOKEN = me.accessToken || CURRENT_ACCESS_TOKEN;
+  IS_LOGGED_IN = true;
 
-  COINS = Number(serverUser.coins || 0);
+  COINS = Number(me.user.coins || 0);
   ui.setCoins(COINS);
 
-  const savedLevel = Number(serverProgress?.level || 1);
-  levelIndex = clampLevelIndex(savedLevel - 1);
+  levelIndex = clampLevelIndex(LAST_UNLOCKED_LEVEL - 1);
 
-  ui.onWelcomeContinue(() => {
-  startGameAfterLogin();
+  ui.hideBootOverlay();
+  ui.showWelcomeScreen();
 }
   
 async function boot() {
     
-    // 🚫 BLOCK GAME IF NOT LOGGED IN
-  if (!IS_LOGGED_IN) {
-    console.warn("Game start blocked: not logged in");
-    return;
-  }
-  ui = mountUI(document.querySelector("#app"));
-
 
 // Level select via joystick icon
 document.getElementById("controls")?.addEventListener("click", () => {
@@ -213,8 +209,20 @@ document.getElementById("controls")?.addEventListener("click", () => {
 
 ui.onLevelSelect((selectedIndex) => {
   levelIndex = clampLevelIndex(selectedIndex);
-  rewardedThisLevel = true; // prevent reward on replay
-  game.setLevel(levels[levelIndex]);
+  rewardedThisLevel = false;
+
+  if (!game) {
+    game = createGame({
+      BACKEND,
+      canvas: ui.canvas,
+      getCurrentUser: () => CURRENT_USER,
+      level: levels[levelIndex],
+      onLevelComplete,
+    });
+    game.start();
+  } else {
+    game.setLevel(levels[levelIndex]);
+  }
 });
   // unlock audio after first gesture
   ui.onFirstUserGesture(() => ensureAudioUnlocked());
@@ -271,6 +279,18 @@ ui.onLevelSelect((selectedIndex) => {
     console.error("Login error:", e);
     ui.showBootOverlay("Login error. Tap to retry");
   }
+});
+// ✅ WELCOME → LEVEL SELECT → GAME
+ui.onWelcomeContinue(() => {
+  if (!IS_LOGGED_IN) return;
+
+  ui.hideWelcomeScreen();
+
+  ui.showLevelSelect({
+    totalLevels: levels.length,
+    currentLevel: levelIndex + 1,
+    isCompleted: (lvl) => lvl <= LAST_UNLOCKED_LEVEL,
+  });
 });
 
 
@@ -355,7 +375,7 @@ ui.onLevelSelect((selectedIndex) => {
     onLevelComplete,
   });
 
-  game.start();
+  
 
 }
 // ---------------------------
