@@ -193,6 +193,15 @@ export function mountUI(app) {
   // ---------------------------
 let loginGateClickHandler = null;
 
+export function onLoginGateClick(fn) {
+  loginGateClickHandler = fn;
+}
+
+bootOverlay?.addEventListener("pointerdown", () => {
+  hideBootOverlay();
+  loginGateClickHandler?.();
+});
+
 const bootOverlay = document.getElementById("bootOverlay");
   
   let bootTapped = false;

@@ -209,16 +209,12 @@ ui.onLevelSelect((selectedIndex) => {
   // init Pi SDK
   initPi();
   ui.onLoginClick(async () => {
-     console.log("LOGIN BUTTON CLICKED");
 
-  ui.showBootOverlay("Logging in...");
 
-  console.log("CALLING ensurePiLogin");
-  
-
-  console.log("LOGIN RESULT:", loginRes);
-
+  ui.onLoginGateClick(async () => {
   try {
+    ui.showBootOverlay("Logging in...");
+
     const loginRes = await ensurePiLogin({
       BACKEND,
       ui,
@@ -226,7 +222,7 @@ ui.onLevelSelect((selectedIndex) => {
         CURRENT_USER = user;
         CURRENT_ACCESS_TOKEN = accessToken;
         ui.setUser?.(user);
-      }
+      },
     });
 
     if (!loginRes?.ok) {
@@ -235,13 +231,11 @@ ui.onLevelSelect((selectedIndex) => {
     }
 
     await continueAfterLogin();
-
   } catch (e) {
     console.error("Login error:", e);
     ui.showBootOverlay("Login error. Tap to retry");
   }
 });
-
 async function continueAfterLogin() {
   const me = await apiGetMe();
 
