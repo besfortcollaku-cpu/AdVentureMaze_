@@ -3,6 +3,10 @@ let loginGateClickHandler = null;
 export function onLoginGateClick(fn) {
   loginGateClickHandler = fn;
 }
+bootOverlay?.addEventListener("pointerdown", () => {
+  hideBootOverlay();
+  loginGateClickHandler?.();
+});
 
 let welcomeContinueHandler = null;
 
@@ -230,12 +234,6 @@ const bootOverlay = document.getElementById("bootOverlay");
   let bootTapped = false;
   showBootOverlay("Tap to continue");
 
-bootOverlay?.addEventListener("pointerdown", () => {
-    if (bootTapped) return;
-  bootTapped = true;
-  hideBootOverlay();
-  showLoginGate();
-});
 
   
   const startBtn = document.getElementById("startAdventureBtn");
