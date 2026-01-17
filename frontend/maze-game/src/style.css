@@ -246,7 +246,7 @@ canvas{
   position: fixed;
   inset: 0;
   display: none;
-  z-index: 9999;
+  z-index:9999;
   background: rgba(0,0,0,0.35);
   backdrop-filter: blur(6px);
 }
@@ -451,7 +451,7 @@ canvas {
 
   inset: 0;
 
-  z-index: 99999;
+  z-index:99999;
 
   display: none;
 
@@ -896,7 +896,7 @@ canvas {
   inset: 0;              /* 🔥 full screen */
   width: 100vw;
   height: 100vh;
-  z-index: "9000";
+  z-index:9000;
 
   display: flex;
   align-items: center;
@@ -1004,7 +1004,7 @@ canvas {
   position: fixed;
   inset: 0;
   background: radial-gradient(circle at top, #0e1b2a, #05080f);
-  z-index: 9999;
+  z-index:9999;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1148,7 +1148,7 @@ body.welcomeActive .phone {
   box-shadow: 0 0 12px rgba(37,215,255,0.5);
 }
 #welcomeOverlay {
-  z-index: "9000";
+  z-index:9000;
 }
 
 .loginGate {
@@ -1160,7 +1160,7 @@ body.welcomeActive .phone {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 9999;
+  z-index:9999;
 }
 .welcomeCard {
   width: 92%;
@@ -1274,7 +1274,7 @@ body.welcomeActive .phone {
   justify-content: center;
 
   background: rgba(0, 0, 0, 0.85);
-  z-index: "9999";
+  z-index:9999;
 }
 
   pointer-events: auto; /* ✅ THIS IS KEY */
@@ -1283,7 +1283,7 @@ body.welcomeActive .phone {
 #loginOverlay {
   position: fixed;
   inset: 0;
-  z-index: "9999";
+  z-index:9999;
 }
 
 .overlay * {
