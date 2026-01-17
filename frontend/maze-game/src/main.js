@@ -121,7 +121,6 @@ welcomeUI.onStart(() => {
   // ✅ then show levels
   const levelsUI = mountLevelsUI(root, CURRENT_USER);
 levelsUI.show();
-  });
 });
 
 }, 600);
