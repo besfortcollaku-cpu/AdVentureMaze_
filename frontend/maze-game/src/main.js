@@ -12,6 +12,7 @@ import { ensurePiLogin } from "./pi/piClient.js";
 import { createLoginUI } from "./ui/uiLogin.js";
 
 import { mountWelcomeUI } from "./ui/uiWelcome.js";
+import { mountLevelsUI } from "./ui/uiLevels";
 
 // IMPORT ENDS
 

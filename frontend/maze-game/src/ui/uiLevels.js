@@ -1,7 +1,7 @@
 // src/ui/uiLevels.js
-// Level selection popup UI
+// Fullscreen Level Selection UI
 
-export function createLevelSelectUI() {
+export function mountLevelsUI(root) {
   let onSelectCb = null;
 
   // ---------------------------
@@ -15,15 +15,15 @@ export function createLevelSelectUI() {
       <div class="badge red">LEVELS</div>
       <h2>Select Level</h2>
 
-      <div class="levelsGrid" id="levelsGrid"></div>
+      <div class="levelsGrid"></div>
 
       <button class="btn primary closeBtn">Close</button>
     </div>
   `;
 
-  document.body.appendChild(el);
+  root.appendChild(el);
 
-  const grid = el.querySelector("#levelsGrid");
+  const grid = el.querySelector(".levelsGrid");
   const closeBtn = el.querySelector(".closeBtn");
 
   // ---------------------------
@@ -39,7 +39,11 @@ export function createLevelSelectUI() {
   // ---------------------------
   // API
   // ---------------------------
-  function show({ totalLevels, currentLevel, isCompleted }) {
+  function show({
+    totalLevels = 10,
+    currentLevel = 1,
+    isCompleted,
+  } = {}) {
     grid.innerHTML = "";
 
     for (let i = 0; i < totalLevels; i++) {
