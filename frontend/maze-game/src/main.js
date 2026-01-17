@@ -56,22 +56,39 @@ async function boot() {
 
     // ❌ login failed
     if (!loginRes?.ok) {
+      loginUI.onLogin(async () => {
+  loginUI.setText("Logging in…");
+  loginUI.showSpinner();
+
+  try {
+    const loginRes = await ensurePiLogin({
+      BACKEND,
+      onLogin: ({ user, accessToken }) => {
+        CURRENT_USER = user;
+        CURRENT_ACCESS_TOKEN = accessToken;
+        console.log("✅ LOGGED IN:", user);
+      },
+    });
+
+    // ❌ FAIL
+    if (!loginRes?.ok) {
       loginUI.hideSpinner();
       loginUI.setText("Login failed. Tap to retry");
       return;
     }
 
-    // ✅ login success → REMOVE login UI COMPLETELY
+    // ✅ SUCCESS
     loginUI.hideSpinner();
-    loginUI.hide();
+    // ✅ SUCCESS
+loginUI.hideSpinner();
+isDone = true;      // 🔒 add this
+loginUI.hide();     // remove overlay
 
-    // ✅ show welcome screen
     const welcomeUI = mountWelcomeUI(root);
     welcomeUI.show();
 
     welcomeUI.onStart(() => {
       console.log("🎮 Welcome → Start tapped");
-      // later: start game / level screen
     });
 
   } catch (err) {

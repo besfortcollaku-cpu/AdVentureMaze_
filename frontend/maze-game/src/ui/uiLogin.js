@@ -19,7 +19,7 @@ export function createLoginUI(root) {
   const spinner = document.getElementById("loginSpinner");
 
   let loginHandler = null;
-  let isLoggingIn = false; // ✅ FIX 1
+   
 
   function showSpinner() {
     spinner?.classList.remove("hidden");
@@ -31,11 +31,10 @@ export function createLoginUI(root) {
   }
 
   overlay.addEventListener("pointerdown", () => {
-  if (isLoggingIn || isDone) return;
+  if (isLoggingIn || isDone) return; // 🔒 HARD BLOCK
   isLoggingIn = true;
   loginHandler?.();
 });
-
   return {
     show(text = "Tap to continue") {
       textEl.textContent = text;
