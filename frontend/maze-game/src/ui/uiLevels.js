@@ -9,33 +9,38 @@ export function mountLevelsUI(root, user) {
 
   overlay.innerHTML = `
     <div class="levelsCard">
-      <div class="levelsBadge">LEVELS</div>
-      <h2>Select Level</h2>
+      <div class="levelsHeader">
+        <span class="levelsBadge">LEVELS</span>
+        <h2>Select Level</h2>
+      </div>
 
       <div class="levelsGrid">
         ${Array.from({ length: 9 }).map((_, i) => {
-          const levelNum = i + 1;
+          const level = i + 1;
 
-          if (levelNum <= completed) {
+          // ✅ completed
+          if (level <= completed) {
             return `
-              <button class="levelBtn done" data-level="${levelNum}">
-                ✓ Level ${levelNum}
-              </button>
+              <div class="levelItem done" data-level="${level}">
+                ✓<span>Level ${level}</span>
+              </div>
             `;
           }
 
-          if (levelNum === completed + 1) {
+          // 🔓 next unlocked
+          if (level === completed + 1) {
             return `
-              <button class="levelBtn unlocked" data-level="${levelNum}">
-                Level ${levelNum}
-              </button>
+              <div class="levelItem unlocked" data-level="${level}">
+                <span>Level ${level}</span>
+              </div>
             `;
           }
 
+          // 🔒 locked
           return `
-            <button class="levelBtn locked" disabled>
-              🔒 ${levelNum}
-            </button>
+            <div class="levelItem locked">
+              🔒<span>${level}</span>
+            </div>
           `;
         }).join("")}
       </div>
@@ -46,16 +51,17 @@ export function mountLevelsUI(root, user) {
 
   root.appendChild(overlay);
 
-  // 🎮 Click handling
+  // 🎮 Handle clicks
   overlay.addEventListener("click", (e) => {
-    const btn = e.target.closest(".levelBtn");
-    if (!btn || btn.disabled) return;
+    const item = e.target.closest(".levelItem");
+    if (!item) return;
+    if (item.classList.contains("locked")) return;
 
-    const level = Number(btn.dataset.level);
+    const level = Number(item.dataset.level);
     if (!level) return;
 
-    overlay.remove(); // close levels UI
-    loadLevel(level); // 🚀 REAL LEVEL LOAD
+    overlay.remove();       // remove levels UI
+    loadLevel(level);      // 🚀 load real level
   });
 
   overlay.querySelector(".closeBtn").onclick = () => {
