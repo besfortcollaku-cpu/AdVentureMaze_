@@ -40,6 +40,7 @@ async function boot() {
 
   // 5️⃣ Handle tap → Pi login
   loginUI.onLogin(async () => {
+  // prevent double taps
   loginUI.setText("Logging in…");
   loginUI.showSpinner();
 
@@ -53,19 +54,32 @@ async function boot() {
       },
     });
 
+    // ❌ login failed
     if (!loginRes?.ok) {
-      loginUI.hideSpinner(); // ✅ IMPORTANT
       loginUI.hideSpinner();
-loginUI.hide();        // ⬅️ fully remove login first
-
-setTimeout(() => {
-  const welcomeUI = mountWelcomeUI(root);
-
-  welcomeUI.onStart(() => {
-    console.log("🎮 Welcome → Start tapped");
-  });
-}, 50);
       loginUI.setText("Login failed. Tap to retry");
+      return;
+    }
+
+    // ✅ login success → REMOVE login UI COMPLETELY
+    loginUI.hideSpinner();
+    loginUI.hide();
+
+    // ✅ show welcome screen
+    const welcomeUI = mountWelcomeUI(root);
+    welcomeUI.show();
+
+    welcomeUI.onStart(() => {
+      console.log("🎮 Welcome → Start tapped");
+      // later: start game / level screen
+    });
+
+  } catch (err) {
+    console.error("Login error:", err);
+    loginUI.hideSpinner();
+    loginUI.setText("Login error. Tap to retry");
+  }
+});
       
       
       return;
