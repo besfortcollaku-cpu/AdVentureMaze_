@@ -113,12 +113,18 @@ loginUI.hideSpinner();
 loginUI.hide();
 
 const welcomeUI = mountWelcomeUI(root, CURRENT_USER);
-welcomeUI.show();
 
 welcomeUI.onStart(() => {
-  welcomeUI.hide(); // 🔥 important
+  // ✅ hide welcome FIRST
+  welcomeUI.hide();
+
+  // ✅ then show levels
   const levelsUI = mountLevelsUI(root);
-  levelsUI.show();
+  levelsUI.show({
+    totalLevels: 10,
+    currentLevel: 1,
+    isCompleted: (lvl) => lvl < 2, // temp demo
+  });
 });
 
 }, 600);
