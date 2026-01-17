@@ -893,20 +893,21 @@ canvas {
 
 #welcomeOverlay {
   position: fixed;
-  inset: 0;
+  inset: 0;              /* 🔥 full screen */
   width: 100vw;
   height: 100vh;
+  z-index: 9000;
 
   display: flex;
   align-items: center;
   justify-content: center;
 
   background: radial-gradient(
-    circle at top,
-    #1f3a2e 0%,
-    #0b1418 45%,
-    #000 100%
+    ellipse at top,
+    rgba(20, 60, 60, 0.95),
+    rgba(0, 0, 0, 0.98)
   );
+}
 
   z-index: 9000;
   pointer-events: auto;

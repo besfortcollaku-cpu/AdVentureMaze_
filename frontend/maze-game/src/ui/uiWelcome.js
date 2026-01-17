@@ -1,25 +1,27 @@
 // src/ui/uiWelcome.js
 
-export function mountWelcomeUI(app) {
+export function mountWelcomeUI(app, { username = "Player", isNewUser = true } = {}) {
   // ---------------------------
   // HTML
   // ---------------------------
   const wrapper = document.createElement("div");
   wrapper.innerHTML = `
-    <div class="welcomeOverlay show" id="welcomeOverlay">
+    <div class="welcomeOverlay active" id="welcomeOverlay">
       <div class="welcomeCard">
         <img src="/logo.png" class="welcomeLogo" alt="Adventure Maze" />
 
-        <h2 class="welcomeTitle">Adventure Maze</h2>
+        <h2 class="welcomeTitle">
+          ${isNewUser ? "Welcome" : "Welcome back"}, ${username}
+        </h2>
 
         <p class="welcomeText">
-          Roll through mind-bending mazes.<br>
+          Roll through mind-bending mazes.<br/>
           Collect coins. Unlock levels.
         </p>
 
-        <P>
+        <div class="welcomeHint">
           Tap anywhere to start
-        </2p>
+        </div>
       </div>
     </div>
   `;
@@ -29,34 +31,31 @@ export function mountWelcomeUI(app) {
   // ---------------------------
   // Elements
   // ---------------------------
-  const welcomeOverlay = wrapper.querySelector("#welcomeOverlay");
-  const startBtn = wrapper.querySelector("#startAdventureBtn");
+  const overlay = wrapper.querySelector("#welcomeOverlay");
 
   let startHandler = null;
+  let isClosed = false;
 
-  // show button after delay (UX polish)
-  setTimeout(() => {
-    startBtn?.classList.remove("hidden");
-  }, 5000);
-
-  // tap anywhere
-  welcomeOverlay.addEventListener("pointerdown", () => {
+  // ---------------------------
+  // Events
+  // ---------------------------
+  overlay.addEventListener("pointerdown", () => {
+    if (isClosed) return;
+    isClosed = true;
     hide();
     startHandler?.();
   });
 
-  // explicit button tap
-  startBtn?.addEventListener("click", (e) => {
-    e.stopPropagation();
-    hide();
-    startHandler?.();
-  });
-
+  // ---------------------------
+  // Helpers
+  // ---------------------------
   function hide() {
-    welcomeOverlay.classList.add("fadeOut");
+    overlay.classList.remove("active");
+    overlay.classList.add("fadeOut");
+
     setTimeout(() => {
       wrapper.remove();
-    }, 400);
+    }, 350);
   }
 
   return {
