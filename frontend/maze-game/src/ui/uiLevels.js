@@ -5,61 +5,61 @@ export function mountLevelsUI(root, user) {
   const completed = user?.completed_levels ?? 0;
 
   const overlay = document.createElement("div");
-  overlay.className = "levelsOverlay active";
+  overlay.className = "overlay active levelsOverlay";
 
   overlay.innerHTML = `
-    <div class="levelsCard">
-      <div class="levelsHeader">
-        <span class="levelsBadge">LEVELS</span>
+    <div class="modal levelsModal">
+      <div class="modalHeader">
+        <span class="badge red">LEVELS</span>
         <h2>Select Level</h2>
       </div>
 
-      <div class="levelsGrid">
+      <div class="levels">
         ${Array.from({ length: 9 }).map((_, i) => {
           const level = i + 1;
 
           if (level <= completed) {
             return `
-              <div class="levelItem done" data-level="${level}">
-                ✓<span>Level ${level}</span>
-              </div>
+              <button class="level done" data-level="${level}">
+                ✓ Level ${level}
+              </button>
             `;
           }
 
           if (level === completed + 1) {
             return `
-              <div class="levelItem unlocked" data-level="${level}">
-                <span>Level ${level}</span>
-              </div>
+              <button class="level unlocked" data-level="${level}">
+                Level ${level}
+              </button>
             `;
           }
 
           return `
-            <div class="levelItem locked">
-              🔒<span>${level}</span>
-            </div>
+            <button class="level locked" disabled>
+              🔒 ${level}
+            </button>
           `;
         }).join("")}
       </div>
 
-      <button class="closeBtn">Close</button>
+      <button class="modalClose">Close</button>
     </div>
   `;
 
   root.appendChild(overlay);
 
   overlay.addEventListener("click", (e) => {
-    const item = e.target.closest(".levelItem");
-    if (!item || item.classList.contains("locked")) return;
+    const btn = e.target.closest(".level");
+    if (!btn || btn.disabled) return;
 
-    const level = Number(item.dataset.level);
+    const level = Number(btn.dataset.level);
     if (!level) return;
 
     overlay.remove();
     loadLevel(level);
   });
 
-  overlay.querySelector(".closeBtn").onclick = () => {
+  overlay.querySelector(".modalClose").onclick = () => {
     overlay.remove();
   };
 
