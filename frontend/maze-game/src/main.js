@@ -131,6 +131,6 @@ loginUI.onLogin(async () => {
   }
 });
 
-
+}
 
 boot();
