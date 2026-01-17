@@ -18,7 +18,6 @@ export function mountLevelsUI(root, user) {
         ${Array.from({ length: 9 }).map((_, i) => {
           const level = i + 1;
 
-          // ✅ completed
           if (level <= completed) {
             return `
               <div class="levelItem done" data-level="${level}">
@@ -27,7 +26,6 @@ export function mountLevelsUI(root, user) {
             `;
           }
 
-          // 🔓 next unlocked
           if (level === completed + 1) {
             return `
               <div class="levelItem unlocked" data-level="${level}">
@@ -36,7 +34,6 @@ export function mountLevelsUI(root, user) {
             `;
           }
 
-          // 🔒 locked
           return `
             <div class="levelItem locked">
               🔒<span>${level}</span>
@@ -51,17 +48,15 @@ export function mountLevelsUI(root, user) {
 
   root.appendChild(overlay);
 
-  // 🎮 Handle clicks
   overlay.addEventListener("click", (e) => {
     const item = e.target.closest(".levelItem");
-    if (!item) return;
-    if (item.classList.contains("locked")) return;
+    if (!item || item.classList.contains("locked")) return;
 
     const level = Number(item.dataset.level);
     if (!level) return;
 
-    overlay.remove();       // remove levels UI
-    loadLevel(level);      // 🚀 load real level
+    overlay.remove();
+    loadLevel(level);
   });
 
   overlay.querySelector(".closeBtn").onclick = () => {
