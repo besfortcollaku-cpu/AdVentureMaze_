@@ -1274,7 +1274,7 @@ body.welcomeActive .phone {
   justify-content: center;
 
   background: rgba(0, 0, 0, 0.85);
-  z-index: 9999;
+  z-index: "9999";
 }
 
   pointer-events: auto; /* ✅ THIS IS KEY */
@@ -1283,7 +1283,7 @@ body.welcomeActive .phone {
 #loginOverlay {
   position: fixed;
   inset: 0;
-  z-index: 9999;
+  z-index: "9999";
 }
 
 .overlay * {
