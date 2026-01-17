@@ -21,8 +21,9 @@ export function mountWelcomeUI(root, user) {
 
   // ✅ TAP ANYWHERE (or restrict to tapEl if you prefer)
   overlay.addEventListener("pointerdown", () => {
-    startHandler?.();
-  });
+  console.log("WELCOME TAP");
+  startHandler?.();
+});
 
   return {
     show() {
