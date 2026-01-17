@@ -4,7 +4,6 @@ export function createLoginUI(root) {
     "beforeend",
     `
     <div id="loginOverlay" class="overlay active">
-      <div class="spinner"></div>
       <div class="loginText">Tap to continue</div>
       <div class="login-spinner hidden" id="loginSpinner"></div>
     </div>
@@ -24,15 +23,15 @@ function hideSpinner() {
 }
 
   let loginHandler = null;
+  let isLoggingIn = false;¹
 
   overlay.addEventListener("pointerdown", () => {
-    loginHandler?.();
-  });
+  if (isLoggingIn) return;
+  isLoggingIn = true;
+  loginHandler?.();
+});
 // TEMP TEST
-setTimeout(() => {
-  spinner?.classList.remove("hidden");
-  console.log("SPINNER FORCE SHOW");
-}, 500);
+
   return {
     show(text = "Tap to continue") {
       textEl.textContent = text;
