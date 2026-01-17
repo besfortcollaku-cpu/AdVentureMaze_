@@ -1271,9 +1271,8 @@ body.welcomeActive .phone {
 
   background: rgba(0, 0, 0, 0.85);
   z-index:9999;
-}
 
-  pointer-events: auto; /* ✅ THIS IS KEY */
+
 }
 
 #loginOverlay {
