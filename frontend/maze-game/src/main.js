@@ -79,65 +79,57 @@ async function boot() {
     }
 
     // ✅ SUCCESS
-    loginUI.hideSpinner();
-    // ✅ SUCCESS
-loginUI.hideSpinner();
-isDone = true;      // 🔒 add this
-loginUI.hide();     // remove overlay
-
-    const welcomeUI = mountWelcomeUI(root);
-    welcomeUI.show();
-
-    welcomeUI.onStart(() => {
-      console.log("🎮 Welcome → Start tapped");
+loginUI.onLogin(async () => {
+  try {
+    const loginRes = await ensurePiLogin({
+      BACKEND,
+      onLogin: ({ user, accessToken }) => {
+        CURRENT_USER = user;
+        CURRENT_ACCESS_TOKEN = accessToken;
+        console.log("✅ LOGGED IN:", user);
+      },
     });
 
-  } catch (err) {
-    console.error("Login error:", err);
-    loginUI.hideSpinner();
-    loginUI.setText("Login error. Tap to retry");
-  }
-});
-      
-      
+    // ❌ FAIL → stop here
+    if (!loginRes?.ok) {
+      loginUI.hideSpinner();
+      loginUI.setText("Login failed. Tap to retry");
       return;
-    
+    }
 
     // ✅ SUCCESS
     console.log("ACCESS TOKEN:", CURRENT_ACCESS_TOKEN);
 
-    // ✅ hide spinner + overlay AFTER short delay
+    // hide spinner + overlay AFTER short delay
     setTimeout(() => {
-  // after successful login
-loginUI.hideSpinner();
-loginUI.hide();
+      loginUI.hideSpinner();
+      loginUI.hide(); // remove overlay completely
 
-const welcomeUI = mountWelcomeUI(root, CURRENT_USER);
+      const welcomeUI = mountWelcomeUI(root, CURRENT_USER);
+      welcomeUI.show();
 
-welcomeUI.onStart(() => {
-  // ✅ hide welcome FIRST
-  welcomeUI.hide();
+      welcomeUI.onStart(() => {
+        // hide welcome first
+        welcomeUI.hide();
 
-  // ✅ then show levels
-  const levelsUI = mountLevelsUI(root, {
-  unlockedLevels: CURRENT_USER.level || 1,
-  completedLevels: CURRENT_USER.completedLevels || [],
-  onSelectLevel: (level) => {
-    console.log("Selected level:", level);
-    // 👉 load level logic here (level1.js, level2.js, etc.)
-  },
-});
-
-}, 600);
+        // then show levels
+        mountLevelsUI(root, {
+          unlockedLevels: CURRENT_USER.level || 1,
+          completedLevels: CURRENT_USER.completedLevels || [],
+          onSelectLevel: (level) => {
+            console.log("Selected level:", level);
+            // load level logic here
+          },
+        });
+      });
+    }, 600);
 
   } catch (err) {
     console.error("Login error:", err);
-    loginUI.hideSpinner(); // ✅ IMPORTANT
+    loginUI.hideSpinner();
     loginUI.setText("Login error. Tap to retry");
   }
 });
-}
-
 
 
 
