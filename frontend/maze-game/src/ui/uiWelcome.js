@@ -1,69 +1,35 @@
 // src/ui/uiWelcome.js
-
-export function mountWelcomeUI(app, { username = "Player", isNewUser = true } = {}) {
-  // ---------------------------
-  // HTML
-  // ---------------------------
-  const wrapper = document.createElement("div");
-  wrapper.innerHTML = `
+export function mountWelcomeUI(root, user) {
+  root.insertAdjacentHTML(
+    "beforeend",
+    `
     <div class="welcomeOverlay active" id="welcomeOverlay">
       <div class="welcomeCard">
-        <img src="/logo.png" class="welcomeLogo" alt="Adventure Maze" />
-
-        <h2 class="welcomeTitle">
-          ${isNewUser ? "Welcome" : "Welcome back"}, ${username}
-        </h2>
-
-        <p class="welcomeText">
+        <img src="/logo.png" class="welcomeLogo" />
+        <h1 class="welcomeTitle">
+          Welcome${user?.username ? `, ${user.username}` : " back"}
+        </h1>
+        <p class="welcomeSubtitle">
           Roll through mind-bending mazes.<br/>
           Collect coins. Unlock levels.
         </p>
-
-        <div class="welcomeHint">
-          Tap to Play
-        </div>
+        <div class="welcomeAction">Tap to Play</div>
       </div>
     </div>
-  `;
+    `
+  );
 
-  app.appendChild(wrapper);
-
-  // ---------------------------
-  // Elements
-  // ---------------------------
-  const overlay = wrapper.querySelector("#welcomeOverlay");
-
+  const overlay = document.getElementById("welcomeOverlay");
   let startHandler = null;
-  let isClosed = false;
 
-  // ---------------------------
-  // Events
-  // ---------------------------
   overlay.addEventListener("pointerdown", () => {
-    if (isClosed) return;
-    isClosed = true;
-    hide();
+    overlay.remove(); // fully destroy
     startHandler?.();
   });
-
-  // ---------------------------
-  // Helpers
-  // ---------------------------
-  function hide() {
-    overlay.classList.remove("active");
-    overlay.classList.add("fadeOut");
-
-    setTimeout(() => {
-      wrapper.remove();
-    }, 350);
-  }
 
   return {
     onStart(fn) {
       startHandler = fn;
-    },
-    destroy() {
-      wrapper.remove();
     },
   };
 }

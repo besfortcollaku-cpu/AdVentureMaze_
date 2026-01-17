@@ -111,12 +111,13 @@ loginUI.hide();     // remove overlay
   loginUI.hide();
 
   // ✅ SHOW WELCOME SCREEN
-  const welcomeUI = mountWelcomeUI(root);
+  const welcomeUI = mountWelcomeUI(root, CURRENT_USER);
+welcomeUI.show();
 
-  welcomeUI.onStart(() => {
-    console.log("🎮 Welcome → Start tapped");
-    // later: start game / level screen
-  });
+welcomeUI.onStart(() => {
+  const levelsUI = mountLevelsUI(root);
+  levelsUI.show();
+});
 
 }, 600);
 

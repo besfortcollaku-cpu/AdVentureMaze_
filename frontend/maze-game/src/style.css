@@ -891,22 +891,22 @@ canvas {
    FULLSCREEN WELCOME (MATCHES WIN POPUP)
 ========================= */
 
-#welcomeOverlay {
+.welcomeOverlay {
   position: fixed;
-  inset: 0;              /* 🔥 full screen */
-  width: 100vw;
-  height: 100vh;
-  z-index:9000;
+  inset: 0;
+  z-index: 9000;
 
   display: flex;
   align-items: center;
   justify-content: center;
 
   background: radial-gradient(
-    ellipse at top,
+    circle at top,
     rgba(20, 60, 60, 0.95),
-    rgba(0, 0, 0, 0.98)
+    rgba(0, 0, 0, 0.95)
   );
+
+  pointer-events: auto;
 }
 
 /* Optional but recommended */
