@@ -1,92 +1,73 @@
 // src/ui/uiLevels.js
-
 import { loadLevel } from "../levels/index.js";
 
-export function mountLevelsUI(root) {
-  // ---------- DOM ----------
+export function mountLevelsUI(root, user) {
+  const completed = user?.completed_levels ?? 0;
+
   const overlay = document.createElement("div");
-  overlay.className = "levelSelectOverlay";
+  overlay.className = "levelsOverlay active";
 
   overlay.innerHTML = `
-    <div class="welcomeCard">
-      <div style="margin-bottom:10px;">
-        <span class="levelNew">LEVELS</span>
+    <div class="levelsCard">
+      <div class="levelsBadge">LEVELS</div>
+      <h2>Select Level</h2>
+
+      <div class="levelsGrid">
+        ${Array.from({ length: 9 }).map((_, i) => {
+          const levelNum = i + 1;
+
+          if (levelNum <= completed) {
+            return `
+              <button class="levelBtn done" data-level="${levelNum}">
+                ✓ Level ${levelNum}
+              </button>
+            `;
+          }
+
+          if (levelNum === completed + 1) {
+            return `
+              <button class="levelBtn unlocked" data-level="${levelNum}">
+                Level ${levelNum}
+              </button>
+            `;
+          }
+
+          return `
+            <button class="levelBtn locked" disabled>
+              🔒 ${levelNum}
+            </button>
+          `;
+        }).join("")}
       </div>
 
-      <div class="welcomeTitle">Select Level</div>
-
-      <div class="levelGrid" id="levelGrid"></div>
-
-      <button class="welcomeBtn" id="closeLevels">Close</button>
+      <button class="closeBtn">Close</button>
     </div>
   `;
 
   root.appendChild(overlay);
 
-  const grid = overlay.querySelector("#levelGrid");
-  const closeBtn = overlay.querySelector("#closeLevels");
+  // 🎮 Click handling
+  overlay.addEventListener("click", (e) => {
+    const btn = e.target.closest(".levelBtn");
+    if (!btn || btn.disabled) return;
 
-  let onSelectHandler = null;
+    const level = Number(btn.dataset.level);
+    if (!level) return;
 
-  // ---------- BUILD GRID ----------
-  function buildLevels({ totalLevels, currentLevel, completedLevels }) {
-    grid.innerHTML = "";
+    overlay.remove(); // close levels UI
+    loadLevel(level); // 🚀 REAL LEVEL LOAD
+  });
 
-    for (let i = 1; i <= totalLevels; i++) {
-      const btn = document.createElement("button");
-      btn.className = "levelBtn";
-      btn.textContent = `Level ${i}`;
+  overlay.querySelector(".closeBtn").onclick = () => {
+    overlay.remove();
+  };
 
-      const isCompleted = completedLevels.includes(i);
-      const isLocked = i > currentLevel + 1;
-
-      if (isCompleted) {
-        btn.innerHTML = `✓ Level ${i}`;
-      }
-
-      if (i === currentLevel) {
-        btn.classList.add("current");
-      }
-
-      if (isLocked) {
-        btn.classList.add("locked");
-        btn.disabled = true;
-      } else {
-        btn.addEventListener("click", () => {
-          hide();
-          loadLevel(i); // 🔥 REAL LEVEL LOAD
-          onSelectHandler && onSelectHandler(i);
-        });
-      }
-
-      grid.appendChild(btn);
-    }
-  }
-
-  // ---------- VISIBILITY ----------
-  function show(config) {
-    const {
-      totalLevels = 9,
-      currentLevel = 1,
-      completedLevels = [],
-    } = config;
-
-    buildLevels({ totalLevels, currentLevel, completedLevels });
-    overlay.classList.add("show");
-  }
-
-  function hide() {
-    overlay.classList.remove("show");
-  }
-
-  closeBtn.addEventListener("click", hide);
-
-  // ---------- API ----------
   return {
-    show,
-    hide,
-    onSelect(fn) {
-      onSelectHandler = fn;
+    show() {
+      overlay.classList.add("active");
+    },
+    hide() {
+      overlay.classList.remove("active");
     },
   };
 }

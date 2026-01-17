@@ -119,11 +119,8 @@ welcomeUI.onStart(() => {
   welcomeUI.hide();
 
   // ✅ then show levels
-  const levelsUI = mountLevelsUI(root);
-  levelsUI.show({
-    totalLevels: 10,
-    currentLevel: 1,
-    isCompleted: (lvl) => lvl < 2, // temp demo
+  const levelsUI = mountLevelsUI(root, CURRENT_USER);
+levelsUI.show();
   });
 });
 
