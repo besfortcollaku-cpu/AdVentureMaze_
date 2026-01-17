@@ -1286,6 +1286,58 @@ body.welcomeActive .phone {
 }
 
 
+.welcome-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: radial-gradient(circle at top, #1a2a3a, #05080d);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+}
+
+.welcome-content {
+  text-align: center;
+  animation: welcomePop 0.5s ease-out;
+}
+
+.welcome-title {
+  font-size: 32px;
+  margin-bottom: 12px;
+}
+
+.welcome-subtitle {
+  opacity: 0.8;
+  margin-bottom: 24px;
+}
+
+.welcome-cta {
+  font-size: 14px;
+  opacity: 0.6;
+}
+
+.fade-out {
+  animation: fadeOut 0.3s ease forwards;
+}
+
+@keyframes fadeOut {
+  to {
+    opacity: 0;
+    transform: scale(1.03);
+  }
+}
+
+@keyframes welcomePop {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
 
 #app {
   pointer-events: auto;
