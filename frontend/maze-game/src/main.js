@@ -55,6 +55,16 @@ async function boot() {
 
     if (!loginRes?.ok) {
       loginUI.hideSpinner(); // ✅ IMPORTANT
+      loginUI.hideSpinner();
+loginUI.hide();        // ⬅️ fully remove login first
+
+setTimeout(() => {
+  const welcomeUI = mountWelcomeUI(root);
+
+  welcomeUI.onStart(() => {
+    console.log("🎮 Welcome → Start tapped");
+  });
+}, 50);
       loginUI.setText("Login failed. Tap to retry");
       
       

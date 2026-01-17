@@ -1275,6 +1275,12 @@ body.welcomeActive .phone {
   pointer-events: auto; /* ✅ THIS IS KEY */
 }
 
+#loginOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+}
+
 .overlay * {
   pointer-events: none; /* text does NOT steal clicks */
 }
