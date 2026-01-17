@@ -28,11 +28,7 @@ function hideSpinner() {
   overlay.addEventListener("pointerdown", () => {
     loginHandler?.();
   });
-// TEMP TEST
-setTimeout(() => {
-  spinner?.classList.remove("hidden");
-  console.log("SPINNER FORCE SHOW");
-}, 500);
+
   return {
     show(text = "Tap to continue") {
       textEl.textContent = text;
