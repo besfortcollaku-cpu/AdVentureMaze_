@@ -45,7 +45,7 @@ export function createLoginUI(root) {
   isDone = true; // 🔒 block all future taps
   overlay.style.pointerEvents = "none"; // 🔥 THIS is the key
   overlay.classList.remove("active");
-}
+},
 
     setText(text) {
       textEl.textContent = text;
