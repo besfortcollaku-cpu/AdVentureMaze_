@@ -1,4 +1,8 @@
 // src/ui/uiLogin.js
+
+
+let isLoggingIn = false;
+let isDone = false; // 🔒 permanent lock after success
 export function createLoginUI(root) {
   root.insertAdjacentHTML(
     "beforeend",
@@ -27,10 +31,10 @@ export function createLoginUI(root) {
   }
 
   overlay.addEventListener("pointerdown", () => {
-    if (isLoggingIn) return;
-    isLoggingIn = true;
-    loginHandler?.();
-  });
+  if (isLoggingIn || isDone) return;
+  isLoggingIn = true;
+  loginHandler?.();
+});
 
   return {
     show(text = "Tap to continue") {
@@ -39,8 +43,10 @@ export function createLoginUI(root) {
     },
 
     hide() {
-      overlay.classList.remove("active");
-    },
+  isDone = true; // 🔒 block all future taps
+  overlay.style.pointerEvents = "none"; // 🔥 THIS is the key
+  overlay.classList.remove("active");
+}
 
     setText(text) {
       textEl.textContent = text;
