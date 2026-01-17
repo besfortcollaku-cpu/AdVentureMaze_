@@ -23,7 +23,7 @@ function hideSpinner() {
 }
 
   let loginHandler = null;
-  let isLoggingIn = false;¹
+  let isLoggingIn = false;
 
   overlay.addEventListener("pointerdown", () => {
   if (isLoggingIn) return;
