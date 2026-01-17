@@ -12,16 +12,22 @@ export function mountLevelsUI(root, options = {}) {
   overlay.className = "overlay active";
 
   overlay.innerHTML = `
-    <div class="levelsModal">
-      <div class="levelsHeader">
-        <span class="levelsBadge">LEVELS</span>
-        <h2>Select Level</h2>
-      </div>
-
-      <div class="levelsGrid"></div>
-
-      <button class="levelsCloseBtn">Close</button>
+    <<div class="levelsOverlay">
+  <div class="levelsModal">
+    <div class="levelsHeader">
+      <div class="levelsBadge">LEVELS</div>
+      <div class="levelsTitle">Select Level</div>
     </div>
+
+    <div class="levelsGrid">
+      <button class="levelTile completed">Level 1</button>
+      <button class="levelTile completed">Level 2</button>
+      <button class="levelTile locked">5</button>
+    </div>
+
+    <button class="levelsClose">Close</button>
+  </div>
+</div>
   `;
 
   root.appendChild(overlay);
