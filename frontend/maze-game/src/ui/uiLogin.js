@@ -13,24 +13,24 @@ export function createLoginUI(root) {
   const overlay = document.getElementById("loginOverlay");
   const textEl = overlay.querySelector(".loginText");
   const spinner = document.getElementById("loginSpinner");
-  
-  function showSpinner() {
-  spinner?.classList.remove("hidden");
-}
-
-function hideSpinner() {
-  spinner?.classList.add("hidden");
-}
 
   let loginHandler = null;
-  let isLoggingIn = false;
+  let isLoggingIn = false; // ✅ FIX 1
+
+  function showSpinner() {
+    spinner?.classList.remove("hidden");
+  }
+
+  function hideSpinner() {
+    spinner?.classList.add("hidden");
+    isLoggingIn = false; // allow retry
+  }
 
   overlay.addEventListener("pointerdown", () => {
-  if (isLoggingIn) return;
-  isLoggingIn = true;
-  loginHandler?.();
-});
-// TEMP TEST
+    if (isLoggingIn) return;
+    isLoggingIn = true;
+    loginHandler?.();
+  });
 
   return {
     show(text = "Tap to continue") {
@@ -41,11 +41,11 @@ function hideSpinner() {
     hide() {
       overlay.classList.remove("active");
     },
-    
 
     setText(text) {
       textEl.textContent = text;
     },
+
     showSpinner,
     hideSpinner,
 
