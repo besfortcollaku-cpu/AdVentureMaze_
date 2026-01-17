@@ -1337,7 +1337,7 @@ body.welcomeActive .phone {
     opacity: 1;
     transform: scale(1);
   }
-}
+
 
 #app {
   pointer-events: auto;
