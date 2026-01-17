@@ -103,7 +103,6 @@ loginUI.hide();     // remove overlay
     }
 
     // ✅ SUCCESS
-    loginUI.setText("Login success ✅");
     console.log("ACCESS TOKEN:", CURRENT_ACCESS_TOKEN);
 
     // ✅ hide spinner + overlay AFTER short delay

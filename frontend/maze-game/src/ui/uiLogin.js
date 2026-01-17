@@ -31,7 +31,7 @@ export function createLoginUI(root) {
   }
 
   overlay.addEventListener("pointerdown", () => {
-  if (isLoggingIn || isDone) return; // 🔒 HARD BLOCK
+  if (isDone || isLoggingIn) return;
   isLoggingIn = true;
   loginHandler?.();
 });
