@@ -1146,6 +1146,9 @@ body.welcomeActive .phone {
   border: 2px solid #25d7ff;
   box-shadow: 0 0 12px rgba(37,215,255,0.5);
 }
+#welcomeOverlay {
+  z-index: 9000;
+}
 
 .loginGate {
   position: fixed;

@@ -26,9 +26,8 @@ export function createLoginUI(root) {
   }
 
   function hideSpinner() {
-    spinner?.classList.add("hidden");
-    isLoggingIn = false; // allow retry
-  }
+  spinner?.classList.add("hidden");
+}
 
   overlay.addEventListener("pointerdown", () => {
   if (isDone || isLoggingIn) return;
@@ -42,9 +41,8 @@ export function createLoginUI(root) {
     },
 
     hide() {
-  isDone = true; // 🔒 block all future taps
-  overlay.style.pointerEvents = "none"; // 🔥 THIS is the key
-  overlay.classList.remove("active");
+  isDone = true;
+  overlay.remove(); // 🔥 HARD REMOVE — nothing left to update
 },
 
     setText(text) {
