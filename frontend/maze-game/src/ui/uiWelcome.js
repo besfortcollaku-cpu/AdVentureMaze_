@@ -20,7 +20,7 @@ export function mountWelcomeUI(app, { username = "Player", isNewUser = true } = 
         </p>
 
         <div class="welcomeHint">
-          Tap anywhere to start
+          Tap to Play
         </div>
       </div>
     </div>
