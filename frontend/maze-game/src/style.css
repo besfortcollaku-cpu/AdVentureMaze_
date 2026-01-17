@@ -1103,7 +1103,7 @@ body.welcomeActive .phone {
 
 .loginGate {
   opacity: 0;
-  pointer-events: none;
+  
   transition: opacity 0.35s ease;
 }
 
@@ -1182,7 +1182,6 @@ body.welcomeActive .phone {
 }
 .loginGate {
   opacity: 0;
-  pointer-events: none;
   transition: opacity 0.5s ease;
 }
 
@@ -1228,4 +1227,28 @@ body.welcomeActive .phone {
 .bootText {
   font-size: 15px;
   opacity: .85;
+}
+
+
+.login-spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid rgba(255,255,255,0.2);
+  border-top-color: #3fd1ff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 24px auto 0;
+}
+
+.hidden {
+  display: none;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+
+#app {
+  pointer-events: auto;
 }
