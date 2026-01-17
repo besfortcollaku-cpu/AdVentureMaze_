@@ -30,7 +30,7 @@ async function boot() {
   loginUI.show("Tap to continue");
 
   // 5️⃣ Handle tap → Pi login
-  loginUI.onLoginTap(async () => {
+  loginUI.onLogin(async () => {
     try {
       loginUI.show("Logging in…");
 
