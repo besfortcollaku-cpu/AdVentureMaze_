@@ -896,7 +896,7 @@ canvas {
   inset: 0;              /* 🔥 full screen */
   width: 100vw;
   height: 100vh;
-  z-index: 9000;
+  z-index: "9000";
 
   display: flex;
   align-items: center;
