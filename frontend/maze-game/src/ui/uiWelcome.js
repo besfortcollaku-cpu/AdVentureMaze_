@@ -10,16 +10,16 @@ export function mountWelcomeUI(app) {
       <div class="welcomeCard">
         <img src="/logo.png" class="welcomeLogo" alt="Adventure Maze" />
 
-        <h1 class="welcomeTitle">Adventure Maze</h1>
+        <h2 class="welcomeTitle">Adventure Maze</h2>
 
         <p class="welcomeText">
           Roll through mind-bending mazes.<br>
           Collect coins. Unlock levels.
         </p>
 
-        <button class="welcomeBtn hidden" id="startAdventureBtn">
+        <P>
           Tap anywhere to start
-        </button>
+        </2p>
       </div>
     </div>
   `;
