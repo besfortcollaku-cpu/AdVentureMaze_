@@ -119,8 +119,13 @@ welcomeUI.onStart(() => {
   welcomeUI.hide();
 
   // ✅ then show levels
-  const levelsUI = mountLevelsUI(root, CURRENT_USER);
-levelsUI.show();
+  const levelsUI = mountLevelsUI(root, {
+  unlockedLevels: CURRENT_USER.level || 1,
+  completedLevels: CURRENT_USER.completedLevels || [],
+  onSelectLevel: (level) => {
+    console.log("Selected level:", level);
+    // 👉 load level logic here (level1.js, level2.js, etc.)
+  },
 });
 
 }, 600);

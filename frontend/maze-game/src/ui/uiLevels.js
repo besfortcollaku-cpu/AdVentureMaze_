@@ -1,5 +1,7 @@
 // src/ui/uiLevels.js
 
+import "../css/levels.css";
+
 export function mountLevelsUI(root, options = {}) {
   const {
     unlockedLevels = 1,        // number of unlocked levels
