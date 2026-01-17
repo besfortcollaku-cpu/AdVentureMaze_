@@ -3,31 +3,37 @@ export function mountWelcomeUI(root, user) {
   root.insertAdjacentHTML(
     "beforeend",
     `
-    <div class="welcomeOverlay active" id="welcomeOverlay">
+    <div id="welcomeOverlay" class="overlay active welcome-overlay">
       <div class="welcomeCard">
         <img src="/logo.png" class="welcomeLogo" />
-        <h1 class="welcomeTitle">
-          Welcome${user?.username ? `, ${user.username}` : " back"}
-        </h1>
-        <p class="welcomeSubtitle">
-          Roll through mind-bending mazes.<br/>
-          Collect coins. Unlock levels.
-        </p>
-        <div class="welcomeAction">Tap to Play</div>
+        <h1>Welcome ${user?.username || "Player"}</h1>
+        <p>Roll through mind-bending mazes.<br/>Collect coins. Unlock levels.</p>
+        <div class="welcomeTap">Tap to Play</div>
       </div>
     </div>
     `
   );
 
   const overlay = document.getElementById("welcomeOverlay");
+  const tapEl = overlay.querySelector(".welcomeTap");
+
   let startHandler = null;
 
+  // ✅ TAP ANYWHERE (or restrict to tapEl if you prefer)
   overlay.addEventListener("pointerdown", () => {
-    overlay.remove(); // fully destroy
     startHandler?.();
   });
 
   return {
+    show() {
+      overlay.classList.add("active");
+    },
+
+    hide() {
+      overlay.classList.remove("active");
+      overlay.style.pointerEvents = "none";
+    },
+
     onStart(fn) {
       startHandler = fn;
     },

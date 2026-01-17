@@ -107,14 +107,15 @@ loginUI.hide();     // remove overlay
 
     // ✅ hide spinner + overlay AFTER short delay
     setTimeout(() => {
-  loginUI.hideSpinner();
-  loginUI.hide();
+  // after successful login
+loginUI.hideSpinner();
+loginUI.hide();
 
-  // ✅ SHOW WELCOME SCREEN
-  const welcomeUI = mountWelcomeUI(root, CURRENT_USER);
+const welcomeUI = mountWelcomeUI(root, CURRENT_USER);
 welcomeUI.show();
 
 welcomeUI.onStart(() => {
+  welcomeUI.hide(); // 🔥 important
   const levelsUI = mountLevelsUI(root);
   levelsUI.show();
 });
