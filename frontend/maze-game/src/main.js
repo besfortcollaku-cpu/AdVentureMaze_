@@ -78,13 +78,14 @@ async function apiClaimLevelComplete(level) {
 
 
 async function boot() {
+   ui.onFirstUserGesture(() => ensureAudioUnlocked());
+
   // 1️⃣ Enforce Pi environment
   const env = await enforcePiEnvironment({
     desktopBlockEl: document.getElementById("desktopBlock"),
   });
   if (!env.ok) return;
-  ui.onFirstUserGesture(() => ensureAudioUnlocked());
-
+ 
 
   // 2️⃣ Init Pi SDK
   initPi();
