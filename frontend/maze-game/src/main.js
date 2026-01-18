@@ -1,4 +1,6 @@
 // IMPORTS
+
+import "./style.css";
 import { enforcePiEnvironment } from "./pi/piDetect.js";
 import { initPi } from "./pi/piInit.js";
 import { ensurePiLogin } from "./pi/piClient.js";
