@@ -6,112 +6,31 @@ import { ensurePiLogin } from "./pi/piClient.js";
 
 import { createLoginUI } from "./ui/uiLogin.js";
 import { mountWelcomeUI } from "./ui/uiWelcome.js";
-import { mountUI } from "./ui/ui.js";
+import { mountGameShell } from "./ui/uiGameShell.js";
+
 import { createGame } from "./game/game.js";
-import { levels } from "./levels/index.js";
-import { getSettings, setSetting, subscribeSettings } from "./settings.js";
-import { ensureAudioUnlocked, stopRollSound } from "./game/rollSound.js";
+import { loadLevel } from "./levels/index.js";
 
 // CONFIG
 const BACKEND = "https://adventuremaze.onrender.com";
 
 let CURRENT_USER = null;
 let CURRENT_ACCESS_TOKEN = null;
-let levelIndex = 0;
-let game = null;
-let ui = null;
-let COINS = 0;
-let rewardedThisLevel = false;
-
-// ---------------------------
-// Backend helpers
-// ---------------------------
-function authHeaders() {
-  if (!CURRENT_ACCESS_TOKEN) {
-    throw new Error("Missing access token. Please login again.");
-  }
-  return { Authorization: `Bearer ${CURRENT_ACCESS_TOKEN}` };
-}
-
-async function readRes(res) {
-  const txt = await res.text().catch(() => "");
-  let data = {};
-  try { data = txt ? JSON.parse(txt) : {}; } catch {}
-  return { txt, data };
-}
-
-async function apiGetMe() {
-  const res = await fetch(`${BACKEND}/api/me`, {
-    headers: authHeaders(),
-  });
-  const { data } = await readRes(res);
-  if (!res.ok || !data?.ok) {
-    throw new Error(data?.error || "api/me failed");
-  }
-  return data;
-}
-
-async function apiSetProgress({ uid, level, coins }) {
-  await fetch(`${BACKEND}/progress`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      ...authHeaders(),
-    },
-    body: JSON.stringify({ uid, level, coins }),
-  });
-}
-
-async function apiClaimLevelComplete(level) {
-  const res = await fetch(`${BACKEND}/api/rewards/level-complete`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      ...authHeaders(),
-    },
-    body: JSON.stringify({ level }),
-  });
-  const { data } = await readRes(res);
-  if (!res.ok || !data?.ok) throw new Error(data?.error);
-  return data;
-}
-
+let CURRENT_GAME = null;
 
 async function boot() {
-
   // 1️⃣ Enforce Pi environment
   const env = await enforcePiEnvironment({
     desktopBlockEl: document.getElementById("desktopBlock"),
   });
   if (!env.ok) return;
- 
 
   // 2️⃣ Init Pi SDK
   initPi();
-   if (!window.Pi?.authenticate) {
-    alert("This game works only inside Pi Browser.");
-    return;
-  }
 
   // 3️⃣ Root + Login UI
   const root = document.querySelector("#app");
   const loginUI = createLoginUI(root);
-   // settings
-  const s0 = getSettings();
-  ui.setSoundEnabled(s0.sound);
-  ui.setVibrationEnabled(s0.vibration);
-
-  ui.onSoundToggle((v) => {
-    setSetting("sound", v);
-    if (!v) stopRollSound();
-  });
-  ui.onVibrationToggle((v) => setSetting("vibration", v));
-
-  subscribeSettings((s) => {
-    ui.setSoundEnabled(s.sound);
-    ui.setVibrationEnabled(s.vibration);
-    if (!s.sound) stopRollSound();
-  });
 
   loginUI.show("Tap to continue");
 
@@ -147,29 +66,35 @@ async function boot() {
 
         // ▶️ TAP TO PLAY
         welcomeUI.onStart(() => {
-  welcomeUI.hide();
+          welcomeUI.hide();
 
-  // 1️⃣ Mount UI
-  ui = mountUI(document.querySelector("#app"));
+          // 6️⃣ Mount GameShell
+          const gameUI = mountGameShell(root);
 
+          // HUD
+          const levelIndex = 0; // LEVEL 1
+          gameUI.setLevelText?.("Level 1");
+          gameUI.setCoins?.(CURRENT_USER.coins || 0);
 
-  
-  COINS = Number(me.user.coins || 0);
-    ui.setCoins(COINS);
-    ui.setUser({ username: me.user.username });
+          // 7️⃣ Stop old game if exists
+          if (CURRENT_GAME?.stop) {
+            CURRENT_GAME.stop();
+          }
 
-    const savedLevel = Number(me.progress?.level || 1);
-    levelIndex = Math.max(0, savedLevel - 1);
+          // 8️⃣ Load level + create game
+          const level = loadLevel(levelIndex);
 
-    ui.showLevelSelect({
-      totalLevels: levels.length,
-      currentLevel: levelIndex + 1,
-      isCompleted: (lvl) => lvl < savedLevel,
-    });
+          CURRENT_GAME = createGame({
+            canvas: gameUI.canvas,
+            level,
+            onLevelComplete: () => {
+              console.log("🏁 Level 1 completed");
+            },
+          });
 
-  // 4️⃣ START GAME LOOP ✅
-  game.start();
-});
+          // 🚀 START GAME LOOP
+          CURRENT_GAME.start();
+        });
       }, 400);
     } catch (err) {
       console.error("Login error:", err);

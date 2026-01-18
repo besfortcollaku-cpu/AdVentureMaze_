@@ -12,7 +12,7 @@ import { level7 } from "./level7.js";
 import { level8 } from "./level8.js";
 import { level9 } from "./level9.js";
 
- const level = [
+ const levels = [
   level1,
   level2,
   level3,
@@ -24,8 +24,8 @@ import { level9 } from "./level9.js";
   level9,
 ];
 
-export function levels(n) {
-  const fn = levels[n - 1];
+export function loadLevel(num) {
+  const fn = levels[num - 1];
   if (!fn) {
     console.error("❌ Level not found:", num);
     return;
