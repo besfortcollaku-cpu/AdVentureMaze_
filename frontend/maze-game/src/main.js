@@ -11,7 +11,7 @@ import { mountLevelsUI } from "./ui/uiLevels.js";
 import { mountGameShell } from "./ui/uiGameShell.js";
 
 import { createGame } from "./game/game.js";
-import { levels } from "./levels/index.js";
+import { loadLevel } from "./levels/index.js";
 
 // CONFIG
 const BACKEND = "https://adventuremaze.onrender.com";
