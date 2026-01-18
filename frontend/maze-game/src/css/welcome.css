@@ -1,99 +1,98 @@
-/* =========================
-   WELCOME SCREEN (ISOLATED)
-   Used ONLY by uiWelcome.js
-   ========================= */
+/* ================================
+   Welcome Overlay
+================================ */
 
-.welcomeOverlay {
+#welcomeOverlay {
   position: fixed;
   inset: 0;
-  z-index: 9000;
+  z-index: 1000;
 
   display: flex;
   align-items: center;
   justify-content: center;
 
-  background:
-    radial-gradient(
-      circle at top,
-      rgba(60, 200, 255, 0.18),
-      rgba(0, 0, 0, 0.92)
-    );
+  background: radial-gradient(
+    circle at top,
+    #0f2a36 0%,
+    #08131d 45%,
+    #02070c 100%
+  );
 
-  backdrop-filter: blur(10px);
+  opacity: 0;
+  transform: scale(1.02);
+  transition: opacity 0.35s ease, transform 0.35s ease;
+  pointer-events: none;
 }
 
-/* welcome card */
-.welcomeCard {
-  width: min(92%, 420px);
-  padding: 28px 22px;
-
-  border-radius: 22px;
-
-  background:
-    linear-gradient(
-      180deg,
-      rgba(20, 60, 80, 0.92),
-      rgba(10, 30, 45, 0.92)
-    );
-
-  box-shadow:
-    0 0 0 1px rgba(120, 200, 255, 0.18),
-    0 30px 80px rgba(0, 0, 0, 0.65);
-
-  text-align: center;
+/* Active (visible) */
+#welcomeOverlay.active {
+  opacity: 1;
+  transform: scale(1);
+  pointer-events: auto;
 }
 
-/* title */
-.welcomeTitle {
-  font-size: 26px;
-  font-weight: 800;
-  color: #eaf6ff;
-  letter-spacing: 0.4px;
-  margin-bottom: 10px;
-}
-
-/* subtitle / username */
-.welcomeSubtitle {
-  font-size: 15px;
-  font-weight: 500;
-  color: rgba(220, 240, 255, 0.85);
-  margin-bottom: 26px;
-}
-
-/* start button */
-.welcomeStart {
-  width: 100%;
-  padding: 16px 0;
-
-  border-radius: 16px;
-  border: none;
-
-  font-size: 18px;
-  font-weight: 800;
-  letter-spacing: 0.5px;
-
-  color: #ffffff;
-
-  background:
-    linear-gradient(
-      180deg,
-      #4fd3ff,
-      #1fb3e6
-    );
-
-  box-shadow:
-    0 6px 20px rgba(0, 180, 255, 0.45),
-    inset 0 -2px 0 rgba(0, 0, 0, 0.25);
-
-  cursor: pointer;
-}
-
-/* tap feedback */
-.welcomeStart:active {
+/* Fade out animation */
+#welcomeOverlay.fade-out {
+  opacity: 0;
   transform: scale(0.98);
 }
 
-/* utility */
-.hidden {
-  display: none !important;
+/* ================================
+   Content Box
+================================ */
+
+.welcome-content {
+  text-align: center;
+  padding: 32px 26px;
+  max-width: 360px;
+  width: 100%;
+}
+
+/* ================================
+   Title
+================================ */
+
+.welcome-title {
+  font-size: 34px;
+  font-weight: 700;
+  color: #e9f6ff;
+  margin-bottom: 14px;
+  letter-spacing: -0.5px;
+}
+
+/* ================================
+   Subtitle
+================================ */
+
+.welcome-subtitle {
+  font-size: 16px;
+  color: rgba(233, 246, 255, 0.7);
+  margin-bottom: 40px;
+  line-height: 1.4;
+}
+
+/* ================================
+   CTA
+================================ */
+
+.welcome-cta {
+  font-size: 15px;
+  color: rgba(233, 246, 255, 0.45);
+  animation: welcomePulse 2.2s ease-in-out infinite;
+}
+
+/* ================================
+   CTA Animation
+================================ */
+
+@keyframes welcomePulse {
+  0% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 0.8;
+  }
+  100% {
+    opacity: 0.35;
+  }
 }
