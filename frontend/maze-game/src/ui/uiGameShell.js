@@ -64,25 +64,7 @@ export function mountGameShell(app) {
       </div>
     </div>
 
-    <!-- ✅ LOGIN GATE (blocks game until Pi login) -->
-    <div class="loginGate" id="loginGate" aria-hidden="true">
-      <div class="loginGateCard">
-        <div class="loginGateTitle">Login required</div>
-        <div class="loginGateSub">
-          Please login with Pi to start playing.
-        </div>
-
-        <button class="loginGateBtn" id="loginGateBtn">
-          Login with Pi
-        </button>
-
-        <div class="loginGateError" id="loginGateError"></div>
-
-        <div class="loginGateNote">
-          Tip: open inside Pi Browser.
-        </div>
-      </div>
-    </div>
+    
 
     <!-- ✅ SETTINGS OVERLAY -->
     <div class="settingsOverlay" id="settingsOverlay" aria-hidden="true">
