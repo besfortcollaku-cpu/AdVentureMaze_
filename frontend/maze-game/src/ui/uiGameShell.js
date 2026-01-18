@@ -1,6 +1,6 @@
 // src/ui/ui.js last change
 
-export function mountUI(app) {
+export function mountGameShell(app) {
   app.innerHTML = `
     <div class="phone">
       <div class="topbar">
