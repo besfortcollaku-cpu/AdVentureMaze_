@@ -6,7 +6,7 @@ import { ensurePiLogin } from "./pi/piClient.js";
 
 import { createLoginUI } from "./ui/uiLogin.js";
 import { mountWelcomeUI } from "./ui/uiWelcome.js";
-import { mountGameShell } from "./ui/uiGameShell.js";
+import { mountUI } from "./ui/ui.js";
 
 import { createGame } from "./game/game.js";
 import { loadLevel } from "./levels/index.js";
@@ -69,7 +69,7 @@ async function boot() {
           welcomeUI.hide();
 
           // 6️⃣ Mount GameShell
-          const gameUI = mountGameShell(root);
+          const gameUI = mountUI(root);
 
           // HUD
           const levelIndex = 0; // LEVEL 1
