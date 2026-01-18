@@ -91,7 +91,8 @@ async function boot() {
               console.log("🏁 Level 1 completed");
             },
           });
-
+gameUI.canvas.width = gameUI.canvas.clientWidth;
+gameUI.canvas.height = gameUI.canvas.clientHeight;
           // 🚀 START GAME LOOP
           CURRENT_GAME.start();
         });
