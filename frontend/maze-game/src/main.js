@@ -78,7 +78,6 @@ async function apiClaimLevelComplete(level) {
 
 
 async function boot() {
-   ui.onFirstUserGesture(() => ensureAudioUnlocked());
 
   // 1️⃣ Enforce Pi environment
   const env = await enforcePiEnvironment({
