@@ -16,20 +16,23 @@ export function mountUI(app) {
             <div class="levelText">Adventure Maze</div>
           </div>
 
-          
+          <div class="coins" title="Coins">
+            <div class="coinDot"></div>
+            <div id="coinCount">0</div>
+          </div>
         </div>
 
         <div class="iconRow">
           ${iconBtn("settingsBtn", gearSVG(), "")}
           ${iconBtn("controls", joystickSVG(), "")}
-          ${iconBtn("account", trophySVG(), "")}
         
+          <div class="loginWrap">
+            <button class="iconBtnWide" id="loginBtn">
+              <span id="loginBtnText">Login with Pi</span>
+            </button>
+            <div class="userPill" id="userPill">User: guest</div>
+          </div>
         </div>
-          </div>
-            <div class="coins" title="Coins">
-            <div class="coinDot"></div>
-            <div id="coinCount">0</div>
-          </div>
       </div>
 
       <div class="boardWrap">
