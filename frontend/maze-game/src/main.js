@@ -72,7 +72,7 @@ async function boot() {
           const gameUI = mountUI(root);
 
           // HUD
-          const levelIndex = 0; // LEVEL 1
+          const levelIndex = 1; // LEVEL 1
           gameUI.setLevelText?.("Level 1");
           gameUI.setCoins?.(CURRENT_USER.coins || 0);
 
