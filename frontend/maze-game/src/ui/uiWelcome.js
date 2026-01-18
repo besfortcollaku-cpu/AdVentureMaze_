@@ -1,4 +1,5 @@
 // src/ui/uiWelcome.js
+import "../css/welcome.css";
 
 export function mountWelcomeUI(root, user) {
   root.insertAdjacentHTML(
