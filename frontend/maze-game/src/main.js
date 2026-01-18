@@ -8,12 +8,17 @@ import { ensurePiLogin } from "./pi/piClient.js";
 import { createLoginUI } from "./ui/uiLogin.js";
 import { mountWelcomeUI } from "./ui/uiWelcome.js";
 import { mountLevelsUI } from "./ui/uiLevels.js";
+import { mountGameShell } from "./ui/uiGameShell.js";
+
+import { createGame } from "./game/game.js";
+import { levels } from "./levels/index.js";
 
 // CONFIG
 const BACKEND = "https://adventuremaze.onrender.com";
 
 let CURRENT_USER = null;
 let CURRENT_ACCESS_TOKEN = null;
+let CURRENT_GAME = null;
 
 async function boot() {
   // 1️⃣ Enforce Pi environment
@@ -25,7 +30,7 @@ async function boot() {
   // 2️⃣ Init Pi SDK
   initPi();
 
-  // 3️⃣ Create Login UI
+  // 3️⃣ Root + Login UI
   const root = document.querySelector("#app");
   const loginUI = createLoginUI(root);
 
@@ -53,9 +58,7 @@ async function boot() {
         return;
       }
 
-      console.log("ACCESS TOKEN:", CURRENT_ACCESS_TOKEN);
-
-      // ✅ Login success → hide login
+      // ✅ Login success
       setTimeout(() => {
         loginUI.hideSpinner();
         loginUI.hide();
@@ -71,14 +74,40 @@ async function boot() {
           mountLevelsUI(root, {
             unlockedLevels: CURRENT_USER.level || 1,
             completedLevels: CURRENT_USER.completedLevels || [],
-            onSelectLevel: (level) => {
-              console.log("Selected level:", level);
-              // TODO: load level1.js, level2.js, etc.
+            onSelectLevel: (levelIndex) => {
+              console.log("🎯 Level selected:", levelIndex);
+
+              // remove levels UI (overlay)
+              document.querySelector(".levelsOverlay")?.remove();
+
+              // 7️⃣ Mount game shell (canvas + HUD)
+              const gameUI = mountGameShell(root);
+
+              // optional HUD updates
+              gameUI.setLevelText?.(`Level ${levelIndex + 1}`);
+              gameUI.setCoins?.(CURRENT_USER.coins || 0);
+
+              // stop previous game if any
+              if (CURRENT_GAME?.destroy) {
+                CURRENT_GAME.destroy();
+              }
+
+              // 8️⃣ Create & start game
+              CURRENT_GAME = createGame({
+                canvas: gameUI.canvas,
+                level: levels[levelIndex],
+                user: CURRENT_USER,
+                backend: BACKEND,
+                onLevelComplete: () => {
+                  console.log("🏁 Level completed:", levelIndex + 1);
+                },
+              });
+
+              CURRENT_GAME.start();
             },
           });
         });
-      }, 600);
-
+      }, 400);
     } catch (err) {
       console.error("Login error:", err);
       loginUI.hideSpinner();
