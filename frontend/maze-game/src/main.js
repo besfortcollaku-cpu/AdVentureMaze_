@@ -1,5 +1,3 @@
-// src/main.js
-
 // IMPORTS
 import { enforcePiEnvironment } from "./pi/piDetect.js";
 import { initPi } from "./pi/piInit.js";
@@ -50,7 +48,6 @@ async function boot() {
         },
       });
 
-      // ❌ Login failed
       if (!loginRes?.ok) {
         loginUI.hideSpinner();
         loginUI.setText("Login failed. Tap to retry");
@@ -66,28 +63,36 @@ async function boot() {
         const welcomeUI = mountWelcomeUI(root, CURRENT_USER);
         welcomeUI.show();
 
-        // 👉 TAP TO PLAY
+        // ▶️ TAP TO PLAY
         welcomeUI.onStart(() => {
           welcomeUI.hide();
 
           // 6️⃣ Mount GameShell
           const gameUI = mountGameShell(root);
-          gameUI.setLevelText("Level 1");
-          gameUI.setCoins(CURRENT_USER?.coins || 0);
 
-          // 7️⃣ Create game (LEVEL 1)
+          // HUD
+          const levelIndex = 0; // LEVEL 1
+          gameUI.setLevelText?.("Level 1");
+          gameUI.setCoins?.(CURRENT_USER.coins || 0);
+
+          // 7️⃣ Stop old game if exists
+          if (CURRENT_GAME?.stop) {
+            CURRENT_GAME.stop();
+          }
+
+          // 8️⃣ Load level + create game
+          const level = loadLevel(levelIndex);
+
           CURRENT_GAME = createGame({
             canvas: gameUI.canvas,
-            level: levels[0],
+            level,
             onLevelComplete: () => {
               console.log("🏁 Level 1 completed");
             },
           });
 
-          // 8️⃣ Start AFTER layout settles
-          requestAnimationFrame(() => {
-            CURRENT_GAME.start();
-          });
+          // 🚀 START GAME LOOP
+          CURRENT_GAME.start();
         });
       }, 400);
     } catch (err) {
