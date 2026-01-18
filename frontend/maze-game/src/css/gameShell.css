@@ -1,31 +1,5 @@
 
-  
-  .textContent = `
-    .loginWrap{ display:flex; gap:10px; align-items:center; margin-left:auto; }
-    .iconBtnWide{
-      height:42px; padding:0 14px; border-radius:14px;
-      border:1px solid rgba(255,255,255,.18);
-      background: rgba(18,28,60,.55);
-      color:#fff; font-weight:800; letter-spacing:.2px;
-      cursor:pointer; white-space:nowrap;
-    }
-    .iconBtnWide:active{ transform: translateY(1px); }
-    .iconBtnWide:disabled{ opacity:.6; cursor:not-allowed; transform:none; }
-    .userPill{
-      height:42px; display:flex; align-items:center;
-      padding:0 12px; border-radius:14px;
-      border:1px solid rgba(255,255,255,.12);
-      background: rgba(0,0,0,.22);
-      color: rgba(234,243,255,.9);
-      font-weight:700; font-size:13px; white-space:nowrap;
-    }
-    @media (max-width: 420px){
-      .loginWrap{ width:100%; justify-content:space-between; margin-left:0; }
-      .iconBtnWide{ flex:1; }
-      .userPill{ flex:1; justify-content:center; }
-    }
-
-
+    .
 
     /* SETTINGS */
     .settingsOverlay{
