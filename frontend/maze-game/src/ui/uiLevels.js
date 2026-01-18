@@ -1,46 +1,39 @@
 // src/ui/uiLevels.js
-
 import "../css/levels.css";
 
 export function mountLevelsUI(root, options = {}) {
   const {
-    unlockedLevels = 1,        // number of unlocked levels
-    completedLevels = [],      // array like [1,2,3]
-    onSelectLevel = () => {},  // callback(levelNumber)
+    unlockedLevels = 1,
+    completedLevels = [],
+    onSelectLevel = () => {},
   } = options;
 
-  // --- DOM ---
+  // ===== Overlay =====
   const overlay = document.createElement("div");
-  overlay.className = "overlay active";
+  overlay.className = "levelsOverlay";
 
   overlay.innerHTML = `
-    <<div class="levelsOverlay">
-  <div class="levelsModal">
-    <div class="levelsHeader">
-      <div class="levelsBadge">LEVELS</div>
-      <div class="levelsTitle">Select Level</div>
-    </div>
+    <div class="levelsModal">
+      <div class="levelsHeader">
+        <div class="levelsBadge">LEVELS</div>
+        <div class="levelsTitle">Select Level</div>
+      </div>
 
-    <div class="levelsGrid">
-      <button class="levelTile completed">Level 1</button>
-      <button class="levelTile completed">Level 2</button>
-      <button class="levelTile locked">5</button>
-    </div>
+      <div class="levelsGrid"></div>
 
-    <button class="levelsClose">Close</button>
-  </div>
-</div>
+      <button class="levelsClose">Close</button>
+    </div>
   `;
 
   root.appendChild(overlay);
 
   const grid = overlay.querySelector(".levelsGrid");
-  const closeBtn = overlay.querySelector(".levelsCloseBtn");
+  const closeBtn = overlay.querySelector(".levelsClose");
 
-  // --- Build Levels ---
+  // ===== Build levels =====
   for (let level = 1; level <= 9; level++) {
     const btn = document.createElement("button");
-    btn.className = "levelBtn";
+    btn.classList.add("levelBtn");
 
     const isUnlocked = level <= unlockedLevels;
     const isCompleted = completedLevels.includes(level);
@@ -67,16 +60,14 @@ export function mountLevelsUI(root, options = {}) {
     grid.appendChild(btn);
   }
 
-  // --- Close ---
+  // ===== Close =====
   closeBtn.addEventListener("click", hide);
 
   function hide() {
-    overlay.classList.remove("active");
+    overlay.style.opacity = "0";
     overlay.style.pointerEvents = "none";
     setTimeout(() => overlay.remove(), 200);
   }
 
-  return {
-    hide,
-  };
+  return { hide };
 }
