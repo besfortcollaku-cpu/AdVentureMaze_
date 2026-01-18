@@ -10,7 +10,7 @@ import { mountWelcomeUI } from "./ui/uiWelcome.js";
 import { mountGameShell } from "./ui/uiGameShell.js";
 
 import { createGame } from "./game/game.js";
-import { loadLevel } from "./levels/index.js";
+import { levels } from "./levels/index.js";
 
 // CONFIG
 const BACKEND = "https://adventuremaze.onrender.com";
@@ -66,30 +66,29 @@ async function boot() {
         const welcomeUI = mountWelcomeUI(root, CURRENT_USER);
         welcomeUI.show();
 
-        // ▶️ TAP TO PLAY
+        // 👉 TAP TO PLAY
         welcomeUI.onStart(() => {
           welcomeUI.hide();
 
           // 6️⃣ Mount GameShell
           const gameUI = mountGameShell(root);
-
-          // HUD
           gameUI.setLevelText("Level 1");
           gameUI.setCoins(CURRENT_USER?.coins || 0);
 
-          // 7️⃣ Create & start game (LEVEL 1)
+          // 7️⃣ Create game (LEVEL 1)
           CURRENT_GAME = createGame({
-  canvas: gameUI.canvas,
-  level: levels[0],
-  onLevelComplete: () => {
-    console.log("🏁 Level 1 completed");
-  },
-});
+            canvas: gameUI.canvas,
+            level: levels[0],
+            onLevelComplete: () => {
+              console.log("🏁 Level 1 completed");
+            },
+          });
 
-// ⏱️ wait for layout → then start
-requestAnimationFrame(() => {
-  CURRENT_GAME.start();
-});
+          // 8️⃣ Start AFTER layout settles
+          requestAnimationFrame(() => {
+            CURRENT_GAME.start();
+          });
+        });
       }, 400);
     } catch (err) {
       console.error("Login error:", err);
