@@ -141,6 +141,10 @@ async function boot() {
     });
 
     startGame();
+    // ✅ LOGIN OVERLAY (must be after the game is already running)
+const root = document.querySelector("#app");
+const loginUI = createLoginUI(root);
+loginUI.show("Tap to continue");
   }
 
   try {
