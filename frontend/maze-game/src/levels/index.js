@@ -24,7 +24,7 @@ import { level9 } from "./level9.js";
   level9,
 ];
 
-export function loadLevel(num) {
+export function levels(num) {
   const fn = levels[num - 1];
   if (!fn) {
     console.error("❌ Level not found:", num);
