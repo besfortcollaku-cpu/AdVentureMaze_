@@ -16,6 +16,33 @@ const BACKEND = "https://adventuremaze.onrender.com";
 let CURRENT_USER = null;
 let CURRENT_ACCESS_TOKEN = null;
 
+function activateGameplay({ root, levelIndex = 1 }) {
+  if (!window.__gameShell) {
+    window.__gameShell = mountGameShell(root);
+  }
+
+  const gameUI = window.__gameShell;
+
+  gameUI.setLevelText?.(`Level ${levelIndex}`);
+  gameUI.setCoins?.(CURRENT_USER?.coins ?? 0);
+
+  if (window.__game) {
+    window.__game.stop();
+  }
+
+  const level = loadLevel(levelIndex);
+
+  window.__game = createGame({
+    canvas: gameUI.canvas,
+    level,
+    onLevelComplete: () => {
+      console.log(`🏁 Level ${levelIndex} completed`);
+    },
+  });
+
+  window.__game.start();
+}
+
 let levelIndex = 0;
 let game = null;
 let ui = null;
