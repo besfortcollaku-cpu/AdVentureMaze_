@@ -18,7 +18,10 @@ const BACKEND = "https://adventuremaze.onrender.com";
 
 let CURRENT_USER = null;
 let CURRENT_ACCESS_TOKEN = null;
-let CURRENT_GAME = null;
+
+// 🔑 SINGLE game instance
+let game = null;
+let gameShell = null;
 
 async function boot() {
   // 1️⃣ Enforce Pi environment
@@ -51,7 +54,6 @@ async function boot() {
         },
       });
 
-      // ❌ Login failed
       if (!loginRes?.ok) {
         loginUI.hideSpinner();
         loginUI.setText("Login failed. Tap to retry");
@@ -67,44 +69,37 @@ async function boot() {
         const welcomeUI = mountWelcomeUI(root, CURRENT_USER);
         welcomeUI.show();
 
+        // ▶️ TAP TO PLAY = START GAME
         welcomeUI.onStart(() => {
           welcomeUI.hide();
 
-          // 6️⃣ Levels screen
+          // 6️⃣ Mount GameShell ONCE
+          gameShell = mountGameShell(root);
+          gameShell.setCoins(CURRENT_USER.coins || 0);
+
+          const startLevelNumber = CURRENT_USER.level || 1;
+          const startLevel = loadLevel(startLevelNumber);
+
+          gameShell.setLevelText(`Level ${startLevelNumber}`);
+
+          // 7️⃣ Create & start game ONCE
+          game = createGame({
+            canvas: gameShell.canvas,
+            level: startLevel,
+            user: CURRENT_USER,
+            backend: BACKEND,
+            onLevelComplete: () => {
+              console.log("🏁 Level completed:", startLevelNumber);
+            },
+          });
+
+          game.start();
+
+          // 8️⃣ Mount Levels UI (overlay only)
           mountLevelsUI(root, {
             unlockedLevels: CURRENT_USER.level || 1,
             completedLevels: CURRENT_USER.completedLevels || [],
-            onSelectLevel: (levelIndex) => {
-              console.log("🎯 Level selected:", levelIndex);
-
-              // remove levels UI (overlay)
-              document.querySelector(".levelsOverlay")?.remove();
-
-              // 7️⃣ Mount game shell (canvas + HUD)
-              const gameUI = mountGameShell(root);
-
-              // optional HUD updates
-              gameUI.setLevelText?.(`Level ${levelIndex + 1}`);
-              gameUI.setCoins?.(CURRENT_USER.coins || 0);
-
-              // stop previous game if any
-              if (CURRENT_GAME?.destroy) {
-                CURRENT_GAME.destroy();
-              }
-
-              // 8️⃣ Create & start game
-              CURRENT_GAME = createGame({
-                canvas: gameUI.canvas,
-                level: levels[levelIndex],
-                user: CURRENT_USER,
-                backend: BACKEND,
-                onLevelComplete: () => {
-                  console.log("🏁 Level completed:", levelIndex + 1);
-                },
-              });
-
-              CURRENT_GAME.start();
-            },
+            onSelectLevel: handleLevelSelect,
           });
         });
       }, 400);
@@ -114,6 +109,28 @@ async function boot() {
       loginUI.setText("Login error. Tap to retry");
     }
   });
+}
+
+// 🔁 LEVEL JUMP ONLY (NO GAME RESTART)
+function handleLevelSelect(levelNumber) {
+  console.log("🎯 Jump to level:", levelNumber);
+
+  if (!game) {
+    console.error("Game not started yet");
+    return;
+  }
+
+  const levelData = loadLevel(levelNumber);
+  if (!levelData) {
+    console.error("Level not found:", levelNumber);
+    return;
+  }
+
+  // close levels overlay
+  document.querySelector(".levelsOverlay")?.remove();
+
+  game.loadLevel(levelData);
+  gameShell.setLevelText(`Level ${levelNumber}`);
 }
 
 // 🚀 START APP
