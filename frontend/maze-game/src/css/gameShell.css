@@ -1,5 +1,6 @@
-  // ✅ Inject UI styles (Login Gate + Settings + Win overlay + login wrap)
-  const extra = document.createElement("style");
+  // ✅ Inject UI styles 
+  
+  
   extra.textContent = `
     .loginWrap{ display:flex; gap:10px; align-items:center; margin-left:auto; }
     .iconBtnWide{
