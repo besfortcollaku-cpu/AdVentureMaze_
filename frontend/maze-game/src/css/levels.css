@@ -1,6 +1,14 @@
 /* ===============================
    LEVELS OVERLAY
    =============================== */
+/* force isolation */
+.levelsOverlay,
+.levelsOverlay * {
+  all: unset;
+  box-sizing: border-box;
+}
+
+
 
 .levelsOverlay {
   position: fixed;
