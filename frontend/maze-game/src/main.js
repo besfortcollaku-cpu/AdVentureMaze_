@@ -79,15 +79,17 @@ async function boot() {
 
           // 7️⃣ Create & start game (LEVEL 1)
           CURRENT_GAME = createGame({
-            canvas: gameUI.canvas,
-            level: levels[0], // 👈 LEVEL 1
-            onLevelComplete: () => {
-              console.log("🏁 Level 1 completed");
-            },
-          });
+  canvas: gameUI.canvas,
+  level: levels[0],
+  onLevelComplete: () => {
+    console.log("🏁 Level 1 completed");
+  },
+});
 
-          CURRENT_GAME.start();
-        });
+// ⏱️ wait for layout → then start
+requestAnimationFrame(() => {
+  CURRENT_GAME.start();
+});
       }, 400);
     } catch (err) {
       console.error("Login error:", err);
