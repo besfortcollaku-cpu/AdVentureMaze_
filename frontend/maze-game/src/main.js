@@ -1,5 +1,4 @@
-// src/main.jS
-
+// src/main.js
 import "./style.css";
 
 import { enforcePiEnvironment } from "./pi/piDetect.js";
@@ -19,6 +18,7 @@ let CURRENT_USER = null;
 let CURRENT_GAME = null;
 
 async function boot() {
+  // 1️⃣ Pi environment
   const env = await enforcePiEnvironment({
     desktopBlockEl: document.getElementById("desktopBlock"),
   });
@@ -27,8 +27,9 @@ async function boot() {
   initPi();
 
   const root = document.querySelector("#app");
-  const loginUI = createLoginUI(root);
 
+  // 2️⃣ Login UI
+  const loginUI = createLoginUI(root);
   loginUI.show("Tap to continue");
 
   loginUI.onLogin(async () => {
@@ -52,18 +53,19 @@ async function boot() {
       loginUI.hideSpinner();
       loginUI.hide();
 
-      // ✅ WELCOME
+      // 3️⃣ Welcome
       const welcomeUI = mountWelcomeUI(root, CURRENT_USER);
       welcomeUI.show();
 
       welcomeUI.onStart(() => {
         welcomeUI.hide();
 
-        // 🔒 From this point on, ROOT MUST NEVER be replaced again
+        // 🔒 FROM HERE ON: ROOT MUST NEVER BE REPLACED AGAIN
 
-        // ✅ MOUNT GAME SHELL
+        // 4️⃣ Mount GameShell
         const gameUI = mountGameShell(root);
 
+        // HUD
         gameUI.setLevelText("Level 1");
         gameUI.setCoins(CURRENT_USER?.coins ?? 0);
 
@@ -72,10 +74,14 @@ async function boot() {
           CURRENT_GAME.stop();
         }
 
-        // ✅ LOAD LEVEL 1
+        // 5️⃣ Load level 1
         const level = loadLevel(0);
+        if (!level) {
+          console.error("❌ Level 1 not found");
+          return;
+        }
 
-        // ✅ CREATE GAME
+        // 6️⃣ Create game
         CURRENT_GAME = createGame({
           canvas: gameUI.canvas,
           level,
@@ -84,7 +90,7 @@ async function boot() {
           },
         });
 
-        // 🚀 START GAME LOOP (THIS WAS MISSING EFFECTIVELY)
+        // 7️⃣ START GAME LOOP (THIS WAS THE MISSING PIECE)
         CURRENT_GAME.start();
       });
     } catch (err) {
