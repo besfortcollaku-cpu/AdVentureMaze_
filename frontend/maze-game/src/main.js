@@ -70,6 +70,10 @@ async function boot() {
 
           // 6️⃣ Mount GameShell
           const gameUI = mountUI(root);
+          // 🔧 FIX: force canvas size BEFORE creating game
+const canvas = gameUI.canvas;
+canvas.width  = canvas.clientWidth;
+canvas.height = canvas.clientHeight;
 
           // HUD
           const levelIndex = 0; // LEVEL 1
