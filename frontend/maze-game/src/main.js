@@ -76,7 +76,7 @@ canvas.width  = canvas.clientWidth;
 canvas.height = canvas.clientHeight;
 
           // HUD
-          const levelIndex = 1; // LEVEL 1
+          const levelIndex = 0; // LEVEL 1
           gameUI.setLevelText?.("Level 1");
           gameUI.setCoins?.(CURRENT_USER.coins || 0);
 
