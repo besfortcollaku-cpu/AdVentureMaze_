@@ -1,5 +1,6 @@
 // src/ui/ui.js last change
 
+import "../css/gameShell.css";
 export function mountGameShell(app) {
   app.innerHTML = `
     <div class="phone">
