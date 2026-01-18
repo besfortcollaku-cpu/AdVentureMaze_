@@ -12,7 +12,7 @@ import { level7 } from "./level7.js";
 import { level8 } from "./level8.js";
 import { level9 } from "./level9.js";
 
- const levels = [
+ const level = [
   level1,
   level2,
   level3,
