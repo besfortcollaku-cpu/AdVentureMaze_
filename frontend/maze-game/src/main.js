@@ -1,8 +1,5 @@
-// src/main.js
-
-// IMPORTS
+// IMPORTS 1
 import "./style.css";
-
 import { enforcePiEnvironment } from "./pi/piDetect.js";
 import { initPi } from "./pi/piInit.js";
 import { ensurePiLogin } from "./pi/piClient.js";
@@ -12,7 +9,7 @@ import { mountWelcomeUI } from "./ui/uiWelcome.js";
 import { mountGameShell } from "./ui/uiGameShell.js";
 
 import { createGame } from "./game/game.js";
-import { levels } from "./levels/index.js";
+import { loadLevel } from "./levels/index.js";
 
 // CONFIG
 const BACKEND = "https://adventuremaze.onrender.com";
@@ -67,31 +64,35 @@ async function boot() {
         const welcomeUI = mountWelcomeUI(root, CURRENT_USER);
         welcomeUI.show();
 
+        // ▶️ TAP TO PLAY
         welcomeUI.onStart(() => {
           welcomeUI.hide();
 
-          // 6️⃣ Mount Game Shell
+          // 6️⃣ Mount GameShell
           const gameUI = mountGameShell(root);
 
           // HUD
-          gameUI.setLevelText("Level 1");
-          gameUI.setCoins(CURRENT_USER?.coins ?? 0);
+          const levelIndex = 0; // LEVEL 1
+          gameUI.setLevelText?.("Level 1");
+          gameUI.setCoins?.(CURRENT_USER.coins || 0);
 
-          // stop previous game if any
+          // 7️⃣ Stop old game if exists
           if (CURRENT_GAME?.stop) {
             CURRENT_GAME.stop();
           }
 
-          // 7️⃣ Create Game (LEVEL 1)
+          // 8️⃣ Load level + create game
+          const level = loadLevel(levelIndex);
+
           CURRENT_GAME = createGame({
             canvas: gameUI.canvas,
-            level: levels[0], // ✅ Level 1 data
+            level,
             onLevelComplete: () => {
-              console.log("🏁 Level 1 complete");
+              console.log("🏁 Level 1 completed");
             },
           });
 
-          // 8️⃣ START GAME LOOP ✅
+          // 🚀 START GAME LOOP
           CURRENT_GAME.start();
         });
       }, 400);
