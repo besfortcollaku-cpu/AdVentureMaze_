@@ -1,4 +1,6 @@
-// src/main.js
+// src/main.jS
+
+import "./style.css";
 
 import { enforcePiEnvironment } from "./pi/piDetect.js";
 import { initPi } from "./pi/piInit.js";
