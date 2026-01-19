@@ -169,6 +169,9 @@ async function boot() {
 // Level select via joystick icon
 document.getElementById("controls")?.addEventListener("click", () => {
   ui.showLevelSelect({
+  totalLevels: levels.length,
+  currentLevel: levelIndex + 1,
+  isCompleted: (lvl) => lvl < UNLOCKED_LEVEL,
 });
 });
 
