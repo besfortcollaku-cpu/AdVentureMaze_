@@ -24,6 +24,7 @@ export function mountUI(app) {
         
         </div>
       <div class="iconRow">
+        ${iconBtn("accountBtn", userAccountSVG(), "")}
         ${iconBtn("settingsBtn", gearSVG(), "")}
         ${iconBtn("controls", joystickSVG(), "")}
     </div>
@@ -769,6 +770,30 @@ function iconBtn(id, svg, badgeText) {
 }
 
 /* --- SVG functions --- */
+
+function userAccountSVG() {
+  return `<svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <!-- Head -->
+    <path d="M9 8.5c0-1.9 1.6-3.5 3-3.5s3 1.6 3 3.5-1.6 3.3-3 3.3-3-1.4-3-3.3Z"
+      stroke="rgba(234,243,255,.9)"
+      stroke-width="1.8"
+      stroke-linecap="round"
+      stroke-linejoin="round"/>
+
+    <!-- Body -->
+    <path d="M5.5 19c0-3.1 2.5-5.6 5.6-5.6h1.8c3.1 0 5.6 2.5 5.6 5.6"
+      stroke="rgba(234,243,255,.75)"
+      stroke-width="1.8"
+      stroke-linecap="round"
+      stroke-linejoin="round"/>
+
+    <!-- Accent (active user) -->
+    <path d="M10 14.6h4"
+      stroke="rgba(37,215,255,.95)"
+      stroke-width="2.2"
+      stroke-linecap="round"/>
+  </svg>`;
+}
 function gearSVG() {
   return `<svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
     <path d="M12 15.2a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4Z" stroke="rgba(234,243,255,.95)" stroke-width="1.8"/>
@@ -793,25 +818,5 @@ return `<svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
 
 }
 
-function brushSVG() {
-  return `<svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-    <path d="M14.5 3.5 20.5 9.5 11 19c-.7.7-1.7 1-2.7.8l-2.8-.6.6-2.8c.2-1 .5-2 1.2-2.7L14.5 3.5Z" stroke="rgba(234,243,255,.85)" stroke-width="1.8" stroke-linejoin="round"/>
-    <path d="M7.2 20.1c.1.8-.1 1.6-.7 2.2-.9.9-2.4.9-3.3 0" stroke="rgba(37,215,255,.95)" stroke-width="2.1" stroke-linecap="round"/>
-  </svg>`;
-}
 
-function trophySVG() {
-  return `<svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-    <path d="M8 5h8v3.2c0 2.8-1.8 5.2-4 5.2s-4-2.4-4-5.2V5Z" stroke="rgba(234,243,255,.85)" stroke-width="1.8" stroke-linejoin="round"/>
-    <path d="M9 19h6M10.2 16.5h3.6" stroke="rgba(234,243,255,.75)" stroke-width="1.8" stroke-linecap="round"/>
-    <path d="M6.5 6.2H4.5c0 3 1.4 4.8 3.6 5.4M17.5 6.2h2c0 3-1.4 4.8-3.6 5.4" stroke="rgba(37,215,255,.95)" stroke-width="1.8" stroke-linecap="round"/>
-  </svg>`;
-}
 
-function noAdsSVG() {
-  return `<svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-    <path d="M7 7h10l-1 11H8L7 7Z" stroke="rgba(234,243,255,.85)" stroke-width="1.8" stroke-linejoin="round"/>
-    <path d="M9 7V5.5c0-.8.7-1.5 1.5-1.5h3c.8 0 1.5.7 1.5 1.5V7" stroke="rgba(234,243,255,.75)" stroke-width="1.8" stroke-linejoin="round"/>
-    <path d="M5 19 19 5" stroke="rgba(255,75,58,.95)" stroke-width="2.4" stroke-linecap="round"/>
-  </svg>`;
-}
