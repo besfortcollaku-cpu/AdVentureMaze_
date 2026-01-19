@@ -19,7 +19,7 @@ export function mountUI(app) {
                  <div id="coinCount">0</div>
                </div>
           
-          </div>
+          
      </div>     
         
         </div>
