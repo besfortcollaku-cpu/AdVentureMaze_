@@ -1,4 +1,4 @@
-// src/game/game.js
+// src/game/game.js Last change
 import { createGameState } from "./state.js";
 import { createMovement } from "./movement.js";
 import { createRenderer } from "./render.js";
@@ -19,16 +19,13 @@ export function createGame({ canvas, level, onLevelComplete }) {
     },
   });
 
-  // ---------------------------
-  // Movement API
-  // ---------------------------
   function requestMove(dx, dy) {
     if (completed) return;
     movement.startMove(dx, dy);
   }
 
   // ---------------------------
-  // Input (bind ONCE)
+  // Input
   // ---------------------------
   let controller = null;
 
@@ -37,7 +34,7 @@ export function createGame({ canvas, level, onLevelComplete }) {
     controller = new AbortController();
     const sig = controller.signal;
 
-    // keyboard (desktop testing)
+    // desktop keys (testing)
     window.addEventListener(
       "keydown",
       (e) => {
@@ -50,16 +47,16 @@ export function createGame({ canvas, level, onLevelComplete }) {
       { signal: sig }
     );
 
-    // swipe
-    let sx = 0;
-    let sy = 0;
+    // swipe controls
+    let touchStartX = 0;
+    let touchStartY = 0;
 
     canvas.addEventListener(
       "touchstart",
       (e) => {
         const t = e.touches[0];
-        sx = t.clientX;
-        sy = t.clientY;
+        touchStartX = t.clientX;
+        touchStartY = t.clientY;
       },
       { passive: true, signal: sig }
     );
@@ -69,8 +66,8 @@ export function createGame({ canvas, level, onLevelComplete }) {
       (e) => {
         if (completed) return;
         const t = e.changedTouches[0];
-        const dx = t.clientX - sx;
-        const dy = t.clientY - sy;
+        const dx = t.clientX - touchStartX;
+        const dy = t.clientY - touchStartY;
 
         const ax = Math.abs(dx);
         const ay = Math.abs(dy);
@@ -86,7 +83,7 @@ export function createGame({ canvas, level, onLevelComplete }) {
   }
 
   // ---------------------------
-  // Game loop
+  // Loop
   // ---------------------------
   let rafId = null;
 
@@ -104,15 +101,16 @@ export function createGame({ canvas, level, onLevelComplete }) {
   }
 
   // ---------------------------
-  // ✅ LEVEL SWITCHING (KEY PART)
+  // ✅ Level switching (NO reload)
   // ---------------------------
-  function loadLevel(nextLevel) {
+  function setLevel(nextLevel) {
+    // stop movement instantly
     completed = false;
 
-    // rebuild state
+    // rebuild state/movement/renderer with the new level
     state = createGameState(nextLevel);
 
-    // rebuild renderer & movement with SAME canvas
+    // IMPORTANT: keep same canvas but rebuild renderer/movement to use new state
     renderer = createRenderer({ canvas, state });
 
     movement = createMovement({
@@ -125,30 +123,24 @@ export function createGame({ canvas, level, onLevelComplete }) {
       },
     });
 
-    // draw first frame immediately
+    // resize and render 1 frame immediately
     renderer.resize();
     const p = movement.getAnimatedPlayer(performance.now());
     renderer.render(p);
   }
 
-  // ---------------------------
-  // Public API
-  // ---------------------------
   return {
     start() {
       bindInputsOnce();
       startLoop();
     },
-
-    loadLevel, // 👈 what main.js uses
-
-    destroy() {
+    setLevel,
+    stop() {
       if (rafId) cancelAnimationFrame(rafId);
       rafId = null;
       if (controller) controller.abort();
       controller = null;
     },
-
     getState() {
       return state;
     },

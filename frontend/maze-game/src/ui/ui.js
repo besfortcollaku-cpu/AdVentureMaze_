@@ -16,21 +16,18 @@ export function mountUI(app) {
             <div class="levelText">Adventure Maze</div>
           </div>
 
-          <div class="coins" title="Coins">
-            <div class="coinDot"></div>
-            <div id="coinCount">0</div>
-          </div>
+      
+              <div class="coins" title="Coins">
+                 <div class="coinDot"></div>
+              <div id="coinCount">0</div>
+        
         </div>
 
         <div class="iconRow">
           ${iconBtn("settingsBtn", gearSVG(), "")}
           ${iconBtn("controls", joystickSVG(), "")}
         
-          <div class="loginWrap">
-            <button class="iconBtnWide" id="loginBtn">
-              <span id="loginBtnText">Login with Pi</span>
-            </button>
-            <div class="userPill" id="userPill">User: guest</div>
+      </div>
           </div>
         </div>
       </div>
@@ -60,7 +57,7 @@ export function mountUI(app) {
     <div class="desktopBlock" id="desktopBlock" style="display:none;">
       <div class="desktopCard">
         <h2>Mobile game</h2>
-        <p>This game is designed for smartphones. Use swipe on mobile. Desktop is only for testing (arrow keys).</p>
+        <p>This Game is designed for Pi Network Browser Only!</p>
       </div>
     </div>
 
@@ -69,11 +66,11 @@ export function mountUI(app) {
       <div class="loginGateCard">
         <div class="loginGateTitle">Login required</div>
         <div class="loginGateSub">
-          Please login with Pi to start playing.
+          Please login with Pi account to start playing. 
         </div>
 
         <button class="loginGateBtn" id="loginGateBtn">
-          Login with Pi
+          Login
         </button>
 
         <div class="loginGateError" id="loginGateError"></div>
@@ -164,6 +161,25 @@ export function mountUI(app) {
         </div>
       </div>
     </div>
+    
+    <!-- ✅ FULLSCREEN WELCOME OVERLAY -->
+<div class="welcomeOverlay" id="welcomeOverlay" aria-hidden="false">
+  <div class="welcomeCard">
+    <h1 class="welcomeTitle">Welcome to Adventure Maze</h1>
+    <div class="loginWrap">
+  <button class="iconBtnWide" id="loginBtn">
+    <span id="loginBtnText">Login</span>
+  </button>
+
+  <div class="userPill" id="userPill">U:guest</div>
+
+  <!-- ✅ NEW: TEST button (hidden by default) -->
+  <button class="iconBtnWide" id="testBtn" style="display:none;">
+    TEST
+  </button>
+
+  <p class="welcomeText">Loading...</p>
+</div>
   `;
 
   // ✅ Inject UI styles (Login Gate + Settings + Win overlay + login wrap)
@@ -457,6 +473,8 @@ export function mountUI(app) {
   const winNextBtn = document.getElementById("winNextBtn");
   const winAdBtn = document.getElementById("winAdBtn");
   
+  const welcomeOverlay = document.getElementById("welcomeOverlay");
+  
   // Level select
   const levelSelectOverlay = document.getElementById("levelSelectOverlay");
   const levelGrid = document.getElementById("levelGrid");
@@ -510,6 +528,13 @@ export function mountUI(app) {
   levelSelectOverlay?.addEventListener("click", (e) => {
     if (e.target === levelSelectOverlay) hideLevelSelect();
   });
+function hideWelcome() {
+  if (!welcomeOverlay) return;
+
+  welcomeOverlay.style.display = "none";
+  welcomeOverlay.setAttribute("aria-hidden", "true");
+}
+
 
   // ---------------------------
   // State + handlers
@@ -588,11 +613,41 @@ export function mountUI(app) {
   });
 
   function setUser(user) {
-    const name = user?.username || "guest";
-    if (userPill) userPill.textContent = `User: ${name}`;
-    if (loginBtnText)
-      loginBtnText.textContent = name === "guest" ? "Login with Pi" : "Logged in ✅";
+  const name = user?.username || "guest";
+
+  // update text
+  if (userPill) userPill.textContent = `User: ${name}`;
+  if (loginBtnText) {
+    loginBtnText.textContent =
+      name === "guest" ? "Login with Pi" : "Logged in ✅";
   }
+
+  // ✅ NEW: toggle buttons after login
+  const testBtn = document.getElementById("testBtn");
+
+  testBtn?.addEventListener("click", () => {
+  hideWelcome();
+
+  // TEMP: open level select with dummy data
+  showLevelSelect({
+    totalLevels: 10,
+    currentLevel: 1,
+    isCompleted: () => true
+  });
+});
+
+  if (name !== "guest") {
+    // logged in
+    loginBtn?.style.setProperty("display", "none");
+    userPill?.style.setProperty("display", "none");
+    if (testBtn) testBtn.style.display = "inline-flex";
+  } else {
+    // logged out / guest
+    loginBtn?.style.setProperty("display", "inline-flex");
+    userPill?.style.setProperty("display", "inline-flex");
+    if (testBtn) testBtn.style.display = "none";
+  }
+}
 
   // ---------------------------
   // Settings
@@ -659,11 +714,12 @@ export function mountUI(app) {
   }
 
   return {
+    hideWelcome,
     onHint(fn) { hintHandler = fn; },
     onSkip(fn) { skipHandler = fn; },
     canvas: document.getElementById("game"),
 
-    // header login UI (kept for compatibility)
+    // header login UI
     loginBtn,
     loginBtnText,
     userPill,
@@ -706,7 +762,7 @@ export function mountUI(app) {
     showLevelSelect,
     hideLevelSelect,
     onLevelSelect(fn) {
-      levelSelectHandler = fn;
+    levelSelectHandler = fn;
     },
   };
 }
