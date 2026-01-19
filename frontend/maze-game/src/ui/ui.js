@@ -615,12 +615,12 @@ function hideWelcome() {
   }
 
   // ✅ NEW: toggle buttons after login
-  const testBtn = document.getElementById("Tap to Play");
+  const testBtn = document.getElementById("testBtn");
 
   testBtn?.addEventListener("click", () => {
   hideWelcome();
 
-  
+ 
 });
 
   if (name !== "guest") {
