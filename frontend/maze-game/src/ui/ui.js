@@ -474,7 +474,36 @@ export function mountUI(app) {
 
   // ✅ FIXED (single correct implementation)
   function showLevelSelect({ totalLevels, isCompleted, currentLevel }) {
-   
+    if (!levelGrid || !levelSelectOverlay) return;
+
+    levelGrid.innerHTML = "";
+
+    for (let i = 1; i <= totalLevels; i++) {
+      const btn = document.createElement("button");
+
+      const completed =
+        typeof isCompleted === "function"
+          ? isCompleted(i)
+          : false;
+
+      const isCurrent = i === currentLevel;
+
+      btn.className =
+        "levelBtn" +
+        (completed ? "" : " locked") +
+        (isCurrent ? " current" : "");
+
+      btn.textContent = completed ? `✔ Level ${i}` : `🔒 ${i}`;
+
+      if (completed) {
+        btn.addEventListener("click", () => {
+          hideLevelSelect();
+          levelSelectHandler?.(i - 1);
+        });
+      }
+
+      levelGrid.appendChild(btn);
+    }
 
     levelSelectOverlay.classList.add("show");
     levelSelectOverlay.setAttribute("aria-hidden", "false");
