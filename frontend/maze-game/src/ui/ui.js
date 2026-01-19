@@ -167,7 +167,7 @@ export function mountUI(app) {
 
   <!-- ✅ NEW: TEST button (hidden by default) -->
   <button class="iconBtnWide" id="testBtn" style="display:none;">
-    TEST
+    Tap To Play
   </button>
 
   <p class="welcomeText">Loading...</p>
