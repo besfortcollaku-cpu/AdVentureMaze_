@@ -141,8 +141,8 @@ export function mountUI(app) {
     <div class="levelSelectOverlay" id="levelSelectOverlay" aria-hidden="true">
       <div class="winCard">
         <div class="winHeader">
-          <div class="winBadge">LEVELS</div>
-          <div class="winTitle">Select Level</div>
+          <div class="winBadge">test</div>
+          <div class="winTitle">Select Test</div>
         </div>
 
 <div class="levelGrid" id="levelGrid"></div>
