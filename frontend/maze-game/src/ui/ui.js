@@ -141,8 +141,7 @@ export function mountUI(app) {
     <div class="levelSelectOverlay" id="levelSelectOverlay" aria-hidden="true">
       <div class="winCard">
         <div class="winHeader">
-          <div class="winBadge">test</div>
-          <div class="winTitle">Select Test</div>
+         <div class="winTitle">Welcome to AdVenture Maze</div>
         </div>
 
 <div class="levelGrid" id="levelGrid"></div>
@@ -475,36 +474,7 @@ export function mountUI(app) {
 
   // ✅ FIXED (single correct implementation)
   function showLevelSelect({ totalLevels, isCompleted, currentLevel }) {
-    if (!levelGrid || !levelSelectOverlay) return;
-
-    levelGrid.innerHTML = "";
-
-    for (let i = 1; i <= totalLevels; i++) {
-      const btn = document.createElement("button");
-
-      const completed =
-        typeof isCompleted === "function"
-          ? isCompleted(i)
-          : false;
-
-      const isCurrent = i === currentLevel;
-
-      btn.className =
-        "levelBtn" +
-        (completed ? "" : " locked") +
-        (isCurrent ? " current" : "");
-
-      btn.textContent = completed ? `✔ Level ${i}` : `🔒 ${i}`;
-
-      if (completed) {
-        btn.addEventListener("click", () => {
-          hideLevelSelect();
-          levelSelectHandler?.(i - 1);
-        });
-      }
-
-      levelGrid.appendChild(btn);
-    }
+   
 
     levelSelectOverlay.classList.add("show");
     levelSelectOverlay.setAttribute("aria-hidden", "false");
