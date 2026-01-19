@@ -5,15 +5,19 @@ export function mountUI(app) {
     <div class="phone">
       <div class="topbar">
         <div class="topRow">
-         <div class="brand">
-            <div class="levelWrap">
-              <div class="levelText">Level 1</div>
+          <div class="brand">
+            <div class="logoBox" title="Adventure Maze">
+              <img src="/logo.png" alt="Adventure Maze Logo" />
             </div>
-         </div>
-          <div class="coins" title="Coins">
-          <div class="coinDot"></div>
-          <div id="coinCount">0</div>
+            <div class="levelWrap">
+                 <div class="levelNew">NEW!</div>
+                 <div class="levelText">Adventure Maze</div>
+            </div> 
           </div>
+               <div class="coins" title="Coins">
+                 <div class="coinDot"></div>
+                 <div id="coinCount">0</div>
+               </div>
           
           
      </div>     
