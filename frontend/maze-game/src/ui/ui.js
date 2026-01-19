@@ -14,20 +14,22 @@ export function mountUI(app) {
           <div class="levelWrap">
             <div class="levelNew">NEW!</div>
             <div class="levelText">Adventure Maze</div>
+  
+                 <div class="coins" title="Coins">
+                 <div class="coinDot"></div>
+                 <div id="coinCount">0</div>
           </div>
 
-      
-              <div class="coins" title="Coins">
-                 <div class="coinDot"></div>
-              <div id="coinCount">0</div>
-        
+          
         </div>
 
         <div class="iconRow">
           ${iconBtn("settingsBtn", gearSVG(), "")}
           ${iconBtn("controls", joystickSVG(), "")}
         
-      </div>
+          
+              
+          </div>
           </div>
         </div>
       </div>
