@@ -865,20 +865,18 @@ canvas {
 
 /* ✅ FULLSCREEN WELCOME */
 .welcomeOverlay{
-  position:fixed;
-  inset:0;
-  z-index:2000000;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  background: radial-gradient(
-    900px 600px at 50% 20%,
-    rgba(37,215,255,.18),
-    rgba(0,0,0,.85)
-  );
-  backdrop-filter: blur(12px);
+  position:absolute;
+  inset:-80px;
+  pointer-events:none;
+  opacity:.9;
+  background:
+    radial-gradient(circle at 20% 20%, rgba(255,255,255,.40) 0 2px, transparent 3px),
+    radial-gradient(circle at 65% 30%, rgba(37,215,255,.45) 0 2px, transparent 3px),
+    radial-gradient(circle at 80% 70%, rgba(255,204,51,.40) 0 2px, transparent 3px),
+    radial-gradient(circle at 30% 75%, rgba(255,75,58,.35) 0 2px, transparent 3px);
+  filter: blur(.2px);
+  animation: sparksMove 2.2s linear infinite;
 }
-
 .welcomeCard{
   text-align:center;
   padding:28px;
