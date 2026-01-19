@@ -8,6 +8,7 @@ export function mountUI(app) {
           <div class="brand">
             <div class="logoBox" title="Adventure Maze">
               <img src="/logo.png" alt="Adventure Maze Logo" />
+              </div>
                <div class="levelWrap">
                  <div class="levelNew">NEW!</div>
                  <div class="levelText">Adventure Maze</div>
