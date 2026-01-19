@@ -4,64 +4,53 @@ export function mountUI(app) {
   app.innerHTML = `
     <div class="phone">
       <div class="topbar">
-        <div class="topRow">
-          <div class="brand">
-            <div class="logoBox" title="Adventure Maze">
-              <img src="/logo.png" alt="Adventure Maze Logo" />
-            </div>
-          </div>
-
-          <div class="levelWrap">
-            <div class="levelNew">NEW!</div>
-            <div class="levelText">Adventure Maze</div>
-  
-                 <div class="coins" title="Coins">
-                 <div class="coinDot"></div>
-                 <div id="coinCount">0</div>
-          </div>
-
-          
-        </div>
-
-        <div class="iconRow">
+      <div class="topRow">
+      <div class="brand">
+      <div class="logoBox" title="Adventure Maze">
+      <img src="/logo.png" alt="Adventure Maze Logo" />
+    </div>
+      <div class="levelWrap">
+      <div class="levelNew">NEW!</div>
+    <div class="levelText">Adventure Maze</div>
+    <div class="coins" title="Coins">
+      <div class="coinDot"></div>
+      <div id="coinCount">0</div>
+    </div>
+    </div>
+    <div class="iconRow">
           ${iconBtn("settingsBtn", gearSVG(), "")}
           ${iconBtn("controls", joystickSVG(), "")}
-        
-          
-              
-          </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="boardWrap">
-        <div class="boardFrame">
-          <canvas id="game"></canvas>
-        </div>
-      </div>
-
-      <div class="bottomBar">
-        <button class="btn" id="hintBtn">
-          <div class="btnIcon">🎬</div>
-          <div>HINT</div>
-        </button>
-
-        <div class="pill">Swipe to move</div>
-
-        <button class="btn" id="x3Btn">
-          <div class="btnIcon">⏩</div>
-          <div>×3</div>
-        </button>
-      </div>
+    </div>
+    </div>
+    </div>
+    </div>
+    <div class="boardWrap">
+    <div class="boardFrame">
+    <canvas id="game"></canvas>
+    </div>
+    </div>
+    <div class="bottomBar">
+    <button class="btn" id="hintBtn">
+    <div class="btnIcon">🎬</div>
+    <div>HINT</div>
+    </button>
+    <div class="pill">Swipe to move</div>
+    <button class="btn" id="x3Btn">
+    <div class="btnIcon">⏩</div>
+    <div>×3</div>
+    </button>
+    </div>
     </div>
 
     <!-- Desktop block (used by Pi detection) -->
     <div class="desktopBlock" id="desktopBlock" style="display:none;">
-      <div class="desktopCard">
-        <h2>Mobile game</h2>
-        <p>This Game is designed for Pi Network Browser Only!</p>
-      </div>
+    <div class="desktopCard">
+    <h2>Mobile game</h2>
+    <p>This Game is designed for Pi Network Browser Only!</p>
     </div>
+    </div>
+
+
 
     <!-- ✅ LOGIN GATE (blocks game until Pi login) -->
     <div class="loginGate" id="loginGate" aria-hidden="true">
@@ -156,13 +145,13 @@ export function mountUI(app) {
           <div class="winTitle">Select Level</div>
         </div>
 
-        <div class="levelGrid" id="levelGrid"></div>
+<div class="levelGrid" id="levelGrid"></div>
 
-        <div class="winRow">
-          <button class="winBtnSecondary" id="levelSelectClose">Close</button>
-        </div>
-      </div>
-    </div>
+<div class="winRow">
+<button class="winBtnSecondary" id="levelSelectClose">Close</button>
+</div>
+</div>
+</div>
     
     <!-- ✅ FULLSCREEN WELCOME OVERLAY -->
 <div class="welcomeOverlay" id="welcomeOverlay" aria-hidden="false">
