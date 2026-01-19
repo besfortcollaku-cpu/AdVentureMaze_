@@ -619,9 +619,7 @@ function hideWelcome() {
   testBtn?.addEventListener("click", () => {
   hideWelcome();
 
-  // TEMP: open level select with dummy data
-  showLevelSelect({
-  });
+  
 });
 
   if (name !== "guest") {
