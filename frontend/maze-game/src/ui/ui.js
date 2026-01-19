@@ -6,14 +6,15 @@ export function mountUI(app) {
       <div class="topbar">
         <div class="topRow">
          <div class="brand">
-            <div class="levelWrap">
-              <div class="levelText">Level 1</div>
-            </div>
-         </div>
+     </div>
           <div class="coins" title="Coins">
           <div class="coinDot"></div>
           <div id="coinCount">0</div>
           </div>
+            <div class="levelWrap">
+              <div class="levelText">Level 1</div>
+            </div>
+        
           
           
      </div>     
