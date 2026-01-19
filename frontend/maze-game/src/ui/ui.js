@@ -170,7 +170,6 @@ export function mountUI(app) {
     Tap To Play
   </button>
 
-  <p class="welcomeText">Loading...</p>
 </div>
   `;
 
