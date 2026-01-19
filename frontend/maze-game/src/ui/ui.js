@@ -9,6 +9,7 @@ export function mountUI(app) {
       <div class="logoBox" title="Adventure Maze">
       <img src="/logo.png" alt="Adventure Maze Logo" />
     </div>
+    </div>
       <div class="levelWrap">
       <div class="levelNew">NEW!</div>
     <div class="levelText">Adventure Maze</div>
@@ -141,7 +142,8 @@ export function mountUI(app) {
     <div class="levelSelectOverlay" id="levelSelectOverlay" aria-hidden="true">
       <div class="winCard">
         <div class="winHeader">
-         <div class="winTitle">Welcome to AdVenture Maze</div>
+          <div class="winBadge">LEVELS</div>
+          <div class="winTitle">Select Level</div>
         </div>
 
 <div class="levelGrid" id="levelGrid"></div>
@@ -613,17 +615,12 @@ function hideWelcome() {
   }
 
   // ✅ NEW: toggle buttons after login
-  const testBtn = document.getElementById("testBtn");
+  const testBtn = document.getElementById("Tap to Play");
 
   testBtn?.addEventListener("click", () => {
   hideWelcome();
 
-  // TEMP: open level select with dummy data
-  showLevelSelect({
-    totalLevels: 10,
-    currentLevel: 1,
-    isCompleted: () => true
-  });
+  
 });
 
   if (name !== "guest") {
