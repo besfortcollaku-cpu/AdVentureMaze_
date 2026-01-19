@@ -20,10 +20,9 @@ export function mountUI(app) {
                </div>
           
           </div>
+     </div>     
         
-        
-        
-      </div>
+        </div>
       <div class="iconRow">
         ${iconBtn("settingsBtn", gearSVG(), "")}
         ${iconBtn("controls", joystickSVG(), "")}
@@ -778,11 +777,20 @@ function gearSVG() {
 }
 
 function joystickSVG() {
-  return `<svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-    <path d="M9 8.5c0-1.7 1.3-3 3-3s3 1.3 3 3v1.2c0 1.7-1.3 3-3 3s-3-1.3-3-3V8.5Z" stroke="rgba(234,243,255,.9)" stroke-width="1.8"/>
-    <path d="M6.5 19.5h11c1.2 0 2.2-1 2.2-2.2 0-3-2.4-5.4-5.4-5.4H9.7c-3 0-5.4 2.4-5.4 5.4 0 1.2 1 2.2 2.2 2.2Z" stroke="rgba(234,243,255,.75)" stroke-width="1.8" stroke-linejoin="round"/>
-    <path d="M7.3 15.3h2.4M16.3 15.3h-2.4" stroke="rgba(37,215,255,.95)" stroke-width="2.1" stroke-linecap="round"/>
+return `<svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <!-- Level 1 -->
+    <path d="M4 18h16" stroke="rgba(234,243,255,.75)" stroke-width="1.8" stroke-linecap="round"/>
+    <path d="M4 18h6" stroke="rgba(37,215,255,.95)" stroke-width="2.2" stroke-linecap="round"/>
+
+    <!-- Level 2 -->
+    <path d="M6 13h12" stroke="rgba(234,243,255,.75)" stroke-width="1.8" stroke-linecap="round"/>
+    <path d="M6 13h5" stroke="rgba(37,215,255,.95)" stroke-width="2.2" stroke-linecap="round"/>
+
+    <!-- Level 3 -->
+    <path d="M8 8h8" stroke="rgba(234,243,255,.75)" stroke-width="1.8" stroke-linecap="round"/>
+    <path d="M8 8h4" stroke="rgba(37,215,255,.95)" stroke-width="2.2" stroke-linecap="round"/>
   </svg>`;
+
 }
 
 function brushSVG() {
