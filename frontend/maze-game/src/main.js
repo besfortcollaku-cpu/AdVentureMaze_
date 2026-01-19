@@ -236,16 +236,17 @@ ui.onLevelSelect((selectedIndex) => {
 
   const serverUser = me.user;
   const serverProgress = me.progress;
-
+  
+const savedLevel = Number(serverProgress?.level || 1);
+  levelIndex = clampLevelIndex(savedLevel - 1);
+  
+  const UNLOCKED_LEVEL = savedLevel;
   CURRENT_USER = { username: serverUser.username, uid: serverUser.uid };
 
   COINS = Number(serverUser.coins || 0);
   ui.setCoins(COINS);
 
-  const savedLevel = Number(serverProgress?.level || 1);
-  levelIndex = clampLevelIndex(savedLevel - 1);
   
-  const UNLOCKED_LEVEL = savedLevel;
 
   // WIN popup actions
   ui.onWinNext(async () => {
