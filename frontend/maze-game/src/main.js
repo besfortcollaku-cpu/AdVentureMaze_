@@ -263,7 +263,7 @@ const savedLevel = Number(serverProgress?.level || 1);
   ui.setCoins(COINS);
   ui.setLevel(savedLevel);
   
-
+}
   // WIN popup actions
   ui.onWinNext(async () => {
     ui.hideWinPopup();
