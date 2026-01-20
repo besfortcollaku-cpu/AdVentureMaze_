@@ -433,6 +433,8 @@ export function mountUI(app) {
   // Elements
   // ---------------------------
   const coinCountEl = document.getElementById("coinCount");
+  
+  document.getElementById("levelText").textContent = `Level ${level}`;
 
   // Header login UI
   const loginBtn = document.getElementById("loginBtn");
