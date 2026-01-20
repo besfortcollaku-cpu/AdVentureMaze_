@@ -171,7 +171,7 @@ document.getElementById("controls")?.addEventListener("click", () => {
   ui.showLevelSelect({
   totalLevels: levels.length,
   currentLevel: levelIndex + 1,
-  isCompleted: (lvl) => lvl < UNLOCKED_LEVEL,
+  isCompleted: (lvl) => lvl <= UNLOCKED_LEVEL,
 });
 });
 
