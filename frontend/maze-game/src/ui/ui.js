@@ -17,19 +17,17 @@ export function mountUI(app) {
             ${iconBtn("settingsBtn", gearSVG(), "")}
             ${iconBtn("controls", joystickSVG(), "")}
          </div>
-    <div class="coins" title="Coins">
+         <div class="coins" title="Coins">
                   <div class="coinDot"></div>
                    <div id="coinCount">0</div>
                 </div>
-    </div>
+         </div>
             <div class="boardWrap">
               <div class="boardFrame">
                 <canvas id="game"></canvas>
               </div>
             </div>
-
-
-    <div class="bottomBar">
+  <div class="bottomBar">
        <div class="icon-item">
            <span class="icon" aria-hidden="true">
                ${iconBtn("hintsBtn", gameHintsSVG(), "")}
