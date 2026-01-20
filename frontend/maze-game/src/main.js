@@ -240,7 +240,7 @@ ui.onLevelSelect((selectedIndex) => {
 const savedLevel = Number(serverProgress?.level || 1);
   levelIndex = clampLevelIndex(savedLevel - 1);
   
-  const UNLOCKED_LEVEL = savedLevel;
+  let UNLOCKED_LEVEL = savedLevel;
   CURRENT_USER = { username: serverUser.username, uid: serverUser.uid };
 
   COINS = Number(serverUser.coins || 0);
@@ -380,6 +380,7 @@ function onLevelComplete() {
         level: nextLevelNumber,
         coins: COINS,
       });
+      UNLOCKED_LEVEL = nextLevelNumber;
     } catch (e) {
       console.warn("progress save failed:", e);
     }
