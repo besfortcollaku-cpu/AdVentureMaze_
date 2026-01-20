@@ -30,23 +30,21 @@ export function mountUI(app) {
 
 
     <div class="bottomBar">
-    <div class="iconBottom">
-
-    <div class="icon-item">
-  <span class="icon" aria-hidden="true">
-         ${iconBtn("hintsBtn", gameHintsSVG(), "")}
-          </span>
-          <span class="icon-label">Hints</span>
+       <div class="icon-item">
+           <span class="icon" aria-hidden="true">
+               ${iconBtn("hintsBtn", gameHintsSVG(), "")}
+                </span>
+                <span class="icon-label">Hints</span>
+              </div>
+              <div class="pill">Swipe to move</div>
+             <span class="icon" aria-hidden="true">
+               ${iconBtn("skipBtn", skipSVG(), "")}
+                </span>
+                <span class="icon-label">Skip</span>
         </div>
-        
+     </div>
 
-    <div class="pill">Swipe to move</div>
-    <button class="btn" id="x3Btn">
-    <div class="btnIcon">⏩</div>
-    <div>×3</div>
-    </button>
-    </div>
-    </div>
+   
 
     <!-- Desktop block (used by Pi detection) -->
     <div class="desktopBlock" id="desktopBlock" style="display:none;">
@@ -840,4 +838,20 @@ function gameHintsSVG() {
   </svg>`;
 }
 
+
+function skipSVG() {
+  return `<svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <!-- Skip triangle -->
+    <path d="M7 6l7 6-7 6V6Z"
+      stroke="rgba(234,243,255,.9)"
+      stroke-width="1.8"
+      stroke-linejoin="round"/>
+
+    <!-- Skip bar -->
+    <path d="M16.5 6v12"
+      stroke="rgba(37,215,255,.95)"
+      stroke-width="2.2"
+      stroke-linecap="round"/>
+  </svg>`;
+}
 
