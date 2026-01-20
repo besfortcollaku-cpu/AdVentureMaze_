@@ -176,9 +176,8 @@ document.getElementById("controls")?.addEventListener("click", () => {
 });
 
 ui.onLevelSelect((selectedIndex) => {
-  levelIndex = clampLevelIndex(selectedIndex);
-  rewardedThisLevel = true; // prevent reward on replay
-  game.setLevel(levels[levelIndex]);
+  loadAndStartLevel(selectedIndex);
+});
 });
   // unlock audio after first gesture
   ui.onFirstUserGesture(() => ensureAudioUnlocked());
@@ -342,8 +341,7 @@ const savedLevel = Number(serverProgress?.level || 1);
   ui.onLevelSelect((selectedIndex) => {
   levelIndex = clampLevelIndex(selectedIndex);
   rewardedThisLevel = false;  // ✅ MUST be false to allow play
-  game.setLevel(levels[levelIndex]);
-  game.start();               // ✅ RESTART GAME LOOP
+  loadAndStartLevel(levelIndex);              // ✅ RESTART GAME LOOP
   ui.setLevel(levelIndex + 1);
 });
 
@@ -410,7 +408,7 @@ async function goNextLevel() {
 
   rewardedThisLevel = false;
 
-  game.setLevel(levels[levelIndex]);
+  loadAndStartLevel(levelIndex);
 
   // best-effort save current progress level
   try {
@@ -422,6 +420,16 @@ async function goNextLevel() {
   } catch (e) {
     console.warn("progress save failed:", e);
   }
+}
+
+function loadAndStartLevel(index) {
+  levelIndex = clampLevelIndex(index);
+  rewardedThisLevel = false;
+
+  game.setLevel(levels[levelIndex]);
+  game.start(); // 🔴 THIS WAS MISSING
+
+  ui.setLevel(levelIndex + 1);
 }
 
 boot();
