@@ -26,6 +26,7 @@ let COINS = 0;
 
 // prevent double reward per completion
 let rewardedThisLevel = false;
+let UNLOCKED_LEVEL = 1;
 
 // ---------------------------
 // Backend helpers
@@ -239,6 +240,7 @@ ui.onLevelSelect((selectedIndex) => {
   
 const savedLevel = Number(serverProgress?.level || 1);
   levelIndex = clampLevelIndex(savedLevel - 1);
+  UNLOCKED_LEVEL = savedLevel;
   
   const UNLOCKED_LEVEL = savedLevel;
   CURRENT_USER = { username: serverUser.username, uid: serverUser.uid };
