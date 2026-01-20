@@ -432,6 +432,7 @@ export function mountUI(app) {
   // ---------------------------
   // Elements
   // ---------------------------
+  const level = progress?.level || 1;
   const coinCountEl = document.getElementById("coinCount");
   
   document.getElementById("levelText").textContent = `Level ${level}`;
