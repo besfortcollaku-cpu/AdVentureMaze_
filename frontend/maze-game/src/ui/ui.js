@@ -17,7 +17,6 @@ export function mountUI(app) {
     <span class="coinIcon">🪙</span>
     <span id="coinCount">0</span>
   </div>
-</div>
     </div>
     <div class="boardWrap">
     <div class="boardFrame">
