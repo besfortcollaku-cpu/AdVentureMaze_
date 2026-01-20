@@ -3,7 +3,7 @@
 export function mountUI(app) {
   app.innerHTML = `
     <div class="phone">
-      <<div class="topRow">
+      <div class="topRow">
   <div class="levelBox">
     <span id="levelText">Level 1</span>
   </div>
