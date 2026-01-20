@@ -174,11 +174,12 @@ document.getElementById("controls")?.addEventListener("click", () => {
   isCompleted: (lvl) => lvl <= UNLOCKED_LEVEL,
 });
 });
-
 ui.onLevelSelect((selectedIndex) => {
   levelIndex = clampLevelIndex(selectedIndex);
   rewardedThisLevel = true; // prevent reward on replay
   game.setLevel(levels[levelIndex]);
+
+  ui.setLevel(levelIndex + 1); // ✅ ADD THIS LINE
 });
   // unlock audio after first gesture
   ui.onFirstUserGesture(() => ensureAudioUnlocked());
@@ -245,7 +246,7 @@ const savedLevel = Number(serverProgress?.level || 1);
 
   COINS = Number(serverUser.coins || 0);
   ui.setCoins(COINS);
-
+  ui.setLevel(savedLevel);
   
 
   // WIN popup actions
@@ -383,6 +384,7 @@ async function goNextLevel() {
   rewardedThisLevel = false;
 
   game.setLevel(levels[levelIndex]);
+  ui.setLevel(levelIndex + 1);
 
   // best-effort save current progress level
   try {

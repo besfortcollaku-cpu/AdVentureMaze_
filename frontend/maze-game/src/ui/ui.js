@@ -432,10 +432,9 @@ export function mountUI(app) {
   // ---------------------------
   // Elements
   // ---------------------------
-  const level = progress?.level || 1;
+ 
   const coinCountEl = document.getElementById("coinCount");
-  
-  document.getElementById("levelText").textContent = `Level ${level}`;
+ 
 
   // Header login UI
   const loginBtn = document.getElementById("loginBtn");
@@ -550,7 +549,10 @@ function hideWelcome() {
   function setCoins(n) {
     if (coinCountEl) coinCountEl.textContent = String(n ?? 0);
   }
-
+function setLevel(n) {
+  const el = document.getElementById("levelText");
+  if (el) el.textContent = `Level ${n}`;
+}
   // ---------------------------
   // Login Gate API
   // ---------------------------
