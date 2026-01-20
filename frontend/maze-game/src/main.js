@@ -373,6 +373,27 @@ function onLevelComplete() {
 
   // save progress (next unlocked level)
   const nextLevelNumber = isLastLevel ? 1 : levelIndex + 2;
+
+  // ✅ THIS FIXES THE LOCK ISSUE
+  if (nextLevelNumber > UNLOCKED_LEVEL) {
+    UNLOCKED_LEVEL = nextLevelNumber;
+  }
+
+  (async () => {
+    try {
+      await apiSetProgress({
+        uid: CURRENT_USER.uid,
+        level: nextLevelNumber,
+        coins: COINS,
+      });
+    } catch (e) {
+      console.warn("progress save failed:", e);
+    }
+  })();
+}
+
+  // save progress (next unlocked level)
+  const nextLevelNumber = isLastLevel ? 1 : levelIndex + 2;
   (async () => {
     try {
       await apiSetProgress({
