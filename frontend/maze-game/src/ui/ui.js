@@ -30,10 +30,10 @@ export function mountUI(app) {
 
 
     <div class="bottomBar">
-    <button class="btn" id="hintBtn">
-    <div class="btnIcon">🎬</div>
-    <div>HINT</div>
-    </button>
+    <div class="iconBottom">
+            ${iconBtn("hintsBtn", gameHintsSVG(), "")}
+          <div>HINT</div>
+
     <div class="pill">Swipe to move</div>
     <button class="btn" id="x3Btn">
     <div class="btnIcon">⏩</div>
@@ -811,5 +811,27 @@ return `<svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
 
 }
 
+function gameHintsSVG() {
+  return `<svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <!-- Bulb top -->
+    <path d="M8 9.2a4 4 0 1 1 8 0c0 1.6-.8 2.6-1.8 3.6-.7.7-1.2 1.3-1.2 2.2"
+      stroke="rgba(234,243,255,.9)"
+      stroke-width="1.8"
+      stroke-linecap="round"
+      stroke-linejoin="round"/>
+
+    <!-- Bulb base -->
+    <path d="M10 17h4M10.6 19h2.8"
+      stroke="rgba(234,243,255,.75)"
+      stroke-width="1.8"
+      stroke-linecap="round"/>
+
+    <!-- Hint glow / idea accent -->
+    <path d="M12 6.6v-1.6"
+      stroke="rgba(37,215,255,.95)"
+      stroke-width="2.2"
+      stroke-linecap="round"/>
+  </svg>`;
+}
 
 
