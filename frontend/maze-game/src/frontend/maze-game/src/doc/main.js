@@ -162,12 +162,43 @@ function clampLevelIndex(i) {
 // ---------------------------
 // Boot
 // ---------------------------
-// ---------------------------
-// Boot
-// ---------------------------
 async function boot() {
-  // UI
   ui = mountUI(document.querySelector("#app"));
+
+
+// Level select via joystick icon
+document.getElementById("controls")?.addEventListener("click", () => {
+  ui.showLevelSelect({
+  totalLevels: levels.length,
+  currentLevel: levelIndex + 1,
+  isCompleted: (lvl) => lvl < UNLOCKED_LEVEL,
+});
+});
+
+ui.onLevelSelect((selectedIndex) => {
+  levelIndex = clampLevelIndex(selectedIndex);
+  rewardedThisLevel = true; // prevent reward on replay
+  game.setLevel(levels[levelIndex]);
+});
+  // unlock audio after first gesture
+  ui.onFirstUserGesture(() => ensureAudioUnlocked());
+
+  // settings
+  const s0 = getSettings();
+  ui.setSoundEnabled(s0.sound);
+  ui.setVibrationEnabled(s0.vibration);
+
+  ui.onSoundToggle((v) => {
+    setSetting("sound", v);
+    if (!v) stopRollSound();
+  });
+  ui.onVibrationToggle((v) => setSetting("vibration", v));
+
+  subscribeSettings((s) => {
+    ui.setSoundEnabled(s.sound);
+    ui.setVibrationEnabled(s.vibration);
+    if (!s.sound) stopRollSound();
+  });
 
   // Pi environment
   const env = await enforcePiEnvironment({
@@ -175,64 +206,46 @@ async function boot() {
   });
   if (!env.ok) return;
 
+  // init Pi SDK
   initPi();
 
-  // Login
+  // login
   const loginRes = await ensurePiLogin({
     BACKEND,
     ui,
     onLogin: ({ user, accessToken }) => {
       CURRENT_USER = user;
       CURRENT_ACCESS_TOKEN = accessToken;
-      ui.userPill.textContent = user.username;
-      ui.loginBtnText.textContent = "✅";
+
+      if (ui?.userPill) ui.userPill.textContent = `${user.username}`;
+      if (ui?.loginBtnText) ui.loginBtnText.textContent = "✅";
     },
   });
+
   if (!loginRes?.ok) return;
 
-  // Load server state
-  const me = await apiGetMe();
+  // load server state
+  let me;
+  try {
+    me = await apiGetMe();
+  } catch (e) {
+    const msg = normalizeErr(e);
+    if (!handleAuthExpiredIfNeeded(msg)) alert("Failed to load profile: " + msg);
+    return;
+  }
+
   const serverUser = me.user;
   const serverProgress = me.progress;
 
-  const savedLevel = Number(serverProgress?.level || 1);
-  levelIndex = clampLevelIndex(savedLevel - 1);
-  const UNLOCKED_LEVEL = savedLevel;
+  CURRENT_USER = { username: serverUser.username, uid: serverUser.uid };
 
   COINS = Number(serverUser.coins || 0);
-
   ui.setCoins(COINS);
-  ui.setLevel(savedLevel);
 
-  // Game
-  game = createGame({
-    onWin: handleWin,
-    onLose: handleLose,
-  });
-
-  game.setLevel(levels[levelIndex]);
-  game.start();
-
-  // Level select
-  document.getElementById("controls")?.addEventListener("clickToggle", () => {
-    ui.showLevelSelect({
-      totalLevels: levels.length,
-      currentLevel: levelIndex + 1,
-      isCompleted: (lvl) => lvl <= UNLOCKED_LEVEL,
-    });
-  });
-
-  ui.onLevelSelect((selectedIndex) => {
-  levelIndex = clampLevelIndex(selectedIndex);
-  rewardedThisLevel = false;  // ✅ MUST be false to allow play
-  game.setLevel(levels[levelIndex]);
-  game.start();               // ✅ RESTART GAME LOOP
-  ui.setLevel(levelIndex + 1);
-});
-
-  ui.onFirstUserGesture(() => ensureAudioUnlocked());
-}
+  const savedLevel = Number(serverProgress?.level || 1);
+  levelIndex = clampLevelIndex(savedLevel - 1);
   
+  const UNLOCKED_LEVEL = savedLevel;
 
   // WIN popup actions
   ui.onWinNext(async () => {
@@ -315,7 +328,7 @@ async function boot() {
   });
 
   game.start();
-
+}
 
 // ---------------------------
 // Level flow
@@ -358,17 +371,28 @@ function onLevelComplete() {
 }
 
 async function goNextLevel() {
-  levelIndex = levelIndex + 1 >= levels.length ? 0 : levelIndex + 1;
+  const next = levelIndex + 1;
+
+  if (next >= levels.length) {
+    levelIndex = 0;
+  } else {
+    levelIndex = next;
+  }
+
   rewardedThisLevel = false;
 
   game.setLevel(levels[levelIndex]);
-  ui.setLevel(levelIndex + 1);
 
-  await apiSetProgress({
-    uid: CURRENT_USER.uid,
-    level: levelIndex + 1,
-    coins: COINS,
-  });
+  // best-effort save current progress level
+  try {
+    await apiSetProgress({
+      uid: CURRENT_USER.uid,
+      level: levelIndex + 1,
+      coins: COINS,
+    });
+  } catch (e) {
+    console.warn("progress save failed:", e);
+  }
 }
 
 boot();
