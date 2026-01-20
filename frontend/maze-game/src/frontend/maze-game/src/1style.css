@@ -9,27 +9,6 @@
   --text:#eaf3ff;
   --muted:rgba(234,243,255,.65);
 }
-.topbar{
-  height:52px;
-  background: rgba(7,11,20,0.85);
-  backdrop-filter: blur(6px);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  box-shadow:none;
-  border-bottom:1px solid rgba(255,255,255,0.06);
-}
-.topbar::after{
-  content:"";
-  position:absolute;
-  inset:0;
-  background:linear-gradient(
-    to bottom,
-    rgba(7,11,20,0.95),
-    rgba(7,11,20,0.7)
-  );
-  pointer-events:none;
-}
 
 *{ box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
 html,body{ height:100%; margin:0; }
@@ -267,7 +246,7 @@ canvas{
   position: fixed;
   inset: 0;
   display: none;
-  z-index: 9999;
+  z-index:9999;
   background: rgba(0,0,0,0.35);
   backdrop-filter: blur(6px);
 }
@@ -472,7 +451,7 @@ canvas {
 
   inset: 0;
 
-  z-index: 99999;
+  z-index:99999;
 
   display: none;
 
@@ -883,121 +862,600 @@ canvas {
   background: rgba(255,255,255,.04);
 }
 
+/* ===============================
+   Pi Login Spinner
+================================ */
+.piSpinner {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 3px solid rgba(255,255,255,0.25);
+  border-top-color: #f4c430; /* Pi gold */
+  animation: piSpin 0.9s linear infinite;
+  display: inline-block;
+  vertical-align: middle;
+}
 
-/* ✅ FULLSCREEN WELCOME */
-.welcomeOverlay{
-  position:fixed;
-  inset:0;
-  z-index:2000000;
-  display:flex;
-  align-items:center;
-  justify-content:center;
+@keyframes piSpin {
+  to { transform: rotate(360deg); }
+}
+
+/* ===============================
+   Utility
+================================ */
+.hidden {
+  display: none !important;
+}
+
+/* =========================
+   FULLSCREEN WELCOME (MATCHES WIN POPUP)
+========================= */
+
+.welcomeOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9000;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
   background: radial-gradient(
-    900px 600px at 50% 20%,
-    rgba(37,215,255,.18),
-    rgba(0,0,0,.85)
+    circle at top,
+    rgba(20, 60, 60, 0.95),
+    rgba(0, 0, 0, 0.95)
   );
-  backdrop-filter: blur(12px);
+
+  pointer-events: auto;
+}
+
+/* Optional but recommended */
+#welcomeOverlay * {
+  pointer-events: none;
+}
+
+#welcomeOverlay.fadeOut{
+  animation: welcomeFadeOut .6s ease forwards;
+  pointer-events: none;
+}
+
+@keyframes welcomeFadeOut{
+  to { opacity: 0; transform: scale(.98); }
 }
 
 .welcomeCard{
-  text-align:center;
-  padding:28px;
-  border-radius:26px;
-  background: rgba(10,14,30,.92);
-  border:1px solid rgba(255,255,255,.15);
-  box-shadow: 0 30px 90px rgba(0,0,0,.75);
-  max-width: 90%;
-}
-
-.welcomeTitle{
-  font-size:28px;
-  font-weight:950;
-  color:#fff;
-  margin-bottom:10px;
-}
-
-.welcomeText{
-  font-size:14px;
-  opacity:.8;
-  color:#eaf3ff;
-}
-/* ✅ Welcome login layout */
-.welcomeLogin{
-  margin-top:18px;
-  display:flex;
-  gap:12px;
-  justify-content:center;
-  flex-wrap:wrap;
-}
-
-.welcomeLogin .iconBtnWide,
-.welcomeLogin .userPill{
-  
-  background-color: none;
-  border: none;
-  color: White;
-  padding: 15px 32px;
-  text-align: center;
-  text-decoration: none;
-  display: inline-block;
-  font-size: 16px;
-  margin: 4px 2px;
-}
-
-
-.settingsOverlay{
-  position: fixed;
-  inset: 0;
-  z-index: 999999;
-  display: none;
-  align-items: center;
-  justify-content: center;
-  padding: 16px;
-  background:
-    radial-gradient(1200px 800px at 50% 20%, rgba(37,215,255,.18), transparent 55%),
-    radial-gradient(900px 700px at 80% 30%, rgba(255,204,51,.14), transparent 60%),
-    rgba(0,0,0,.55);
-  backdrop-filter: blur(10px);
-}
-
-.settingsOverlay.show{
-  display: flex;
-}
-
-.settingsCard{
   width: min(520px, 100%);
   border-radius: 26px;
-  padding: 18px 18px 16px;
+  padding: 22px;
   border: 1px solid rgba(255,255,255,.14);
-  background: linear-gradient(180deg, rgba(10,16,35,.85), rgba(6,10,22,.88));
+
+  background: linear-gradient(
+    180deg,
+    rgba(10,16,35,.88),
+    rgba(6,10,22,.92)
+  );
+
   box-shadow: 0 28px 90px rgba(0,0,0,.65);
-  position: relative;
-  overflow: hidden;
-  transform: translateY(8px) scale(.98);
+  text-align: center;
+  color: rgba(234,243,255,.96);
+
   animation: winPopIn .45s ease-out forwards;
 }
 
-@keyframes winPopIn{
-  to { transform: translateY(0) scale(1); }
+/* title */
+.welcomeTitle{
+  font-size: 26px;
+  font-weight: 950;
+  letter-spacing: .4px;
+  margin-bottom: 8px;
+  text-shadow: 0 0 22px rgba(37,215,255,.14);
 }
 
-.settingsSparkLayer{
-  position:absolute;
-  inset:-80px;
-  pointer-events:none;
-  opacity:.9;
+/* subtitle */
+.welcomeText{
+  font-size: 14px;
+  color: rgba(234,243,255,.72);
+  margin-bottom: 18px;
+}
+
+/* actions */
+.welcomeActions{
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: center;
+}
+
+/* primary button = same as win */
+.welcomeBtn{
+  width: 100%;
+  max-width: 260px;
+  height: 46px;
+  border-radius: 16px;
+  font-weight: 950;
+  letter-spacing: .2px;
+  cursor: pointer;
+
+  border: 1px solid rgba(37,215,255,.22);
+  background: linear-gradient(180deg, rgba(37,215,255,.95), rgba(0,183,255,.85));
+  color: #07111f;
+
+  box-shadow: 0 18px 34px rgba(37,215,255,.18);
+}
+
+.welcomeBtn:active{
+  transform: translateY(1px);
+}
+
+/* spinner text */
+.welcomeStatus{
+  margin-top: 10px;
+  font-size: 13px;
+  color: rgba(234,243,255,.65);
+}
+
+
+/* === WELCOME SCREEN === */
+.welcomeOverlay {
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(circle at top, #0e1b2a, #05080f);
+  z-index:9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.6s ease;
+}
+
+.welcomeCard {
+  text-align: center;
+  color: #eaf3ff;
+  padding: 32px;
+  max-width: 320px;
+}
+
+.welcomeLogo {
+  width: 96px;
+  margin-bottom: 16px;
+  filter: drop-shadow(0 0 20px rgba(37,215,255,.6));
+  animation: float 3s ease-in-out infinite;
+}
+
+.welcomeTitle {
+  font-size: 28px;
+  margin-bottom: 12px;
+}
+
+.welcomeText {
+  opacity: 0.8;
+  margin-bottom: 28px;
+  line-height: 1.4;
+}
+
+.welcomeBtn {
+  background: linear-gradient(135deg,#25d7ff,#4be3ff);
+  border: none;
+  border-radius: 999px;
+  padding: 14px 28px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #022;
+  box-shadow: 0 10px 30px rgba(37,215,255,.35);
+}
+
+.welcomeBtn.hidden {
+  display: none;
+}
+
+/* animations */
+@keyframes fadeIn {
+  from { opacity: 0 }
+  to { opacity: 1 }
+}
+
+@keyframes float {
+  0%,100% { transform: translateY(0) }
+  50% { transform: translateY(-6px) }
+}
+
+/* Blur game behind welcome */
+body.welcomeActive .phone {
+  filter: blur(10px) brightness(0.65);
+  transform: scale(0.98);
+}
+
+/* smooth transition */
+.phone {
+  transition: filter 0.6s ease, transform 0.6s ease;
+}
+
+.welcomeLogo {
+  animation:
+    float 3s ease-in-out infinite,
+    glowPulse 2.4s ease-in-out infinite;
+}
+
+@keyframes glowPulse {
+  0%,100% {
+    filter: drop-shadow(0 0 16px rgba(37,215,255,.45));
+  }
+  50% {
+    filter: drop-shadow(0 0 32px rgba(37,215,255,.9));
+  }
+}
+
+.btn:active,
+.iconBtn:active,
+.loginGateBtn:active {
+  transform: scale(0.96);
+  filter: brightness(1.1);
+}
+
+.btn,
+.iconBtn,
+.loginGateBtn,
+.winBtnPrimary,
+.winBtnSecondary {
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+}
+
+.btn:active,
+.iconBtn:active,
+.loginGateBtn:active,
+.winBtnPrimary:active,
+.winBtnSecondary:active {
+  transform: scale(0.96);
+}
+
+.loginGate {
+  opacity: 0;
+  
+  transition: opacity 0.35s ease;
+}
+
+.loginGate.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.winCard {
+  box-shadow:
+    0 0 40px rgba(37,215,255,0.25),
+    inset 0 0 20px rgba(255,255,255,0.05);
+}
+
+.winBadge {
+  animation: pulseGlow 1.6s infinite ease-in-out;
+}
+
+@keyframes pulseGlow {
+  0% { box-shadow: 0 0 0 rgba(255,255,255,0.2); }
+  50% { box-shadow: 0 0 18px rgba(255,255,255,0.45); }
+  100% { box-shadow: 0 0 0 rgba(255,255,255,0.2); }
+}
+
+.levelBtn.locked {
+  opacity: 0.4;
+  filter: grayscale(1);
+}
+
+.levelBtn.current {
+  border: 2px solid #25d7ff;
+  box-shadow: 0 0 12px rgba(37,215,255,0.5);
+}
+#welcomeOverlay {
+  z-index:9000;
+}
+
+.loginGate {
+  position: fixed;
+  inset: 0;
   background:
-    radial-gradient(circle at 20% 20%, rgba(255,255,255,.40) 0 2px, transparent 3px),
-    radial-gradient(circle at 65% 30%, rgba(37,215,255,.45) 0 2px, transparent 3px),
-    radial-gradient(circle at 80% 70%, rgba(255,204,51,.40) 0 2px, transparent 3px),
-    radial-gradient(circle at 30% 75%, rgba(255,75,58,.35) 0 2px, transparent 3px);
-  filter: blur(.2px);
-  animation: sparksMove 2.2s linear infinite;
+    radial-gradient(circle at top, rgba(37,215,255,0.15), transparent 60%),
+    linear-gradient(180deg, #070b14, #05080f);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index:9999;
+}
+.welcomeCard {
+  width: 92%;
+  max-width: 420px;
+  padding: 28px 22px;
+  border-radius: 22px;
+  background: rgba(10,16,30,0.9);
+  backdrop-filter: blur(14px);
+  box-shadow:
+    0 0 50px rgba(37,215,255,0.25),
+    inset 0 0 20px rgba(255,255,255,0.04);
+  text-align: center;
+  animation: welcomeFloat 3.5s ease-in-out infinite;
+}
+@keyframes welcomeFloat {
+  0%   { transform: translateY(0); }
+  50%  { transform: translateY(-6px); }
+  100% { transform: translateY(0); }
+}
+.loginGateTitle {
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  margin-bottom: 10px;
 }
 
-@keyframes sparksMove{
-  0%   { transform: translateY(0) rotate(0deg); opacity:.85; }
-  50%  { transform: translateY(10px) rotate(4deg); opacity:1; }
-  100% { transform: translateY(0) rotate(0deg); opacity:.85; }
+.loginGateSub {
+  font-size: 15px;
+  line-height: 1.45;
+  opacity: 0.85;
+  margin-bottom: 22px;
+}
+.loginGate {
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+
+.loginGate.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+
+.bootOverlay {
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(ellipse at top, #0c2b2f, #030b10);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+}
+
+.bootOverlay.show {
+  display: flex;
+}
+
+.bootCard {
+  text-align: center;
+  color: #eaf3ff;
+}
+
+.bootSpinner {
+  width: 54px;
+  height: 54px;
+  border: 3px solid rgba(255,255,255,.2);
+  border-top-color: #25d7ff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 18px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.bootText {
+  font-size: 15px;
+  opacity: .85;
+}
+
+
+.login-spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid rgba(255,255,255,0.2);
+  border-top-color: #3fd1ff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 24px auto 0;
+}
+
+.hidden {
+  display: none;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  background: rgba(0, 0, 0, 0.85);
+  z-index:9999;
+
+
+}
+
+#loginOverlay {
+  position: fixed;
+  inset: 0;
+  z-index:9999;
+}
+
+.overlay * {
+  pointer-events: none; /* text does NOT steal clicks */
+}
+
+
+.welcome-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: radial-gradient(circle at top, #1a2a3a, #05080d);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+}
+
+.welcome-content {
+  text-align: center;
+  animation: welcomePop 0.5s ease-out;
+}
+
+.welcome-title {
+  font-size: 32px;
+  margin-bottom: 12px;
+}
+
+.welcome-subtitle {
+  opacity: 0.8;
+  margin-bottom: 24px;
+}
+
+.welcome-cta {
+  font-size: 14px;
+  opacity: 0.6;
+}
+
+.fade-out {
+  animation: fadeOut 0.3s ease forwards;
+}
+
+@keyframes fadeOut {
+  to {
+    opacity: 0;
+    transform: scale(1.03);
+  }
+}
+
+@keyframes welcomePop {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }/* =========================
+   LEVELS MODAL (ISOLATED)
+   ========================= */
+
+.levelsOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9500;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(10px);
+}
+
+.levelsOverlay.show {
+  display: flex;
+}
+
+/* glass card */
+.levelsModal {
+  width: min(92vw, 420px);
+  border-radius: 26px;
+  padding: 22px 20px 20px;
+  background: linear-gradient(
+    180deg,
+    rgba(18, 78, 92, 0.85),
+    rgba(8, 26, 38, 0.9)
+  );
+  border: 1px solid rgba(120, 230, 255, 0.25);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
+}
+
+/* header */
+.levelsHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.levelsBadge {
+  align-self: flex-start;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #ff4b3a, #d61e12);
+  color: white;
+  font-weight: 800;
+  font-size: 13px;
+}
+
+.levelsTitle {
+  font-size: 36px;
+  font-weight: 900;
+  text-align: center;
+  color: #eaf3ff;
+}
+
+/* grid */
+.levelsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin: 10px 0 18px;
+}
+
+/* level buttons */
+.levelTile {
+  position: relative;
+  height: 64px;
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.06);
+  color: #eaf3ff;
+  font-weight: 800;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.levelTile:active {
+  transform: scale(0.97);
+}
+
+/* completed */
+.levelTile.completed::before {
+  content: "✓";
+  position: absolute;
+  top: 8px;
+  left: 10px;
+  font-size: 16px;
+}
+
+/* locked */
+.levelTile.locked {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.levelTile.locked::before {
+  content: "🔒";
+  position: absolute;
+  left: 10px;
+  bottom: 8px;
+}
+
+/* close */
+.levelsClose {
+  width: 100%;
+  height: 58px;
+  border-radius: 20px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.06);
+  color: #eaf3ff;
+  font-size: 20px;
+  font-weight: 800;
+}
+#app {
+  pointer-events: auto;
 }

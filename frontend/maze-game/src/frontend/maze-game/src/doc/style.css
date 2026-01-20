@@ -9,27 +9,6 @@
   --text:#eaf3ff;
   --muted:rgba(234,243,255,.65);
 }
-.topbar{
-  height:52px;
-  background: rgba(7,11,20,0.85);
-  backdrop-filter: blur(6px);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  box-shadow:none;
-  border-bottom:1px solid rgba(255,255,255,0.06);
-}
-.topbar::after{
-  content:"";
-  position:absolute;
-  inset:0;
-  background:linear-gradient(
-    to bottom,
-    rgba(7,11,20,0.95),
-    rgba(7,11,20,0.7)
-  );
-  pointer-events:none;
-}
 
 *{ box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
 html,body{ height:100%; margin:0; }

@@ -5,29 +5,37 @@ export function mountUI(app) {
     <div class="phone">
       <div class="topbar">
         <div class="topRow">
+          <div class="brand">
+            <div class="logoBox" title="Adventure Maze">
+              <img src="/logo.png" alt="Adventure Maze Logo" />
+            </div>
             <div class="levelWrap">
-              <div class="levelText">Level 1</div>
-                <div class="coins" title="Coins">
-                  <div class="coinDot"></div>
-                   <div id="coinCount">0</div>
-                </div>
-            </div>
-         </div>     
-        
+                 <div class="levelNew">NEW!</div>
+                 <div class="levelText">Adventure Maze</div>
+            </div> 
           </div>
-            <div class="iconRow">
-            ${iconBtn("accountBtn", userAccountSVG(), "")}
-            ${iconBtn("settingsBtn", gearSVG(), "")}
-            ${iconBtn("controls", joystickSVG(), "")}
-         </div>
+               <div class="coins" title="Coins">
+                 <div class="coinDot"></div>
+                 <div id="coinCount">0</div>
+               </div>
+          
+          
+     </div>     
+        
+        </div>
+      <div class="iconRow">
+        ${iconBtn("accountBtn", userAccountSVG(), "")}
+        ${iconBtn("settingsBtn", gearSVG(), "")}
+        ${iconBtn("controls", joystickSVG(), "")}
     </div>
-            <div class="boardWrap">
-              <div class="boardFrame">
-                <canvas id="game"></canvas>
-              </div>
-            </div>
-
-
+    </div>
+    </div>
+    </div>
+    <div class="boardWrap">
+    <div class="boardFrame">
+    <canvas id="game"></canvas>
+    </div>
+    </div>
     <div class="bottomBar">
     <button class="btn" id="hintBtn">
     <div class="btnIcon">🎬</div>

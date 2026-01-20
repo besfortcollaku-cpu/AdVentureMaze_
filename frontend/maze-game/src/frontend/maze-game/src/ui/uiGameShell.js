@@ -1,75 +1,70 @@
 // src/ui/ui.js last change
 
-export function mountUI(app) {
+export function mountGameShell(app) {
   app.innerHTML = `
     <div class="phone">
       <div class="topbar">
         <div class="topRow">
-            <div class="levelWrap">
-              <div class="levelText">Level 1</div>
-                <div class="coins" title="Coins">
-                  <div class="coinDot"></div>
-                   <div id="coinCount">0</div>
-                </div>
+          <div class="brand">
+            <div class="logoBox" title="Adventure Maze">
+              <img src="/logo.png" alt="Adventure Maze Logo" />
             </div>
-         </div>     
-        
           </div>
-            <div class="iconRow">
-            ${iconBtn("accountBtn", userAccountSVG(), "")}
-            ${iconBtn("settingsBtn", gearSVG(), "")}
-            ${iconBtn("controls", joystickSVG(), "")}
-         </div>
-    </div>
-            <div class="boardWrap">
-              <div class="boardFrame">
-                <canvas id="game"></canvas>
-              </div>
-            </div>
 
+          <div class="levelWrap">
+            <div class="levelNew">NEW!</div>
+            <div class="levelText">Adventure Maze</div>
+          </div>
 
-    <div class="bottomBar">
-    <button class="btn" id="hintBtn">
-    <div class="btnIcon">🎬</div>
-    <div>HINT</div>
-    </button>
-    <div class="pill">Swipe to move</div>
-    <button class="btn" id="x3Btn">
-    <div class="btnIcon">⏩</div>
-    <div>×3</div>
-    </button>
-    </div>
+          <div class="coins" title="Coins">
+            <div class="coinDot"></div>
+            <div id="coinCount">0</div>
+          </div>
+        </div>
+
+        <div class="iconRow">
+          ${iconBtn("settingsBtn", gearSVG(), "")}
+          ${iconBtn("controls", joystickSVG(), "")}
+        
+          <div class="loginWrap">
+            <button class="iconBtnWide" id="loginBtn">
+              <span id="loginBtnText">Login with Pi</span>
+            </button>
+            <div class="userPill" id="userPill">User: guest</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="boardWrap">
+        <div class="boardFrame">
+          <canvas id="game"></canvas>
+        </div>
+      </div>
+
+      <div class="bottomBar">
+        <button class="btn" id="hintBtn">
+          <div class="btnIcon">🎬</div>
+          <div>HINT</div>
+        </button>
+
+        <div class="pill">Swipe to move</div>
+
+        <button class="btn" id="x3Btn">
+          <div class="btnIcon">⏩</div>
+          <div>×3</div>
+        </button>
+      </div>
     </div>
 
     <!-- Desktop block (used by Pi detection) -->
     <div class="desktopBlock" id="desktopBlock" style="display:none;">
-    <div class="desktopCard">
-    <h2>Mobile game</h2>
-    <p>This Game is designed for Pi Network Browser Only!</p>
-    </div>
-    </div>
-
-
-
-    <!-- ✅ LOGIN GATE (blocks game until Pi login) -->
-    <div class="loginGate" id="loginGate" aria-hidden="true">
-      <div class="loginGateCard">
-        <div class="loginGateTitle">Login required</div>
-        <div class="loginGateSub">
-          Please login with Pi account to start playing. 
-        </div>
-
-        <button class="loginGateBtn" id="loginGateBtn">
-          Login
-        </button>
-
-        <div class="loginGateError" id="loginGateError"></div>
-
-        <div class="loginGateNote">
-          Tip: open inside Pi Browser.
-        </div>
+      <div class="desktopCard">
+        <h2>Mobile game</h2>
+        <p>This game is designed for smartphones. Use swipe on mobile. Desktop is only for testing (arrow keys).</p>
       </div>
     </div>
+
+    
 
     <!-- ✅ SETTINGS OVERLAY -->
     <div class="settingsOverlay" id="settingsOverlay" aria-hidden="true">
@@ -144,31 +139,13 @@ export function mountUI(app) {
           <div class="winTitle">Select Level</div>
         </div>
 
-<div class="levelGrid" id="levelGrid"></div>
+        <div class="levelGrid" id="levelGrid"></div>
 
-<div class="winRow">
-<button class="winBtnSecondary" id="levelSelectClose">Close</button>
-</div>
-</div>
-</div>
-    
-    <!-- ✅ FULLSCREEN WELCOME OVERLAY -->
-<div class="welcomeOverlay" id="welcomeOverlay" aria-hidden="false">
-  <div class="welcomeCard">
-    <h1 class="welcomeTitle">Welcome to Adventure Maze</h1>
-    <div class="loginWrap">
-  <button class="iconBtnWide" id="loginBtn">
-    <span id="loginBtnText">Login</span>
-  </button>
-
-  <div class="userPill" id="userPill">U:guest</div>
-
-  <!-- ✅ NEW: TEST button (hidden by default) -->
-  <button class="iconBtnWide" id="testBtn" style="display:none;">
-    Tap To Play
-  </button>
-
-</div>
+        <div class="winRow">
+          <button class="winBtnSecondary" id="levelSelectClose">Close</button>
+        </div>
+      </div>
+    </div>
   `;
 
   // ✅ Inject UI styles (Login Gate + Settings + Win overlay + login wrap)
@@ -462,8 +439,6 @@ export function mountUI(app) {
   const winNextBtn = document.getElementById("winNextBtn");
   const winAdBtn = document.getElementById("winAdBtn");
   
-  const welcomeOverlay = document.getElementById("welcomeOverlay");
-  
   // Level select
   const levelSelectOverlay = document.getElementById("levelSelectOverlay");
   const levelGrid = document.getElementById("levelGrid");
@@ -517,13 +492,6 @@ export function mountUI(app) {
   levelSelectOverlay?.addEventListener("click", (e) => {
     if (e.target === levelSelectOverlay) hideLevelSelect();
   });
-function hideWelcome() {
-  if (!welcomeOverlay) return;
-
-  welcomeOverlay.style.display = "none";
-  welcomeOverlay.setAttribute("aria-hidden", "true");
-}
-
 
   // ---------------------------
   // State + handlers
@@ -602,36 +570,11 @@ function hideWelcome() {
   });
 
   function setUser(user) {
-  const name = user?.username || "guest";
-
-  // update text
-  if (userPill) userPill.textContent = `User: ${name}`;
-  if (loginBtnText) {
-    loginBtnText.textContent =
-      name === "guest" ? "Login with Pi" : "Logged in ✅";
+    const name = user?.username || "guest";
+    if (userPill) userPill.textContent = `User: ${name}`;
+    if (loginBtnText)
+      loginBtnText.textContent = name === "guest" ? "Login with Pi" : "Logged in ✅";
   }
-
-  // ✅ NEW: toggle buttons after login
-  const testBtn = document.getElementById("testBtn");
-
-  testBtn?.addEventListener("click", () => {
-  hideWelcome();
-
-  
-});
-
-  if (name !== "guest") {
-    // logged in
-    loginBtn?.style.setProperty("display", "none");
-    userPill?.style.setProperty("display", "none");
-    if (testBtn) testBtn.style.display = "inline-flex";
-  } else {
-    // logged out / guest
-    loginBtn?.style.setProperty("display", "inline-flex");
-    userPill?.style.setProperty("display", "inline-flex");
-    if (testBtn) testBtn.style.display = "none";
-  }
-}
 
   // ---------------------------
   // Settings
@@ -698,12 +641,11 @@ function hideWelcome() {
   }
 
   return {
-    hideWelcome,
     onHint(fn) { hintHandler = fn; },
     onSkip(fn) { skipHandler = fn; },
     canvas: document.getElementById("game"),
 
-    // header login UI
+    // header login UI (kept for compatibility)
     loginBtn,
     loginBtnText,
     userPill,
@@ -746,7 +688,7 @@ function hideWelcome() {
     showLevelSelect,
     hideLevelSelect,
     onLevelSelect(fn) {
-    levelSelectHandler = fn;
+      levelSelectHandler = fn;
     },
   };
 }
@@ -762,30 +704,6 @@ function iconBtn(id, svg, badgeText) {
 }
 
 /* --- SVG functions --- */
-
-function userAccountSVG() {
-  return `<svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-    <!-- Head -->
-    <path d="M9 8.5c0-1.9 1.6-3.5 3-3.5s3 1.6 3 3.5-1.6 3.3-3 3.3-3-1.4-3-3.3Z"
-      stroke="rgba(234,243,255,.9)"
-      stroke-width="1.8"
-      stroke-linecap="round"
-      stroke-linejoin="round"/>
-
-    <!-- Body -->
-    <path d="M5.5 19c0-3.1 2.5-5.6 5.6-5.6h1.8c3.1 0 5.6 2.5 5.6 5.6"
-      stroke="rgba(234,243,255,.75)"
-      stroke-width="1.8"
-      stroke-linecap="round"
-      stroke-linejoin="round"/>
-
-    <!-- Accent (active user) -->
-    <path d="M10 14.6h4"
-      stroke="rgba(37,215,255,.95)"
-      stroke-width="2.2"
-      stroke-linecap="round"/>
-  </svg>`;
-}
 function gearSVG() {
   return `<svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
     <path d="M12 15.2a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4Z" stroke="rgba(234,243,255,.95)" stroke-width="1.8"/>
@@ -794,21 +712,32 @@ function gearSVG() {
 }
 
 function joystickSVG() {
-return `<svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-    <!-- Level 1 -->
-    <path d="M4 18h16" stroke="rgba(234,243,255,.75)" stroke-width="1.8" stroke-linecap="round"/>
-    <path d="M4 18h6" stroke="rgba(37,215,255,.95)" stroke-width="2.2" stroke-linecap="round"/>
-
-    <!-- Level 2 -->
-    <path d="M6 13h12" stroke="rgba(234,243,255,.75)" stroke-width="1.8" stroke-linecap="round"/>
-    <path d="M6 13h5" stroke="rgba(37,215,255,.95)" stroke-width="2.2" stroke-linecap="round"/>
-
-    <!-- Level 3 -->
-    <path d="M8 8h8" stroke="rgba(234,243,255,.75)" stroke-width="1.8" stroke-linecap="round"/>
-    <path d="M8 8h4" stroke="rgba(37,215,255,.95)" stroke-width="2.2" stroke-linecap="round"/>
+  return `<svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <path d="M9 8.5c0-1.7 1.3-3 3-3s3 1.3 3 3v1.2c0 1.7-1.3 3-3 3s-3-1.3-3-3V8.5Z" stroke="rgba(234,243,255,.9)" stroke-width="1.8"/>
+    <path d="M6.5 19.5h11c1.2 0 2.2-1 2.2-2.2 0-3-2.4-5.4-5.4-5.4H9.7c-3 0-5.4 2.4-5.4 5.4 0 1.2 1 2.2 2.2 2.2Z" stroke="rgba(234,243,255,.75)" stroke-width="1.8" stroke-linejoin="round"/>
+    <path d="M7.3 15.3h2.4M16.3 15.3h-2.4" stroke="rgba(37,215,255,.95)" stroke-width="2.1" stroke-linecap="round"/>
   </svg>`;
-
 }
 
+function brushSVG() {
+  return `<svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <path d="M14.5 3.5 20.5 9.5 11 19c-.7.7-1.7 1-2.7.8l-2.8-.6.6-2.8c.2-1 .5-2 1.2-2.7L14.5 3.5Z" stroke="rgba(234,243,255,.85)" stroke-width="1.8" stroke-linejoin="round"/>
+    <path d="M7.2 20.1c.1.8-.1 1.6-.7 2.2-.9.9-2.4.9-3.3 0" stroke="rgba(37,215,255,.95)" stroke-width="2.1" stroke-linecap="round"/>
+  </svg>`;
+}
 
+function trophySVG() {
+  return `<svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <path d="M8 5h8v3.2c0 2.8-1.8 5.2-4 5.2s-4-2.4-4-5.2V5Z" stroke="rgba(234,243,255,.85)" stroke-width="1.8" stroke-linejoin="round"/>
+    <path d="M9 19h6M10.2 16.5h3.6" stroke="rgba(234,243,255,.75)" stroke-width="1.8" stroke-linecap="round"/>
+    <path d="M6.5 6.2H4.5c0 3 1.4 4.8 3.6 5.4M17.5 6.2h2c0 3-1.4 4.8-3.6 5.4" stroke="rgba(37,215,255,.95)" stroke-width="1.8" stroke-linecap="round"/>
+  </svg>`;
+}
 
+function noAdsSVG() {
+  return `<svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <path d="M7 7h10l-1 11H8L7 7Z" stroke="rgba(234,243,255,.85)" stroke-width="1.8" stroke-linejoin="round"/>
+    <path d="M9 7V5.5c0-.8.7-1.5 1.5-1.5h3c.8 0 1.5.7 1.5 1.5V7" stroke="rgba(234,243,255,.75)" stroke-width="1.8" stroke-linejoin="round"/>
+    <path d="M5 19 19 5" stroke="rgba(255,75,58,.95)" stroke-width="2.4" stroke-linecap="round"/>
+  </svg>`;
+}

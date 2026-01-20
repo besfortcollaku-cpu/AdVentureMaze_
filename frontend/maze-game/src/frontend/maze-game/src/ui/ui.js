@@ -3,31 +3,26 @@
 export function mountUI(app) {
   app.innerHTML = `
     <div class="phone">
-      <div class="topbar">
-        <div class="topRow">
-            <div class="levelWrap">
-              <div class="levelText">Level 1</div>
-                <div class="coins" title="Coins">
-                  <div class="coinDot"></div>
-                   <div id="coinCount">0</div>
-                </div>
-            </div>
-         </div>     
-        
-          </div>
-            <div class="iconRow">
-            ${iconBtn("accountBtn", userAccountSVG(), "")}
-            ${iconBtn("settingsBtn", gearSVG(), "")}
-            ${iconBtn("controls", joystickSVG(), "")}
-         </div>
+      <div class="topRow">
+  <div class="levelBox">
+    <span id="levelText">Level 1</span>
+  </div>
+
+  <div class="icons">
+    ${iconBtn("settingsBtn", gearSVG(), "")}
+    ${iconBtn("controls", joystickSVG(), "")}
+  </div>
+
+  <div class="coinsInline">
+    <span class="coinIcon">🪙</span>
+    <span id="coinCount">0</span>
+  </div>
     </div>
-            <div class="boardWrap">
-              <div class="boardFrame">
-                <canvas id="game"></canvas>
-              </div>
-            </div>
-
-
+    <div class="boardWrap">
+    <div class="boardFrame">
+    <canvas id="game"></canvas>
+    </div>
+    </div>
     <div class="bottomBar">
     <button class="btn" id="hintBtn">
     <div class="btnIcon">🎬</div>
@@ -437,7 +432,9 @@ export function mountUI(app) {
   // ---------------------------
   // Elements
   // ---------------------------
+ 
   const coinCountEl = document.getElementById("coinCount");
+ 
 
   // Header login UI
   const loginBtn = document.getElementById("loginBtn");
@@ -552,7 +549,10 @@ function hideWelcome() {
   function setCoins(n) {
     if (coinCountEl) coinCountEl.textContent = String(n ?? 0);
   }
-
+function setLevel(n) {
+  const el = document.getElementById("levelText");
+  if (el) el.textContent = `Level ${n}`;
+}
   // ---------------------------
   // Login Gate API
   // ---------------------------

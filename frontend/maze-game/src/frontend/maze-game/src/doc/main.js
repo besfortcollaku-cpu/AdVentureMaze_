@@ -236,17 +236,16 @@ ui.onLevelSelect((selectedIndex) => {
 
   const serverUser = me.user;
   const serverProgress = me.progress;
-  
-const savedLevel = Number(serverProgress?.level || 1);
-  levelIndex = clampLevelIndex(savedLevel - 1);
-  
-  const UNLOCKED_LEVEL = savedLevel;
+
   CURRENT_USER = { username: serverUser.username, uid: serverUser.uid };
 
   COINS = Number(serverUser.coins || 0);
   ui.setCoins(COINS);
 
+  const savedLevel = Number(serverProgress?.level || 1);
+  levelIndex = clampLevelIndex(savedLevel - 1);
   
+  const UNLOCKED_LEVEL = savedLevel;
 
   // WIN popup actions
   ui.onWinNext(async () => {
@@ -329,27 +328,6 @@ const savedLevel = Number(serverProgress?.level || 1);
   });
 
   game.start();
-<<<<<<< HEAD
-
-  document.getElementById("controls")?.addEventListener("click", () => {
-    ui.showLevelSelect({
-      totalLevels: levels.length,
-      currentLevel: levelIndex + 1,
-      isCompleted: (lvl) => lvl <= UNLOCKED_LEVEL,
-    });
-  });
-
-  ui.onLevelSelect((selectedIndex) => {
-  levelIndex = clampLevelIndex(selectedIndex);
-  rewardedThisLevel = false;  // ✅ MUST be false to allow play
-  game.setLevel(levels[levelIndex]);
-  game.start();               // ✅ RESTART GAME LOOP
-  ui.setLevel(levelIndex + 1);
-});
-
-  ui.onFirstUserGesture(() => ensureAudioUnlocked());
-=======
->>>>>>> a0923e9a980c7f046db046f3cc244f520adcc8b1
 }
 
 // ---------------------------
