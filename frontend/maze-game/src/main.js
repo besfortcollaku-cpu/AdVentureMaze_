@@ -114,11 +114,12 @@ async function boot() {
   });
 
   ui.onLevelSelect((selectedIndex) => {
-    levelIndex = clampLevelIndex(selectedIndex);
-    rewardedThisLevel = true;
-    game.setLevel(levels[levelIndex]);
-    ui.setLevel(levelIndex + 1);
-  });
+  levelIndex = clampLevelIndex(selectedIndex);
+  rewardedThisLevel = false;  // ✅ MUST be false to allow play
+  game.setLevel(levels[levelIndex]);
+  game.start();               // ✅ RESTART GAME LOOP
+  ui.setLevel(levelIndex + 1);
+});
 
   ui.onFirstUserGesture(() => ensureAudioUnlocked());
 }
