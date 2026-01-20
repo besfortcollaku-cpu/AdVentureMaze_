@@ -7,10 +7,7 @@ export function mountUI(app) {
         <div class="topRow">
             <div class="levelWrap">
               <div class="levelText">Level 1</div>
-                <div class="coins" title="Coins">
-                  <div class="coinDot"></div>
-                   <div id="coinCount">0</div>
-                </div>
+                
             </div>
          </div>     
         
@@ -20,6 +17,10 @@ export function mountUI(app) {
             ${iconBtn("settingsBtn", gearSVG(), "")}
             ${iconBtn("controls", joystickSVG(), "")}
          </div>
+    <div class="coins" title="Coins">
+                  <div class="coinDot"></div>
+                   <div id="coinCount">0</div>
+                </div>
     </div>
             <div class="boardWrap">
               <div class="boardFrame">

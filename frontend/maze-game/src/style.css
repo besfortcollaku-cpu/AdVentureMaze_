@@ -152,6 +152,8 @@ body{
 
 /* Icon row like the screenshot */
 .iconRow{
+  padding: 10px;
+  float: left;
   display:flex;
   align-items:center;
   justify-content:center;
