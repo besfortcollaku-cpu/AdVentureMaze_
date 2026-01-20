@@ -156,29 +156,7 @@ body{
   justify-content:center;
   gap:5px;
 }
-.topRow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px 14px;
-}
 
-.levelBox {
-  font-weight: 600;
-  font-size: 18px;
-}
-
-.icons {
-  display: flex;
-  gap: 10px;
-}
-
-.coinsInline {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-weight: 600;
-}
 .iconBtn{
   width:36px;
   height:36px;
