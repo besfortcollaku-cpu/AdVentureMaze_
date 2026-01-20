@@ -31,8 +31,14 @@ export function mountUI(app) {
 
     <div class="bottomBar">
     <div class="iconBottom">
-            ${iconBtn("hintsBtn", gameHintsSVG(), "")}
-          <div>HINT</div>
+
+    <div class="icon-item">
+  <span class="icon" aria-hidden="true">
+         ${iconBtn("hintsBtn", gameHintsSVG(), "")}
+          </span>
+          <span class="icon-label">Hints</span>
+        </div>
+        
 
     <div class="pill">Swipe to move</div>
     <button class="btn" id="x3Btn">
