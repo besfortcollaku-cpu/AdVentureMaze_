@@ -314,7 +314,7 @@ async function boot() {
   });
 
   game.start();
-}
+
 
 // ---------------------------
 // Level flow
