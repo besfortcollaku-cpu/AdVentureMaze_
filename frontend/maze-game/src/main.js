@@ -329,7 +329,7 @@ const savedLevel = Number(serverProgress?.level || 1);
   });
 
   game.start();
-<<<<<<< HEAD
+
 
   document.getElementById("controls")?.addEventListener("click", () => {
     ui.showLevelSelect({
@@ -348,8 +348,7 @@ const savedLevel = Number(serverProgress?.level || 1);
 });
 
   ui.onFirstUserGesture(() => ensureAudioUnlocked());
-=======
->>>>>>> a0923e9a980c7f046db046f3cc244f520adcc8b1
+
 }
 
 // ---------------------------
