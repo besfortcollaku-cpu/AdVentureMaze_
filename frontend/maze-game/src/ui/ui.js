@@ -3,31 +3,21 @@
 export function mountUI(app) {
   app.innerHTML = `
     <div class="phone">
-      <div class="topbar">
-        <div class="topRow">
-         <div class="brand">
-            <div class="levelWrap">
-              <div class="levelText">Level 1</div>
-            </div>
-         </div>
-          
-          
-          
-     </div>     
-        
-        </div>
-      <div class="iconRow">
-        ${iconBtn("accountBtn", userAccountSVG(), "")}
-        ${iconBtn("settingsBtn", gearSVG(), "")}
-        ${iconBtn("controls", joystickSVG(), "")}
-    </div>
-    
-        <div class="coins" title="Coins">
-          <div class="coinDot"></div>
-          <div id="coinCount">0</div>
-          </div>
-    </div>
-    </div>
+      <<div class="topRow">
+  <div class="levelBox">
+    <span id="levelText">Level 1</span>
+  </div>
+
+  <div class="icons">
+    ${iconBtn("settingsBtn", gearSVG(), "")}
+    ${iconBtn("controls", joystickSVG(), "")}
+  </div>
+
+  <div class="coinsInline">
+    <span class="coinIcon">🪙</span>
+    <span id="coinCount">0</span>
+  </div>
+</div>
     </div>
     <div class="boardWrap">
     <div class="boardFrame">
