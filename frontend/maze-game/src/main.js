@@ -262,8 +262,13 @@ const savedLevel = Number(serverProgress?.level || 1);
   COINS = Number(serverUser.coins || 0);
   ui.setCoins(COINS);
   ui.setLevel(savedLevel);
+  // ✅ LOAD CURRENT LEVEL INTO GAME
+game.setLevel(levels[levelIndex]);
+
+// ✅ START GAME
+game.start();
   
-}
+
   // WIN popup actions
   ui.onWinNext(async () => {
     ui.hideWinPopup();
