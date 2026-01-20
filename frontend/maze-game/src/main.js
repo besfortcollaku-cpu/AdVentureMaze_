@@ -166,38 +166,55 @@ function clampLevelIndex(i) {
 // Boot
 // ---------------------------
 async function boot() {
-  // 1️⃣ UI first
+  // UI
   ui = mountUI(document.querySelector("#app"));
 
-  // 2️⃣ Game instance
+  // Pi environment
+  const env = await enforcePiEnvironment({
+    desktopBlockEl: document.getElementById("desktopBlock"),
+  });
+  if (!env.ok) return;
+
+  initPi();
+
+  // Login
+  const loginRes = await ensurePiLogin({
+    BACKEND,
+    ui,
+    onLogin: ({ user, accessToken }) => {
+      CURRENT_USER = user;
+      CURRENT_ACCESS_TOKEN = accessToken;
+      ui.userPill.textContent = user.username;
+      ui.loginBtnText.textContent = "✅";
+    },
+  });
+  if (!loginRes?.ok) return;
+
+  // Load server state
+  const me = await apiGetMe();
+  const serverUser = me.user;
+  const serverProgress = me.progress;
+
+  const savedLevel = Number(serverProgress?.level || 1);
+  levelIndex = clampLevelIndex(savedLevel - 1);
+  const UNLOCKED_LEVEL = savedLevel;
+
+  COINS = Number(serverUser.coins || 0);
+
+  ui.setCoins(COINS);
+  ui.setLevel(savedLevel);
+
+  // Game
   game = createGame({
     onWin: handleWin,
     onLose: handleLose,
   });
 
-  // 3️⃣ Fetch server state
-  const me = await api.getMe();
-  const progress = me.progress;
-
-  // 4️⃣ Calculate level
-  const savedLevel = Number(progress?.level || 1);
-  levelIndex = clampLevelIndex(savedLevel - 1);
-  UNLOCKED_LEVEL = savedLevel;
-
-  // 5️⃣ Load level
   game.setLevel(levels[levelIndex]);
-
-  // 6️⃣ Start game
   game.start();
 
-  // 7️⃣ Update UI
-  ui.setLevel(levelIndex + 1);
-  ui.setCoins(me.user.coins);
-
-  // ---------------------------
-  // Level select via joystick icon
-  // ---------------------------
-  document.getElementById("controls")?.addEventListener("click", () => {
+  // Level select
+  document.getElementById("controls")?.addEventListener("clickToggle", () => {
     ui.showLevelSelect({
       totalLevels: levels.length,
       currentLevel: levelIndex + 1,
@@ -207,66 +224,13 @@ async function boot() {
 
   ui.onLevelSelect((selectedIndex) => {
     levelIndex = clampLevelIndex(selectedIndex);
-    rewardedThisLevel = true; // prevent reward on replay
+    rewardedThisLevel = true;
     game.setLevel(levels[levelIndex]);
     ui.setLevel(levelIndex + 1);
   });
 
-  // unlock audio after first gesture
   ui.onFirstUserGesture(() => ensureAudioUnlocked());
 }
-
-  // Pi environment
-  const env = await enforcePiEnvironment({
-    desktopBlockEl: document.getElementById("desktopBlock"),
-  });
-  if (!env.ok) return;
-
-  // init Pi SDK
-  initPi();
-
-  // login
-  const loginRes = await ensurePiLogin({
-    BACKEND,
-    ui,
-    onLogin: ({ user, accessToken }) => {
-      CURRENT_USER = user;
-      CURRENT_ACCESS_TOKEN = accessToken;
-
-      if (ui?.userPill) ui.userPill.textContent = `${user.username}`;
-      if (ui?.loginBtnText) ui.loginBtnText.textContent = "✅";
-    },
-  });
-
-  if (!loginRes?.ok) return;
-
-  // load server state
-  let me;
-  try {
-    me = await apiGetMe();
-  } catch (e) {
-    const msg = normalizeErr(e);
-    if (!handleAuthExpiredIfNeeded(msg)) alert("Failed to load profile: " + msg);
-    return;
-  }
-
-  const serverUser = me.user;
-  const serverProgress = me.progress;
-  
-const savedLevel = Number(serverProgress?.level || 1);
-  levelIndex = clampLevelIndex(savedLevel - 1);
-  
-  const UNLOCKED_LEVEL = savedLevel;
-  CURRENT_USER = { username: serverUser.username, uid: serverUser.uid };
-
-  COINS = Number(serverUser.coins || 0);
-  ui.setCoins(COINS);
-  ui.setLevel(savedLevel);
-  // ✅ LOAD CURRENT LEVEL INTO GAME
-game.setLevel(levels[levelIndex]);
-
-// ✅ START GAME
-game.start();
   
 
   // WIN popup actions
