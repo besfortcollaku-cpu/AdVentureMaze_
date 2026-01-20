@@ -357,7 +357,7 @@ const savedLevel = Number(serverProgress?.level || 1);
 function onLevelComplete() {
   const isLastLevel = levelIndex >= levels.length - 1;
 
-  // ✅ claim +1 once per level completion
+  // ✅ reward once
   if (!rewardedThisLevel) {
     rewardedThisLevel = true;
     (async () => {
@@ -371,14 +371,15 @@ function onLevelComplete() {
     })();
   }
 
-  // save progress (next unlocked level)
+  // ✅ next unlocked level
   const nextLevelNumber = isLastLevel ? 1 : levelIndex + 2;
 
-  // ✅ THIS FIXES THE LOCK ISSUE
+  // ✅ update unlock state in memory
   if (nextLevelNumber > UNLOCKED_LEVEL) {
     UNLOCKED_LEVEL = nextLevelNumber;
   }
 
+  // ✅ save progress
   (async () => {
     try {
       await apiSetProgress({
@@ -390,23 +391,8 @@ function onLevelComplete() {
       console.warn("progress save failed:", e);
     }
   })();
-}
 
-  // save progress (next unlocked level)
-  const nextLevelNumber = isLastLevel ? 1 : levelIndex + 2;
-  (async () => {
-    try {
-      await apiSetProgress({
-        uid: CURRENT_USER.uid,
-        level: nextLevelNumber,
-        coins: COINS,
-      });
-      UNLOCKED_LEVEL = nextLevelNumber;
-    } catch (e) {
-      console.warn("progress save failed:", e);
-    }
-  })();
-
+  // ✅ popup LAST
   ui.showWinPopup({
     levelNumber: levelIndex + 1,
     isLastLevel,
