@@ -162,44 +162,59 @@ function clampLevelIndex(i) {
 // ---------------------------
 // Boot
 // ---------------------------
+// ---------------------------
+// Boot
+// ---------------------------
 async function boot() {
+  // 1️⃣ UI first
   ui = mountUI(document.querySelector("#app"));
 
+  // 2️⃣ Game instance
+  game = createGame({
+    onWin: handleWin,
+    onLose: handleLose,
+  });
 
-// Level select via joystick icon
-document.getElementById("controls")?.addEventListener("click", () => {
-  ui.showLevelSelect({
-  totalLevels: levels.length,
-  currentLevel: levelIndex + 1,
-  isCompleted: (lvl) => lvl <= UNLOCKED_LEVEL,
-});
-});
-ui.onLevelSelect((selectedIndex) => {
-  levelIndex = clampLevelIndex(selectedIndex);
-  rewardedThisLevel = true; // prevent reward on replay
+  // 3️⃣ Fetch server state
+  const me = await api.getMe();
+  const progress = me.progress;
+
+  // 4️⃣ Calculate level
+  const savedLevel = Number(progress?.level || 1);
+  levelIndex = clampLevelIndex(savedLevel - 1);
+  UNLOCKED_LEVEL = savedLevel;
+
+  // 5️⃣ Load level
   game.setLevel(levels[levelIndex]);
 
-  ui.setLevel(levelIndex + 1); // ✅ ADD THIS LINE
-});
+  // 6️⃣ Start game
+  game.start();
+
+  // 7️⃣ Update UI
+  ui.setLevel(levelIndex + 1);
+  ui.setCoins(me.user.coins);
+
+  // ---------------------------
+  // Level select via joystick icon
+  // ---------------------------
+  document.getElementById("controls")?.addEventListener("click", () => {
+    ui.showLevelSelect({
+      totalLevels: levels.length,
+      currentLevel: levelIndex + 1,
+      isCompleted: (lvl) => lvl <= UNLOCKED_LEVEL,
+    });
+  });
+
+  ui.onLevelSelect((selectedIndex) => {
+    levelIndex = clampLevelIndex(selectedIndex);
+    rewardedThisLevel = true; // prevent reward on replay
+    game.setLevel(levels[levelIndex]);
+    ui.setLevel(levelIndex + 1);
+  });
+
   // unlock audio after first gesture
   ui.onFirstUserGesture(() => ensureAudioUnlocked());
-
-  // settings
-  const s0 = getSettings();
-  ui.setSoundEnabled(s0.sound);
-  ui.setVibrationEnabled(s0.vibration);
-
-  ui.onSoundToggle((v) => {
-    setSetting("sound", v);
-    if (!v) stopRollSound();
-  });
-  ui.onVibrationToggle((v) => setSetting("vibration", v));
-
-  subscribeSettings((s) => {
-    ui.setSoundEnabled(s.sound);
-    ui.setVibrationEnabled(s.vibration);
-    if (!s.sound) stopRollSound();
-  });
+}
 
   // Pi environment
   const env = await enforcePiEnvironment({
