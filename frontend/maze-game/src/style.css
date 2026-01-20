@@ -129,6 +129,7 @@ body{
 }
 
 .coins{
+  float: right;
   display:flex;
   align-items:center;
   gap:8px;
