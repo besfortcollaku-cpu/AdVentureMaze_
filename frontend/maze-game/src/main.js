@@ -181,6 +181,7 @@ ui.onLevelSelect((selectedIndex) => {
 });
   // unlock audio after first gesture
   ui.onFirstUserGesture(() => ensureAudioUnlocked());
+  }
 
   // settings
   const s0 = getSettings();
