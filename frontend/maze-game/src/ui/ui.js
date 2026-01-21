@@ -716,54 +716,51 @@ function hideWelcome() {
   }
 
   return {
-    hideWelcome,
-    onHint(fn) { hintHandler = fn; },
-    onSkip(fn) { skipHandler = fn; },
-    canvas: document.getElementById("game"),
-    showPiBadge,
-    hidePiBadge
+  hideWelcome,
 
-    setCoins,
+  onHint(fn) { hintHandler = fn; },
+  onSkip(fn) { skipHandler = fn; },
 
-    // ✅ audio unlock hook
-    onFirstUserGesture(fn) {
-      firstGestureHandler = fn;
-    },
+  canvas: document.getElementById("game"),
 
-    // ✅ login gate methods for ensurePiLogin()
+  showPiBadge,
+  hidePiBadge,
 
-    showLoginError,
-    onLoginClick,
-    setUser,
+  setCoins,
 
-    // Settings API
-    setSoundEnabled,
-    setVibrationEnabled,
-    onSoundToggle(fn) {
-      soundHandler = fn;
-    },
-    onVibrationToggle(fn) {
-      vibrationHandler = fn;
-    },
+  // ✅ audio unlock hook
+  onFirstUserGesture(fn) {
+    firstGestureHandler = fn;
+  },
 
-    // Win popup API (✅ kept only once)
-    showWinPopup,
-    hideWinPopup,
-    onWinNext(fn) {
-      winNextHandler = fn;
-    },
-    onWinAd(fn) {
-      winAdHandler = fn;
-    },
+  // Settings API
+  setSoundEnabled,
+  setVibrationEnabled,
+  onSoundToggle(fn) {
+    soundHandler = fn;
+  },
+  onVibrationToggle(fn) {
+    vibrationHandler = fn;
+  },
 
-    // ✅ Level select API
-    showLevelSelect,
-    hideLevelSelect,
-    updateLevelLocks,
-    onLevelSelect(fn) {
+  // Win popup API
+  showWinPopup,
+  hideWinPopup,
+  onWinNext(fn) {
+    winNextHandler = fn;
+  },
+  onWinAd(fn) {
+    winAdHandler = fn;
+  },
+
+  // Level select API
+  showLevelSelect,
+  hideLevelSelect,
+  updateLevelLocks,
+  onLevelSelect(fn) {
     levelSelectHandler = fn;
-    },
-  };
+  },
+};
 }
 
 /* ---------------- UI helpers ---------------- */
