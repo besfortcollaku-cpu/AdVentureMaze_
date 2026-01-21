@@ -575,17 +575,13 @@ function hideWelcome() {
   onSkip(fn) { skipHandler = fn; },
 
   canvas: document.getElementById("game"),
-
   showPiBadge,
   hidePiBadge,
-
   setCoins,
-
   // ✅ audio unlock hook
   onFirstUserGesture(fn) {
     firstGestureHandler = fn;
   },
-
   // Settings API
   setSoundEnabled,
   setVibrationEnabled,

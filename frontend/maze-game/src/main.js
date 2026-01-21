@@ -159,11 +159,15 @@ function clampLevelIndex(i) {
   return i;
 }
 function getMaxPlayableLevel() {
-  if (HAS_PI_BADGE) return UNLOCKED_LEVEL;
-  
-  return 5;
-}
+  const total = levels.length;
 
+  if (HAS_PI_BADGE) {
+    return Math.min(UNLOCKED_LEVEL, total);
+  }
+
+  // guest: max 5 levels
+  return Math.min(5, total);
+}
 // ---------------------------
 // Boot
 // ---------------------------
@@ -183,10 +187,10 @@ ui.showLevelSelect({
 ui.onLevelSelect((selectedIndex) => {
   const selectedLevel = selectedIndex + 1;
 
-  if (!HAS_PI_BADGE && selectedLevel > 5) {
-    ui.showToast?.("🔒 Pi Badge required");
-    return;
-  }
+if (selectedLevel > getMaxPlayableLevel()) {
+  ui.showToast?.("🔒 Unlock Pi Badge to continue");
+  return;
+}
 
   levelIndex = clampLevelIndex(selectedIndex);
   rewardedThisLevel = false;
