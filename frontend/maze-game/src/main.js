@@ -420,6 +420,13 @@ async function goNextLevel() {
     });
   } catch (e) {
     console.warn("progress save failed:", e);
+    // ✅ ALWAYS start the game (guest or logged-in)
+levelIndex = clampLevelIndex(levelIndex);
+rewardedThisLevel = false;
+
+game.setLevel(levels[levelIndex]);
+game.start();
+ui.setLevel(levelIndex + 1);
   }
 
 
