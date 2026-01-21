@@ -29,6 +29,21 @@ let rewardedThisLevel = false;
 // ---------------------------
 // Backend helpers
 // ---------------------------
+
+function hasPiSession() {
+  try {
+    const raw = localStorage.getItem("pi_session_v1");
+    if (!raw) return false;
+    const s = JSON.parse(raw);
+    return !!s?.accessToken;
+  } catch {
+    return false;
+  }
+}
+function getMaxPlayableLevel() {
+  if (HAS_PI_BADGE) return UNLOCKED_LEVEL;
+  return 5; // guest limit
+}
 function authHeaders() {
   if (!CURRENT_ACCESS_TOKEN) {
     throw new Error("Missing access token. Please login again.");
@@ -170,7 +185,7 @@ document.getElementById("controls")?.addEventListener("click", () => {
   ui.showLevelSelect({
   totalLevels: levels.length,
   currentLevel: levelIndex + 1,
-  isCompleted: (lvl) => lvl < UNLOCKED_LEVEL,
+  isCompleted: (lvl) => lvl <= getMaxPlayableLevel(),
 });
 });
 
@@ -208,6 +223,8 @@ ui.onLevelSelect((selectedIndex) => {
   // init Pi SDK
   initPi();
 
+HAS_PI_BADGE = hasPiSession();
+console.log("[PI BADGE]", HAS_PI_BADGE);
   // login
   
 
@@ -322,7 +339,7 @@ const savedLevel = Number(serverProgress?.level || 1);
     ui.showLevelSelect({
       totalLevels: levels.length,
       currentLevel: levelIndex + 1,
-      isCompleted: (lvl) => lvl <= UNLOCKED_LEVEL,
+      isCompleted: (lvl) => lvl <= getMaxPlayableLevel(),
     });
   });
 
@@ -378,20 +395,21 @@ function onLevelComplete() {
     isLastLevel,
   });
 }
-
 async function goNextLevel() {
+  const max = getMaxPlayableLevel();
   const next = levelIndex + 1;
 
-  if (next >= levels.length) {
-    levelIndex = 0;
-  } else {
-    levelIndex = next;
+  if (next + 1 > max) {
+    ui.showToast?.("🔒 Login with Pi to unlock more levels");
+    return;
   }
 
+  levelIndex = next;
   rewardedThisLevel = false;
 
   game.setLevel(levels[levelIndex]);
-
+  game.start();
+}
   // best-effort save current progress level
   try {
     await apiSetProgress({
