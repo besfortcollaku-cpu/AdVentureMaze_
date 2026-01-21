@@ -261,7 +261,6 @@ try {
 }
 
 // ---- User defaults ----
-let me = null;
 if (!me) {
   // ✅ Guest
   CURRENT_USER = { username: "guest", uid: null };
