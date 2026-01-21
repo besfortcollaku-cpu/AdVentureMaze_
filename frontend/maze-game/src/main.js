@@ -190,8 +190,11 @@ ui.onLevelSelect((selectedIndex) => {
 
   levelIndex = clampLevelIndex(selectedIndex);
   rewardedThisLevel = false;
+
+  game.stop?.();                 // ✅ ADD THIS LINE
   game.setLevel(levels[levelIndex]);
-  game.start();
+  game.start();                  // clean restart
+
   ui.setLevel(levelIndex + 1);
 });
   // unlock audio after first gesture
