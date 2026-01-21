@@ -722,9 +722,6 @@ function hideWelcome() {
     canvas: document.getElementById("game"),
     showPiBadge,
     hidePiBadge
-    // header login UI
-    loginBtn,
-    loginBtnText,
     userPill,
 
     setCoins,
@@ -735,8 +732,7 @@ function hideWelcome() {
     },
 
     // ✅ login gate methods for ensurePiLogin()
-    showLoginGate,
-    hideLoginGate,
+
     showLoginError,
     onLoginClick,
     setUser,
