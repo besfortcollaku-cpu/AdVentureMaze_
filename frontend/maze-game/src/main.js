@@ -231,13 +231,14 @@ if (selectedLevel > getMaxPlayableLevel()) {
   initPi();
 
   // login
-  
-// ---- Pi badge check (NO LOGIN REQUIRED) ----
+  // ---- Pi badge check (NO LOGIN REQUIRED) ----
+let me = null;
+
 try {
-  try {
   const res = await fetch(`${BACKEND}/api/pi/badge`, {
     credentials: "include",
   });
+
   const data = await res.json();
   HAS_PI_BADGE = !!data?.hasBadge;
 
@@ -245,6 +246,11 @@ try {
 
   if (HAS_PI_BADGE) {
     ui.showPiBadge();
+    try {
+      me = await apiGetMe(); // only allowed with badge
+    } catch (e) {
+      console.warn("[PROFILE] load failed", e);
+    }
   } else {
     ui.hidePiBadge();
   }
@@ -253,8 +259,10 @@ try {
   HAS_PI_BADGE = false;
   ui.hidePiBadge();
 }
+
+// ---- User defaults ----
 if (!me) {
-  // ✅ Guest defaults
+  // ✅ Guest
   CURRENT_USER = { username: "guest", uid: null };
   COINS = 0;
   UNLOCKED_LEVEL = 1;
@@ -267,10 +275,13 @@ if (!me) {
   levelIndex = clampLevelIndex(savedLevel - 1);
   UNLOCKED_LEVEL = savedLevel;
 
-  CURRENT_USER = { username: serverUser.username, uid: serverUser.uid };
+  CURRENT_USER = {
+    username: serverUser.username,
+    uid: serverUser.uid,
+  };
+
   COINS = Number(serverUser.coins || 0);
 }
-
   
   
 
