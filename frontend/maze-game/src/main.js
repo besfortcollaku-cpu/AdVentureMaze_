@@ -161,7 +161,7 @@ function clampLevelIndex(i) {
 function getMaxPlayableLevel() {
   if (HAS_PI_BADGE) return UNLOCKED_LEVEL;
   
-  return Math.min(5, UNLOCKED_LEVEL);
+  return 5;
 }
 
 // ---------------------------
@@ -183,7 +183,7 @@ ui.showLevelSelect({
 ui.onLevelSelect((selectedIndex) => {
   const selectedLevel = selectedIndex + 1;
 
-  if (!HAS_PI_BADGE && selectedLevel > 1) {
+  if (!HAS_PI_BADGE && selectedLevel > 5) {
     ui.showToast?.("🔒 Pi Badge required");
     return;
   }
@@ -235,8 +235,14 @@ try {
   });
   const data = await res.json();
   HAS_PI_BADGE = !!data?.hasBadge;
+  if (HAS_PI_BADGE) {
+  ui.showPiBadge();
+} else {
+  ui.hidePiBadge();
+}
 } catch {
   HAS_PI_BADGE = false;
+  ui.hidePiBadge()
 }
   // load server state
   let me = null;
