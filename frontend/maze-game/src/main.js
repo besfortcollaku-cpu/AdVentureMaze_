@@ -15,6 +15,8 @@ const BACKEND = "https://adventuremaze.onrender.com";
 
 let CURRENT_USER = { username: "guest", uid: null };
 let CURRENT_ACCESS_TOKEN = null;
+let HAS_PI_BADGE = false;
+let UNLOCKED_LEVEL = 1;
 
 let levelIndex = 0;
 let game = null;
@@ -189,7 +191,7 @@ document.getElementById("controls")?.addEventListener("click", () => {
 });
 });
 
-ui.
+
   // unlock audio after first gesture
   ui.onFirstUserGesture(() => ensureAudioUnlocked());
 
@@ -349,13 +351,19 @@ ui.setCoins(COINS);
       isCompleted: (lvl) => lvl <= getMaxPlayableLevel(),
     });
   });
+ui.onLevelSelect((selectedIndex) => {
+  const selectedLevel = selectedIndex + 1;
+  const max = getMaxPlayableLevel();
 
-  ui.onLevelSelect((selectedIndex) => {
+  if (selectedLevel > max) {
+    ui.showToast?.("🔒 Login with Pi to unlock more levels");
+    return;
+  }
+
   levelIndex = clampLevelIndex(selectedIndex);
-  rewardedThisLevel = false;  // ✅ MUST be false to allow play
+  rewardedThisLevel = false;
   game.setLevel(levels[levelIndex]);
-  game.start();               // ✅ RESTART GAME LOOP
-  ui.setLevel(levelIndex + 1);
+  game.start();
 });
 
   ui.onFirstUserGesture(() => ensureAudioUnlocked());
