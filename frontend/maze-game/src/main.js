@@ -4,7 +4,6 @@ import "./style.css";
 import { mountUI } from "./ui/ui.js";
 import { enforcePiEnvironment } from "./pi/piDetect.js";
 import { initPi } from "./pi/piInit.js";
-// import { ensurePiLogin } from "./pi/piClient.js";
 
 import { createGame } from "./game/game.js";
 import { levels } from "./levels/index.js";
@@ -13,17 +12,17 @@ import { getSettings, setSetting, subscribeSettings } from "./settings.js";
 import { ensureAudioUnlocked, stopRollSound } from "./game/rollSound.js";
 
 const BACKEND = "https://adventuremaze.onrender.com";
-const GUEST_MAX_LEVEL = 5;
+
 let CURRENT_USER = { username: "guest", uid: null };
 let CURRENT_ACCESS_TOKEN = null;
-let HAS_PI_BADGE = false;
+
 let levelIndex = 0;
 let game = null;
 let ui = null;
 
 // local cache synced from /api/me
 let COINS = 0;
-let UNLOCKED_LEVEL = 1;
+
 // prevent double reward per completion
 let rewardedThisLevel = false;
 
@@ -32,7 +31,7 @@ let rewardedThisLevel = false;
 // ---------------------------
 function authHeaders() {
   if (!CURRENT_ACCESS_TOKEN) {
-    return {}; // ✅ guest mode: no auth header
+    throw new Error("Missing access token. Please login again.");
   }
   return {
     Authorization: `Bearer ${CURRENT_ACCESS_TOKEN}`,
@@ -158,16 +157,7 @@ function clampLevelIndex(i) {
   if (i >= levels.length) return 0;
   return i;
 }
-function getMaxPlayableLevel() {
-  const total = levels.length;
 
-  if (HAS_PI_BADGE) {
-    return Math.min(UNLOCKED_LEVEL, total);
-  }
-
-  // guest: max 5 levels
-  return Math.min(5, total);
-}
 // ---------------------------
 // Boot
 // ---------------------------
@@ -177,29 +167,17 @@ async function boot() {
 
 // Level select via joystick icon
 document.getElementById("controls")?.addEventListener("click", () => {
-ui.showLevelSelect({
+  ui.showLevelSelect({
   totalLevels: levels.length,
   currentLevel: levelIndex + 1,
-  isCompleted: (lvl) => lvl <= getMaxPlayableLevel(),
+  isCompleted: (lvl) => lvl < UNLOCKED_LEVEL,
 });
 });
 
 ui.onLevelSelect((selectedIndex) => {
-  const selectedLevel = selectedIndex + 1;
-
-if (selectedLevel > getMaxPlayableLevel()) {
-  ui.showToast?.("🔒 Unlock Pi Badge to continue");
-  return;
-}
-
   levelIndex = clampLevelIndex(selectedIndex);
-  rewardedThisLevel = false;
-
-  game.stop?.();                 // ✅ ADD THIS LINE
+  rewardedThisLevel = true; // prevent reward on replay
   game.setLevel(levels[levelIndex]);
-  game.start();                  // clean restart
-
-  ui.setLevel(levelIndex + 1);
 });
   // unlock audio after first gesture
   ui.onFirstUserGesture(() => ensureAudioUnlocked());
@@ -231,58 +209,30 @@ if (selectedLevel > getMaxPlayableLevel()) {
   initPi();
 
   // login
-  // ---- Pi badge check (NO LOGIN REQUIRED) ----
-let me = null;
+  
 
-try {
-  const res = await fetch(`${BACKEND}/api/pi/badge`, {
-    credentials: "include",
-  });
-
-  const data = await res.json();
-  HAS_PI_BADGE = !!data?.hasBadge;
-
-  console.log("[PI BADGE]", HAS_PI_BADGE, data);
-
-  if (HAS_PI_BADGE) {
-    ui.showPiBadge();
-    try {
-      me = await apiGetMe(); // only allowed with badge
-    } catch (e) {
-      console.warn("[PROFILE] load failed", e);
-    }
-  } else {
-    ui.hidePiBadge();
+  // load server state
+  let me;
+  try {
+    me = await apiGetMe();
+  } catch (e) {
+    const msg = normalizeErr(e);
+    if (!handleAuthExpiredIfNeeded(msg)) alert("Failed to load profile: " + msg);
+    return;
   }
-} catch (e) {
-  console.log("[PI BADGE] fetch failed", e);
-  HAS_PI_BADGE = false;
-  ui.hidePiBadge();
-}
 
-// ---- User defaults ----
-if (!me) {
-  // ✅ Guest
-  CURRENT_USER = { username: "guest", uid: null };
-  COINS = 0;
-  UNLOCKED_LEVEL = 1;
-  levelIndex = 0;
-} else {
   const serverUser = me.user;
   const serverProgress = me.progress;
-
-  const savedLevel = Number(serverProgress?.level || 1);
+  
+const savedLevel = Number(serverProgress?.level || 1);
   levelIndex = clampLevelIndex(savedLevel - 1);
-  UNLOCKED_LEVEL = savedLevel;
-
-  CURRENT_USER = {
-    username: serverUser.username,
-    uid: serverUser.uid,
-  };
+  
+  let UNLOCKED_LEVEL = savedLevel;
+  CURRENT_USER = { username: serverUser.username, uid: serverUser.uid };
 
   COINS = Number(serverUser.coins || 0);
-}
-  
+  ui.setCoins(COINS);
+
   
 
   // WIN popup actions
@@ -296,7 +246,7 @@ if (!me) {
     try {
       ui.showToast?.("Watching ad…");
       await delay(5000);
-      if (!HAS_PI_BADGE) return;
+
       const out = await apiAd50();
       COINS = Number(out?.user?.coins ?? COINS);
       ui.setCoins(COINS);
@@ -320,7 +270,7 @@ if (!me) {
     try {
       ui.showToast?.("Processing skip…");
       await delay(5000);
-if (!HAS_PI_BADGE) return;
+
       const out = await apiSkip();
       COINS = Number(out?.user?.coins ?? COINS);
       ui.setCoins(COINS);
@@ -340,7 +290,7 @@ if (!HAS_PI_BADGE) return;
     try {
       ui.showToast?.("Loading hint…");
       await delay(5000);
-if (!HAS_PI_BADGE) return;
+
       const out = await apiHint();
       COINS = Number(out?.user?.coins ?? COINS);
       ui.setCoins(COINS);
@@ -369,12 +319,21 @@ if (!HAS_PI_BADGE) return;
 
 
   document.getElementById("controls")?.addEventListener("click", () => {
-ui.showLevelSelect({
-  totalLevels: levels.length,
-  currentLevel: levelIndex + 1,
-  isCompleted: (lvl) => lvl <= getMaxPlayableLevel(),
-});
+    ui.showLevelSelect({
+      totalLevels: levels.length,
+      currentLevel: levelIndex + 1,
+      isCompleted: (lvl) => lvl <= UNLOCKED_LEVEL,
+    });
   });
+
+  ui.onLevelSelect((selectedIndex) => {
+  levelIndex = clampLevelIndex(selectedIndex);
+  rewardedThisLevel = false;  // ✅ MUST be false to allow play
+  game.setLevel(levels[levelIndex]);
+  game.start();               // ✅ RESTART GAME LOOP
+  ui.setLevel(levelIndex + 1);
+});
+
   ui.onFirstUserGesture(() => ensureAudioUnlocked());
 
 }
@@ -384,19 +343,12 @@ ui.showLevelSelect({
 // ---------------------------
 function onLevelComplete() {
   const isLastLevel = levelIndex >= levels.length - 1;
-  const nextLevelNumber = isLastLevel ? 1 : levelIndex + 2;
 
-  if (nextLevelNumber > getMaxPlayableLevel()) {
-    ui.showToast?.("🔒 Unlock Pi Badge to continue");
-    return;
-  }
-
-  // reward only once
+  // ✅ claim +1 once per level completion
   if (!rewardedThisLevel) {
     rewardedThisLevel = true;
     (async () => {
       try {
-        if (!HAS_PI_BADGE) return;
         const out = await apiClaimLevelComplete(levelIndex + 1);
         COINS = Number(out?.user?.coins ?? COINS);
         ui.setCoins(COINS);
@@ -406,17 +358,16 @@ function onLevelComplete() {
     })();
   }
 
-  // save progress
+  // save progress (next unlocked level)
+  const nextLevelNumber = isLastLevel ? 1 : levelIndex + 2;
   (async () => {
     try {
-      if (!HAS_PI_BADGE) return;
       await apiSetProgress({
         uid: CURRENT_USER.uid,
         level: nextLevelNumber,
         coins: COINS,
       });
       UNLOCKED_LEVEL = nextLevelNumber;
-      ui.updateLevelLocks?.(UNLOCKED_LEVEL);
     } catch (e) {
       console.warn("progress save failed:", e);
     }
@@ -429,31 +380,28 @@ function onLevelComplete() {
 }
 
 async function goNextLevel() {
-  const max = getMaxPlayableLevel();
-  const nextIndex = levelIndex + 1;
-  const nextLevelNumber = nextIndex + 1;
+  const next = levelIndex + 1;
 
-  // 🔒 Gate by Pi badge / guest limit
-  if (nextLevelNumber > max) {
-    ui.showToast?.("🔒 Pi Badge required");
-    return;
+  if (next >= levels.length) {
+    levelIndex = 0;
+  } else {
+    levelIndex = next;
   }
 
-  // ✅ advance internal level
-  levelIndex = nextIndex;
   rewardedThisLevel = false;
 
-  // ✅ unlock progression (IMPORTANT)
-  if (nextLevelNumber > UNLOCKED_LEVEL) {
-    UNLOCKED_LEVEL = nextLevelNumber;
-  }
-
-  // ✅ update UI state
-  ui.setLevel?.(nextLevelNumber);
-  ui.updateLevelLocks?.(UNLOCKED_LEVEL);
-
-  // ✅ start game
   game.setLevel(levels[levelIndex]);
-  game.start();
+
+  // best-effort save current progress level
+  try {
+    await apiSetProgress({
+      uid: CURRENT_USER.uid,
+      level: levelIndex + 1,
+      coins: COINS,
+    });
+  } catch (e) {
+    console.warn("progress save failed:", e);
+  }
 }
+
 boot();
