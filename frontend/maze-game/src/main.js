@@ -420,6 +420,6 @@ async function goNextLevel() {
   } catch (e) {
     console.warn("progress save failed:", e);
   }
-}
+
 
 boot();
