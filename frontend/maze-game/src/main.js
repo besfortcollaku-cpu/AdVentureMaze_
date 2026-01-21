@@ -229,14 +229,15 @@ console.log("[PI BADGE]", HAS_PI_BADGE);
   
 
   // load server state
-  let me;
+  let me = null;
+
+if (HAS_PI_BADGE) {
   try {
     me = await apiGetMe();
   } catch (e) {
-    const msg = normalizeErr(e);
-    if (!handleAuthExpiredIfNeeded(msg)) alert("Failed to load profile: " + msg);
-    return;
+    console.warn("Profile load skipped (guest mode):", e);
   }
+}
 
   const serverUser = me.user;
   const serverProgress = me.progress;
