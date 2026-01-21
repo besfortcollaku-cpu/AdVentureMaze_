@@ -164,6 +164,33 @@ function clampLevelIndex(i) {
 // ---------------------------
 async function boot() {
   ui = mountUI(document.querySelector("#app"));
+  // ---------------------------
+// Pi badge click → login
+// ---------------------------
+const piBadge = document.getElementById("piBadge");
+
+if (piBadge) {
+  piBadge.addEventListener("click", async () => {
+    ui.showToast?.("Login with Pi to unlock levels");
+    
+ui.showPiBadge();
+
+    const loginRes = await ensurePiLogin({
+      BACKEND,
+      ui,
+      onLogin: ({ user, accessToken }) => {
+        CURRENT_USER = user;
+        CURRENT_ACCESS_TOKEN = accessToken;
+        ui.userPill.textContent = user.username;
+        ui.loginBtnText.textContent = "✅";
+        ui.hidePiBadge();
+      },
+    });
+
+    if (!loginRes?.ok) return;
+    ui.hidePiBadge();
+  });
+}
 
 
 // Level select via joystick icon
@@ -176,12 +203,12 @@ document.getElementById("controls")?.addEventListener("click", () => {
 });
 
 ui.onLevelSelect((selectedIndex) => {
-  loadAndStartLevel(selectedIndex);
-});
+  levelIndex = clampLevelIndex(selectedIndex);
+  rewardedThisLevel = true; // prevent reward on replay
+  game.setLevel(levels[levelIndex]);
 });
   // unlock audio after first gesture
   ui.onFirstUserGesture(() => ensureAudioUnlocked());
-  }
 
   // settings
   const s0 = getSettings();
@@ -342,7 +369,8 @@ const savedLevel = Number(serverProgress?.level || 1);
   ui.onLevelSelect((selectedIndex) => {
   levelIndex = clampLevelIndex(selectedIndex);
   rewardedThisLevel = false;  // ✅ MUST be false to allow play
-  loadAndStartLevel(levelIndex);              // ✅ RESTART GAME LOOP
+  game.setLevel(levels[levelIndex]);
+  game.start();               // ✅ RESTART GAME LOOP
   ui.setLevel(levelIndex + 1);
 });
 
@@ -356,7 +384,7 @@ const savedLevel = Number(serverProgress?.level || 1);
 function onLevelComplete() {
   const isLastLevel = levelIndex >= levels.length - 1;
 
-  // ✅ reward once
+  // ✅ claim +1 once per level completion
   if (!rewardedThisLevel) {
     rewardedThisLevel = true;
     (async () => {
@@ -370,15 +398,8 @@ function onLevelComplete() {
     })();
   }
 
-  // ✅ next unlocked level
+  // save progress (next unlocked level)
   const nextLevelNumber = isLastLevel ? 1 : levelIndex + 2;
-
-  // ✅ update unlock state in memory
-  if (nextLevelNumber > UNLOCKED_LEVEL) {
-    UNLOCKED_LEVEL = nextLevelNumber;
-  }
-
-  // ✅ save progress
   (async () => {
     try {
       await apiSetProgress({
@@ -386,12 +407,12 @@ function onLevelComplete() {
         level: nextLevelNumber,
         coins: COINS,
       });
+      UNLOCKED_LEVEL = nextLevelNumber;
     } catch (e) {
       console.warn("progress save failed:", e);
     }
   })();
 
-  // ✅ popup LAST
   ui.showWinPopup({
     levelNumber: levelIndex + 1,
     isLastLevel,
@@ -409,7 +430,7 @@ async function goNextLevel() {
 
   rewardedThisLevel = false;
 
-  loadAndStartLevel(levelIndex);
+  game.setLevel(levels[levelIndex]);
 
   // best-effort save current progress level
   try {
@@ -421,16 +442,6 @@ async function goNextLevel() {
   } catch (e) {
     console.warn("progress save failed:", e);
   }
-}
-
-function loadAndStartLevel(index) {
-  levelIndex = clampLevelIndex(index);
-  rewardedThisLevel = false;
-
-  game.setLevel(levels[levelIndex]);
-  game.start(); // 🔴 THIS WAS MISSING
-
-  ui.setLevel(levelIndex + 1);
 }
 
 boot();

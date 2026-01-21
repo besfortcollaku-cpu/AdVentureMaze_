@@ -17,6 +17,10 @@ export function mountUI(app) {
             ${iconBtn("settingsBtn", gearSVG(), "")}
             ${iconBtn("controls", joystickSVG(), "")}
          </div>
+         <div id="piBadge" class="piBadge hidden">
+  <img src="/pi.svg" alt="Pi" />
+  <span>Login</span>
+</div>
          <div class="coins" title="Coins">
                   <div class="coinDot"></div>
                    <div id="coinCount">0</div>
@@ -510,6 +514,14 @@ export function mountUI(app) {
     levelSelectOverlay.classList.add("show");
     levelSelectOverlay.setAttribute("aria-hidden", "false");
   }
+  
+  function showPiBadge() {
+  document.getElementById("piBadge")?.classList.remove("hidden");
+}
+
+function hidePiBadge() {
+  document.getElementById("piBadge")?.classList.add("hidden");
+}
 
   function hideLevelSelect() {
     levelSelectOverlay?.classList.remove("show");
