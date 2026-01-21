@@ -234,29 +234,24 @@ if (selectedLevel > getMaxPlayableLevel()) {
   
 // ---- Pi badge check (NO LOGIN REQUIRED) ----
 try {
+  try {
   const res = await fetch(`${BACKEND}/api/pi/badge`, {
     credentials: "include",
   });
   const data = await res.json();
   HAS_PI_BADGE = !!data?.hasBadge;
-  if (HAS_PI_BADGE) {
-  ui.showPiBadge();
-} else {
-  ui.hidePiBadge();
-}
-} catch {
-  HAS_PI_BADGE = false;
-  ui.hidePiBadge()
-}
-  // load server state
-  let me = null;
 
-if (HAS_PI_BADGE) {
-  try {
-    me = await apiGetMe();
-  } catch (e) {
-    console.warn("Profile load skipped (guest):", e);
+  console.log("[PI BADGE]", HAS_PI_BADGE, data);
+
+  if (HAS_PI_BADGE) {
+    ui.showPiBadge();
+  } else {
+    ui.hidePiBadge();
   }
+} catch (e) {
+  console.log("[PI BADGE] fetch failed", e);
+  HAS_PI_BADGE = false;
+  ui.hidePiBadge();
 }
 if (!me) {
   // ✅ Guest defaults
@@ -377,6 +372,13 @@ ui.showLevelSelect({
 // Level flow
 // ---------------------------
 function onLevelComplete() {
+    const nextLevelNumber = levelIndex + 2; // 1-based
+
+if (nextLevelNumber > getMaxPlayableLevel()) {
+  console.warn("[LOCK] Level blocked:", nextLevelNumber);
+  ui.showToast?.("🔒 Unlock Pi Badge to continue");
+  return;
+}
   const isLastLevel = levelIndex >= levels.length - 1;
 
   // ✅ claim +1 once per level completion
@@ -423,6 +425,12 @@ function onLevelComplete() {
 }
 
 async function goNextLevel() {
+    const nextLevelNumber = levelIndex + 2;
+
+if (nextLevelNumber > getMaxPlayableLevel()) {
+  ui.showToast?.("🔒 Unlock Pi Badge to continue");
+  return;
+}
   const next = levelIndex + 1;
 
   if (next >= levels.length) {
