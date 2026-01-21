@@ -242,6 +242,12 @@ const savedLevel = Number(serverProgress?.level || 1);
   levelIndex = clampLevelIndex(savedLevel - 1);
   
   UNLOCKED_LEVEL = savedLevel;
+  console.log(
+  "[LOCK STATE]",
+  "savedLevel =", savedLevel,
+  "UNLOCKED_LEVEL =", UNLOCKED_LEVEL,
+  "levelIndex =", levelIndex
+);
   CURRENT_USER = { username: serverUser.username, uid: serverUser.uid };
 
   COINS = Number(serverUser.coins || 0);
@@ -382,6 +388,11 @@ function onLevelComplete() {
         coins: COINS,
       });
       UNLOCKED_LEVEL = nextLevelNumber;
+      console.log(
+  "[LOCK UPDATE]",
+  "nextLevelNumber =", nextLevelNumber,
+  "UNLOCKED_LEVEL =", UNLOCKED_LEVEL
+);
       ui.updateLevelLocks?.(UNLOCKED_LEVEL);
     } catch (e) {
       console.warn("progress save failed:", e);
