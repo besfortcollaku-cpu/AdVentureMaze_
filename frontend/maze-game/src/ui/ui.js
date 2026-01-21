@@ -722,7 +722,6 @@ function hideWelcome() {
     canvas: document.getElementById("game"),
     showPiBadge,
     hidePiBadge
-    userPill,
 
     setCoins,
 
