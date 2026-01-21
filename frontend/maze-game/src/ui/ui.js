@@ -470,6 +470,11 @@ export function mountUI(app) {
   const winAdBtn = document.getElementById("winAdBtn");
   
   const welcomeOverlay = document.getElementById("welcomeOverlay");
+  // ✅ Disable welcome screen completely (no login)
+if (welcomeOverlay) {
+  welcomeOverlay.style.display = "none";
+  welcomeOverlay.setAttribute("aria-hidden", "true");
+}
   
   // Level select
   const levelSelectOverlay = document.getElementById("levelSelectOverlay");
