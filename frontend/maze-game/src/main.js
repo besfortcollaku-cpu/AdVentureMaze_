@@ -189,11 +189,7 @@ document.getElementById("controls")?.addEventListener("click", () => {
 });
 });
 
-ui.onLevelSelect((selectedIndex) => {
-  levelIndex = clampLevelIndex(selectedIndex);
-  rewardedThisLevel = true; // prevent reward on replay
-  game.setLevel(levels[levelIndex]);
-});
+ui.
   // unlock audio after first gesture
   ui.onFirstUserGesture(() => ensureAudioUnlocked());
 
@@ -239,19 +235,29 @@ if (HAS_PI_BADGE) {
   }
 }
 
+if (me) {
   const serverUser = me.user;
   const serverProgress = me.progress;
-  
-const savedLevel = Number(serverProgress?.level || 1);
+
+  const savedLevel = Number(serverProgress?.level || 1);
   levelIndex = clampLevelIndex(savedLevel - 1);
-  
-  let UNLOCKED_LEVEL = savedLevel;
-  CURRENT_USER = { username: serverUser.username, uid: serverUser.uid };
+  UNLOCKED_LEVEL = savedLevel;
+
+  CURRENT_USER = {
+    username: serverUser.username,
+    uid: serverUser.uid,
+  };
 
   COINS = Number(serverUser.coins || 0);
-  ui.setCoins(COINS);
+} else {
+  // ✅ Guest defaults
+  levelIndex = 0;
+  UNLOCKED_LEVEL = 1;
+  CURRENT_USER = { username: "guest", uid: null };
+  COINS = 0;
+}
 
-  
+ui.setCoins(COINS);
 
   // WIN popup actions
   ui.onWinNext(async () => {
@@ -411,23 +417,7 @@ async function goNextLevel() {
   game.setLevel(levels[levelIndex]);
   game.start();
 }
-  // best-effort save current progress level
-  try {
-    await apiSetProgress({
-      uid: CURRENT_USER.uid,
-      level: levelIndex + 1,
-      coins: COINS,
-    });
-  } catch (e) {
-    console.warn("progress save failed:", e);
-    // ✅ ALWAYS start the game (guest or logged-in)
-levelIndex = clampLevelIndex(levelIndex);
-rewardedThisLevel = false;
-
-game.setLevel(levels[levelIndex]);
-game.start();
-ui.setLevel(levelIndex + 1);
-  }
-
+ 
+ 
 
 boot();
