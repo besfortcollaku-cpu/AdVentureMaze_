@@ -266,24 +266,7 @@ if (!me) {
   COINS = Number(serverUser.coins || 0);
 }
 
-  const serverUser = me.user;
-  const serverProgress = me.progress;
   
-const savedLevel = Number(serverProgress?.level || 1);
-  levelIndex = clampLevelIndex(savedLevel - 1);
-  
-  UNLOCKED_LEVEL = savedLevel;
-  console.log(
-  "[LOCK STATE]",
-  "savedLevel =", savedLevel,
-  "UNLOCKED_LEVEL =", UNLOCKED_LEVEL,
-  "levelIndex =", levelIndex
-);
-  CURRENT_USER = { username: serverUser.username, uid: serverUser.uid };
-
-  COINS = Number(serverUser.coins || 0);
-  ui.setCoins(COINS);
-
   
 
   // WIN popup actions
@@ -376,24 +359,6 @@ ui.showLevelSelect({
   isCompleted: (lvl) => lvl <= getMaxPlayableLevel(),
 });
   });
-
-ui.onLevelSelect((selectedIndex) => {
-  const selectedLevel = selectedIndex + 1;
-  const maxAllowed = getMaxPlayableLevel();
-
-  if (selectedLevel > maxAllowed) {
-    ui.showToast?.("🔒 Level locked");
-    return;
-  }
-
-  levelIndex = clampLevelIndex(selectedIndex);
-  rewardedThisLevel = false;
-
-  game.setLevel(levels[levelIndex]);
-  game.start();
-  ui.setLevel(levelIndex);
-});
-
   ui.onFirstUserGesture(() => ensureAudioUnlocked());
 
 }

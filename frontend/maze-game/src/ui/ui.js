@@ -58,27 +58,7 @@ export function mountUI(app) {
 
 
 
-    <!-- ✅ LOGIN GATE (blocks game until Pi login) -->
-    <div class="loginGate" id="loginGate" aria-hidden="true">
-      <div class="loginGateCard">
-        <div class="loginGateTitle">Login required</div>
-        <div class="loginGateSub">
-          Please login with Pi account to start playing. 
-        </div>
-
-        <button class="loginGateBtn" id="loginGateBtn">
-          Login
-        </button>
-
-        <div class="loginGateError" id="loginGateError"></div>
-
-        <div class="loginGateNote">
-          Tip: open inside Pi Browser.
-        </div>
-      </div>
-    </div>
-
-    <!-- ✅ SETTINGS OVERLAY -->
+ <!-- ✅ SETTINGS OVERLAY -->
     <div class="settingsOverlay" id="settingsOverlay" aria-hidden="true">
       <div class="settingsCard">
         <div class="settingsHeader">
@@ -188,62 +168,6 @@ export function mountUI(app) {
       .iconBtnWide{ flex:1; }
       .userPill{ flex:1; justify-content:center; }
     }
-
-    /* ✅ LOGIN GATE */
-    .loginGate{
-      position:fixed; inset:0; z-index:1000000;
-      display:none; align-items:center; justify-content:center;
-      padding:16px;
-      background: radial-gradient(1100px 800px at 50% 15%, rgba(37,215,255,.18), rgba(0,0,0,.72));
-      backdrop-filter: blur(10px);
-    }
-    .loginGate.show{ display:flex; }
-    .loginGateCard{
-      width:min(520px, 100%);
-      border-radius:24px;
-      border:1px solid rgba(37,215,255,.22);
-      background: rgba(10,12,24,.92);
-      box-shadow: 0 22px 80px rgba(0,0,0,.65);
-      padding:18px;
-      text-align:center;
-      color: rgba(240,247,255,.95);
-    }
-    .loginGateTitle{
-      font-size:22px;
-      font-weight:950;
-      letter-spacing:.3px;
-    }
-    .loginGateSub{
-      margin-top:8px;
-      font-size:13px;
-      opacity:.82;
-      line-height:1.35;
-    }
-    .loginGateBtn{
-      margin-top:14px;
-      width:100%;
-      height:48px;
-      border-radius:16px;
-      border:1px solid rgba(37,215,255,.35);
-      background: linear-gradient(180deg, rgba(37,215,255,.95), rgba(0,183,255,.85));
-      color:#07111f;
-      font-weight:950;
-      cursor:pointer;
-    }
-    .loginGateBtn:active{ transform: translateY(1px); }
-    .loginGateBtn:disabled{ opacity:.65; cursor:not-allowed; transform:none; }
-    .loginGateError{
-      margin-top:12px;
-      font-size:12px;
-      color: rgba(255,120,120,.95);
-      min-height: 16px;
-    }
-    .loginGateNote{
-      margin-top:10px;
-      font-size:12px;
-      opacity:.65;
-    }
-
     /* SETTINGS */
     .settingsOverlay{
       position:fixed; inset:0; z-index:99999;
@@ -435,10 +359,6 @@ export function mountUI(app) {
   const loginBtnText = document.getElementById("loginBtnText");
   const userPill = document.getElementById("userPill");
 
-  // Login gate
-  const loginGate = document.getElementById("loginGate");
-  const loginGateBtn = document.getElementById("loginGateBtn");
-  const loginGateError = document.getElementById("loginGateError");
 
   // Settings
   const settingsBtn = document.getElementById("settingsBtn");
@@ -453,12 +373,6 @@ export function mountUI(app) {
   const winNextBtn = document.getElementById("winNextBtn");
   const winAdBtn = document.getElementById("winAdBtn");
   
-  const welcomeOverlay = document.getElementById("welcomeOverlay");
-  // ✅ Disable welcome screen completely (no login)
-if (welcomeOverlay) {
-  welcomeOverlay.style.display = "none";
-  welcomeOverlay.setAttribute("aria-hidden", "true");
-}
   
   // Level select
   const levelSelectOverlay = document.getElementById("levelSelectOverlay");
@@ -552,61 +466,12 @@ function hideWelcome() {
     { once: true }
   );
 
-  // ✅ login gate click
-  let loginGateClickHandler = null;
-  loginGateBtn?.addEventListener("click", () => loginGateClickHandler?.());
 
   function setCoins(n) {
     if (coinCountEl) coinCountEl.textContent = String(n ?? 0);
   }
 
-  // ---------------------------
-  // Login Gate API
-  // ---------------------------
-  function showLoginGate() {
-    if (!loginGate) return;
-    loginGate.classList.add("show");
-    loginGate.setAttribute("aria-hidden", "false");
-    showLoginError(""); // clear
-    setGateLoading(false);
-  }
 
-  function hideLoginGate() {
-    if (!loginGate) return;
-    loginGate.classList.remove("show");
-    loginGate.setAttribute("aria-hidden", "true");
-    showLoginError("");
-    setGateLoading(false);
-  }
-
-  function showLoginError(msg) {
-    if (!loginGateError) return;
-    loginGateError.textContent = msg ? String(msg) : "";
-  }
-
-  function setGateLoading(isLoading) {
-    if (!loginGateBtn) return;
-    loginGateBtn.disabled = !!isLoading;
-    loginGateBtn.textContent = isLoading ? "Logging in..." : "Login with Pi";
-  }
-
-  // ensurePiLogin calls this
-  function onLoginClick(fn) {
-    loginGateClickHandler = async () => {
-      try {
-        setGateLoading(true);
-        await fn();
-      } finally {
-        setGateLoading(false);
-      }
-    };
-  }
-
-  // allow header button to trigger the same login flow
-  loginBtn?.addEventListener("click", () => {
-    showLoginGate();
-    loginGateClickHandler?.();
-  });
 
   function setUser(user) {
   const name = user?.username || "guest";
