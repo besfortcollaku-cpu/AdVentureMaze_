@@ -362,8 +362,8 @@ ui.onLevelSelect((selectedIndex) => {
 
   levelIndex = clampLevelIndex(selectedIndex);
   rewardedThisLevel = false;
-  game.setLevel(levels[levelIndex]);
-  game.start();
+  game.reset();
+game.setLevel(levels[levelIndex]);
 });
 
   ui.onFirstUserGesture(() => ensureAudioUnlocked());
@@ -422,8 +422,8 @@ async function goNextLevel() {
   levelIndex = next;
   rewardedThisLevel = false;
 
-  game.setLevel(levels[levelIndex]);
-  game.start();
+  game.reset();
+game.setLevel(levels[levelIndex]);
 }
  
  
