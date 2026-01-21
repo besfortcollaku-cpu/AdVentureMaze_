@@ -477,6 +477,10 @@ export function mountUI(app) {
   const levelSelectClose = document.getElementById("levelSelectClose");
 
   let levelSelectHandler = null;
+  let _unlockedLevel = 1;
+  function updateLevelLocks(unlockedLevel) {
+  _unlockedLevel = unlockedLevel;
+}
 
   // ✅ FIXED (single correct implementation)
   function showLevelSelect({ totalLevels, isCompleted, currentLevel }) {
@@ -490,8 +494,7 @@ export function mountUI(app) {
       const completed =
         typeof isCompleted === "function"
           ? isCompleted(i)
-          : false;
-
+          : i <= _unlockedLevel;
       const isCurrent = i === currentLevel;
 
       btn.className =
@@ -760,6 +763,7 @@ function hideWelcome() {
     // ✅ Level select API
     showLevelSelect,
     hideLevelSelect,
+    updateLevelLocks,
     onLevelSelect(fn) {
     levelSelectHandler = fn;
     },

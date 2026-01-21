@@ -23,7 +23,7 @@ let ui = null;
 
 // local cache synced from /api/me
 let COINS = 0;
-
+let UNLOCKED_LEVEL = 1;
 // prevent double reward per completion
 let rewardedThisLevel = false;
 
@@ -164,33 +164,6 @@ function clampLevelIndex(i) {
 // ---------------------------
 async function boot() {
   ui = mountUI(document.querySelector("#app"));
-  // ---------------------------
-// Pi badge click → login
-// ---------------------------
-const piBadge = document.getElementById("piBadge");
-
-if (piBadge) {
-  piBadge.addEventListener("click", async () => {
-    ui.showToast?.("Login with Pi to unlock levels");
-    
-ui.showPiBadge();
-
-    const loginRes = await ensurePiLogin({
-      BACKEND,
-      ui,
-      onLogin: ({ user, accessToken }) => {
-        CURRENT_USER = user;
-        CURRENT_ACCESS_TOKEN = accessToken;
-        ui.userPill.textContent = user.username;
-        ui.loginBtnText.textContent = "✅";
-        ui.hidePiBadge();
-      },
-    });
-
-    if (!loginRes?.ok) return;
-    ui.hidePiBadge();
-  });
-}
 
 
 // Level select via joystick icon
@@ -206,6 +179,7 @@ ui.onLevelSelect((selectedIndex) => {
   levelIndex = clampLevelIndex(selectedIndex);
   rewardedThisLevel = true; // prevent reward on replay
   game.setLevel(levels[levelIndex]);
+  game.start();
 });
   // unlock audio after first gesture
   ui.onFirstUserGesture(() => ensureAudioUnlocked());
@@ -267,7 +241,7 @@ ui.onLevelSelect((selectedIndex) => {
 const savedLevel = Number(serverProgress?.level || 1);
   levelIndex = clampLevelIndex(savedLevel - 1);
   
-  let UNLOCKED_LEVEL = savedLevel;
+  UNLOCKED_LEVEL = savedLevel;
   CURRENT_USER = { username: serverUser.username, uid: serverUser.uid };
 
   COINS = Number(serverUser.coins || 0);
@@ -408,6 +382,7 @@ function onLevelComplete() {
         coins: COINS,
       });
       UNLOCKED_LEVEL = nextLevelNumber;
+      ui.updateLevelLocks?.(UNLOCKED_LEVEL);
     } catch (e) {
       console.warn("progress save failed:", e);
     }
@@ -431,17 +406,9 @@ async function goNextLevel() {
   rewardedThisLevel = false;
 
   game.setLevel(levels[levelIndex]);
+  game.start();
 
-  // best-effort save current progress level
-  try {
-    await apiSetProgress({
-      uid: CURRENT_USER.uid,
-      level: levelIndex + 1,
-      coins: COINS,
-    });
-  } catch (e) {
-    console.warn("progress save failed:", e);
-  }
+  
 }
 
 boot();
