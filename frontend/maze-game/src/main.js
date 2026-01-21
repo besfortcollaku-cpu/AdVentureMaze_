@@ -32,7 +32,7 @@ let rewardedThisLevel = false;
 // ---------------------------
 function authHeaders() {
   if (!CURRENT_ACCESS_TOKEN) {
-    throw new Error("Missing access token. Please login again.");
+    return {}; // ✅ guest mode: no auth header
   }
   return {
     Authorization: `Bearer ${CURRENT_ACCESS_TOKEN}`,
@@ -236,14 +236,32 @@ try {
   HAS_PI_BADGE = false;
 }
   // load server state
-  let me;
+  let me = null;
+
+if (HAS_PI_BADGE) {
   try {
     me = await apiGetMe();
   } catch (e) {
-    const msg = normalizeErr(e);
-    if (!handleAuthExpiredIfNeeded(msg)) alert("Failed to load profile: " + msg);
-    return;
+    console.warn("Profile load skipped (guest):", e);
   }
+}
+if (!me) {
+  // ✅ Guest defaults
+  CURRENT_USER = { username: "guest", uid: null };
+  COINS = 0;
+  UNLOCKED_LEVEL = 1;
+  levelIndex = 0;
+} else {
+  const serverUser = me.user;
+  const serverProgress = me.progress;
+
+  const savedLevel = Number(serverProgress?.level || 1);
+  levelIndex = clampLevelIndex(savedLevel - 1);
+  UNLOCKED_LEVEL = savedLevel;
+
+  CURRENT_USER = { username: serverUser.username, uid: serverUser.uid };
+  COINS = Number(serverUser.coins || 0);
+}
 
   const serverUser = me.user;
   const serverProgress = me.progress;
