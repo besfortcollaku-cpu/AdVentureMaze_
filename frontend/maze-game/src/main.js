@@ -4,7 +4,7 @@ import "./style.css";
 import { mountUI } from "./ui/ui.js";
 import { enforcePiEnvironment } from "./pi/piDetect.js";
 import { initPi } from "./pi/piInit.js";
-import { ensurePiLogin } from "./pi/piClient.js";
+// import { ensurePiLogin } from "./pi/piClient.js";
 
 import { createGame } from "./game/game.js";
 import { levels } from "./levels/index.js";
@@ -13,10 +13,10 @@ import { getSettings, setSetting, subscribeSettings } from "./settings.js";
 import { ensureAudioUnlocked, stopRollSound } from "./game/rollSound.js";
 
 const BACKEND = "https://adventuremaze.onrender.com";
-
+const GUEST_MAX_LEVEL = 5;
 let CURRENT_USER = { username: "guest", uid: null };
 let CURRENT_ACCESS_TOKEN = null;
-
+let HAS_PI_BADGE = false;
 let levelIndex = 0;
 let game = null;
 let ui = null;
@@ -171,15 +171,26 @@ document.getElementById("controls")?.addEventListener("click", () => {
   ui.showLevelSelect({
   totalLevels: levels.length,
   currentLevel: levelIndex + 1,
-  isCompleted: (lvl) => lvl < UNLOCKED_LEVEL,
+  isCompleted: (lvl) => {
+  if (!HAS_PI_BADGE) return lvl === 1;
+  return lvl <= UNLOCKED_LEVEL;
+},
 });
 });
 
 ui.onLevelSelect((selectedIndex) => {
+  const selectedLevel = selectedIndex + 1;
+
+  if (!HAS_PI_BADGE && selectedLevel > 1) {
+    ui.showToast?.("🔒 Pi Badge required");
+    return;
+  }
+
   levelIndex = clampLevelIndex(selectedIndex);
-  rewardedThisLevel = true; // prevent reward on replay
+  rewardedThisLevel = false;
   game.setLevel(levels[levelIndex]);
   game.start();
+  ui.setLevel(levelIndex + 1);
 });
   // unlock audio after first gesture
   ui.onFirstUserGesture(() => ensureAudioUnlocked());
@@ -211,20 +222,17 @@ ui.onLevelSelect((selectedIndex) => {
   initPi();
 
   // login
-  const loginRes = await ensurePiLogin({
-    BACKEND,
-    ui,
-    onLogin: ({ user, accessToken }) => {
-      CURRENT_USER = user;
-      CURRENT_ACCESS_TOKEN = accessToken;
-
-      if (ui?.userPill) ui.userPill.textContent = `${user.username}`;
-      if (ui?.loginBtnText) ui.loginBtnText.textContent = "✅";
-    },
+  
+// ---- Pi badge check (NO LOGIN REQUIRED) ----
+try {
+  const res = await fetch(`${BACKEND}/api/pi/badge`, {
+    credentials: "include",
   });
-
-  if (!loginRes?.ok) return;
-
+  const data = await res.json();
+  HAS_PI_BADGE = !!data?.hasBadge;
+} catch {
+  HAS_PI_BADGE = false;
+}
   // load server state
   let me;
   try {
@@ -266,7 +274,7 @@ const savedLevel = Number(serverProgress?.level || 1);
     try {
       ui.showToast?.("Watching ad…");
       await delay(5000);
-
+      if (!HAS_PI_BADGE) return;
       const out = await apiAd50();
       COINS = Number(out?.user?.coins ?? COINS);
       ui.setCoins(COINS);
@@ -290,7 +298,7 @@ const savedLevel = Number(serverProgress?.level || 1);
     try {
       ui.showToast?.("Processing skip…");
       await delay(5000);
-
+if (!HAS_PI_BADGE) return;
       const out = await apiSkip();
       COINS = Number(out?.user?.coins ?? COINS);
       ui.setCoins(COINS);
@@ -310,7 +318,7 @@ const savedLevel = Number(serverProgress?.level || 1);
     try {
       ui.showToast?.("Loading hint…");
       await delay(5000);
-
+if (!HAS_PI_BADGE) return;
       const out = await apiHint();
       COINS = Number(out?.user?.coins ?? COINS);
       ui.setCoins(COINS);
@@ -342,7 +350,10 @@ const savedLevel = Number(serverProgress?.level || 1);
     ui.showLevelSelect({
       totalLevels: levels.length,
       currentLevel: levelIndex + 1,
-      isCompleted: (lvl) => lvl <= UNLOCKED_LEVEL,
+      isCompleted: (lvl) => {
+  if (!HAS_PI_BADGE) return lvl === 1;
+  return lvl <= UNLOCKED_LEVEL;
+},
     });
   });
 
@@ -369,6 +380,7 @@ function onLevelComplete() {
     rewardedThisLevel = true;
     (async () => {
       try {
+          if (!HAS_PI_BADGE) return;
         const out = await apiClaimLevelComplete(levelIndex + 1);
         COINS = Number(out?.user?.coins ?? COINS);
         ui.setCoins(COINS);
@@ -382,6 +394,7 @@ function onLevelComplete() {
   const nextLevelNumber = isLastLevel ? 1 : levelIndex + 2;
   (async () => {
     try {
+        if (!HAS_PI_BADGE) return;
       await apiSetProgress({
         uid: CURRENT_USER.uid,
         level: nextLevelNumber,

@@ -720,7 +720,8 @@ function hideWelcome() {
     onHint(fn) { hintHandler = fn; },
     onSkip(fn) { skipHandler = fn; },
     canvas: document.getElementById("game"),
-
+    showPiBadge,
+    hidePiBadge
     // header login UI
     loginBtn,
     loginBtnText,
