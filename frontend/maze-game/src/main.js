@@ -429,26 +429,31 @@ function onLevelComplete() {
 }
 
 async function goNextLevel() {
-    const nextLevelNumber = levelIndex + 2;
+  const max = getMaxPlayableLevel();
+  const nextIndex = levelIndex + 1;
+  const nextLevelNumber = nextIndex + 1;
 
-if (nextLevelNumber > getMaxPlayableLevel()) {
-  ui.showToast?.("🔒 Unlock Pi Badge to continue");
-  return;
-}
-  const next = levelIndex + 1;
-
-  if (next >= levels.length) {
-    levelIndex = 0;
-  } else {
-    levelIndex = next;
+  // 🔒 Gate by Pi badge / guest limit
+  if (nextLevelNumber > max) {
+    ui.showToast?.("🔒 Pi Badge required");
+    return;
   }
 
+  // ✅ advance internal level
+  levelIndex = nextIndex;
   rewardedThisLevel = false;
 
+  // ✅ unlock progression (IMPORTANT)
+  if (nextLevelNumber > UNLOCKED_LEVEL) {
+    UNLOCKED_LEVEL = nextLevelNumber;
+  }
+
+  // ✅ update UI state
+  ui.setLevel?.(nextLevelNumber);
+  ui.updateLevelLocks?.(UNLOCKED_LEVEL);
+
+  // ✅ start game
   game.setLevel(levels[levelIndex]);
   game.start();
-
-  
 }
-
 boot();
