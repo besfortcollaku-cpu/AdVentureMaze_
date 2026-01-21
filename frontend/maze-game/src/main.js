@@ -261,6 +261,7 @@ try {
 }
 
 // ---- User defaults ----
+let me = null;
 if (!me) {
   // ✅ Guest
   CURRENT_USER = { username: "guest", uid: null };
@@ -383,21 +384,20 @@ ui.showLevelSelect({
 // Level flow
 // ---------------------------
 function onLevelComplete() {
-    const nextLevelNumber = levelIndex + 2; // 1-based
-
-if (nextLevelNumber > getMaxPlayableLevel()) {
-  console.warn("[LOCK] Level blocked:", nextLevelNumber);
-  ui.showToast?.("🔒 Unlock Pi Badge to continue");
-  return;
-}
   const isLastLevel = levelIndex >= levels.length - 1;
+  const nextLevelNumber = isLastLevel ? 1 : levelIndex + 2;
 
-  // ✅ claim +1 once per level completion
+  if (nextLevelNumber > getMaxPlayableLevel()) {
+    ui.showToast?.("🔒 Unlock Pi Badge to continue");
+    return;
+  }
+
+  // reward only once
   if (!rewardedThisLevel) {
     rewardedThisLevel = true;
     (async () => {
       try {
-          if (!HAS_PI_BADGE) return;
+        if (!HAS_PI_BADGE) return;
         const out = await apiClaimLevelComplete(levelIndex + 1);
         COINS = Number(out?.user?.coins ?? COINS);
         ui.setCoins(COINS);
@@ -407,22 +407,16 @@ if (nextLevelNumber > getMaxPlayableLevel()) {
     })();
   }
 
-  // save progress (next unlocked level)
-  const nextLevelNumber = isLastLevel ? 1 : levelIndex + 2;
+  // save progress
   (async () => {
     try {
-        if (!HAS_PI_BADGE) return;
+      if (!HAS_PI_BADGE) return;
       await apiSetProgress({
         uid: CURRENT_USER.uid,
         level: nextLevelNumber,
         coins: COINS,
       });
       UNLOCKED_LEVEL = nextLevelNumber;
-      console.log(
-  "[LOCK UPDATE]",
-  "nextLevelNumber =", nextLevelNumber,
-  "UNLOCKED_LEVEL =", UNLOCKED_LEVEL
-);
       ui.updateLevelLocks?.(UNLOCKED_LEVEL);
     } catch (e) {
       console.warn("progress save failed:", e);
