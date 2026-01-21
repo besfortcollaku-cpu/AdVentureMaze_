@@ -158,6 +158,11 @@ function clampLevelIndex(i) {
   if (i >= levels.length) return 0;
   return i;
 }
+function getMaxPlayableLevel() {
+  if (HAS_PI_BADGE) return UNLOCKED_LEVEL;
+  
+  return Math.min(5, UNLOCKED_LEVEL);
+}
 
 // ---------------------------
 // Boot
@@ -168,13 +173,10 @@ async function boot() {
 
 // Level select via joystick icon
 document.getElementById("controls")?.addEventListener("click", () => {
-  ui.showLevelSelect({
+ui.showLevelSelect({
   totalLevels: levels.length,
   currentLevel: levelIndex + 1,
-  isCompleted: (lvl) => {
-  if (!HAS_PI_BADGE) return lvl === 1;
-  return lvl <= UNLOCKED_LEVEL;
-},
+  isCompleted: (lvl) => lvl <= getMaxPlayableLevel(),
 });
 });
 
@@ -347,22 +349,28 @@ if (!HAS_PI_BADGE) return;
 
 
   document.getElementById("controls")?.addEventListener("click", () => {
-    ui.showLevelSelect({
-      totalLevels: levels.length,
-      currentLevel: levelIndex + 1,
-      isCompleted: (lvl) => {
-  if (!HAS_PI_BADGE) return lvl === 1;
-  return lvl <= UNLOCKED_LEVEL;
-},
-    });
+ui.showLevelSelect({
+  totalLevels: levels.length,
+  currentLevel: levelIndex + 1,
+  isCompleted: (lvl) => lvl <= getMaxPlayableLevel(),
+});
   });
 
-  ui.onLevelSelect((selectedIndex) => {
+ui.onLevelSelect((selectedIndex) => {
+  const selectedLevel = selectedIndex + 1;
+  const maxAllowed = getMaxPlayableLevel();
+
+  if (selectedLevel > maxAllowed) {
+    ui.showToast?.("🔒 Level locked");
+    return;
+  }
+
   levelIndex = clampLevelIndex(selectedIndex);
-  rewardedThisLevel = false;  // ✅ MUST be false to allow play
+  rewardedThisLevel = false;
+
   game.setLevel(levels[levelIndex]);
-  game.start();               // ✅ RESTART GAME LOOP
-  ui.setLevel(levelIndex + 1);
+  game.start();
+  ui.setLevel(levelIndex);
 });
 
   ui.onFirstUserGesture(() => ensureAudioUnlocked());
