@@ -408,21 +408,20 @@ function onLevelComplete() {
       }
     })();
   }
+if (CURRENT_USER?.uid) {
+  const unlocked = Math.min(levelIndex + 2, levels.length);
 
-  // save progress (next unlocked level)
-  const nextLevelNumber = isLastLevel ? 1 : levelIndex + 2;
   (async () => {
     try {
       await apiSetProgress({
         uid: CURRENT_USER.uid,
-        level: nextLevelNumber,
-        coins: COINS,
+        level: unlocked,
       });
-      UNLOCKED_LEVEL = nextLevelNumber;
     } catch (e) {
       console.warn("progress save failed:", e);
     }
   })();
+}
 
   ui.showWinPopup({
     levelNumber: levelIndex + 1,
