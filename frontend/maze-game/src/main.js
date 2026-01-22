@@ -42,6 +42,23 @@ function hasPiSession() {
     return false;
   }
 }
+
+function createAndStartGame(levelIdx) {
+  if (game?.destroy) {
+    game.destroy(); // safe if exists
+  }
+
+  game = createGame({
+    BACKEND,
+    canvas: ui.canvas,
+    getCurrentUser: () => CURRENT_USER,
+    level: levels[levelIdx],
+    onLevelComplete,
+  });
+
+  game.start();
+}
+
 function getMaxPlayableLevel() {
   if (HAS_PI_BADGE) return UNLOCKED_LEVEL;
   return 5; // guest limit
@@ -334,15 +351,14 @@ ui.setCoins(COINS);
   rewardedThisLevel = false;
 
   game = createGame({
-    BACKEND,
-    canvas: ui.canvas,
-    getCurrentUser: () => CURRENT_USER,
-    level: firstLevel,
-    onLevelComplete,
-  });
+  BACKEND,
+  canvas: ui.canvas,
+  getCurrentUser: () => CURRENT_USER,
+  level: firstLevel,
+  onLevelComplete,
+});
 
-  game.start();
-
+game.start();
 
   document.getElementById("controls")?.addEventListener("click", () => {
     ui.showLevelSelect({
@@ -361,9 +377,10 @@ ui.onLevelSelect((selectedIndex) => {
   }
 
   levelIndex = clampLevelIndex(selectedIndex);
-  rewardedThisLevel = false;
-  game.reset();
-game.setLevel(levels[levelIndex]);
+  rewardedThisLevel = true; // replay → no reward
+
+  createAndStartGame(levelIndex);
+  ui.setLevel(levelIndex + 1);
 });
 
   ui.onFirstUserGesture(() => ensureAudioUnlocked());
@@ -422,8 +439,8 @@ async function goNextLevel() {
   levelIndex = next;
   rewardedThisLevel = false;
 
-  game.reset();
-game.setLevel(levels[levelIndex]);
+  createAndStartGame(levelIndex);
+  ui.setLevel(levelIndex + 1);
 }
  
  
