@@ -453,6 +453,7 @@ async function goNextLevel() {
 
   createAndStartGame(levelIndex);
 }
+}
  
  
 
