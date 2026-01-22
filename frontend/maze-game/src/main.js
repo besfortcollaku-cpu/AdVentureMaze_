@@ -279,9 +279,10 @@ if (me) {
 ui.setCoins(COINS);
 
   // WIN popup actions
-ui.onWinNext(() => {
-  goNextLevel();
-});
+  ui.onWinNext(async () => {
+    ui.hideWinPopup();
+    await goNextLevel();
+  });
 
   // ✅ Watch Ad: wait 5s then call backend
   ui.onWinAd(async () => {
@@ -422,20 +423,14 @@ if (CURRENT_USER?.uid) {
   })();
 }
 
-  ui.showWinPopup({
-    levelNumber: levelIndex + 1,
-    isLastLevel,
-  });
+ui.showWinPopup({
+  levelNumber: levelIndex + 1,
+  isLastLevel,
+  onNext: () => {
+    goNextLevel();
+  },
+});
 }
-async function goNextLevel() {
-  const max = getMaxPlayableLevel();
-  const next = levelIndex + 1;
-
-  if (next + 1 > max) {
-    ui.showToast?.("🔒 Login with Pi to unlock more levels");
-    return;
-  }
-
 async function goNextLevel() {
   const max = getMaxPlayableLevel();
   const next = levelIndex + 1;
@@ -447,12 +442,11 @@ async function goNextLevel() {
 
   levelIndex = next;
   rewardedThisLevel = false;
-
   ui.hideWinPopup?.();
   ui.setLevel(levelIndex + 1);
 
   createAndStartGame(levelIndex);
-}
+  ui.setLevel(levelIndex + 1);
 }
  
  
