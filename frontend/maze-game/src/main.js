@@ -157,6 +157,9 @@ async function apiHint() {
 }
 
 function clampLevelIndex(i) {
+    IS_GUEST = true;
+CURRENT_USER = { uid: "guest", username: "guest" };
+UNLOCKED_LEVEL = FREE_LEVEL_LIMIT;
   if (i < 0) return 0;
   if (i >= levels.length) return 0;
   return i;
@@ -206,10 +209,14 @@ async function boot() {
   });
 
   // Pi environment
-  const env = await enforcePiEnvironment({
-    desktopBlockEl: document.getElementById("desktopBlock"),
-  });
-  if (!env.ok) return;
+const env = await enforcePiEnvironment({
+  desktopBlockEl: document.getElementById("desktopBlock"),
+});
+
+// ⚠️ DO NOT RETURN — allow guest play
+if (!env.ok) {
+  console.warn("Pi environment not ready, continuing as guest");
+}
 
   // init Pi SDK
   initPi();
