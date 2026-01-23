@@ -380,13 +380,9 @@ function onLevelComplete() {
       }
     })();
   }
+// save progress (next unlocked level)
+const nextLevelNumber = isLastLevel ? 1 : levelIndex + 2;
 
-  // save progress (next unlocked level)
-  const nextLevelNumber = isLastLevel ? 1 : levelIndex + 2;
-  (async () => {
-    try {
-(async () => {
-  try {
 if (!IS_GUEST) {
   (async () => {
     try {
@@ -400,10 +396,7 @@ if (!IS_GUEST) {
       console.warn("progress save failed:", e);
     }
   })();
-}
-      
-  }
-
+} 
   ui.showWinPopup({
     levelNumber: levelIndex + 1,
     isLastLevel,
