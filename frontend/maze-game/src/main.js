@@ -320,7 +320,6 @@ if (!IS_GUEST) {
     if (!CURRENT_USER) {
   CURRENT_USER = { uid: "guest", username: "guest" };
 }
-  });
 
   // create game
   const firstLevel = levels[levelIndex];
