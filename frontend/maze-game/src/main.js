@@ -401,6 +401,8 @@ if (!IS_GUEST) {
     }
   })();
 }
+      
+  }
 
   ui.showWinPopup({
     levelNumber: levelIndex + 1,
