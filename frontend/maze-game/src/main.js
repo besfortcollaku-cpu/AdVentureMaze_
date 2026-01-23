@@ -16,6 +16,9 @@ const BACKEND = "https://adventuremaze.onrender.com";
 
 let CURRENT_USER = { username: "guest", uid: null };
 let CURRENT_ACCESS_TOKEN = null;
+let IS_GUEST = true;
+const FREE_LEVEL_LIMIT = 5;
+let UNLOCKED_LEVEL = 1;
 
 let levelIndex = 0;
 let game = null;
@@ -209,20 +212,24 @@ ui.onLevelSelect((selectedIndex) => {
   // init Pi SDK
   initPi();
 
-  // login
-  const loginRes = await ensurePiLogin({
+ui.onLoginClick(async () => {
+  const res = await ensurePiLogin({
     BACKEND,
     ui,
     onLogin: ({ user, accessToken }) => {
+      IS_GUEST = false;
       CURRENT_USER = user;
       CURRENT_ACCESS_TOKEN = accessToken;
-
-      if (ui?.userPill) ui.userPill.textContent = `${user.username}`;
-      if (ui?.loginBtnText) ui.loginBtnText.textContent = "✅";
+      ui.setUser(user);
     },
   });
 
-  if (!loginRes?.ok) return;
+  if (!res?.ok) return;
+
+  // after login, allow continuation
+  UNLOCKED_LEVEL = levelIndex + 1;
+});
+  
 
   // load server state
   let me;
@@ -234,14 +241,10 @@ ui.onLevelSelect((selectedIndex) => {
     return;
   }
 
-  const serverUser = me.user;
-  const serverProgress = me.progress;
-  
-const savedLevel = Number(serverProgress?.level || 1);
-  levelIndex = clampLevelIndex(savedLevel - 1);
-  
-  let UNLOCKED_LEVEL = savedLevel;
-  CURRENT_USER = { username: serverUser.username, uid: serverUser.uid };
+  c// Guest default
+levelIndex = 0;
+UNLOCKED_LEVEL = FREE_LEVEL_LIMIT;
+ui.setCoins(0);
 
   COINS = Number(serverUser.coins || 0);
   ui.setCoins(COINS);
@@ -339,11 +342,18 @@ const savedLevel = Number(serverProgress?.level || 1);
     });
   });
 
-  ui.onLevelSelect((selectedIndex) => {
+ui.onLevelSelect((selectedIndex) => {
+  const targetLevel = selectedIndex + 1;
+
+  if (IS_GUEST && targetLevel > FREE_LEVEL_LIMIT) {
+    ui.showLoginGate();
+    return;
+  }
+
   levelIndex = clampLevelIndex(selectedIndex);
-  rewardedThisLevel = false;  // ✅ MUST be false to allow play
+  rewardedThisLevel = false;
   game.setLevel(levels[levelIndex]);
-  game.start();               // ✅ RESTART GAME LOOP
+  game.start();
   ui.setLevel(levelIndex + 1);
 });
 
@@ -375,6 +385,11 @@ function onLevelComplete() {
   const nextLevelNumber = isLastLevel ? 1 : levelIndex + 2;
   (async () => {
     try {
+(async () => {
+  try {
+if (!IS_GUEST) {
+  (async () => {
+    try {
       await apiSetProgress({
         uid: CURRENT_USER.uid,
         level: nextLevelNumber,
@@ -385,6 +400,7 @@ function onLevelComplete() {
       console.warn("progress save failed:", e);
     }
   })();
+}
 
   ui.showWinPopup({
     levelNumber: levelIndex + 1,
@@ -393,7 +409,10 @@ function onLevelComplete() {
 }
 
 async function goNextLevel() {
-  const next = levelIndex + 1;
+  if (IS_GUEST && next + 1 > FREE_LEVEL_LIMIT) {
+  ui.showLoginGate();
+  return;
+}
 
   if (next >= levels.length) {
     levelIndex = 0;
