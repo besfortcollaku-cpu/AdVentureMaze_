@@ -156,7 +156,7 @@ export function mountUI(app) {
 </div>
     
     <!-- ✅ FULLSCREEN WELCOME OVERLAY -->
-<div class="welcomeOverlay" id="welcomeOverlay" aria-hidden="true" style="display:none">
+<div class="welcomeOverlay" id="welcomeOverlay" aria-hidden="false">
   <div class="welcomeCard">
     <h1 class="welcomeTitle">Welcome to Adventure Maze</h1>
     <div class="loginWrap">
@@ -707,12 +707,24 @@ function hideWelcome() {
     canvas: document.getElementById("game"),
 
     // header login UI
-    
+    loginBtn,
+    loginBtnText,
+    userPill,
+
     setCoins,
+
     // ✅ audio unlock hook
     onFirstUserGesture(fn) {
       firstGestureHandler = fn;
     },
+
+    // ✅ login gate methods for ensurePiLogin()
+    showLoginGate,
+    hideLoginGate,
+    showLoginError,
+    onLoginClick,
+    setUser,
+
     // Settings API
     setSoundEnabled,
     setVibrationEnabled,
