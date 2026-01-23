@@ -9,39 +9,7 @@
   --text:#eaf3ff;
   --muted:rgba(234,243,255,.65);
 }
-.topbar{
-  height:52px;
-  background: rgba(7,11,20,0.85);
-  backdrop-filter: blur(6px);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  box-shadow:none;
-  border-bottom:1px solid rgba(255,255,255,0.06);
-}
-.topbar::after{
-  content:"";
-  position:absolute;
-  inset:0;
-  background:linear-gradient(
-    to bottom,
-    rgba(7,11,20,0.95),
-    rgba(7,11,20,0.7)
-  );
-  pointer-events:none;
-}
 
-*{ box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
-html,body{ height:100%; margin:0; }
-body{
-  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-  color:var(--text);
-  overflow:hidden;
-  background:
-    radial-gradient(1200px 900px at 20% 10%, rgba(37,215,255,.12), transparent 55%),
-    radial-gradient(1000px 900px at 85% 20%, rgba(255,204,51,.10), transparent 60%),
-    linear-gradient(180deg, var(--bg1), var(--bg0));
-}
 
 #app{
   height:100%;
@@ -63,18 +31,10 @@ body{
   border: 1px solid rgba(37,215,255,.10);
 }
 
-.topbar{
-  padding:10px 10px 12px;
-  display:flex;
-  flex-direction:column;
-  gap:10px;
-}
 
-.topRow{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:10px;
+.topbar{
+  height:44px;          /* ⬅ slimmer */
+  padding:6px 10px 6px; /* ⬅ balanced */
 }
 
 .brand{
@@ -198,9 +158,8 @@ body{
   border: 1px solid rgba(255,255,255,.25);
   box-shadow: 0 10px 18px rgba(255,75,58,.25);
 }
-
 .boardWrap{
-  margin-top:8px;
+  margin-top:4px;        /* ⬅ reduce dead space */
   display:flex;
   justify-content:center;
 }
@@ -208,11 +167,9 @@ body{
 .boardFrame{
   width:min(390px, 100%);
   aspect-ratio: 1 / 1;
-  border-radius:22px;
-  background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
-  border: 1px solid rgba(37,215,255,.12);
-  padding:0px;
-  box-shadow: 0 18px 38px rgba(0,0,0,.45);
+  border-radius:18px;    /* slightly tighter */
+  background: linear-gradient(...);
+  padding:0;
 }
 
 canvas{
@@ -331,22 +288,6 @@ html, body {
 }
 
 
-
-/* Top bar (phone UI) */
-
-.topbar {
-
-  display: flex;
-
-  align-items: center;
-
-  justify-content: space-between;
-
-  gap: 10px;
-
-  padding: 10px 6px;
-
-}
 
 
 

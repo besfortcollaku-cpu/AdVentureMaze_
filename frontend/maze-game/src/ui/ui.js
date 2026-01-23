@@ -155,23 +155,7 @@ export function mountUI(app) {
 </div>
 </div>
     
-    <!-- ✅ FULLSCREEN WELCOME OVERLAY -->
-<div class="welcomeOverlay" id="welcomeOverlay" aria-hidden="false">
-  <div class="welcomeCard">
-    <h1 class="welcomeTitle">Welcome to Adventure Maze</h1>
-    <div class="loginWrap">
-  <button class="iconBtnWide" id="loginBtn">
-    <span id="loginBtnText">Login</span>
-  </button>
 
-  <div class="userPill" id="userPill">U:guest</div>
-
-  <!-- ✅ NEW: TEST button (hidden by default) -->
-  <button class="iconBtnWide" id="testBtn" style="display:none;">
-    Tap To Play
-  </button>
-
-</div>
   `;
 
   // ✅ Inject UI styles (Login Gate + Settings + Win overlay + login wrap)
@@ -465,7 +449,6 @@ export function mountUI(app) {
   const winNextBtn = document.getElementById("winNextBtn");
   const winAdBtn = document.getElementById("winAdBtn");
   
-  const welcomeOverlay = document.getElementById("welcomeOverlay");
   
   // Level select
   const levelSelectOverlay = document.getElementById("levelSelectOverlay");
@@ -520,11 +503,8 @@ export function mountUI(app) {
   levelSelectOverlay?.addEventListener("click", (e) => {
     if (e.target === levelSelectOverlay) hideLevelSelect();
   });
-function hideWelcome() {
-  if (!welcomeOverlay) return;
 
-  welcomeOverlay.style.display = "none";
-  welcomeOverlay.setAttribute("aria-hidden", "true");
+
 }
 
 
@@ -617,8 +597,6 @@ function hideWelcome() {
   // ✅ NEW: toggle buttons after login
   const testBtn = document.getElementById("testBtn");
 
-testBtn?.addEventListener("click", () => {
-  hideWelcome();
   window.dispatchEvent(new Event("startGame"));
 });
   if (name !== "guest") {
@@ -699,7 +677,6 @@ testBtn?.addEventListener("click", () => {
   }
 
   return {
-    hideWelcome,
     onHint(fn) { hintHandler = fn; },
     onSkip(fn) { skipHandler = fn; },
     canvas: document.getElementById("game"),
