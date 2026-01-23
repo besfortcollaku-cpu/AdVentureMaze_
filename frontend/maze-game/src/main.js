@@ -44,21 +44,20 @@ function hasPiSession() {
 }
 
 function createAndStartGame(levelIdx) {
-  if (game?.destroy) {
-    game.destroy(); // safe if exists
+  if (!game) {
+    game = createGame({
+      BACKEND,
+      canvas: ui.canvas,
+      getCurrentUser: () => CURRENT_USER,
+      level: levels[levelIdx],
+      onLevelComplete,
+    });
+  } else {
+    game.setLevel(levels[levelIdx]);
   }
-
-  game = createGame({
-    BACKEND,
-    canvas: ui.canvas,
-    getCurrentUser: () => CURRENT_USER,
-    level: levels[levelIdx],
-    onLevelComplete,
-  });
 
   game.start();
 }
-
 function getMaxPlayableLevel() {
   if (HAS_PI_BADGE) return UNLOCKED_LEVEL;
   return 5; // guest limit
@@ -356,9 +355,7 @@ ui.setCoins(COINS);
     });
   });
 ui.onLevelSelect((selectedIndex) => {
-  const max = getMaxPlayableLevel();
-
-  if (selectedIndex + 1 > max) {
+  if (selectedIndex + 1 > getMaxPlayableLevel()) {
     ui.showToast?.("🔒 Login with Pi to unlock more levels");
     return;
   }
@@ -366,9 +363,8 @@ ui.onLevelSelect((selectedIndex) => {
   levelIndex = clampLevelIndex(selectedIndex);
   rewardedThisLevel = false;
 
-  game.setLevel(levels[levelIndex]);
-  game.start();               // ✅ REQUIRED
   ui.setLevel(levelIndex + 1);
+  createAndStartGame(levelIndex);
 });
   ui.onFirstUserGesture(() => ensureAudioUnlocked());
 
@@ -419,7 +415,6 @@ ui.showWinPopup({
 async function goNextLevel() {
   const nextIndex = levelIndex + 1;
 
-  // 🔒 guest limit
   if (nextIndex + 1 > getMaxPlayableLevel()) {
     ui.showToast?.("🔒 Login with Pi to unlock more levels");
     return;
@@ -428,10 +423,11 @@ async function goNextLevel() {
   levelIndex = clampLevelIndex(nextIndex);
   rewardedThisLevel = false;
 
-  game.setLevel(levels[levelIndex]);
-  game.start();                 // ✅ THIS WAS MISSING
+  ui.hideWinPopup?.();
   ui.setLevel(levelIndex + 1);
 
+  createAndStartGame(levelIndex);
+}
   // save progress only if logged in
   if (CURRENT_USER?.uid) {
     await apiSetProgress({
