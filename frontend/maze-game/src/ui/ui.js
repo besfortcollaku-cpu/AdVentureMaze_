@@ -735,7 +735,6 @@ function iconBtn(id, svg, badgeText) {
       ${svg}
     </button>
   `;
-}
 
 /* --- SVG functions --- */
 
