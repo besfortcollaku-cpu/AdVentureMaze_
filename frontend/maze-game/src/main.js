@@ -166,6 +166,7 @@ function clampLevelIndex(i) {
 // Boot
 // ---------------------------
 async function boot() {
+    document.body.style.background = "red";
   ui = mountUI(document.querySelector("#app"));
 
 
