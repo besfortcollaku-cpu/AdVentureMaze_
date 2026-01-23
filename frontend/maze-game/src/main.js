@@ -334,22 +334,6 @@ ui.setCoins(COINS);
     }
   });
 
-
-
-  document.getElementById("controls")?.addEventListener("click", () => {
-    ui.showLevelSelect({
-      totalLevels: levels.length,
-      currentLevel: levelIndex + 1,
-      isCompleted: (lvl) => lvl <= getui.onLevelSelect((selectedIndex) => {
-  levelIndex = clampLevelIndex(selectedIndex);
-  rewardedThisLevel = false;
-  ui.setLevel(levelIndex + 1);
-  createAndStartGame(levelIndex);
-});
-  ui.onFirstUserGesture(() => ensureAudioUnlocked());
-
-}
-
 // ---------------------------
 // Level flow
 // ---------------------------
@@ -387,30 +371,23 @@ if (CURRENT_USER?.uid) {
 ui.showWinPopup({
   levelNumber: levelIndex + 1,
   isLastLevel,
-  onNext: () => {
-    goNextLevel();
-  },
 });
-
 async function goNextLevel() {
-  const next = levelIndex + 1;
+  const max = getMaxPlayableLevel();
+  const nextIndex = levelIndex + 1;
 
-  if (next >= levels.length) {
-    // optional: loop or stop
+  if (nextIndex + 1 > max) {
+    ui.showToast?.("🔒 Login with Pi to unlock more levels");
     return;
   }
 
-  levelIndex = next;
+  levelIndex = clampLevelIndex(nextIndex);
   rewardedThisLevel = false;
 
+  ui.hideWinPopup?.();
   ui.setLevel(levelIndex + 1);
-  createAndStartGame(levelIndex);
 
-  await apiSetProgress({
-    uid: CURRENT_USER.uid,
-    level: levelIndex + 1,
-    coins: COINS,
-  });
+  createAndStartGame(levelIndex);
 }
   // save progress only if logged in
   if (CURRENT_USER?.uid) {
