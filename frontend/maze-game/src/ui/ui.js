@@ -644,6 +644,9 @@ export function mountUI(app) {
   winAdBtn?.addEventListener("click", () => winAdHandler?.());
 
   function showWinPopup({ levelNumber, isLastLevel } = {}) {
+      if (window.IS_GUEST) {
+  watchAdBtn.style.display = "none";
+}
     if (winSubText) {
       winSubText.textContent = isLastLevel
         ? `You finished the last level!`

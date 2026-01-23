@@ -282,19 +282,30 @@ if (!env.ok) {
   });
 
   // WIN popup actions
-  ui.onWinNext(async () => {
-    ui.hideWinPopup();
+ui.onWinNext(async () => {
+  ui.hideWinPopup();
 
-    const nextLevel = levelIndex + 2;
-    if (IS_GUEST && nextLevel > FREE_LEVEL_LIMIT) {
-      ui.showLoginGate();
-      return;
-    }
+  const nextLevelNumber = levelIndex + 2;
 
-    await goNextLevel();
-  });
+  if (IS_GUEST && nextLevelNumber > FREE_LEVEL_LIMIT) {
+    ui.showLoginGate({
+      title: "Login to continue",
+      message: "Create a Pi account to unlock more levels and save progress.",
+    });
+    return;
+  }
+
+  await goNextLevel();
+});
 
   ui.onWinAd(async () => {
+      if (IS_GUEST && levelIndex + 1 >= FREE_LEVEL_LIMIT) {
+  ui.showLoginGate({
+    title: "Login required",
+    message: "Login with Pi to earn rewards and continue playing.",
+  });
+  return;
+}
     try {
       ui.showToast?.("Watching ad…");
       await delay(5000);
