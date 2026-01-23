@@ -355,13 +355,8 @@ ui.setCoins(COINS);
     });
   });
 ui.onLevelSelect((selectedIndex) => {
-  if (selectedIndex + 1 > getMaxPlayableLevel()) {
-    ui.showToast?.("🔒 Login with Pi to unlock more levels");
-    return;
-  }
-
   levelIndex = clampLevelIndex(selectedIndex);
-  rewardedThisLevel = false;
+  rewardedThisLevel = true; // replay = no reward
 
   ui.setLevel(levelIndex + 1);
   createAndStartGame(levelIndex);
@@ -413,14 +408,15 @@ ui.showWinPopup({
 });
 
 async function goNextLevel() {
-  const nextIndex = levelIndex + 1;
+  const max = getMaxPlayableLevel();
+  const next = levelIndex + 1;
 
-  if (nextIndex + 1 > getMaxPlayableLevel()) {
+  if (next + 1 > max) {
     ui.showToast?.("🔒 Login with Pi to unlock more levels");
     return;
   }
 
-  levelIndex = clampLevelIndex(nextIndex);
+  levelIndex = next;
   rewardedThisLevel = false;
 
   ui.hideWinPopup?.();
