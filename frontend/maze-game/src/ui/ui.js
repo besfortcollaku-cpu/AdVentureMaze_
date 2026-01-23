@@ -595,7 +595,7 @@ export function mountUI(app) {
   }
 
   // ✅ NEW: toggle buttons after login
-  const testBtn = document.getElementById("testBtn");
+  
 
   window.dispatchEvent(new Event("startGame"));
 });
@@ -603,12 +603,11 @@ export function mountUI(app) {
     // logged in
     loginBtn?.style.setProperty("display", "none");
     userPill?.style.setProperty("display", "none");
-    if (testBtn) testBtn.style.display = "inline-flex";
   } else {
     // logged out / guest
     loginBtn?.style.setProperty("display", "inline-flex");
     userPill?.style.setProperty("display", "inline-flex");
-    if (testBtn) testBtn.style.display = "none";
+
   }
 }
 
@@ -704,7 +703,7 @@ export function mountUI(app) {
     setSoundEnabled,
     setVibrationEnabled,
     onSoundToggle(fn) {
-      soundHandler = fn;
+     soundHandler = fn;
     },
     onVibrationToggle(fn) {
       vibrationHandler = fn;
