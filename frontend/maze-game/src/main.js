@@ -208,27 +208,13 @@ ui.onLevelSelect((selectedIndex) => {
     desktopBlockEl: document.getElementById("desktopBlock"),
   });
   if (!env.ok) return;
+  
+  ui.loginBtn?.style.setProperty("display", "none");
 
   // init Pi SDK
   initPi();
 
-ui.onLoginClick(async () => {
-  const res = await ensurePiLogin({
-    BACKEND,
-    ui,
-    onLogin: ({ user, accessToken }) => {
-      IS_GUEST = false;
-      CURRENT_USER = user;
-      CURRENT_ACCESS_TOKEN = accessToken;
-      ui.setUser(user);
-    },
-  });
 
-  if (!res?.ok) return;
-
-  // after login, allow continuation
-  UNLOCKED_LEVEL = levelIndex + 1;
-});
   
 
 // load server state (ONLY if logged in)
@@ -259,9 +245,17 @@ if (!IS_GUEST) {
 
   // WIN popup actions
   ui.onWinNext(async () => {
-    ui.hideWinPopup();
-    await goNextLevel();
-  });
+  ui.hideWinPopup();
+
+  const nextLevel = levelIndex + 2;
+
+  if (IS_GUEST && nextLevel > FREE_LEVEL_LIMIT) {
+    ui.showLoginGate();
+    return;
+  }
+
+  await goNextLevel();
+});
 
   // ✅ Watch Ad: wait 5s then call backend
   ui.onWinAd(async () => {
