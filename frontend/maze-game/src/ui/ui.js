@@ -725,7 +725,6 @@ export function mountUI(app) {
     levelSelectHandler = fn;
     },
   };
-}
 
 /* ---------------- UI helpers ---------------- */
 function iconBtn(id, svg, badgeText) {
@@ -735,7 +734,7 @@ function iconBtn(id, svg, badgeText) {
       ${svg}
     </button>
   `;
-
+}
 /* --- SVG functions --- */
 
 function userAccountSVG() {
