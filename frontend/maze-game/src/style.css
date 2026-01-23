@@ -68,7 +68,7 @@
   display:flex;
   flex-direction:column;
   align-items:center;
-  gap:6px;
+  gap:2px;              /* ⬅ less vertical gap */
 }
 
 .levelNew{
@@ -83,7 +83,7 @@
 
 .levelText{
   margin-top: -10px;
-  font-size:34px;
+  font-size:30px;
   font-weight:950;
   letter-spacing:.6px;
   text-shadow: 0 0 18px rgba(37,215,255,.15);
