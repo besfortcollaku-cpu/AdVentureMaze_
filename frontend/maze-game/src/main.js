@@ -341,6 +341,13 @@ function onLevelComplete() {
   const isLastLevel = levelIndex >= levels.length - 1;
 
   // ✅ claim +1 once per level completion
+// ---------------------------
+// Level flow
+// ---------------------------
+function onLevelComplete() {
+  const isLastLevel = levelIndex >= levels.length - 1;
+
+  // ✅ reward once per level
   if (!rewardedThisLevel) {
     rewardedThisLevel = true;
     (async () => {
@@ -353,25 +360,31 @@ function onLevelComplete() {
       }
     })();
   }
-if (CURRENT_USER?.uid) {
-  const unlocked = Math.min(levelIndex + 2, levels.length);
 
-  (async () => {
-    try {
-      await apiSetProgress({
-        uid: CURRENT_USER.uid,
-        level: unlocked,
-      });
-    } catch (e) {
-      console.warn("progress save failed:", e);
-    }
-  })();
+  // ✅ save progress only if logged in
+  if (CURRENT_USER?.uid) {
+    const unlocked = Math.min(levelIndex + 2, levels.length);
+    (async () => {
+      try {
+        await apiSetProgress({
+          uid: CURRENT_USER.uid,
+          level: unlocked,
+        });
+      } catch (e) {
+        console.warn("progress save failed:", e);
+      }
+    })();
+  }
+
+  ui.showWinPopup({
+    levelNumber: levelIndex + 1,
+    isLastLevel,
+  });
 }
 
-ui.showWinPopup({
-  levelNumber: levelIndex + 1,
-  isLastLevel,
-});
+// ---------------------------
+// Next level action
+// ---------------------------
 async function goNextLevel() {
   const max = getMaxPlayableLevel();
   const nextIndex = levelIndex + 1;
@@ -386,21 +399,7 @@ async function goNextLevel() {
 
   ui.hideWinPopup?.();
   ui.setLevel(levelIndex + 1);
-
   createAndStartGame(levelIndex);
 }
-  // save progress only if logged in
-  if (CURRENT_USER?.uid) {
-(async () => {
-  try {
-    await apiSetProgress({
-      uid: CURRENT_USER.uid,
-      level: nextLevelNumber,
-    });
-  } catch (e) {
-    console.warn("progress save failed:", e);
-  }
-})();
-  
 
 boot();
