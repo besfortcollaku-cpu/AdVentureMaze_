@@ -411,7 +411,7 @@ ui.showWinPopup({
     goNextLevel();
   },
 });
-}
+
 async function goNextLevel() {
   const nextIndex = levelIndex + 1;
 
