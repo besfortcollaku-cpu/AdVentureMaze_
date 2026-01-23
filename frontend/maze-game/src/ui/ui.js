@@ -3,9 +3,6 @@
 export function mountUI(app) {
   app.innerHTML = `
     <div class="phone">
-    <div id="app" style="background:red; height:100vh; width:100vw;">
-  TEST APP CONTAINER
-</div>
       <div class="topbar">
         <div class="topRow">
             <div class="levelWrap">
@@ -507,8 +504,6 @@ export function mountUI(app) {
     if (e.target === levelSelectOverlay) hideLevelSelect();
   });
 
-
-}
 
 
   // ---------------------------
