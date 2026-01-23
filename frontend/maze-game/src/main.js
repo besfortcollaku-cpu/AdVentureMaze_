@@ -430,11 +430,16 @@ async function goNextLevel() {
 }
   // save progress only if logged in
   if (CURRENT_USER?.uid) {
+(async () => {
+  try {
     await apiSetProgress({
       uid: CURRENT_USER.uid,
-      level: levelIndex + 1,
-      coins: COINS,
+      level: nextLevelNumber,
     });
+  } catch (e) {
+    console.warn("progress save failed:", e);
+  }
+})();
   }
 }
  
