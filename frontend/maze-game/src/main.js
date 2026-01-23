@@ -322,19 +322,7 @@ if (!IS_GUEST) {
   CURRENT_USER = { uid: "guest", username: "guest" };
 }
 
-  // create game
-  const firstLevel = levels[levelIndex];
-  rewardedThisLevel = false;
 
-  game = createGame({
-    BACKEND,
-    canvas: ui.canvas,
-    getCurrentUser: () => CURRENT_USER,
-    level: firstLevel,
-    onLevelComplete,
-  });
-
-  game.start();
 
 });
 
@@ -402,13 +390,17 @@ if (!IS_GUEST) {
     }
   })();
 } 
+
+
   ui.showWinPopup({
     levelNumber: levelIndex + 1,
     isLastLevel,
   });
 }
 
+
 async function goNextLevel() {
+    const next = levelIndex + 1;
   if (IS_GUEST && next + 1 > FREE_LEVEL_LIMIT) {
   ui.showLoginGate();
   return;
@@ -434,6 +426,23 @@ async function goNextLevel() {
   } catch (e) {
     console.warn("progress save failed:", e);
   }
+  
+
+// create game (ON APP LOAD)
+const firstLevel = levels[levelIndex];
+rewardedThisLevel = false;
+
+game = createGame({
+  BACKEND,
+  canvas: ui.canvas,
+  getCurrentUser: () => CURRENT_USER,
+  level: firstLevel,
+  onLevelComplete,
+});
+
+game.start();
+
+
 }
 
 boot();
