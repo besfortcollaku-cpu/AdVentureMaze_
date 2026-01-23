@@ -317,6 +317,9 @@ if (!IS_GUEST) {
       const msg = normalizeErr(e);
       if (!handleAuthExpiredIfNeeded(msg)) alert(msg);
     }
+    if (!CURRENT_USER) {
+  CURRENT_USER = { uid: "guest", username: "guest" };
+}
   });
 
   // create game
@@ -332,8 +335,7 @@ if (!IS_GUEST) {
   });
 
   game.start();
-  window.addEventListener("startGame", () => {
-  game.start();
+
 });
 
 
