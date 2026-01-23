@@ -166,25 +166,25 @@ function clampLevelIndex(i) {
 // Boot
 // ---------------------------
 async function boot() {
-    document.body.style.background = "red";
-  ui = mountUI(document.querySelector("#app"));
+  // visual proof boot runs
+  document.body.style.background = "red";
 
+  const root = document.querySelector("#app");
+  if (!root) {
+    document.body.innerHTML = "<h1>#app not found</h1>";
+    return;
+  }
 
-// Level select via joystick icon
-document.getElementById("controls")?.addEventListener("click", () => {
-  ui.showLevelSelect({
-  totalLevels: levels.length,
-  currentLevel: levelIndex + 1,
-  isCompleted: (lvl) => lvl < UNLOCKED_LEVEL,
-});
-});
+  // mount UI
+  ui = mountUI(root);
 
-ui.onLevelSelect((selectedIndex) => {
-  levelIndex = clampLevelIndex(selectedIndex);
-  rewardedThisLevel = true; // prevent reward on replay
-  game.setLevel(levels[levelIndex]);
-});
-  // unlock audio after first gesture
+  // ensure guest user
+  if (!CURRENT_USER) {
+    CURRENT_USER = { uid: "guest", username: "guest" };
+    IS_GUEST = true;
+  }
+
+  // audio unlock
   ui.onFirstUserGesture(() => ensureAudioUnlocked());
 
   // settings
@@ -196,6 +196,7 @@ ui.onLevelSelect((selectedIndex) => {
     setSetting("sound", v);
     if (!v) stopRollSound();
   });
+
   ui.onVibrationToggle((v) => setSetting("vibration", v));
 
   subscribeSettings((s) => {
@@ -209,56 +210,83 @@ ui.onLevelSelect((selectedIndex) => {
     desktopBlockEl: document.getElementById("desktopBlock"),
   });
   if (!env.ok) return;
-  
-  ui.loginBtn?.style.setProperty("display", "none");
 
   // init Pi SDK
   initPi();
 
+  // load server state ONLY if logged in
+  if (!IS_GUEST) {
+    try {
+      const me = await apiGetMe();
+      const serverUser = me.user;
+      const serverProgress = me.progress;
 
-  
+      const savedLevel = Number(serverProgress?.level || 1);
+      levelIndex = clampLevelIndex(savedLevel - 1);
+      UNLOCKED_LEVEL = savedLevel;
 
-// load server state (ONLY if logged in)
-if (!IS_GUEST) {
-  let me;
-  try {
-    me = await apiGetMe();
-  } catch (e) {
-    const msg = normalizeErr(e);
-    if (!handleAuthExpiredIfNeeded(msg)) {
-      alert("Failed to load profile: " + msg);
+      CURRENT_USER = { username: serverUser.username, uid: serverUser.uid };
+      COINS = Number(serverUser.coins || 0);
+      ui.setCoins(COINS);
+    } catch (e) {
+      const msg = normalizeErr(e);
+      if (!handleAuthExpiredIfNeeded(msg)) {
+        alert("Failed to load profile: " + msg);
+      }
+      return;
     }
-    return;
   }
 
-  const serverUser = me.user;
-  const serverProgress = me.progress;
+  // CREATE GAME (ON APP LOAD — ONLY ONCE)
+  rewardedThisLevel = false;
+  const firstLevel = levels[levelIndex];
 
-  const savedLevel = Number(serverProgress?.level || 1);
-  levelIndex = clampLevelIndex(savedLevel - 1);
-  UNLOCKED_LEVEL = savedLevel;
+  game = createGame({
+    BACKEND,
+    canvas: ui.canvas,
+    getCurrentUser: () => CURRENT_USER,
+    level: firstLevel,
+    onLevelComplete,
+  });
 
-  CURRENT_USER = { username: serverUser.username, uid: serverUser.uid };
-  COINS = Number(serverUser.coins || 0);
-  ui.setCoins(COINS);
-}
-  
+  game.start();
+
+  // level select button
+  document.getElementById("controls")?.addEventListener("click", () => {
+    ui.showLevelSelect({
+      totalLevels: levels.length,
+      currentLevel: levelIndex + 1,
+      isCompleted: (lvl) => lvl < UNLOCKED_LEVEL,
+    });
+  });
+
+  ui.onLevelSelect((selectedIndex) => {
+    const targetLevel = selectedIndex + 1;
+
+    if (IS_GUEST && targetLevel > FREE_LEVEL_LIMIT) {
+      ui.showLoginGate();
+      return;
+    }
+
+    levelIndex = clampLevelIndex(selectedIndex);
+    rewardedThisLevel = false;
+    game.setLevel(levels[levelIndex]);
+    ui.setLevel(levelIndex + 1);
+  });
 
   // WIN popup actions
   ui.onWinNext(async () => {
-  ui.hideWinPopup();
+    ui.hideWinPopup();
 
-  const nextLevel = levelIndex + 2;
+    const nextLevel = levelIndex + 2;
+    if (IS_GUEST && nextLevel > FREE_LEVEL_LIMIT) {
+      ui.showLoginGate();
+      return;
+    }
 
-  if (IS_GUEST && nextLevel > FREE_LEVEL_LIMIT) {
-    ui.showLoginGate();
-    return;
-  }
+    await goNextLevel();
+  });
 
-  await goNextLevel();
-});
-
-  // ✅ Watch Ad: wait 5s then call backend
   ui.onWinAd(async () => {
     try {
       ui.showToast?.("Watching ad…");
@@ -280,20 +308,15 @@ if (!IS_GUEST) {
     await goNextLevel();
   });
 
-  // ✅ Hook Skip / Hint buttons
+  // Skip
   document.getElementById("x3Btn")?.addEventListener("click", async () => {
-    if (!CURRENT_USER?.uid) return;
+    if (IS_GUEST) return;
 
     try {
-      ui.showToast?.("Processing skip…");
       await delay(5000);
-
       const out = await apiSkip();
       COINS = Number(out?.user?.coins ?? COINS);
       ui.setCoins(COINS);
-
-      ui.showToast?.(out?.mode === "free" ? "Free skip used" : "Skip used (-50 coins)");
-
       await goNextLevel();
     } catch (e) {
       const msg = normalizeErr(e);
@@ -301,57 +324,20 @@ if (!IS_GUEST) {
     }
   });
 
+  // Hint
   document.getElementById("hintBtn")?.addEventListener("click", async () => {
-    if (!CURRENT_USER?.uid) return;
+    if (IS_GUEST) return;
 
     try {
-      ui.showToast?.("Loading hint…");
       await delay(5000);
-
       const out = await apiHint();
       COINS = Number(out?.user?.coins ?? COINS);
       ui.setCoins(COINS);
-
-      const mode = out?.mode === "free" ? "Free hint used" : "Paid hint (-50)";
-      ui.showToast?.(`${mode}. Free hints left: ${out?.freeLeft ?? 0}`);
     } catch (e) {
       const msg = normalizeErr(e);
       if (!handleAuthExpiredIfNeeded(msg)) alert(msg);
     }
-    if (!CURRENT_USER) {
-  CURRENT_USER = { uid: "guest", username: "guest" };
-}
-
-
-
-});
-
-
-  document.getElementById("controls")?.addEventListener("click", () => {
-    ui.showLevelSelect({
-      totalLevels: levels.length,
-      currentLevel: levelIndex + 1,
-      isCompleted: (lvl) => lvl <= UNLOCKED_LEVEL,
-    });
   });
-
-ui.onLevelSelect((selectedIndex) => {
-  const targetLevel = selectedIndex + 1;
-
-  if (IS_GUEST && targetLevel > FREE_LEVEL_LIMIT) {
-    ui.showLoginGate();
-    return;
-  }
-
-  levelIndex = clampLevelIndex(selectedIndex);
-  rewardedThisLevel = false;
-  game.setLevel(levels[levelIndex]);
-  game.start();
-  ui.setLevel(levelIndex + 1);
-});
-
-  ui.onFirstUserGesture(() => ensureAudioUnlocked());
-
 }
 
 // ---------------------------
@@ -360,7 +346,6 @@ ui.onLevelSelect((selectedIndex) => {
 function onLevelComplete() {
   const isLastLevel = levelIndex >= levels.length - 1;
 
-  // ✅ claim +1 once per level completion
   if (!rewardedThisLevel) {
     rewardedThisLevel = true;
     (async () => {
@@ -368,29 +353,24 @@ function onLevelComplete() {
         const out = await apiClaimLevelComplete(levelIndex + 1);
         COINS = Number(out?.user?.coins ?? COINS);
         ui.setCoins(COINS);
-      } catch (e) {
-        console.warn("level reward failed:", e);
-      }
+      } catch {}
     })();
   }
-// save progress (next unlocked level)
-const nextLevelNumber = isLastLevel ? 1 : levelIndex + 2;
 
-if (!IS_GUEST) {
-  (async () => {
-    try {
-      await apiSetProgress({
-        uid: CURRENT_USER.uid,
-        level: nextLevelNumber,
-        coins: COINS,
-      });
-      UNLOCKED_LEVEL = nextLevelNumber;
-    } catch (e) {
-      console.warn("progress save failed:", e);
-    }
-  })();
-} 
+  const nextLevelNumber = isLastLevel ? 1 : levelIndex + 2;
 
+  if (!IS_GUEST) {
+    (async () => {
+      try {
+        await apiSetProgress({
+          uid: CURRENT_USER.uid,
+          level: nextLevelNumber,
+          coins: COINS,
+        });
+        UNLOCKED_LEVEL = nextLevelNumber;
+      } catch {}
+    })();
+  }
 
   ui.showWinPopup({
     levelNumber: levelIndex + 1,
@@ -398,51 +378,17 @@ if (!IS_GUEST) {
   });
 }
 
-
 async function goNextLevel() {
-    const next = levelIndex + 1;
+  const next = levelIndex + 1;
+
   if (IS_GUEST && next + 1 > FREE_LEVEL_LIMIT) {
-  ui.showLoginGate();
-  return;
-}
-
-  if (next >= levels.length) {
-    levelIndex = 0;
-  } else {
-    levelIndex = next;
+    ui.showLoginGate();
+    return;
   }
 
+  levelIndex = next >= levels.length ? 0 : next;
   rewardedThisLevel = false;
-
   game.setLevel(levels[levelIndex]);
-
-  // best-effort save current progress level
-  try {
-    await apiSetProgress({
-      uid: CURRENT_USER.uid,
-      level: levelIndex + 1,
-      coins: COINS,
-    });
-  } catch (e) {
-    console.warn("progress save failed:", e);
-  }
-  
-
-// create game (ON APP LOAD)
-const firstLevel = levels[levelIndex];
-rewardedThisLevel = false;
-
-game = createGame({
-  BACKEND,
-  canvas: ui.canvas,
-  getCurrentUser: () => CURRENT_USER,
-  level: firstLevel,
-  onLevelComplete,
-});
-
-game.start();
-
-
 }
 
 boot();
