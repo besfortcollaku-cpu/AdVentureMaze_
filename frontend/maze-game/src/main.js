@@ -231,24 +231,30 @@ ui.onLoginClick(async () => {
 });
   
 
-  // load server state
+// load server state (ONLY if logged in)
+if (!IS_GUEST) {
   let me;
   try {
     me = await apiGetMe();
   } catch (e) {
     const msg = normalizeErr(e);
-    if (!handleAuthExpiredIfNeeded(msg)) alert("Failed to load profile: " + msg);
+    if (!handleAuthExpiredIfNeeded(msg)) {
+      alert("Failed to load profile: " + msg);
+    }
     return;
   }
 
-  c// Guest default
-levelIndex = 0;
-UNLOCKED_LEVEL = FREE_LEVEL_LIMIT;
-ui.setCoins(0);
+  const serverUser = me.user;
+  const serverProgress = me.progress;
 
+  const savedLevel = Number(serverProgress?.level || 1);
+  levelIndex = clampLevelIndex(savedLevel - 1);
+  UNLOCKED_LEVEL = savedLevel;
+
+  CURRENT_USER = { username: serverUser.username, uid: serverUser.uid };
   COINS = Number(serverUser.coins || 0);
   ui.setCoins(COINS);
-
+}
   
 
   // WIN popup actions
@@ -332,6 +338,9 @@ ui.setCoins(0);
   });
 
   game.start();
+  window.addEventListener("startGame", () => {
+  game.start();
+});
 
 
   document.getElementById("controls")?.addEventListener("click", () => {

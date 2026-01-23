@@ -617,12 +617,10 @@ function hideWelcome() {
   // ✅ NEW: toggle buttons after login
   const testBtn = document.getElementById("testBtn");
 
-  testBtn?.addEventListener("click", () => {
+testBtn?.addEventListener("click", () => {
   hideWelcome();
-
-  
+  window.dispatchEvent(new Event("startGame"));
 });
-
   if (name !== "guest") {
     // logged in
     loginBtn?.style.setProperty("display", "none");
