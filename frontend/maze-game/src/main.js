@@ -401,5 +401,5 @@ async function goNextLevel() {
   ui.setLevel(levelIndex + 1);
   createAndStartGame(levelIndex);
 }
-
+}
 boot();
