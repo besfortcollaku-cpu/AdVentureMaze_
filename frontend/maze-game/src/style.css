@@ -154,6 +154,12 @@
 }
 
 
+.adsbanner {
+ width: auto;
+  height: 72px;
+  border: 1px;
+}
+
 /* Buttons */
 
 .bottomBtn {
