@@ -41,7 +41,7 @@ export function mountUI(app) {
 
         </div>    <!--Botom Icon -->
         <div class="adsbanner">
-
+           <p> Here Ads Banner</p>
         </div> <!--adsbanner -->
 </div>    <!--bottomBar -->
 
