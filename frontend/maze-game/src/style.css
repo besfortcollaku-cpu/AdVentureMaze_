@@ -139,7 +139,7 @@
 
 /* ===== Bottom Controls ===== */
 
-.bottomIcon {
+.bottomBar {
   position: fixed;
   transform: translateX(-50%);
   width: calc(100% - 24px);
@@ -152,7 +152,6 @@
 
   padding: 12px 14px;
   border-radius: 18px;
-
   background: rgba(20, 30, 45, 0.85);
   backdrop-filter: blur(10px);
   box-shadow: 0 10px 30px rgba(0,0,0,0.35);
