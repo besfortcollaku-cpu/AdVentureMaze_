@@ -1,151 +1,150 @@
 // src/ui/ui.js last change
 
 export function mountUI(app) {
-  app.innerHTML = `
-    <div class="phone">
-      <div class="topbar">
-        <div class="topRow">
-            <div class="levelWrap">
-              <div class="levelText" id="levelText">Level 1</div>
-                
-            </div>
-         </div>     
-        
-          </div>
-            <div class="iconRow">
-            ${iconBtn("accountBtn", userAccountSVG(), "")}
-            ${iconBtn("settingsBtn", gearSVG(), "")}
-            ${iconBtn("controls", joystickSVG(), "")}
-         </div>
-         <div class="coins" title="Coins">
-                  <div class="coinDot"></div>
-                   <div id="coinCount">0</div>
-                </div>
-         </div>
-            <div class="boardWrap">
-              <div class="boardFrame">
-                <canvas id="game"></canvas>
-              </div>
-            </div>
-  <<div class="bottomBar">
-  <button id="hintBtn" class="bottomBtn left">
+app.innerHTML = `
+<div class="phone">
+    <div class="topbar">
+      <div class="topRow">
+        <div class="levelWrap">
+          <div class="levelText" id="levelText">Level 1</div>
+        </div>
+      </div>     
+    </div>
+
+    <div class="iconRow">
+    ${iconBtn("accountBtn", userAccountSVG(), "")}
+    ${iconBtn("settingsBtn", gearSVG(), "")}
+    ${iconBtn("controls", joystickSVG(), "")}
+    </div>
+    <div class="coins" title="Coins">
+    <div class="coinDot"></div>
+    <div id="coinCount">0</div>
+    </div>
+    </div>
+    <div class="boardWrap">
+    <div class="boardFrame">
+    <canvas id="game"></canvas>
+    </div>
+    </div>
+    <<div class="bottomBar">
+    <button id="hintBtn" class="bottomBtn left">
     <span class="icon">❓</span>
     <span>Hint</span>
-  </button>
+    </button>
 
-  <div class="swipeHint">
+    <div class="swipeHint">
     Swipe to move
-  </div>
+    </div>
 
-  <button id="x3Btn" class="bottomBtn right">
+    <button id="x3Btn" class="bottomBtn right">
     <span class="icon">⏭</span>
     <span>Skip</span>
-  </button>
-</div>
-     </div>
-     
+    </button>
+    </div>
+    </div>
+
     <!-- ✅ LOGIN GATE (blocks game until Pi login) -->
     <div class="loginGate" id="loginGate" aria-hidden="true">
-      <div class="loginGateCard">
-        <div class="loginGateTitle">Login required</div>
-        <div class="loginGateSub">
-          Please login with Pi account to start playing. 
-        </div>
+    <div class="loginGateCard">
+    <div class="loginGateTitle">Login required</div>
+    <div class="loginGateSub">
+    Please login with Pi account to start playing. 
+    </div>
 
-        <button class="loginGateBtn" id="loginGateBtn">
-          Login
-        </button>
+    <button class="loginGateBtn" id="loginGateBtn">
+    Login
+    </button>
 
-        <div class="loginGateError" id="loginGateError"></div>
+    <div class="loginGateError" id="loginGateError"></div>
 
-        <div class="loginGateNote">
-          Tip: open inside Pi Browser.
-        </div>
-      </div>
+    <div class="loginGateNote">
+    Tip: open inside Pi Browser.
+    </div>
+    </div>
     </div>
 
     <!-- ✅ SETTINGS OVERLAY -->
     <div class="settingsOverlay" id="settingsOverlay" aria-hidden="true">
-      <div class="settingsCard">
-        <div class="settingsHeader">
-          <div class="settingsTitle">Settings</div>
-          <button class="settingsClose" id="settingsCloseBtn" aria-label="Close">✕</button>
-        </div>
+    <div class="settingsCard">
+    <div class="settingsHeader">
+    <div class="settingsTitle">Settings</div>
+    <button class="settingsClose" id="settingsCloseBtn" aria-label="Close">✕</button>
+    </div>
 
-        <div class="settingsRow">
-          <div class="settingsLeft">
-            <div class="settingsLabel">Sound</div>
-            <div class="settingsSub">Rolling + victory (no wall-hit sound)</div>
-          </div>
-          <label class="toggle">
-            <input type="checkbox" id="soundToggle" />
-            <span class="track"></span>
-          </label>
-        </div>
+    <div class="settingsRow">
+    <div class="settingsLeft">
+    <div class="settingsLabel">Sound</div>
+    <div class="settingsSub">Rolling + victory (no wall-hit sound)</div>
+    </div>
+    <label class="toggle">
+    <input type="checkbox" id="soundToggle" />
+    <span class="track"></span>
+    </label>
+    </div>
 
-        <div class="settingsRow">
-          <div class="settingsLeft">
-            <div class="settingsLabel">Vibration</div>
-            <div class="settingsSub">Small vibration when ball stops</div>
-          </div>
-          <label class="toggle">
-            <input type="checkbox" id="vibrationToggle" />
-            <span class="track"></span>
-          </label>
-        </div>
+    <div class="settingsRow">
+    <div class="settingsLeft">
+    <div class="settingsLabel">Vibration</div>
+    <div class="settingsSub">Small vibration when ball stops</div>
+    </div>
+    <label class="toggle">
+    <input type="checkbox" id="vibrationToggle" />
+    <span class="track"></span>
+    </label>
+    </div>
 
-        <div class="settingsFoot">
-          <div class="settingsNote">Changes are saved automatically.</div>
-        </div>
-      </div>
+    <div class="settingsFoot">
+    <div class="settingsNote">Changes are saved automatically.</div>
+    </div>
+    </div>
     </div>
 
     <!-- ✅ WIN POPUP -->
     <div class="winOverlay" id="winOverlay" aria-hidden="true">
-      <div class="winCard">
-        <div class="winSparkLayer"></div>
+    <div class="winCard">
+    <div class="winSparkLayer"></div>
 
-        <div class="winHeader">
-          <div class="winBadge">CONGRATS!</div>
-          <div class="winTitle">Level Complete</div>
-          <div class="winSub" id="winSubText">You finished Level</div>
-        </div>
-
-        <div class="winMusic">
-          <div class="winPulse"></div>
-          <div class="winNote">♪</div>
-          <div class="winMusicText">Victory vibes</div>
-        </div>
-
-        <div class="winRow">
-          <button class="winBtnPrimary" id="winNextBtn">Next level</button>
-          <button class="winBtnSecondary" id="winAdBtn">
-            Watch Ad <span class="winPlus">+50</span>
-            <span class="winCoinDot" aria-hidden="true"></span>
-          </button>
-        </div>
-
-        <div class="winHint">Tip: Watch ad gives +50 coins</div>
-      </div>
+    <div class="winHeader">
+    <div class="winBadge">CONGRATS!</div>
+    <div class="winTitle">Level Complete</div>
+    <div class="winSub" id="winSubText">You finished Level</div>
     </div>
-    
+
+    <div class="winMusic">
+    <div class="winPulse"></div>
+    <div class="winNote">♪</div>
+    <div class="winMusicText">Victory vibes</div>
+    </div>
+
+    <div class="winRow">
+    <button class="winBtnPrimary" id="winNextBtn">Next level</button>
+    <button class="winBtnSecondary" id="winAdBtn">
+    Watch Ad <span class="winPlus">+50</span>
+    <span class="winCoinDot" aria-hidden="true"></span>
+    </button>
+    </div>
+
+    <div class="winHint">Tip: Watch ad gives +50 coins</div>
+    </div>
+    </div>
+
     <!-- ✅ LEVEL SELECT POPUP -->
     <div class="levelSelectOverlay" id="levelSelectOverlay" aria-hidden="true">
-      <div class="winCard">
-        <div class="winHeader">
-          <div class="winBadge">LEVELS</div>
-          <div class="winTitle">Select Level</div>
-        </div>
+    <div class="winCard">
+    <div class="winHeader">
+    <div class="winBadge">LEVELS</div>
+    <div class="winTitle">Select Level</div>
+    </div>
 
-<div class="levelGrid" id="levelGrid"></div>
+    <div class="levelGrid" id="levelGrid"></div>
 
-<div class="winRow">
-<button class="winBtnSecondary" id="levelSelectClose">Close</button>
-</div>
+    <div class="winRow">
+    <button class="winBtnSecondary" id="levelSelectClose">Close</button>
+    </div>
     <div id="adBanner">Test</div>
 </div>
 
-</div>
+
 
   `;
   document.head.appendChild(extra);
