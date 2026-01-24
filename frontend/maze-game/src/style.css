@@ -30,7 +30,8 @@
 .topbar {
   padding: 10px 14px;
   border-radius: 18px;
-  margin-bottom: 8px;
+  margin-bottom: 0px;
+  padding-bottom:0px;
 }
 
 /* ONE ROW ONLY */
@@ -38,6 +39,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  padding-bottom:00px;
 }
 
 /* ===== LEVEL ===== */
