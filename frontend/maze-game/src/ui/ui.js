@@ -156,7 +156,8 @@ export function mountUI(app) {
 </div>
 </div>
 </div>
-    
+
+<div id="adBanner"></div>
 
   `;
 

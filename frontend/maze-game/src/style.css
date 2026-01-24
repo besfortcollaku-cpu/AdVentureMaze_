@@ -8,6 +8,8 @@
 
   --text:#eaf3ff;
   --muted:rgba(234,243,255,.65);
+  --ad-space: 88px;
+
 }
 
 
@@ -129,10 +131,10 @@
 
 /* ===== BOARD ===== */
 .boardWrap {
-  margin-top: 12px; /* ⬅️ move board up */
+  margin-top: 16px; /* ⬅️ move board up */
   display: flex;
   justify-content: center;
-  padding-bottom: 188px;
+  margin-bottom: var(--ad-space);
 }
 
 /* ===== Bottom Controls ===== */
@@ -800,6 +802,7 @@ canvas {
       font-weight:950;
       cursor:pointer;
       padding:0 14px;
+      margin-bottom: var(--ad-space);
     }
     .winBtnPrimary{
       flex:1;
