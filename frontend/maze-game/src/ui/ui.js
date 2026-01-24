@@ -588,7 +588,7 @@ setLevel(n) {
   setTimeout(() => {
     levelText.classList.remove("levelPop");
   }, 300);
-}
+},
     // header login UI
     loginBtn,
     loginBtnText,
