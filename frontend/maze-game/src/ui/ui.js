@@ -579,8 +579,16 @@ export function mountUI(app) {
     onSkip(fn) { skipHandler = fn; },
     canvas: document.getElementById("game"),
 setLevel(n) {
-  if (levelTextEl) levelTextEl.textContent = `Level ${n}`;
-},
+  levelText.textContent = `Level ${n}`;
+
+  levelText.classList.remove("levelPop");
+  void levelText.offsetWidth; // 🔑 force reflow
+  levelText.classList.add("levelPop");
+
+  setTimeout(() => {
+    levelText.classList.remove("levelPop");
+  }, 300);
+}
     // header login UI
     loginBtn,
     loginBtnText,

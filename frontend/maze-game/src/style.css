@@ -50,15 +50,17 @@
 .levelText {
   font-size: 28px;
   font-weight: 700;
-  letter-spacing: 1px;
-  color: #e9f1ff;
-  text-align: center;
+  color: #eaf6ff;
+  transition: transform 0.25s ease, text-shadow 0.25s ease;
+  transform: scale(1);
+}
 
-  /* glow */
+.levelText.levelPop {
+  transform: scale(1.08);
   text-shadow:
-    0 0 8px rgba(120,180,255,0.35),
-    0 0 16px rgba(80,140,255,0.25);
-
+    0 0 8px rgba(80, 200, 255, 0.8),
+    0 0 16px rgba(80, 200, 255, 0.6);
+}
   /* animation */
   animation: levelPulse 2.5s ease-in-out infinite;
 }
