@@ -710,7 +710,14 @@ export function mountUI(app) {
     },
     setLevel(levelNumber) {
   const el = document.getElementById("levelText");
-  if (el) el.textContent = `Level ${levelNumber}`;
+  if (!el) return;
+
+  el.textContent = `Level ${levelNumber}`;
+
+  // restart animation cleanly
+  el.classList.remove("levelPop");
+  void el.offsetWidth; // force reflow
+  el.classList.add("levelPop");
 },
 
     // Win popup API (✅ kept only once)
