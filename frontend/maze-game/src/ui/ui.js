@@ -143,7 +143,7 @@ export function mountUI(app) {
 <button class="winBtnSecondary" id="levelSelectClose">Close</button>
 </div>
 </div>
-<div id="adBanner"></div>
+<div id="adBanner">Test Baner Ad</div>
 </div>
 
   `;
