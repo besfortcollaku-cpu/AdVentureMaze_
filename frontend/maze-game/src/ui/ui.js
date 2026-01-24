@@ -27,6 +27,7 @@ export function mountUI(app) {
                 <canvas id="game"></canvas>
               </div>
             </div>
+      </div>
   <div class="bottomBar">
   <button id="hintBtn" class="bottomBtn left">
     <span class="icon">❓</span>
@@ -43,7 +44,7 @@ export function mountUI(app) {
   </button>
 </div>
 </div>
-      </div>
+
      
     <!-- ✅ LOGIN GATE (blocks game until Pi login) -->
     <div class="loginGate" id="loginGate" aria-hidden="true">
