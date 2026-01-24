@@ -1,6 +1,6 @@
 // src/main.js
 import "./style.css";
-import ".ui//ui.css";
+import "./css/ui.css";
 
 import { mountUI } from "./ui/ui.js";
 import { enforcePiEnvironment } from "./pi/piDetect.js";
