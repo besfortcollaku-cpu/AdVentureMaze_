@@ -301,35 +301,35 @@ ui.onWinNext(async () => {
   await goNextLevel();
 });
 
-  ui.onWinAd(async () => {
-      if (IS_GUEST && levelIndex + 1 >= FREE_LEVEL_LIMIT) {
-  ui.showLoginGate({
-    title: "Login to continue",
-    message: "You’ve reached the free limit. Log in with Pi to unlock more levels and save your progress.",
-  });
-  return;
-}
-}
-    try {
-      ui.showToast?.("Watching ad…");
-      await delay(5000);
+ui.onWinAd(async () => {
+  try {
+    ui.showToast?.("Watching ad…");
+    await delay(5000);
 
-      const out = await apiAd50();
-      COINS = Number(out?.user?.coins ?? COINS);
-      ui.setCoins(COINS);
-
-      ui.showToast?.("Reward granted +50");
-    } catch (e) {
-      const msg = normalizeErr(e);
-      if (!handleAuthExpiredIfNeeded(msg)) {
-        alert("Ad reward failed: " + msg);
-      }
+    if (IS_GUEST) {
+      ui.showLoginGate({
+        title: "Login to earn rewards",
+        message:
+          "Log in with Pi to earn coins, unlock more levels, and save your progress.",
+      });
+      return;
     }
 
-    ui.hideWinPopup();
-    await goNextLevel();
-  });
+    const out = await apiAd50();
+    COINS = Number(out?.user?.coins ?? COINS);
+    ui.setCoins(COINS);
 
+    ui.showToast?.("Reward granted +50");
+  } catch (e) {
+    const msg = normalizeErr(e);
+    if (!handleAuthExpiredIfNeeded(msg)) {
+      alert("Ad reward failed: " + msg);
+    }
+  }
+
+  ui.hideWinPopup();
+  await goNextLevel();
+});
   // Skip
   document.getElementById("x3Btn")?.addEventListener("click", async () => {
     if (IS_GUEST) return;
