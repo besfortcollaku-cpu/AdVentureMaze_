@@ -30,6 +30,7 @@
 
 /* ===== TOP BAR ===== */
 .topbar {
+  height: 22vh;
   padding: 10px 14px;
   border-radius: 18px;
   margin-bottom: 0px;
@@ -131,6 +132,7 @@
 
 /* ===== BOARD ===== */
 .boardWrap {
+  height: 50vh;
   margin-top: 16px; /* ⬅️ move board up */
   display: flex;
   justify-content: center;
@@ -140,8 +142,10 @@
 /* ===== Bottom Controls ===== */
 
 .bottomBar {
-  position: bottom;
-
+  height: 28vh;
+  display: flex;
+  flex-direction: column;
+ 
 }
 
 .bottomIcon {
