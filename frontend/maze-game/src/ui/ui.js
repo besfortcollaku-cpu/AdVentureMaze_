@@ -1,141 +1,309 @@
 // src/ui/ui.js last change
 
 export function mountUI(app) {
-app.innerHTML = `
-<div class="phone">
-    <div class="topbar">
-      <div class="topRow">
-        <div class="levelWrap">
-          <div class="levelText" id="levelText">Level 1</div>
-        </div>
-      </div>     
-    </div>
+  app.innerHTML = `
+    <div class="phone">
+      <div class="topbar">
+        <div class="topRow">
+            <div class="levelWrap">
+              <div class="levelText" id="levelText">Level 1</div>
+                
+            </div>
+         </div>     
+        
+          </div>
+            <div class="iconRow">
+            ${iconBtn("accountBtn", userAccountSVG(), "")}
+            ${iconBtn("settingsBtn", gearSVG(), "")}
+            ${iconBtn("controls", joystickSVG(), "")}
+         </div>
+         <div class="coins" title="Coins">
+                  <div class="coinDot"></div>
+                   <div id="coinCount">0</div>
+                </div>
+         </div>
+            <div class="boardWrap">
+              <div class="boardFrame">
+                <canvas id="game"></canvas>
+              </div>
+            </div>
+  <<div class="bottomBar">
+  <button id="hintBtn" class="bottomBtn left">
+    <span class="icon">❓</span>
+    <span>Hint</span>
+  </button>
 
-    <div class="iconRow">
-    ${iconBtn("accountBtn", userAccountSVG(), "")}
-    ${iconBtn("settingsBtn", gearSVG(), "")}
-    ${iconBtn("controls", joystickSVG(), "")}
-    </div>
-    <div class="coins" title="Coins">
-    <div class="coinDot"></div>
-    <div id="coinCount">0</div>
-    </div>
-    </div>
-    <div class="boardWrap">
-    <div class="boardFrame">
-    <canvas id="game"></canvas>
-    </div>
-    </div>
-          <div class="bottomBar">
-              <button id="hintBtn" class="bottomBtn left"><span class="icon">❓</span><span>Hint</span></button>
+  <div class="swipeHint">
+    Swipe to move
+  </div>
 
-              <div class="swipeHint">Swipe to move</div>
-
-              <button id="x3Btn" class="bottomBtn right"><span class="icon">⏭</span><span>Skip</span></button>
-          </div><!-- bottomBar Close -->
-    </div>
-
+  <button id="x3Btn" class="bottomBtn right">
+    <span class="icon">⏭</span>
+    <span>Skip</span>
+  </button>
+</div>
+     </div>
+     
     <!-- ✅ LOGIN GATE (blocks game until Pi login) -->
     <div class="loginGate" id="loginGate" aria-hidden="true">
-    <div class="loginGateCard">
-    <div class="loginGateTitle">Login required</div>
-    <div class="loginGateSub">
-    Please login with Pi account to start playing. 
-    </div>
+      <div class="loginGateCard">
+        <div class="loginGateTitle">Login required</div>
+        <div class="loginGateSub">
+          Please login with Pi account to start playing. 
+        </div>
 
-    <button class="loginGateBtn" id="loginGateBtn">
-    Login
-    </button>
+        <button class="loginGateBtn" id="loginGateBtn">
+          Login
+        </button>
 
-    <div class="loginGateError" id="loginGateError"></div>
+        <div class="loginGateError" id="loginGateError"></div>
 
-    <div class="loginGateNote">
-    Tip: open inside Pi Browser.
-    </div>
-    </div>
+        <div class="loginGateNote">
+          Tip: open inside Pi Browser.
+        </div>
+      </div>
     </div>
 
     <!-- ✅ SETTINGS OVERLAY -->
     <div class="settingsOverlay" id="settingsOverlay" aria-hidden="true">
-    <div class="settingsCard">
-    <div class="settingsHeader">
-    <div class="settingsTitle">Settings</div>
-    <button class="settingsClose" id="settingsCloseBtn" aria-label="Close">✕</button>
-    </div>
+      <div class="settingsCard">
+        <div class="settingsHeader">
+          <div class="settingsTitle">Settings</div>
+          <button class="settingsClose" id="settingsCloseBtn" aria-label="Close">✕</button>
+        </div>
 
-    <div class="settingsRow">
-    <div class="settingsLeft">
-    <div class="settingsLabel">Sound</div>
-    <div class="settingsSub">Rolling + victory (no wall-hit sound)</div>
-    </div>
-    <label class="toggle">
-    <input type="checkbox" id="soundToggle" />
-    <span class="track"></span>
-    </label>
-    </div>
+        <div class="settingsRow">
+          <div class="settingsLeft">
+            <div class="settingsLabel">Sound</div>
+            <div class="settingsSub">Rolling + victory (no wall-hit sound)</div>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="soundToggle" />
+            <span class="track"></span>
+          </label>
+        </div>
 
-    <div class="settingsRow">
-    <div class="settingsLeft">
-    <div class="settingsLabel">Vibration</div>
-    <div class="settingsSub">Small vibration when ball stops</div>
-    </div>
-    <label class="toggle">
-    <input type="checkbox" id="vibrationToggle" />
-    <span class="track"></span>
-    </label>
-    </div>
+        <div class="settingsRow">
+          <div class="settingsLeft">
+            <div class="settingsLabel">Vibration</div>
+            <div class="settingsSub">Small vibration when ball stops</div>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="vibrationToggle" />
+            <span class="track"></span>
+          </label>
+        </div>
 
-    <div class="settingsFoot">
-    <div class="settingsNote">Changes are saved automatically.</div>
-    </div>
-    </div>
+        <div class="settingsFoot">
+          <div class="settingsNote">Changes are saved automatically.</div>
+        </div>
+      </div>
     </div>
 
     <!-- ✅ WIN POPUP -->
     <div class="winOverlay" id="winOverlay" aria-hidden="true">
-    <div class="winCard">
-    <div class="winSparkLayer"></div>
+      <div class="winCard">
+        <div class="winSparkLayer"></div>
 
-    <div class="winHeader">
-    <div class="winBadge">CONGRATS!</div>
-    <div class="winTitle">Level Complete</div>
-    <div class="winSub" id="winSubText">You finished Level</div>
-    </div>
+        <div class="winHeader">
+          <div class="winBadge">CONGRATS!</div>
+          <div class="winTitle">Level Complete</div>
+          <div class="winSub" id="winSubText">You finished Level</div>
+        </div>
 
-    <div class="winMusic">
-    <div class="winPulse"></div>
-    <div class="winNote">♪</div>
-    <div class="winMusicText">Victory vibes</div>
-    </div>
+        <div class="winMusic">
+          <div class="winPulse"></div>
+          <div class="winNote">♪</div>
+          <div class="winMusicText">Victory vibes</div>
+        </div>
 
-    <div class="winRow">
-    <button class="winBtnPrimary" id="winNextBtn">Next level</button>
-    <button class="winBtnSecondary" id="winAdBtn">
-    Watch Ad <span class="winPlus">+50</span>
-    <span class="winCoinDot" aria-hidden="true"></span>
-    </button>
-    </div>
+        <div class="winRow">
+          <button class="winBtnPrimary" id="winNextBtn">Next level</button>
+          <button class="winBtnSecondary" id="winAdBtn">
+            Watch Ad <span class="winPlus">+50</span>
+            <span class="winCoinDot" aria-hidden="true"></span>
+          </button>
+        </div>
 
-    <div class="winHint">Tip: Watch ad gives +50 coins</div>
+        <div class="winHint">Tip: Watch ad gives +50 coins</div>
+      </div>
     </div>
-    </div>
-
+    
     <!-- ✅ LEVEL SELECT POPUP -->
     <div class="levelSelectOverlay" id="levelSelectOverlay" aria-hidden="true">
-    <div class="winCard">
-    <div class="winHeader">
-    <div class="winBadge">LEVELS</div>
-    <div class="winTitle">Select Level</div>
-    </div>
+      <div class="winCard">
+        <div class="winHeader">
+          <div class="winBadge">LEVELS</div>
+          <div class="winTitle">Select Level</div>
+        </div>
 
-    <div class="levelGrid" id="levelGrid"></div>
+<div class="levelGrid" id="levelGrid"></div>
 
-    <div class="winRow">
-    <button class="winBtnSecondary" id="levelSelectClose">Close</button>
-    </div>
-    <div id="adBanner">Test</div>
+<div class="winRow">
+<button class="winBtnSecondary" id="levelSelectClose">Close</button>
+</div>
+</div>
+<div id="adBanner"></div>
 </div>
 
+  `;
+
+  // ✅ Inject UI styles (Login Gate + Settings + Win overlay + login wrap)
+  const extra = document.createElement("style");
+  extra.textContent = `
+    .loginWrap{ display:flex; gap:10px; align-items:center; margin-left:auto; }
+    .iconBtnWide{
+      height:42px; padding:0 14px; border-radius:14px;
+      border:1px solid rgba(255,255,255,.18);
+      background: rgba(18,28,60,.55);
+      color:#fff; font-weight:800; letter-spacing:.2px;
+      cursor:pointer; white-space:nowrap;
+    }
+    .iconBtnWide:active{ transform: translateY(1px); }
+    .iconBtnWide:disabled{ opacity:.6; cursor:not-allowed; transform:none; }
+    .userPill{
+      height:42px; display:flex; align-items:center;
+      padding:0 12px; border-radius:14px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.22);
+      color: rgba(234,243,255,.9);
+      font-weight:700; font-size:13px; white-space:nowrap;
+    }
+    @media (max-width: 420px){
+      .loginWrap{ width:100%; justify-content:space-between; margin-left:0; }
+      .iconBtnWide{ flex:1; }
+      .userPill{ flex:1; justify-content:center; }
+    }
+
+    /* ✅ LOGIN GATE */
+    .loginGate{
+      position:fixed; inset:0; z-index:1000000;
+      display:none; align-items:center; justify-content:center;
+      padding:16px;
+      background: radial-gradient(1100px 800px at 50% 15%, rgba(37,215,255,.18), rgba(0,0,0,.72));
+      backdrop-filter: blur(10px);
+    }
+    .loginGate.show{ display:flex; }
+    .loginGateCard{
+      width:min(520px, 100%);
+      border-radius:24px;
+      border:1px solid rgba(37,215,255,.22);
+      background: rgba(10,12,24,.92);
+      box-shadow: 0 22px 80px rgba(0,0,0,.65);
+      padding:18px;
+      text-align:center;
+      color: rgba(240,247,255,.95);
+    }
+    .loginGateTitle{
+      font-size:22px;
+      font-weight:950;
+      letter-spacing:.3px;
+    }
+    .loginGateSub{
+      margin-top:8px;
+      font-size:13px;
+      opacity:.82;
+      line-height:1.35;
+    }
+    .loginGateBtn{
+      margin-top:14px;
+      width:100%;
+      height:48px;
+      border-radius:16px;
+      border:1px solid rgba(37,215,255,.35);
+      background: linear-gradient(180deg, rgba(37,215,255,.95), rgba(0,183,255,.85));
+      color:#07111f;
+      font-weight:950;
+      cursor:pointer;
+    }
+    .loginGateBtn:active{ transform: translateY(1px); }
+    .loginGateBtn:disabled{ opacity:.65; cursor:not-allowed; transform:none; }
+    .loginGateError{
+      margin-top:12px;
+      font-size:12px;
+      color: rgba(255,120,120,.95);
+      min-height: 16px;
+    }
+    .loginGateNote{
+      margin-top:10px;
+      font-size:12px;
+      opacity:.65;
+    }
+
+    /* SETTINGS */
+    .settingsOverlay{
+      position:fixed; inset:0; z-index:99999;
+      display:none; align-items:center; justify-content:center;
+      padding:16px;
+      background: rgba(0,0,0,.45);
+      backdrop-filter: blur(8px);
+    }
+    .settingsOverlay.show{ display:flex; }
+    .settingsCard{
+      width:min(520px, 100%);
+      border-radius:22px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(10,14,30,.88);
+      box-shadow: 0 18px 60px rgba(0,0,0,.55);
+      padding:16px;
+      color: rgba(240,247,255,.95);
+    }
+    .settingsHeader{
+      display:flex; align-items:center; justify-content:space-between;
+      margin-bottom:12px;
+    }
+    .settingsTitle{ font-size:18px; font-weight:900; letter-spacing:.3px; }
+    .settingsClose{
+      width:40px; height:40px; border-radius:14px;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.06);
+      color:#fff; font-weight:900;
+      cursor:pointer;
+    }
+    .settingsClose:active{ transform: translateY(1px); }
+    .settingsRow{
+      display:flex; align-items:center; justify-content:space-between;
+      gap:12px;
+      padding:12px 10px;
+      border-radius:16px;
+      background: rgba(255,255,255,.04);
+      border:1px solid rgba(255,255,255,.08);
+      margin-top:10px;
+    }
+    .settingsLeft{ display:flex; flex-direction:column; gap:3px; }
+    .settingsLabel{ font-weight:900; font-size:14px; }
+    .settingsSub{ opacity:.78; font-size:12px; line-height:1.25; }
+
+    .toggle{ position:relative; width:52px; height:30px; display:inline-block; }
+    .toggle input{ opacity:0; width:0; height:0; }
+    .toggle .track{
+      position:absolute; inset:0;
+      background: rgba(255,255,255,.12);
+      border:1px solid rgba(255,255,255,.14);
+      border-radius:999px;
+      transition: .15s ease;
+    }
+    .toggle .track::after{
+      content:"";
+      position:absolute;
+      width:24px; height:24px;
+      left:3px; top:2px;
+      border-radius:50%;
+      background: rgba(240,247,255,.95);
+      box-shadow: 0 10px 18px rgba(0,0,0,.35);
+      transition: .15s ease;
+    }
+    .toggle input:checked + .track{
+      background: rgba(37,215,255,.25);
+      border-color: rgba(37,215,255,.45);
+    }
+    .toggle input:checked + .track::after{
+      transform: translateX(22px);
+      background: #25d7ff;
+    }
+
+    .settingsFoot{ margin-top:12px; padding:8px 4px 0; }
+    .settingsNote{ opacity:.7; font-size:12px; }
 
 
   `;
