@@ -323,6 +323,7 @@ export function mountUI(app) {
   // Elements
   // ---------------------------
   const coinCountEl = document.getElementById("coinCount");
+  const levelTextEl = document.getElementById("levelText");
 
   // Header login UI
   const loginBtn = document.getElementById("loginBtn");
@@ -577,7 +578,9 @@ export function mountUI(app) {
     onHint(fn) { hintHandler = fn; },
     onSkip(fn) { skipHandler = fn; },
     canvas: document.getElementById("game"),
-
+setLevel(n) {
+  if (levelTextEl) levelTextEl.textContent = `Level ${n}`;
+},
     // header login UI
     loginBtn,
     loginBtnText,

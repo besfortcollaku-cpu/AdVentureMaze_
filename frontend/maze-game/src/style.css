@@ -249,7 +249,7 @@
   box-shadow: 0 10px 18px rgba(255,75,58,.25);
 }
 .boardWrap{
-  margin-top:4px;        /* ⬅ reduce dead space */
+  margin-top:10px;        /* ⬅ reduce dead space */
   display:flex;
   justify-content:center;
 }
