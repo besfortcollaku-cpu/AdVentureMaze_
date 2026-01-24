@@ -322,12 +322,7 @@ export function mountUI(app) {
   // ---------------------------
   const coinCountEl = document.getElementById("coinCount");
   const levelTextEl = document.getElementById("levelText");
-  const canvas = document.createElement("canvas");
-canvas.id = "gameCanvas";
-canvas.width = 360;
-canvas.height = 360;
-const boardWrap = app.querySelector(".boardWrap");
-boardWrap.appendChild(canvas);
+  
 
   // Header login UI
   const loginBtn = document.getElementById("loginBtn");
@@ -620,7 +615,12 @@ setLevel(n) {
     showLoginError,
     onLoginClick,
     setUser,
+const gameCanvas = app.querySelector("#game");
 
+return {
+  canvas: gameCanvas,
+  ...
+};
     // Settings API
     setSoundEnabled,
     setVibrationEnabled,
@@ -643,7 +643,7 @@ setLevel(n) {
     showWinPopup,
     hideWinPopup,
     onWinNext(fn) {
-      winNextHandler = fn;
+    winNextHandler = fn;
     },
     onWinAd(fn) {
       winAdHandler = fn;
