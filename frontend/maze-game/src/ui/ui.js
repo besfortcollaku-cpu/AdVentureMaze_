@@ -43,19 +43,7 @@ export function mountUI(app) {
   </button>
 </div>
      </div>
-
-   
-
-    <!-- Desktop block (used by Pi detection) -->
-    <div class="desktopBlock" id="desktopBlock" style="display:none;">
-    <div class="desktopCard">
-    <h2>Mobile game</h2>
-    <p>This Game is designed for Pi Network Browser Only!</p>
-    </div>
-    </div>
-
-
-
+     
     <!-- ✅ LOGIN GATE (blocks game until Pi login) -->
     <div class="loginGate" id="loginGate" aria-hidden="true">
       <div class="loginGateCard">
@@ -155,9 +143,8 @@ export function mountUI(app) {
 <button class="winBtnSecondary" id="levelSelectClose">Close</button>
 </div>
 </div>
-</div>
-
 <div id="adBanner"></div>
+</div>
 
   `;
 
