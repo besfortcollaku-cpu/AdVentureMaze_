@@ -56,13 +56,11 @@
 }
 
 .levelText.levelPop {
-  transform: scale(1.08);
+  transform: scale(1.12);
   text-shadow:
     0 0 8px rgba(80, 200, 255, 0.8),
     0 0 16px rgba(80, 200, 255, 0.6);
-}
-  /* animation */
-  animation:levelPulse 2.5s ease-in-out infinite;
+  animation: levelPulse 2.5s ease-in-out infinite;
 }
 @keyframes levelPulse {
   0%   { text-shadow: 0 0 6px rgba(120,180,255,0.25); }
