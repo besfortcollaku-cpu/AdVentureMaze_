@@ -613,8 +613,6 @@ setLevel(n) {
   if (!levelTextEl) return;
   levelTextEl.textContent = `Level ${n}`;
 
-  // restart pop animation if you have it
-  levelTextEl.classList.remove("levelPop");
   void levelTextEl.offsetWidth;
   levelTextEl.classList.add("levelPop");
 },
