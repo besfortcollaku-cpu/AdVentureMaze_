@@ -6,7 +6,7 @@ export function mountUI(app) {
       <div class="topbar">
         <div class="topRow">
             <div class="levelWrap">
-              <div class="levelText">Level 1</div>
+              <div class="levelText" id="levelText">Level 1</div>
                 
             </div>
          </div>     
@@ -708,6 +708,10 @@ export function mountUI(app) {
     onVibrationToggle(fn) {
       vibrationHandler = fn;
     },
+    setLevel(levelNumber) {
+  const el = document.getElementById("levelText");
+  if (el) el.textContent = `Level ${levelNumber}`;
+},
 
     // Win popup API (✅ kept only once)
     showWinPopup,

@@ -256,6 +256,7 @@ if (!env.ok) {
   });
 
   game.start();
+  ui.setLevel(levelIndex + 1);
 
   // level select button
   document.getElementById("controls")?.addEventListener("click", () => {
