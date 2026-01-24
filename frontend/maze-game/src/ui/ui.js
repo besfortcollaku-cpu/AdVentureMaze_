@@ -21,13 +21,13 @@ export function mountUI(app) {
                   <div class="coinDot"></div>
                    <div id="coinCount">0</div>
                 </div>
-         </div>
+       
             <div class="boardWrap">
               <div class="boardFrame">
                 <canvas id="game"></canvas>
               </div>
             </div>
-  <<div class="bottomBar">
+  <div class="bottomBar">
   <button id="hintBtn" class="bottomBtn left">
     <span class="icon">❓</span>
     <span>Hint</span>
@@ -42,7 +42,8 @@ export function mountUI(app) {
     <span>Skip</span>
   </button>
 </div>
-     </div>
+</div>
+      </div>
      
     <!-- ✅ LOGIN GATE (blocks game until Pi login) -->
     <div class="loginGate" id="loginGate" aria-hidden="true">
