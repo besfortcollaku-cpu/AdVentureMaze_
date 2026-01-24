@@ -30,7 +30,7 @@
 
 /* ===== TOP BAR ===== */
 .topbar {
-  height: 22vh;
+  height: 30vh;
   padding: 10px 14px;
   border-radius: 18px;
   margin-bottom: 0px;
@@ -142,7 +142,7 @@
 /* ===== Bottom Controls ===== */
 
 .bottomBar {
-  height: 28vh;
+  height: 20vh;
   display: flex;
   flex-direction: column;
  
