@@ -617,8 +617,7 @@ setLevel(n) {
   levelTextEl.classList.add("levelPop");
 },
 
-  // restart animation cleanly
-  el.classList.remove("levelPop");
+ 
   void el.offsetWidth; // force reflow
   el.classList.add("levelPop");
 },
