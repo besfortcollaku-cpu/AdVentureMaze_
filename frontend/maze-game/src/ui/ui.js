@@ -3,47 +3,38 @@
 export function mountUI(app) {
   app.innerHTML = `
     <div class="phone">
-      <div class="topbar">
-        <div class="topRow">
-            <div class="levelWrap">
-              <div class="levelText" id="levelText">Level 1</div>
-                
-            </div>
-         </div>     
-        
-          </div>
-            <div class="iconRow">
-            ${iconBtn("accountBtn", userAccountSVG(), "")}
-            ${iconBtn("settingsBtn", gearSVG(), "")}
-            ${iconBtn("controls", joystickSVG(), "")}
-         </div>
-         <div class="coins" title="Coins">
+        <div class="topbar">
+          <div class="topRow">
+              <div class="levelWrap">
+                  <div class="levelText" id="levelText">Level 1</div>
+              </div>
+          </div> <!--TopRow -->
+
+          <div class="secondRow">
+              <div class="iconRow">
+                    ${iconBtn("accountBtn", userAccountSVG(), "")}
+                    ${iconBtn("settingsBtn", gearSVG(), "")}
+                    ${iconBtn("controls", joystickSVG(), "")}
+               </div> <!--iconRow -->
+               
+              <div class="coins" title="Coins">
                   <div class="coinDot"></div>
                    <div id="coinCount">0</div>
-                </div>
-       
-            <div class="boardWrap">
-              <div class="boardFrame">
-                <canvas id="game"></canvas>
-              </div>
-            </div>
-      </div>
-  <div class="bottomBar">
-  <button id="hintBtn" class="bottomBtn left">
-    <span class="icon">❓</span>
-    <span>Hint</span>
-  </button>
+                </div> <!--coins -->
+          </div> <!--secondRow -->
 
-  <div class="swipeHint">
-    Swipe to move
-  </div>
+        </div> <!--TopBar -->
 
-  <button id="x3Btn" class="bottomBtn right">
-    <span class="icon">⏭</span>
-    <span>Skip</span>
-  </button>
-</div>
-</div>
+
+
+
+
+
+
+
+
+
+    </div>        <!--Phone -->
 
      
     <!-- ✅ LOGIN GATE (blocks game until Pi login) -->
@@ -145,7 +136,6 @@ export function mountUI(app) {
 <button class="winBtnSecondary" id="levelSelectClose">Close</button>
 </div>
 </div>
-<div id="adBanner"></div>
 </div>
 
   `;
