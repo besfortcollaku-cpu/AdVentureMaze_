@@ -135,10 +135,66 @@
   padding-bottom: 188px;
 }
 
-/* ===== BOTTOM BAR ===== */
+/* ===== Bottom Controls ===== */
+
 .bottomBar {
-  padding: 8px 12px;
+  position: fixed;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100% - 24px);
+  max-width: 420px;
+
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 12px;
+
+  padding: 12px 14px;
+  border-radius: 18px;
+
+  background: rgba(20, 30, 45, 0.85);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+}
+
+/* Buttons */
+
+.bottomBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: none;
+
+  background: rgba(255,255,255,0.08);
+  color: #fff;
   font-size: 14px;
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+.bottomBtn:active {
+  transform: scale(0.96);
+}
+
+.bottomBtn.left {
+  justify-self: start;
+}
+
+.bottomBtn.right {
+  justify-self: end;
+}
+
+/* Swipe text */
+
+.swipeHint {
+  font-size: 13px;
+  opacity: 0.75;
+  white-space: nowrap;
 }
 
 .levelWrap{
@@ -819,44 +875,7 @@ canvas {
   padding: 0 18px;
   pointer-events: auto;
 }
-.hintBtn,
-.skipBtn {
-  min-width: 64px;
-  height: 44px;
 
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  font-size: 13px;
-  font-weight: 600;
-
-  border-radius: 14px;
-  background: rgba(255,255,255,0.06);
-  backdrop-filter: blur(6px);
-
-  color: #cfe7ff;
-}
-.swipeHint {
-  flex: 1;
-  margin: 0 12px;
-
-  height: 42px;
-  border-radius: 22px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  font-size: 14px;
-  font-weight: 600;
-
-  color: #ffffffcc;
-  background: rgba(255,255,255,0.08);
-  backdrop-filter: blur(8px);
-
-  text-align: center;
-}
 
 /* ✅ FULLSCREEN WELCOME */
 .welcomeOverlay{

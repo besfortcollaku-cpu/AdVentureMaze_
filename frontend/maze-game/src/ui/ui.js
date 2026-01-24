@@ -27,19 +27,21 @@ export function mountUI(app) {
                 <canvas id="game"></canvas>
               </div>
             </div>
-  <div class="bottomBar">
-       <div class="icon-item">
-           <span class="icon" aria-hidden="true">
-               ${iconBtn("hintsBtn", gameHintsSVG(), "")}
-                </span>
-                <span class="icon-label">Hints</span>
-              </div>
-              <div class="pill">Swipe to move</div>
-             <span class="icon" aria-hidden="true">
-               ${iconBtn("skipBtn", skipSVG(), "")}
-                </span>
-                <span class="icon-label">Skip</span>
-        </div>
+  <<div class="bottomBar">
+  <button id="hintBtn" class="bottomBtn left">
+    <span class="icon">❓</span>
+    <span>Hint</span>
+  </button>
+
+  <div class="swipeHint">
+    Swipe to move
+  </div>
+
+  <button id="x3Btn" class="bottomBtn right">
+    <span class="icon">⏭</span>
+    <span>Skip</span>
+  </button>
+</div>
      </div>
 
    
