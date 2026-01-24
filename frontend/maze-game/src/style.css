@@ -140,9 +140,19 @@
 /* ===== Bottom Controls ===== */
 
 .bottomBar {
-  position: fixed;
+  position: bottom;
 
 }
+
+.bottomIcon {
+  padding: 10px;
+  float: left;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:5px;
+}
+
 
 /* Buttons */
 
