@@ -618,45 +618,55 @@ setLevel(n) {
 const gameCanvas = app.querySelector("#game");
 
 return {
+  return {
+  // core
   canvas: gameCanvas,
-  ...
-};
-    // Settings API
-    setSoundEnabled,
-    setVibrationEnabled,
-    onSoundToggle(fn) {
-     soundHandler = fn;
-    },
-    onVibrationToggle(fn) {
-      vibrationHandler = fn;
-    },
-    setLevel(n) {
-  if (!levelTextEl) return;
-  levelTextEl.textContent = `Level ${n}`;
 
-  void levelTextEl.offsetWidth;
-  levelTextEl.classList.add("levelPop");
-},
+  // Settings API
+  setSoundEnabled,
+  setVibrationEnabled,
+  onSoundToggle(fn) {
+    soundHandler = fn;
+  },
+  onVibrationToggle(fn) {
+    vibrationHandler = fn;
+  },
 
+  // Level display
+  setLevel(n) {
+    if (!levelTextEl) return;
+    levelTextEl.textContent = `Level ${n}`;
 
-    // Win popup API (✅ kept only once)
-    showWinPopup,
-    hideWinPopup,
-    onWinNext(fn) {
+    // restart animation
+    levelTextEl.classList.remove("levelPop");
+    void levelTextEl.offsetWidth;
+    levelTextEl.classList.add("levelPop");
+  },
+
+  // Win popup API
+  showWinPopup,
+  hideWinPopup,
+  onWinNext(fn) {
     winNextHandler = fn;
-    },
-    onWinAd(fn) {
-      winAdHandler = fn;
-    },
+  },
+  onWinAd(fn) {
+    winAdHandler = fn;
+  },
 
-    // ✅ Level select API
-    showLevelSelect,
-    hideLevelSelect,
-    onLevelSelect(fn) {
+  // Level select API
+  showLevelSelect,
+  hideLevelSelect,
+  onLevelSelect(fn) {
     levelSelectHandler = fn;
-    },
-  };
-}
+  },
+
+  // misc
+  onFirstUserGesture(fn) {
+    firstGestureHandler = fn;
+  },
+  showToast,
+  showLoginGate,
+};
 /* ---------------- UI helpers ---------------- */
 function iconBtn(id, svg, badgeText) {
   return `
