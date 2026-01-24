@@ -296,7 +296,7 @@ ui.onWinNext(async () => {
   });
   return;
 }
-  }
+  
 
   await goNextLevel();
 });
