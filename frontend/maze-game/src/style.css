@@ -142,7 +142,6 @@
 .bottomIcon {
   position: fixed;
   bottom: 88px;
-  left: 50%;
   transform: translateX(-50%);
   width: calc(100% - 24px);
   max-width: 420px;
@@ -328,16 +327,6 @@ canvas{
   background: #111;
 }
 
-.bottomIcon{
-  position:absolute;
-  left:14px;
-  right:14px;
-  bottom:14px;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  gap:12px;
-}
 
 .btn{
   display:flex;
