@@ -27,7 +27,7 @@ export function mountUI(app) {
                 <canvas id="game"></canvas>
               </div>
             </div>
-  <<div class="bottomBar">
+  <div class="bottomBar">
   <button id="hintBtn" class="bottomBtn left">
     <span class="icon">❓</span>
     <span>Hint</span>
