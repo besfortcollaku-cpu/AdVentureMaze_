@@ -22,27 +22,27 @@ export function mountUI(app) {
                    <div id="coinCount">0</div>
                 </div>
          </div>
-            <div class="boardWrap">
-              <div class="boardFrame">
-                <canvas id="game"></canvas>
-              </div>
-            </div>
-  <<div class="bottomBar">
-  <button id="hintBtn" class="bottomBtn left">
-    <span class="icon">❓</span>
-    <span>Hint</span>
-  </button>
 
-  <div class="swipeHint">
-    Swipe to move
-  </div>
 
-  <button id="x3Btn" class="bottomBtn right">
-    <span class="icon">⏭</span>
-    <span>Skip</span>
-  </button>
-</div>
-     </div>
+<div class="gameArea">
+    <div class="boardWrap">
+      <div class="boardFrame">
+        <canvas id:="game">
+        </div>
+      </div>
+
+     <div class="bottomBar">                              
+          <button id="hintBtn" class="bottomBtn left"><span class="icon">❓</span><span>Hint</span>              
+          </button>               
+          <div class="swipeHint">Swipe to move</div>            
+          <button id="x3Btn" class="bottomBtn right"><span class="icon">⏭</span><span>Skip</span>                  
+          </button>              
+     </div>              
+    </div>
+ </div>
+
+
+
      
     <!-- ✅ LOGIN GATE (blocks game until Pi login) -->
     <div class="loginGate" id="loginGate" aria-hidden="true">
