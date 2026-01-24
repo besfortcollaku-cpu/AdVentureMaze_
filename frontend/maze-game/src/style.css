@@ -155,8 +155,9 @@
 
 
 .adsbanner {
+  margin-top: 10px;
   background-color: red;
- width: auto;
+  width: auto;
   height: 72px;
   border: 1px;
 }
