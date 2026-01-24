@@ -617,10 +617,6 @@ setLevel(n) {
   levelTextEl.classList.add("levelPop");
 },
 
- 
-  void el.offsetWidth; // force reflow
-  el.classList.add("levelPop");
-},
 
     // Win popup API (✅ kept only once)
     showWinPopup,
