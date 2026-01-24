@@ -178,6 +178,7 @@ async function boot() {
 
   // mount UI
   ui = mountUI(root);
+  ui.canvas.style.border = "4px solid red";
   // ✅ initialize guest state ONCE
 IS_GUEST = true;
 CURRENT_USER = { uid: "guest", username: "guest" };
