@@ -474,10 +474,19 @@ export function mountUI(app) {
   }
 
   // allow header button to trigger the same login flow
-  loginBtn?.addEventListener("click", () => {
-    showLoginGate();
-    loginGateClickHandler?.();
-  });
+  loginBtn.addEventListener("click", async () => {
+  try {
+    const auth = await Pi.authenticate(
+      ["username", "payments"],
+      "adventure-maze-login"
+    );
+
+    onLoginSuccess(auth);
+  } catch (err) {
+    console.error("Pi login failed", err);
+    alert("Login failed. Please try again.");
+  }
+});
 
   function setUser(user) {
   const name = user?.username || "guest";

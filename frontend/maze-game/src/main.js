@@ -159,9 +159,6 @@ async function apiHint() {
 }
 
 function clampLevelIndex(i) {
-    IS_GUEST = true;
-CURRENT_USER = { uid: "guest", username: "guest" };
-UNLOCKED_LEVEL = FREE_LEVEL_LIMIT;
   if (i < 0) return 0;
   if (i >= levels.length) return 0;
   return i;
@@ -181,6 +178,44 @@ async function boot() {
 
   // mount UI
   ui = mountUI(root);
+  ui.onLoginClick(async () => {
+  try {
+    const auth = await ensurePiLogin();
+
+    // exchange token with backend
+    const res = await fetch(`${BACKEND}/api/pi-login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ accessToken: auth.accessToken }),
+    });
+
+    const data = await res.json();
+    if (!data.ok) {
+      alert("Login failed on server");
+      return;
+    }
+
+    // ✅ SWITCH FROM GUEST → LOGGED IN
+    IS_GUEST = false;
+    CURRENT_USER = data.user;
+    CURRENT_ACCESS_TOKEN = data.token;
+
+    COINS = Number(data.user.coins || 0);
+    UNLOCKED_LEVEL = Math.max(UNLOCKED_LEVEL, data.progress.level);
+
+    ui.setCoins(COINS);
+    ui.hideLoginGate();
+
+    // continue game where user stopped
+    game.setLevel(levels[levelIndex]);
+    ui.setLevel(levelIndex + 1);
+
+  } catch (e) {
+    console.error("Pi login failed", e);
+    alert("Login failed. Please try again.");
+  }
+});
+  
 
   // ensure guest user
   if (!CURRENT_USER) {
