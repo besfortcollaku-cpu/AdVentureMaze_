@@ -169,8 +169,7 @@ UNLOCKED_LEVEL = FREE_LEVEL_LIMIT;
 // Boot
 // ---------------------------
 async function boot() {
-  // visual proof boot runs
-  document.body.style.background = "red";
+ 
 
   const root = document.querySelector("#app");
   if (!root) {
@@ -271,9 +270,12 @@ if (!env.ok) {
     const targetLevel = selectedIndex + 1;
 
     if (IS_GUEST && targetLevel > FREE_LEVEL_LIMIT) {
-      ui.showLoginGate();
-      return;
-    }
+  ui.showLoginGate({
+    title: "Login to continue",
+    message: "You’ve reached the free limit. Log in with Pi to unlock more levels and save your progress.",
+  });
+  return;
+}
 
     levelIndex = clampLevelIndex(selectedIndex);
     rewardedThisLevel = false;
@@ -287,12 +289,13 @@ ui.onWinNext(async () => {
 
   const nextLevelNumber = levelIndex + 2;
 
-  if (IS_GUEST && nextLevelNumber > FREE_LEVEL_LIMIT) {
-    ui.showLoginGate({
-      title: "Login to continue",
-      message: "Create a Pi account to unlock more levels and save progress.",
-    });
-    return;
+  if (IS_GUEST && nextLevel > FREE_LEVEL_LIMIT) {
+  ui.showLoginGate({
+    title: "Login to continue",
+    message: "You’ve reached the free limit. Log in with Pi to unlock more levels and save your progress.",
+  });
+  return;
+}
   }
 
   await goNextLevel();
@@ -301,10 +304,11 @@ ui.onWinNext(async () => {
   ui.onWinAd(async () => {
       if (IS_GUEST && levelIndex + 1 >= FREE_LEVEL_LIMIT) {
   ui.showLoginGate({
-    title: "Login required",
-    message: "Login with Pi to earn rewards and continue playing.",
+    title: "Login to continue",
+    message: "You’ve reached the free limit. Log in with Pi to unlock more levels and save your progress.",
   });
   return;
+}
 }
     try {
       ui.showToast?.("Watching ad…");
