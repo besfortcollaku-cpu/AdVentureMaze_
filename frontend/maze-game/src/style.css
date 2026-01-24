@@ -141,7 +141,6 @@
 
 .bottomIcon {
   position: fixed;
-  bottom: 88px;
   transform: translateX(-50%);
   width: calc(100% - 24px);
   max-width: 420px;
