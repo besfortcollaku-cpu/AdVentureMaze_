@@ -287,16 +287,16 @@ if (!env.ok) {
 ui.onWinNext(async () => {
   ui.hideWinPopup();
 
-  const nextLevelNumber = levelIndex + 2;
+  const nextLevel = levelIndex + 2;
 
   if (IS_GUEST && nextLevel > FREE_LEVEL_LIMIT) {
-  ui.showLoginGate({
-    title: "Login to continue",
-    message: "You’ve reached the free limit. Log in with Pi to unlock more levels and save your progress.",
-  });
-  return;
-}
-  
+    ui.showLoginGate({
+      title: "Login to continue",
+      message:
+        "You’ve reached the free limit. Log in with Pi to unlock more levels and save your progress.",
+    });
+    return;
+  }
 
   await goNextLevel();
 });
