@@ -582,43 +582,10 @@ export function mountUI(app) {
     if (vibrationToggle) vibrationToggle.checked = !!v;
   }
 
-  return {
-    onHint(fn) { hintHandler = fn; },
-    onSkip(fn) { skipHandler = fn; },
-    canvas: document.getElementById("game"),
-setLevel(n) {
-  levelText.textContent = `Level ${n}`;
-
-  levelText.classList.remove("levelPop");
-  void levelText.offsetWidth; // 🔑 force reflow
-  levelText.classList.add("levelPop");
-
-  setTimeout(() => {
-    levelText.classList.remove("levelPop");
-  }, 300);
-},
-    // header login UI
-    loginBtn,
-    loginBtnText,
-    userPill,
-    canvas,
-    setCoins,
-
-    // ✅ audio unlock hook
-    onFirstUserGesture(fn) {
-      firstGestureHandler = fn;
-    },
-
-    // ✅ login gate methods for ensurePiLogin()
-    showLoginGate,
-    hideLoginGate,
-    showLoginError,
-    onLoginClick,
-    setUser,
+  // ⬅️ MUST be BEFORE return
 const gameCanvas = app.querySelector("#game");
 
 return {
-  return {
   // core
   canvas: gameCanvas,
 
@@ -637,7 +604,6 @@ return {
     if (!levelTextEl) return;
     levelTextEl.textContent = `Level ${n}`;
 
-    // restart animation
     levelTextEl.classList.remove("levelPop");
     void levelTextEl.offsetWidth;
     levelTextEl.classList.add("levelPop");
