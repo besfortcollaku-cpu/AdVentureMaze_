@@ -56,9 +56,24 @@ export function mountUI(app) {
   loginBtn.onclick = () => loginHandler && loginHandler();
   winNextBtn.onclick = () => winNextHandler && winNextHandler();
   winAdBtn.onclick = () => winAdHandler && winAdHandler();
+  // ✅ get existing game canvas
+const gameCanvas = app.querySelector("#game");
+
+// ✅ ensure canvas has real size
+function resizeGameCanvas() {
+  const parent = gameCanvas.parentElement;
+  if (!parent) return;
+
+  const rect = parent.getBoundingClientRect();
+  gameCanvas.width = Math.floor(rect.width);
+  gameCanvas.height = Math.floor(rect.height);
+}
+
+resizeGameCanvas();
+window.addEventListener("resize", resizeGameCanvas);
 
   return {
-    canvas,
+    canvas: gameCanvas,
 
     setCoins(v) {
       coinCount.textContent = v;
