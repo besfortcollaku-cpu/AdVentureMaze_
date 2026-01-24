@@ -178,6 +178,11 @@ async function boot() {
 
   // mount UI
   ui = mountUI(root);
+  // ✅ initialize guest state ONCE
+IS_GUEST = true;
+CURRENT_USER = { uid: "guest", username: "guest" };
+CURRENT_ACCESS_TOKEN = null;
+UNLOCKED_LEVEL = FREE_LEVEL_LIMIT;
   ui.onLoginClick(async () => {
   try {
     const auth = await ensurePiLogin();
