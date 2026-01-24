@@ -288,18 +288,17 @@ if (!env.ok) {
 
   // CREATE GAME (ON APP LOAD — ONLY ONCE)
   rewardedThisLevel = false;
-  const firstLevel = levels[levelIndex];
+  const firstLevel = levels[0];
 
-  game = createGame({
-    BACKEND,
-    canvas: ui.canvas,
-    getCurrentUser: () => CURRENT_USER,
-    level: firstLevel,
-    onLevelComplete,
-  });
+game = createGame({
+  BACKEND,
+  canvas: ui.canvas,
+  getCurrentUser: () => ({ uid: "guest", username: "guest" }),
+  level: firstLevel,
+  onLevelComplete,
+});
 
-  game.start();
-  ui.setLevel(levelIndex + 1);
+game.start();
 
   // level select button
   document.getElementById("controls")?.addEventListener("click", () => {
