@@ -412,6 +412,7 @@ async function goNextLevel() {
   levelIndex = next >= levels.length ? 0 : next;
   rewardedThisLevel = false;
   game.setLevel(levels[levelIndex]);
+  ui.setLevel(levelIndex + 1);
 }
 
 boot();

@@ -609,11 +609,15 @@ setLevel(n) {
     onVibrationToggle(fn) {
       vibrationHandler = fn;
     },
-    setLevel(levelNumber) {
-  const el = document.getElementById("levelText");
-  if (!el) return;
+    setLevel(n) {
+  if (!levelTextEl) return;
+  levelTextEl.textContent = `Level ${n}`;
 
-  el.textContent = `Level ${levelNumber}`;
+  // restart pop animation if you have it
+  levelTextEl.classList.remove("levelPop");
+  void levelTextEl.offsetWidth;
+  levelTextEl.classList.add("levelPop");
+},
 
   // restart animation cleanly
   el.classList.remove("levelPop");
