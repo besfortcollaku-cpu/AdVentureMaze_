@@ -289,17 +289,22 @@ if (!env.ok) {
   // CREATE GAME (ON APP LOAD — ONLY ONCE)
   rewardedThisLevel = false;
   const firstLevel = levels[0];
+// 🔥 FORCE CANVAS SIZE BEFORE GAME CREATION
+const canvas = ui.canvas;
+const rect = canvas.parentElement.getBoundingClientRect();
+canvas.width = Math.floor(rect.width);
+canvas.height = Math.floor(rect.height);
 
+// create game ONLY after canvas has size
 game = createGame({
   BACKEND,
-  canvas: ui.canvas,
-  getCurrentUser: () => ({ uid: "guest", username: "guest" }),
+  canvas,
+  getCurrentUser: () => CURRENT_USER,
   level: firstLevel,
   onLevelComplete,
 });
 
 game.start();
-
   // level select button
   document.getElementById("controls")?.addEventListener("click", () => {
     ui.showLevelSelect({
