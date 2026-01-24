@@ -139,7 +139,7 @@
 
 .bottomBar {
   position: fixed;
-  bottom: 16px;
+  bottom: 88px;
   left: 50%;
   transform: translateX(-50%);
   width: calc(100% - 24px);
