@@ -22,12 +22,28 @@ export function mountUI(app) {
                    <div id="coinCount">0</div>
                 </div> <!--coins -->
           </div> <!--secondRow -->
-
         </div> <!--TopBar -->
 
 
+            <div class="boardWrap">
+              <div class="boardFrame">
+                <canvas id="game"></canvas>
+              </div><!--Board Frame -->
+            </div><!--boardWrap -->
+       
+  <div class="bottomBar">
+        <div class="bottomIcon">
+          <button id="hintBtn" class="bottomBtn left"><span class="icon">❓</span><span>Hint</span></button>
 
+          <div class="swipeHint">Swipe to move</div>
 
+          <button id="x3Btn" class="bottomBtn right"><span class="icon">⏭</span><span>Skip</span></button>
+
+        </div>    <!--Botom Icon -->
+        <div class="adsbanner">
+
+        </div> <!--adsbanner -->
+</div>    <!--bottomBar -->
 
 
 
