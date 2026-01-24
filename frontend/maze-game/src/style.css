@@ -112,14 +112,9 @@
 
 /* ===== BOARD ===== */
 .boardWrap {
-  margin-top: 32px;
-  /* or */
-  padding-top: 32px;
-  flex: 1;
-  margin-top: 6px;
+  margin-top: 12px; /* ⬅️ move board up */
   display: flex;
   justify-content: center;
-  align-items: flex-start;
 }
 
 /* ===== BOTTOM BAR ===== */
