@@ -112,6 +112,9 @@
 
 /* ===== BOARD ===== */
 .boardWrap {
+  margin-top: 32px;
+  /* or */
+  padding-top: 32px;
   flex: 1;
   margin-top: 6px;
   display: flex;
