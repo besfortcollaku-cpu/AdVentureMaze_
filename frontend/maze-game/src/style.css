@@ -52,26 +52,62 @@
 }
 
 /* ===== ICONS ===== */
-.iconRow {
+.iconRow button {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   display: flex;
   align-items: center;
-  gap: 10px;
+  justify-content: center;
+  transition: transform 0.15s ease, background 0.15s ease;
 }
 
-.iconRow button {
-  width: 36px;
-  height: 36px;
-  padding: 0;
+.iconRow button:active {
+  transform: scale(0.94);
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.iconRow svg {
+  width: 18px;
+  height: 18px;
+  opacity: 0.9;
+}
+.iconRow button:hover {
+  background: rgba(255, 255, 255, 0.1);
 }
 
 /* ===== COINS ===== */
 .coins {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 10px;
+  gap: 8px;
+  padding: 6px 12px;
   border-radius: 999px;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 215, 0, 0.25),
+    rgba(255, 215, 0, 0.1)
+  );
+  border: 1px solid rgba(255, 215, 0, 0.35);
+  font-weight: 600;
   font-size: 14px;
+}
+
+/* coin dot */
+.coinDot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 30% 30%,
+    #fff7b0,
+    #f5c400 60%,
+    #c99a00
+  );
+  box-shadow: 0 0 6px rgba(255, 215, 0, 0.6);
 }
 
 /* ===== BOARD ===== */
