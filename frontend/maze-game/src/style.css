@@ -139,7 +139,7 @@
 
 /* ===== Bottom Controls ===== */
 
-.bottomBar {
+.bottomIcon {
   position: fixed;
   bottom: 88px;
   left: 50%;
@@ -328,7 +328,7 @@ canvas{
   background: #111;
 }
 
-.bottomBar{
+.bottomIcon{
   position:absolute;
   left:14px;
   right:14px;
