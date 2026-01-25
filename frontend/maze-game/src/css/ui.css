@@ -1,277 +1,102 @@
-/* Base */
-* {
-  user-select: none;
-  -webkit-user-select: none;
-  -webkit-tap-highlight-color: transparent;
-} 
+// src/ui/ui.js
 
+let loginGateHandler = null;
+let welcomeContinueHandler = null;
+let firstGestureHandler = null;
 
+export function mountUI(app) {
+  app.innerHTML = `
+    <div class="phone">
+      <div id="bootOverlay" class="bootOverlay">
+        <div class="spinner"></div>
+        <div id="bootText">Tap to continue</div>
+      </div>
 
-html, body {
-  margin: 0;
-  padding: 0;
-  background: #0b1220;
-  color: #fff;
-  font-family: system-ui, sans-serif;
-}
+      <div class="topbar">
+        <div class="title">Adventure Maze</div>
+        <div class="coins"><span id="coinCount">0</span></div>
+      </div>
 
-#app {
-  width: 100vw;
-  height: 100vh;
-}
+      <canvas id="gameCanvas"></canvas>
 
-/* Phone frame */
-.phone{
-  height: 100dvh;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  user-select: none;
-}
+      <div id="welcomeScreen" class="welcomeScreen hidden">
+        <h1>Welcome</h1>
+        <p>Guide the ball through the maze.<br/>Tap anywhere to start</p>
+      </div>
 
-/* TOP BAR */
-.topBar {
-  padding: 14px;
-}
+      <div id="winPopup" class="winPopup hidden">
+        <button id="winNextBtn">Next</button>
+      </div>
+    </div>
+  `;
 
-.levelText {
-  text-align: center;
-  font-size: 22px;
-  font-weight: 800;
-  margin-bottom: 10px;
-}
+  const canvas = document.getElementById("gameCanvas");
+  const bootOverlay = document.getElementById("bootOverlay");
+  const bootText = document.getElementById("bootText");
+  const welcomeScreen = document.getElementById("welcomeScreen");
+  const winPopup = document.getElementById("winPopup");
 
-.topRow {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
+  // 🔴 TAP TO LOGIN
+  bootOverlay.addEventListener("click", () => {
+    if (firstGestureHandler) firstGestureHandler();
+    if (loginGateHandler) loginGateHandler();
+  });
 
-.iconRow {
-  display: flex;
-  gap: 10px;
-}
+  // 🔴 TAP TO START GAME
+  welcomeScreen.addEventListener("click", () => {
+    if (welcomeContinueHandler) welcomeContinueHandler();
+  });
 
-.iconBtn {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
-  border: none;
-  background: rgba(255,255,255,0.08);
-  color: #fff;
-  font-size: 18px;
-}
+  return {
+    canvas,
 
-/* Coins */
-.coinBox {
-  padding: 10px 14px;
-  border-radius: 14px;
-  background: rgba(255,215,0,0.15);
-  font-weight: 700;
-}
+    showBootOverlay(text = "Tap to continue") {
+      bootText.textContent = text;
+      bootOverlay.classList.remove("hidden");
+    },
 
-/* GAME AREA */
-.gameArea {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
+    hideBootOverlay() {
+      bootOverlay.classList.add("hidden");
+    },
 
-.boardWrap{
-  flex: 1;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  padding: 10px 16px;
-}
+    showWelcomeScreen() {
+      welcomeScreen.classList.remove("hidden");
+    },
 
+    hideWelcomeScreen() {
+      welcomeScreen.classList.add("hidden");
+    },
 
-canvas {
-  width: 100%;
-  height: 100%;
-}
+    setCoins(v) {
+      document.getElementById("coinCount").textContent = v;
+    },
 
-/* BOTTOM BAR */
-.bottomBar {
-  padding: 10px 1616px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
+    showWinPopup() {
+      winPopup.classList.remove("hidden");
+    },
 
-.bottomBtn {
-  padding: 12px 16px;
-  border-radius: 14px;
-  border: none;
-  background: rgba(255,255,255,0.1);
-  color: #fff;
-  font-weight: 700;
-  display:flex;
-  align-items:center;
-  justify-content: space-between;
-  gap: 10px;
-}
+    hideWinPopup() {
+      winPopup.classList.add("hidden");
+    },
 
+    onLoginGateClick(fn) {
+      loginGateHandler = fn;
+    },
 
-.swipeText {
-  opacity: 0.7;
-  font-size: 14px;
-}
+    onWelcomeContinue(fn) {
+      welcomeContinueHandler = fn;
+    },
 
-/* AD BAR */
-.adBar {
-  height: 46px;
-  background: #2b6cff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 800;
-}
+    onFirstUserGesture(fn) {
+      firstGestureHandler = fn;
+    },
 
+    onWinNext(fn) {
+      document.getElementById("winNextBtn").onclick = fn;
+    },
 
-
-html, body {
-  overscroll-behavior: none;
-  touch-action: none;
-  overflow: hidden;
-}
-
-canvas {
-  touch-action: none;
-}
-
-/* Lock page (static shell, no scroll) */
-html, body {
-  height: 100%;
-  overflow: hidden;
-  overscroll-behavior: none;
-}
-
-/* Shell layout */
-.phone{
-  height: 100dvh;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  user-select: none;
-}
-
-/* Top */
-.topbar{
-  padding: 16px 16px 10px;
-}
-.levelText{
-  text-align: center;
-  font-weight: 900;
-  font-size: 42px;
-  letter-spacing: .5px;
-  margin-top: 6px;
-  margin-bottom: 10px;
-}
-.topRow{
-  display:flex;
-  align-items:center;
-  justify-content: space-between;
-  gap: 12px;
-}
-.iconRow{
-  display:flex;
-  gap: 12px;
-}
-.iconBtn{
-  width: 56px;
-  height: 56px;
-  border-radius: 18px;
-  border: 1px solid rgba(255,255,255,.12);
-  background: rgba(255,255,255,.06);
-}
-.iconBtn svg{ width: 26px; height: 26px; }
-
-.coins{
-  min-width: 120px;
-  height: 56px;
-  border-radius: 22px;
-  border: 2px solid rgba(255,204,51,.35);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  gap: 10px;
-  background: rgba(0,0,0,.18);
-  font-weight: 900;
-  font-size: 22px;
-}
-.coinDot{
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 30% 30%, #fff6c2, #ffcc33 55%, #d39a00);
-}
-
-/* Board */
-.boardWrap{
-  flex: 1;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  padding: 10px 16px;
-}
-.boardFrame{
-  width: min(560px, 100%);
-  aspect-ratio: 1 / 1;
-  border-radius: 28px;
-  border: 1px solid rgba(255,255,255,.10);
-  background: rgba(0,0,0,.10);
-  overflow: hidden;
-}
-#game{
-width: 100%;
-  height: 100%;
-  max-width: 420px;
-  max-height: 420px;
-  border-radius: 22px;
-  background: rgba(255,255,255,.03);
-  border: 1px solid rgba(255,255,255,.08);
-  touch-action: none; /* allow swipe handling without page scroll */
-}
-
-/* Bottom */
-.bottomBar{
-  padding: 10px 16px 0;
-}
-.bottomBtns{
-  display:flex;
-  align-items:center;
-  justify-content: space-between;
-  gap: 10px;
-  margin-bottom: 10px;
-}
-.bottomBtn{
-  height: 54px;
-  padding: 0 16px;
-  border-radius: 18px;
-  border: 1px solid rgba(255,255,255,.12);
-  background: rgba(255,255,255,.06);
-  font-weight: 900;
-  display:flex;
-  align-items:center;
-  gap: 10px;
-}
-.swipeHint{
-  opacity: .75;
-  font-weight: 700;
-  white-space: nowrap;
-}
-
-/* Ad banner space */
-.adBanner{
-  height: 70px;
-  margin: 8px 16px 12px;
-  border-radius: 18px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-weight: 900;
-  background: rgba(80,140,255,.35);
-  border: 1px solid rgba(255,255,255,.12);
+    setSoundEnabled() {},
+    setVibrationEnabled() {},
+    setUser() {},
+  };
 }
