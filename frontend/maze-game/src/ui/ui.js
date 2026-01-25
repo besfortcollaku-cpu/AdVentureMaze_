@@ -174,6 +174,10 @@ export function mountUI(app) {
   </button>
 
   <div class="userPill" id="userPill">U:guest</div>
+  
+  <button class="iconBtnWide" id="guestBtn">
+  Play as Guest
+</button>
 
   <!-- ✅ NEW: TEST button (hidden by default) -->
   <button class="iconBtnWide" id="testBtn" style="display:none;">
@@ -475,6 +479,7 @@ export function mountUI(app) {
   const winAdBtn = document.getElementById("winAdBtn");
   
   const welcomeOverlay = document.getElementById("welcomeOverlay");
+  const guestBtn = document.getElementById("guestBtn");
   
   // Level select
   const levelSelectOverlay = document.getElementById("levelSelectOverlay");
@@ -519,6 +524,14 @@ export function mountUI(app) {
     levelSelectOverlay.classList.add("show");
     levelSelectOverlay.setAttribute("aria-hidden", "false");
   }
+  // ✅ Guest mode: start game without login
+guestBtn?.addEventListener("click", () => {
+  hideWelcome();
+
+  // mark guest explicitly
+  window.IS_GUEST = true;
+  window.CURRENT_USER = { uid: "guest", username: "guest" };
+});
 
   function hideLevelSelect() {
     levelSelectOverlay?.classList.remove("show");
