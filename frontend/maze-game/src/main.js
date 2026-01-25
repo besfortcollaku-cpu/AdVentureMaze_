@@ -36,27 +36,6 @@ async function boot() {
 
   // UI
   ui = mountUI(root);
-  // ---------------------------
-// CREATE GAME (GUEST ONLY)
-// ---------------------------
-
-
-let levelIndex = 0;
-
-const game = createGame({
-  canvas: ui.canvas,
-  level: levels[levelIndex],
-  onLevelComplete() {
-    console.log("LEVEL COMPLETE");
-  },
-});
-
-// start immediately (guest mode)
-game.start();
-// ===== END CANVAS TEST =====
-
-// Audio unlock
-ui.onFirstUserGesture(() => ensureAudioUnlocked());
 
   // Audio unlock
   ui.onFirstUserGesture(() => ensureAudioUnlocked());
