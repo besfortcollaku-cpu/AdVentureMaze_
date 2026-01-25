@@ -378,8 +378,34 @@ const savedLevel = Number(serverProgress?.level || 1);
     level: firstLevel,
     onLevelComplete,
   });
+console.log("Game created, waiting for user action");
+ui.onLoginClick(async () => {
+  try {
+    console.log("Login clicked");
 
-  game.start();
+    await ensurePiLogin({
+      onSuccess(user) {
+        console.log("Pi login success", user);
+
+        IS_GUEST = false;
+        CURRENT_USER = user;
+
+        ui.setUser(user);
+        ui.hideLoginGate();
+        ui.hideWelcome();
+
+        game.start(); // ✅ START GAME AFTER LOGIN
+      },
+      onError(err) {
+        console.error("Pi login failed", err);
+        ui.showLoginError(err?.message || "Login failed");
+      },
+    });
+  } catch (e) {
+    console.error("Login exception", e);
+    ui.showLoginError("Unexpected login error");
+  }
+});
 
 
   document.getElementById("controls")?.addEventListener("click", () => {
