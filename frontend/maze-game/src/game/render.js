@@ -1,10 +1,11 @@
 // src/game/render.js
 
 export function createRenderer({ canvas, state }) {
-ctx.fillStyle = "red";
-ctx.fillRect(0, 0, 50, 50); 
   const ctx = canvas.getContext("2d");
 
+  // 🔴 TEST DRAW (TEMP)
+  ctx.fillStyle = "red";
+  ctx.fillRect(0, 0, 50, 50);
 
 
   let w = 0;
