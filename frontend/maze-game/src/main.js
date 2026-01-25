@@ -36,6 +36,44 @@ async function boot() {
 
   // UI
   ui = mountUI(root);
+  // UI
+ui = mountUI(root);
+
+// ===== CANVAS TEST RENDER (TEMP) =====
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+
+function resizeCanvas() {
+  const rect = canvas.getBoundingClientRect();
+  canvas.width = Math.floor(rect.width);
+  canvas.height = Math.floor(rect.height);
+}
+
+function drawTest() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // board background
+  ctx.fillStyle = "#1b2336";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // test ball
+  ctx.fillStyle = "#38e1ff";
+  ctx.beginPath();
+  ctx.arc(40, 40, 14, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+resizeCanvas();
+drawTest();
+
+window.addEventListener("resize", () => {
+  resizeCanvas();
+  drawTest();
+});
+// ===== END CANVAS TEST =====
+
+// Audio unlock
+ui.onFirstUserGesture(() => ensureAudioUnlocked());
 
   // Audio unlock
   ui.onFirstUserGesture(() => ensureAudioUnlocked());
