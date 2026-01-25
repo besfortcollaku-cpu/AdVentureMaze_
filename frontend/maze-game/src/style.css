@@ -1148,4 +1148,281 @@ canvas {
       vertical-align:-2px;
       box-shadow: 0 8px 16px rgba(255,204,51,.18);
     }
-  
+
+    /* Base */
+* {
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+} 
+
+
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: #0b1220;
+  color: #fff;
+  font-family: system-ui, sans-serif;
+}
+
+#app {
+  width: 100vw;
+  height: 100vh;
+}
+
+/* Phone frame */
+.phone{
+  height: 100dvh;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  user-select: none;
+}
+
+/* TOP BAR */
+.topBar {
+  padding: 14px;
+}
+
+.levelText {
+  text-align: center;
+  font-size: 22px;
+  font-weight: 800;
+  margin-bottom: 10px;
+}
+
+.topRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.iconRow {
+  display: flex;
+  gap: 10px;
+}
+
+.iconBtn {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  border: none;
+  background: rgba(255,255,255,0.08);
+  color: #fff;
+  font-size: 18px;
+}
+
+/* Coins */
+.coinBox {
+  padding: 10px 14px;
+  border-radius: 14px;
+  background: rgba(255,215,0,0.15);
+  font-weight: 700;
+}
+
+/* GAME AREA */
+.gameArea {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.boardWrap{
+  flex: 1;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding: 10px 16px;
+}
+
+
+canvas {
+  width: 100%;
+  height: 100%;
+}
+
+/* BOTTOM BAR */
+.bottomBar {
+  padding: 10px 1616px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.bottomBtn {
+  padding: 12px 16px;
+  border-radius: 14px;
+  border: none;
+  background: rgba(255,255,255,0.1);
+  color: #fff;
+  font-weight: 700;
+  display:flex;
+  align-items:center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+
+.swipeText {
+  opacity: 0.7;
+  font-size: 14px;
+}
+
+/* AD BAR */
+.adBar {
+  height: 46px;
+  background: #2b6cff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+}
+
+
+
+html, body {
+  overscroll-behavior: none;
+  touch-action: none;
+  overflow: hidden;
+}
+
+canvas {
+  touch-action: none;
+}
+
+/* Lock page (static shell, no scroll) */
+html, body {
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+/* Shell layout */
+.phone{
+  height: 100dvh;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  user-select: none;
+}
+
+/* Top */
+.topbar{
+  padding: 16px 16px 10px;
+}
+.levelText{
+  text-align: center;
+  font-weight: 900;
+  font-size: 42px;
+  letter-spacing: .5px;
+  margin-top: 6px;
+  margin-bottom: 10px;
+}
+.topRow{
+  display:flex;
+  align-items:center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.iconRow{
+  display:flex;
+  gap: 12px;
+}
+.iconBtn{
+  width: 56px;
+  height: 56px;
+  border-radius: 18px;
+  border: 1px solid rgba(255,255,255,.12);
+  background: rgba(255,255,255,.06);
+}
+.iconBtn svg{ width: 26px; height: 26px; }
+
+.coins{
+  min-width: 120px;
+  height: 56px;
+  border-radius: 22px;
+  border: 2px solid rgba(255,204,51,.35);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap: 10px;
+  background: rgba(0,0,0,.18);
+  font-weight: 900;
+  font-size: 22px;
+}
+.coinDot{
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, #fff6c2, #ffcc33 55%, #d39a00);
+}
+
+/* Board */
+.boardWrap{
+  flex: 1;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding: 10px 16px;
+}
+.boardFrame{
+  width: min(560px, 100%);
+  aspect-ratio: 1 / 1;
+  border-radius: 28px;
+  border: 1px solid rgba(255,255,255,.10);
+  background: rgba(0,0,0,.10);
+  overflow: hidden;
+}
+#game{
+width: 100%;
+  height: 100%;
+  max-width: 420px;
+  max-height: 420px;
+  border-radius: 22px;
+  background: rgba(255,255,255,.03);
+  border: 1px solid rgba(255,255,255,.08);
+  touch-action: none; /* allow swipe handling without page scroll */
+}
+
+/* Bottom */
+.bottomBar{
+  padding: 10px 16px 0;
+}
+.bottomBtns{
+  display:flex;
+  align-items:center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.bottomBtn{
+  height: 54px;
+  padding: 0 16px;
+  border-radius: 18px;
+  border: 1px solid rgba(255,255,255,.12);
+  background: rgba(255,255,255,.06);
+  font-weight: 900;
+  display:flex;
+  align-items:center;
+  gap: 10px;
+}
+.swipeHint{
+  opacity: .75;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* Ad banner space */
+.adBanner{
+  height: 70px;
+  margin: 8px 16px 12px;
+  border-radius: 18px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight: 900;
+  background: rgba(80,140,255,.35);
+  border: 1px solid rgba(255,255,255,.12);
+}
