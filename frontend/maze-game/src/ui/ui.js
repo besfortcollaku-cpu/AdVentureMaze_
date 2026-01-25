@@ -772,7 +772,7 @@ function hideWelcome() {
     },
   };
 }
-
+}
 /* ---------------- UI helpers ---------------- */
 function iconBtn(id, svg, badgeText) {
   return `
