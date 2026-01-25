@@ -713,13 +713,7 @@ function hideWelcome() {
     winOverlay.setAttribute("aria-hidden", "true");
   }
 
-  function setSoundEnabled(v) {
-    if (soundToggle) soundToggle.checked = !!v;
-  }
-
-  function setVibrationEnabled(v) {
-    if (vibrationToggle) vibrationToggle.checked = !!v;
-  }
+  
 }
   return {
     hideWelcome,
@@ -765,6 +759,13 @@ function hideWelcome() {
     onWinAd(fn) {
       winAdHandler = fn;
     },
+    setSoundEnabled(v) {
+    if (soundToggle) soundToggle.checked = !!v;
+  },
+
+  setVibrationEnabled(v) {
+    if (vibrationToggle) vibrationToggle.checked = !!v;
+  },
 
     // ✅ Level select API
     showLevelSelect,
