@@ -45,6 +45,11 @@ export function mountUI(app) {
         </div> <!--adsbanner -->
 </div>    <!--bottomBar -->
 
+
+
+
+
+
     </div>        <!--Phone -->
 
      
@@ -884,4 +889,3 @@ function skipSVG() {
       stroke-linecap="round"/>
   </svg>`;
 }
-
