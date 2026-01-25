@@ -207,8 +207,26 @@ async function boot() {
   }
 }
   ui = mountUI(document.querySelector("#app"));
-
-
+  // ✅ Listen for guest play event from UI
+window.addEventListener("guestStart", () => {
+  console.log("Guest play triggered");
+  ui.hideWelcome();
+  game.start(); // <-- start the maze for guest
+});
+ui.onLoginClick(async () => {
+  await ensurePiLogin({
+    onSuccess(user) {
+      IS_GUEST = false;
+      CURRENT_USER = user;
+      ui.setUser(user);
+      ui.hideLoginGate();
+      ui.hideWelcome();
+    },
+    onError(err) {
+      ui.showLoginError(err?.message || "Login failed");
+    },
+  });
+});
 // 🔑 connect BOTH welcome + login gate to same login logic
 ui.onLoginClick(handlePiLogin);
 

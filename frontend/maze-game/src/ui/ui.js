@@ -636,6 +636,8 @@ function hideWelcome() {
 
   testBtn?.addEventListener("click", () => {
   hideWelcome();
+  // ✅ tell main.js that guest started
+  window.dispatchEvent(new CustomEvent("guestStart"));
 
   
 });
