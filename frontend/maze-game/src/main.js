@@ -163,59 +163,8 @@ function clampLevelIndex(i) {
 // Boot
 // ---------------------------
 async function boot() {
-    
-    async function handlePiLogin() {
-  try {
-    // Pi authentication
-    const auth = await ensurePiLogin();
-
-    // exchange token with backend
-    const res = await fetch(`${BACKEND}/api/pi-login`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        accessToken: auth.accessToken,
-      }),
-    });
-
-    const data = await res.json();
-    if (!data.ok) {
-      throw new Error(data.error || "Login failed");
-    }
-
-    // ✅ switch from guest → logged in
-    IS_GUEST = false;
-    CURRENT_USER = data.user;
-    CURRENT_ACCESS_TOKEN = data.token;
-
-    COINS = Number(data.user.coins || 0);
-    UNLOCKED_LEVEL = data.progress?.level || UNLOCKED_LEVEL;
-
-    // update UI
-    ui.setUser(CURRENT_USER);
-    ui.setCoins(COINS);
-    ui.hideLoginGate();
-    ui.hideWelcome();
-
-    // continue game normally
-    game.setLevel(levels[levelIndex]);
-    ui.setLevel(levelIndex + 1);
-
-  } catch (err) {
-    console.error("Login failed:", err);
-    ui.showLoginError("Login failed. Please try again.");
-  }
-}
   ui = mountUI(document.querySelector("#app"));
-  // ✅ Listen for guest play event from UI
-window.addEventListener("guestStart", () => {
-  console.log("Guest play triggered");
-  ui.hideWelcome();
-  game.start(); // <-- start the maze for guest
-});
 
-// 🔑 connect BOTH welcome + login gate to same login logic
-ui.onLoginClick(handlePiLogin);
 
 // Level select via joystick icon
 document.getElementById("controls")?.addEventListener("click", () => {
@@ -378,34 +327,8 @@ const savedLevel = Number(serverProgress?.level || 1);
     level: firstLevel,
     onLevelComplete,
   });
-console.log("Game created, waiting for user action");
-ui.onLoginClick(async () => {
-  try {
-    console.log("Login clicked");
 
-    await ensurePiLogin({
-      onSuccess(user) {
-        console.log("Pi login success", user);
-
-        IS_GUEST = false;
-        CURRENT_USER = user;
-
-        ui.setUser(user);
-        ui.hideLoginGate();
-        ui.hideWelcome();
-
-        game.start(); // ✅ START GAME AFTER LOGIN
-      },
-      onError(err) {
-        console.error("Pi login failed", err);
-        ui.showLoginError(err?.message || "Login failed");
-      },
-    });
-  } catch (e) {
-    console.error("Login exception", e);
-    ui.showLoginError("Unexpected login error");
-  }
-});
+  game.start();
 
 
   document.getElementById("controls")?.addEventListener("click", () => {
