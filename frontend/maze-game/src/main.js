@@ -77,8 +77,10 @@ async function boot() {
     onLevelComplete() {},
   });
 
-  game.start(); // ✅ START ONCE ONLY
   ui.setLevel(1);
+  requestAnimationFrame(() => {
+  game.start();
+});
 
   // ---------------------------
   // WELCOME → GUEST
