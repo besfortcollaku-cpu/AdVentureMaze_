@@ -1,6 +1,7 @@
 // src/game/render.js
-
-
+ctx.fillStyle = "red";
+ctx.fillRect(0, 0, 50, 50);
+console.log("RENDER CANVAS:", canvas);
 
 export function createRenderer({ canvas, state }) {
 

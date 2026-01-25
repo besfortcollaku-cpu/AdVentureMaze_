@@ -83,7 +83,9 @@ console.log("Canvas size:", canvas.width, canvas.height);
     level: levels[levelIndex],
     onLevelComplete() {},
   });
-
+console.log("GAME CREATED", game);
+game.start();
+console.log("GAME STARTED");
   ui.setLevel(1);
   requestAnimationFrame(() => {
   game.start();
