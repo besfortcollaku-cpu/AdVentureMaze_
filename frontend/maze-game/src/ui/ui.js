@@ -53,7 +53,6 @@ const rect = canvas.parentElement.getBoundingClientRect();
 canvas.width = rect.width;
 canvas.height = rect.height;
   // Elements
-  const canvas = document.getElementById("game");
   const levelTextEl = document.getElementById("levelText");
   const coinCountEl = document.getElementById("coinCount");
 
