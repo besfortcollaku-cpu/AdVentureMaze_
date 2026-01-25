@@ -641,18 +641,20 @@ function hideWelcome() {
 });
 
   if (name !== "guest") {
-    // logged in
-    loginBtn?.style.setProperty("display", "none");
-    userPill?.style.setProperty("display", "none");
-    if (testBtn) testBtn.style.display = "inline-flex";
-  } else {
-    // logged out / guest
-    loginBtn?.style.setProperty("display", "inline-flex");
-    userPill?.style.setProperty("display", "inline-flex");
-    if (testBtn) testBtn.style.display = "none";
-  }
-}
+  // ✅ logged in user
+  loginBtn?.style.setProperty("display", "none");
+  guestBtn?.style.setProperty("display", "none");
+  userPill?.style.setProperty("display", "none");
 
+  if (testBtn) testBtn.style.display = "inline-flex";
+} else {
+  // ✅ guest user
+  loginBtn?.style.setProperty("display", "inline-flex");
+  guestBtn?.style.setProperty("display", "inline-flex");
+  userPill?.style.setProperty("display", "inline-flex");
+
+  if (testBtn) testBtn.style.display = "none";
+}
   // ---------------------------
   // Settings
   // ---------------------------
