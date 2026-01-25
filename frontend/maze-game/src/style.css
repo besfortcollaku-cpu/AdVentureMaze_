@@ -1340,8 +1340,8 @@ html, body {
 .iconBtn svg{ width: 26px; height: 26px; }
 
 .coins{
-  min-width: 120px;
-  height: 56px;
+  min-width: 100px;
+  height: 46px;
   border-radius: 22px;
   border: 2px solid rgba(255,204,51,.35);
   display:flex;
@@ -1353,8 +1353,8 @@ html, body {
   font-size: 22px;
 }
 .coinDot{
-  width: 22px;
-  height: 22px;
+  width: 17px;
+  height: 17px;
   border-radius: 50%;
   background: radial-gradient(circle at 30% 30%, #fff6c2, #ffcc33 55%, #d39a00);
 }
