@@ -45,7 +45,7 @@ canvas.height = Math.floor(rect.height);
 
 console.log("Canvas size:", canvas.width, canvas.height);
   // Audio unlock
-  ui.onFirstUserGesture(() => ensureAudioUnlocked());
+  
 
   // Settings
   const s0 = getSettings();
