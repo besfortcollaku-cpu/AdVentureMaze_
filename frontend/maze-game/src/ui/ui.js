@@ -149,15 +149,7 @@ export function mountUI(app) {
 </div>
   `;
 
-  // ✅ Inject UI styles (Login Gate + Settings + Win overlay + login wrap)
-  const extra = document.createElement("style");
-  extra.textContent = `
-    
-    
-    /* ✅ LOGIN GATE */
-    
-
-   `;
+ 
   document.head.appendChild(extra);
 
   // ---------------------------
