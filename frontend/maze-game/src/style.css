@@ -99,36 +99,7 @@
   background: rgba(255, 255, 255, 0.1);
 }
 
-/* ===== COINS ===== */
-.coins {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 12px;
-  border-radius: 999px;
-  background: linear-gradient(
-    135deg,
-    rgba(255, 215, 0, 0.25),
-    rgba(255, 215, 0, 0.1)
-  );
-  border: 1px solid rgba(255, 215, 0, 0.35);
-  font-weight: 600;
-  font-size: 14px;
-}
 
-/* coin dot */
-.coinDot {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: radial-gradient(
-    circle at 30% 30%,
-    #fff7b0,
-    #f5c400 60%,
-    #c99a00
-  );
-  box-shadow: 0 0 6px rgba(255, 215, 0, 0.6);
-}
 
 /* ===== BOARD ===== */
 .boardWrap {
@@ -243,19 +214,7 @@
 }
 
 
-.coins{
-  margin: 5px;
-  float: right;
-  display:flex;
-  align-items:center;
-  gap:8px;
-  padding:10px 12px;
-  border-radius:16px;
-  background: rgba(255,255,255,.06);
-  border: 1px solid rgba(255,204,51,.25);
-  box-shadow: 0 12px 22px rgba(0,0,0,.35);
-  font-weight:950;
-}
+
 
 .coinDot{
   width:18px; height:18px;
