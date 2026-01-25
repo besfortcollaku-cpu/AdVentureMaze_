@@ -3,49 +3,46 @@
 export function mountUI(app) {
   app.innerHTML = `
     <div class="phone">
-        <div class="topbar">
-          <div class="topRow">
-              <div class="levelWrap">
-                  <div class="levelText" id="levelText">Level 1</div>
-              </div>
-          </div> <!--TopRow -->
+      <div class="topbar">
+        <div class="levelText" id="levelText">Level 1</div>
 
-          <div class="secondRow">
-              <div class="iconRow">
-                    ${iconBtn("accountBtn", userAccountSVG(), "")}
-                    ${iconBtn("settingsBtn", gearSVG(), "")}
-                    ${iconBtn("controls", joystickSVG(), "")}
-               </div> <!--iconRow -->
+        <div class="topRow">
+          <div class="iconRow">
+            ${iconBtn("accountBtn", userAccountSVG())}
+            ${iconBtn("settingsBtn", gearSVG())}
+            ${iconBtn("controls", joystickSVG())}
+          </div>
                
-              <div class="coins" title="Coins">
-                  <div class="coinDot"></div>
-                   <div id="coinCount">0</div>
-                </div> <!--coins -->
-          </div> <!--secondRow -->
-        </div> <!--TopBar -->
+          <div class="coins" title="Coins">
+            <div class="coinDot"></div>
+            <div id="coinCount">0</div>
+          </div>
+        </div>
+      </div>
 
+            <!-- BOARD -->
+      <div class="boardWrap">
+        <div class="boardFrame">
+          <canvas id="game"></canvas>
+        </div>
+      </div>
+  <!-- BOTTOM -->
+<div class="bottomBar">
+  <div class="bottomBtns">
+    <button id="hintBtn" class="bottomBtn left">
+      <span class="icon">❓</span><span>Hint</span>
+    </button>
 
-            <div class="boardWrap">
-              <div class="boardFrame">
-                <canvas id="game"></canvas>
-              </div><!--Board Frame -->
-            </div><!--boardWrap -->
-       
-  <div class="bottomBar">
-        <div class="bottomIcon">
-          <button id="hintBtn" class="bottomBtn left"><span class="icon">❓</span><span>Hint</span></button>
+    <div class="swipeHint">Swipe to move</div>
 
-          <div class="swipeHint">Swipe to move</div>
+    <button id="x3Btn" class="bottomBtn right">
+      <span class="icon">⏭</span><span>Skip</span>
+    </button>
+  </div>
+</div>
 
-          <button id="x3Btn" class="bottomBtn right"><span class="icon">⏭</span><span>Skip</span></button>
-
-        </div>    <!--Botom Icon -->
-        <div class="adsbanner">
-           <p> Here Ads Banner</p>
-        </div> <!--adsbanner -->
-</div>    <!--bottomBar -->
-    </div>        <!--Phone -->
-
+<!-- AD (always bottom) -->
+<div class="adBanner" id="adBanner">Ad Banner</div
      
     <!-- ✅ LOGIN GATE (blocks game until Pi login) -->
     <div class="loginGate" id="loginGate" aria-hidden="true">
