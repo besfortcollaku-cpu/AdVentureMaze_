@@ -62,7 +62,10 @@ export function mountUI(app) {
         </div>
 
         <button class="loginGateBtn" id="loginGateBtn">
-          Login
+          Login with Pi 
+        </button> 
+        <button class="guestBtn" id="guestBtn">
+          Playa as Guest
         </button>
 
         <div class="loginGateError" id="loginGateError"></div>
