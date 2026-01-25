@@ -27,23 +27,23 @@ export function mountUI(app) {
         </div>
       </div>
 
-      <!-- BOTTOM -->
-      <div class="bottomBar">
-        <div class="bottomBtns">
-          <button id="hintBtn" class="bottomBtn left">
-            <span class="icon">❓</span><span>Hint</span>
-          </button>
+<!-- BOTTOM -->
+<div class="bottomBar">
+  <div class="bottomBtns">
+    <button id="hintBtn" class="bottomBtn left">
+      <span class="icon">❓</span><span>Hint</span>
+    </button>
 
-          <div class="swipeHint">Swipe to move</div>
+    <div class="swipeHint">Swipe to move</div>
 
-          <button id="x3Btn" class="bottomBtn right">
-            <span class="icon">⏭</span><span>Skip</span>
-          </button>
-        </div>
+    <button id="x3Btn" class="bottomBtn right">
+      <span class="icon">⏭</span><span>Skip</span>
+    </button>
+  </div>
+</div>
 
-        <div class="adBanner" id="adBanner">Ad Banner</div>
-      </div>
-    </div>
+<!-- AD (always bottom) -->
+<div class="adBanner" id="adBanner">Ad Banner</div>
   `;
 
   // Elements
