@@ -3,57 +3,56 @@
 export function mountUI(app) {
   app.innerHTML = `
     <div class="phone">
-      <div class="topbar">
-        <div class="topRow">
-            <div class="levelWrap">
-              <div class="levelText">Level 1</div>
-                
-            </div>
-         </div>     
-        
-          </div>
-            <div class="iconRow">
-            ${iconBtn("accountBtn", userAccountSVG(), "")}
-            ${iconBtn("settingsBtn", gearSVG(), "")}
-            ${iconBtn("controls", joystickSVG(), "")}
-         </div>
-         <div class="coins" title="Coins">
+        <div class="topbar">
+          <div class="topRow">
+              <div class="levelWrap">
+                  <div class="levelText" id="levelText">Level 1</div>
+              </div>
+          </div> <!--TopRow -->
+
+          <div class="secondRow">
+              <div class="iconRow">
+                    ${iconBtn("accountBtn", userAccountSVG(), "")}
+                    ${iconBtn("settingsBtn", gearSVG(), "")}
+                    ${iconBtn("controls", joystickSVG(), "")}
+               </div> <!--iconRow -->
+               
+              <div class="coins" title="Coins">
                   <div class="coinDot"></div>
                    <div id="coinCount">0</div>
-                </div>
-         </div>
+                </div> <!--coins -->
+          </div> <!--secondRow -->
+        </div> <!--TopBar -->
+
+
             <div class="boardWrap">
               <div class="boardFrame">
                 <canvas id="game"></canvas>
-              </div>
-            </div>
+              </div><!--Board Frame -->
+            </div><!--boardWrap -->
+       
   <div class="bottomBar">
-       <div class="icon-item">
-           <span class="icon" aria-hidden="true">
-               ${iconBtn("hintsBtn", gameHintsSVG(), "")}
-                </span>
-                <span class="icon-label">Hints</span>
-              </div>
-              <div class="pill">Swipe to move</div>
-             <span class="icon" aria-hidden="true">
-               ${iconBtn("skipBtn", skipSVG(), "")}
-                </span>
-                <span class="icon-label">Skip</span>
-        </div>
-     </div>
+        <div class="bottomIcon">
+          <button id="hintBtn" class="bottomBtn left"><span class="icon">❓</span><span>Hint</span></button>
 
-   
+          <div class="swipeHint">Swipe to move</div>
 
-    <!-- Desktop block (used by Pi detection) -->
-    <div class="desktopBlock" id="desktopBlock" style="display:none;">
-    <div class="desktopCard">
-    <h2>Mobile game</h2>
-    <p>This Game is designed for Pi Network Browser Only!</p>
-    </div>
-    </div>
+          <button id="x3Btn" class="bottomBtn right"><span class="icon">⏭</span><span>Skip</span></button>
+
+        </div>    <!--Botom Icon -->
+        <div class="adsbanner">
+           <p> Here Ads Banner</p>
+        </div> <!--adsbanner -->
+</div>    <!--bottomBar -->
 
 
 
+
+
+
+    </div>        <!--Phone -->
+
+     
     <!-- ✅ LOGIN GATE (blocks game until Pi login) -->
     <div class="loginGate" id="loginGate" aria-hidden="true">
       <div class="loginGateCard">
@@ -153,24 +152,6 @@ export function mountUI(app) {
 <button class="winBtnSecondary" id="levelSelectClose">Close</button>
 </div>
 </div>
-</div>
-    
-    <!-- ✅ FULLSCREEN WELCOME OVERLAY -->
-<div class="welcomeOverlay" id="welcomeOverlay" aria-hidden="false">
-  <div class="welcomeCard">
-    <h1 class="welcomeTitle">Welcome to Adventure Maze</h1>
-    <div class="loginWrap">
-  <button class="iconBtnWide" id="loginBtn">
-    <span id="loginBtnText">Login</span>
-  </button>
-
-  <div class="userPill" id="userPill">U:guest</div>
-
-  <!-- ✅ NEW: TEST button (hidden by default) -->
-  <button class="iconBtnWide" id="testBtn" style="display:none;">
-    Tap To Play
-  </button>
-
 </div>
   `;
 
