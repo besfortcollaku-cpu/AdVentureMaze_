@@ -163,6 +163,9 @@ export function mountUI(app) {
   <button class="iconBtnWide" id="loginBtn">
     <span id="loginBtnText">Login</span>
   </button>
+  <button class="iconBtnWide" id="guestBtn">
+  Play as Guest
+</button>
 
   <div class="userPill" id="userPill">U:guest</div>
 
@@ -445,6 +448,7 @@ export function mountUI(app) {
   // Header login UI
   const loginBtn = document.getElementById("loginBtn");
   const loginBtnText = document.getElementById("loginBtnText");
+  const guestBtn = document.getElementById("guestBtn");
   const userPill = document.getElementById("userPill");
 
   // Login gate
@@ -473,6 +477,8 @@ export function mountUI(app) {
   const levelSelectClose = document.getElementById("levelSelectClose");
 
   let levelSelectHandler = null;
+  let guestStartHandler = null;
+guestBtn?.addEventListener("click", () => guestStartHandler?.());
 
   // ✅ FIXED (single correct implementation)
   function showLevelSelect({ totalLevels, isCompleted, currentLevel }) {
@@ -705,6 +711,9 @@ function hideWelcome() {
     onHint(fn) { hintHandler = fn; },
     onSkip(fn) { skipHandler = fn; },
     canvas: document.getElementById("game"),
+    onGuestStart(fn) {
+  guestStartHandler = fn;
+},
 
     // header login UI
     loginBtn,

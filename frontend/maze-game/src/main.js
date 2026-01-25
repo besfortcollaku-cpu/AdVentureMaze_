@@ -164,6 +164,27 @@ function clampLevelIndex(i) {
 // ---------------------------
 async function boot() {
   ui = mountUI(document.querySelector("#app"));
+  // ✅ create game immediately (guest by default)
+rewardedThisLevel = false;
+levelIndex = 0;
+
+game = createGame({
+  BACKEND,
+  canvas: ui.canvas,
+  getCurrentUser: () => CURRENT_USER,
+  level: levels[levelIndex],
+  onLevelComplete,
+});
+
+game.start();               // ✅ ALWAYS start loop so canvas renders
+ui.setLevel(levelIndex + 1);
+// ✅ Guest starts instantly (game already running)
+ui.onGuestStart(() => {
+  CURRENT_USER = { username: "guest", uid: null };
+  CURRENT_ACCESS_TOKEN = null;
+  ui.setCoins(0);
+  ui.hideWelcome();
+});
 
 
 // Level select via joystick icon
@@ -208,6 +229,39 @@ ui.onLevelSelect((selectedIndex) => {
 
   // init Pi SDK
   initPi();
+  // ✅ Login only when user taps Login
+ui.onLoginClick(async () => {
+  const loginRes = await ensurePiLogin({
+    BACKEND,
+    ui,
+    onLogin: ({ user, accessToken }) => {
+      CURRENT_USER = user;
+      CURRENT_ACCESS_TOKEN = accessToken;
+    },
+  });
+
+  if (!loginRes?.ok) return;
+
+  // load profile
+  const me = await apiGetMe();
+  const serverUser = me.user;
+  const serverProgress = me.progress;
+
+  CURRENT_USER = { username: serverUser.username, uid: serverUser.uid };
+  COINS = Number(serverUser.coins || 0);
+  ui.setCoins(COINS);
+
+  const savedLevel = Number(serverProgress?.level || 1);
+  levelIndex = clampLevelIndex(savedLevel - 1);
+
+  // update running game to correct level
+  rewardedThisLevel = false;
+  game.setLevel(levels[levelIndex]);
+  ui.setLevel(levelIndex + 1);
+
+  ui.hideLoginGate();
+  ui.hideWelcome();
+});
 
   // login
   const loginRes = await ensurePiLogin({
