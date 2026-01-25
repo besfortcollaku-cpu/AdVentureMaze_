@@ -593,16 +593,7 @@ function hideWelcome() {
   if (loginBtnText) {
     loginBtnText.textContent =
       name === "guest" ? "Login with Pi" : "Logged in ✅";
-  }
-
-  // ✅ NEW: toggle buttons after login
-  const testBtn = document.getElementById("testBtn");
-
-  testBtn?.addEventListener("click", () => {
-  hideWelcome();
-
-  
-});
+  };
 
   if (name !== "guest") {
     // logged in
