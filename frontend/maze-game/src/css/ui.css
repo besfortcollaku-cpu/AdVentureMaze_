@@ -3,7 +3,7 @@
   user-select: none;
   -webkit-user-select: none;
   -webkit-tap-highlight-color: transparent;
-}
+} 
 
 
 
@@ -134,4 +134,134 @@ html, body {
 
 canvas {
   touch-action: none;
+}
+
+/* Lock page (static shell, no scroll) */
+html, body {
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+/* Shell layout */
+.phone{
+  height: 100dvh;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  user-select: none;
+}
+
+/* Top */
+.topbar{
+  padding: 16px 16px 10px;
+}
+.levelText{
+  text-align: center;
+  font-weight: 900;
+  font-size: 42px;
+  letter-spacing: .5px;
+  margin-top: 6px;
+  margin-bottom: 10px;
+}
+.topRow{
+  display:flex;
+  align-items:center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.iconRow{
+  display:flex;
+  gap: 12px;
+}
+.iconBtn{
+  width: 56px;
+  height: 56px;
+  border-radius: 18px;
+  border: 1px solid rgba(255,255,255,.12);
+  background: rgba(255,255,255,.06);
+}
+.iconBtn svg{ width: 26px; height: 26px; }
+
+.coins{
+  min-width: 120px;
+  height: 56px;
+  border-radius: 22px;
+  border: 2px solid rgba(255,204,51,.35);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap: 10px;
+  background: rgba(0,0,0,.18);
+  font-weight: 900;
+  font-size: 22px;
+}
+.coinDot{
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, #fff6c2, #ffcc33 55%, #d39a00);
+}
+
+/* Board */
+.boardWrap{
+  flex: 1;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding: 10px 16px;
+}
+.boardFrame{
+  width: min(560px, 100%);
+  aspect-ratio: 1 / 1;
+  border-radius: 28px;
+  border: 1px solid rgba(255,255,255,.10);
+  background: rgba(0,0,0,.10);
+  overflow: hidden;
+}
+#game{
+  width: 100%;
+  height: 100%;
+  display: block;
+  touch-action: none; /* allow swipe handling without page scroll */
+}
+
+/* Bottom */
+.bottomBar{
+  padding: 10px 16px 0;
+}
+.bottomBtns{
+  display:flex;
+  align-items:center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.bottomBtn{
+  height: 54px;
+  padding: 0 16px;
+  border-radius: 18px;
+  border: 1px solid rgba(255,255,255,.12);
+  background: rgba(255,255,255,.06);
+  font-weight: 900;
+  display:flex;
+  align-items:center;
+  gap: 10px;
+}
+.swipeHint{
+  opacity: .75;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* Ad banner space */
+.adBanner{
+  height: 70px;
+  border-radius: 18px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight: 900;
+  background: rgba(80,140,255,.35);
+  border: 1px solid rgba(255,255,255,.12);
 }
