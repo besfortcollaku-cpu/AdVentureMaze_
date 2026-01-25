@@ -148,7 +148,12 @@ export function mountUI(app) {
 </div>
 </div>
   `;
-
+// ✅ Inject UI styles (Login Gate + Settings + Win overlay + login wrap)
+  const extra = document.createElement("style");
+  extra.textContent = `
+  
+    .winHint{ position:relative; z-index:2; margin-top:12px; font-size:12px; opacity:.75; }
+  `;
  
   document.head.appendChild(extra);
 
