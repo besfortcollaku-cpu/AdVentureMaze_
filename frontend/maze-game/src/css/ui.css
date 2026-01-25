@@ -1,4 +1,12 @@
 /* Base */
+* {
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+
+
 html, body {
   margin: 0;
   padding: 0;
@@ -114,4 +122,16 @@ canvas {
   align-items: center;
   justify-content: center;
   font-weight: 800;
+}
+
+
+
+html, body {
+  overscroll-behavior: none;
+  touch-action: none;
+  overflow: hidden;
+}
+
+canvas {
+  touch-action: none;
 }
