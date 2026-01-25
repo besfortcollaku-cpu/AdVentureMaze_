@@ -36,7 +36,14 @@ async function boot() {
 
   // UI
   ui = mountUI(root);
+// 🔥 FORCE canvas size (critical)
+const canvas = ui.canvas;
+const rect = canvas.getBoundingClientRect();
 
+canvas.width = Math.floor(rect.width);
+canvas.height = Math.floor(rect.height);
+
+console.log("Canvas size:", canvas.width, canvas.height);
   // Audio unlock
   ui.onFirstUserGesture(() => ensureAudioUnlocked());
 
