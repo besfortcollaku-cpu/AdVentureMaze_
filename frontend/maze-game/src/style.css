@@ -101,65 +101,6 @@
 
 
 
-/* ===== BOARD ===== */
-.boardWrap {
-  height: 50vh;
-  margin-top: 16px; /* ⬅️ move board up */
-  display: flex;
-  justify-content: center;
-  margin-bottom: var(--ad-space);
-}
-
-/* ===== Bottom Controls ===== */
-
-.bottomBar {
-  height: 20vh;
-  display: flex;
-  flex-direction: column;
- 
-}
-
-.bottomIcon {
-  padding: 10px;
-  float: left;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  gap:5px;
-}
-
-
-.adsbanner {
-  margin-top: 10px;
-  background-color: red;
-  width: auto;
-  height: 72px;
-  border: 1px;
-}
-
-/* Buttons */
-
-.bottomBtn {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-
-  padding: 12px 14px;
-  border-radius: 14px;
-  border: none;
-
-  background: rgba(255,255,255,0.08);
-  color: #fff;
-  font-size: 14px;
-  font-weight: 600;
-
-  cursor: pointer;
-}
-
-.bottomBtn:active {
-  transform: scale(0.96);
-}
-
 .bottomBtn.left {
   justify-self: start;
 }
@@ -283,14 +224,6 @@
   border-radius:18px;    /* slightly tighter */
   background: linear-gradient(...);
   padding:0;
-}
-
-canvas{
-  width:100%;
-  height:100%;
-  display:block;
-  border-radius:18px;
-  background: #111;
 }
 
 
@@ -496,21 +429,6 @@ html, body {
 
 
 
-canvas {
-
-  width: min(92vw, 420px);
-
-  height: min(92vw, 420px);
-
-  max-height: 70vh;
-
-  border-radius: 18px;
-
-  background: #0f1a2e;
-
-  border: 1px solid rgba(255,255,255,0.10);
-
-}
 
 
 /* --- Pi / Desktop locks --- */
@@ -643,15 +561,7 @@ canvas {
 
 /* --- Ensure canvas is visible (prevents 0px height) --- */
 
-.boardWrap {
-
-  width: 100%;
-
-  display: flex;
-
-  justify-content: center;
-
-}
+.board
 
 
 
@@ -1346,9 +1256,7 @@ width: 100%;
 }
 
 /* Bottom */
-.bottomBar{
-  padding: 10px 16px 0;
-}
+
 .bottomBtns{
   display:flex;
   align-items:center;
