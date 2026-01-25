@@ -163,8 +163,54 @@ function clampLevelIndex(i) {
 // Boot
 // ---------------------------
 async function boot() {
+    
+    async function handlePiLogin() {
+  try {
+    // Pi authentication
+    const auth = await ensurePiLogin();
+
+    // exchange token with backend
+    const res = await fetch(`${BACKEND}/api/pi-login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        accessToken: auth.accessToken,
+      }),
+    });
+
+    const data = await res.json();
+    if (!data.ok) {
+      throw new Error(data.error || "Login failed");
+    }
+
+    // ✅ switch from guest → logged in
+    IS_GUEST = false;
+    CURRENT_USER = data.user;
+    CURRENT_ACCESS_TOKEN = data.token;
+
+    COINS = Number(data.user.coins || 0);
+    UNLOCKED_LEVEL = data.progress?.level || UNLOCKED_LEVEL;
+
+    // update UI
+    ui.setUser(CURRENT_USER);
+    ui.setCoins(COINS);
+    ui.hideLoginGate();
+    ui.hideWelcome();
+
+    // continue game normally
+    game.setLevel(levels[levelIndex]);
+    ui.setLevel(levelIndex + 1);
+
+  } catch (err) {
+    console.error("Login failed:", err);
+    ui.showLoginError("Login failed. Please try again.");
+  }
+}
   ui = mountUI(document.querySelector("#app"));
 
+
+// 🔑 connect BOTH welcome + login gate to same login logic
+ui.onLoginClick(handlePiLogin);
 
 // Level select via joystick icon
 document.getElementById("controls")?.addEventListener("click", () => {
