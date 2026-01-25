@@ -1347,10 +1347,10 @@ html, body {
   display:flex;
   align-items:center;
   justify-content:center;
-  gap: 10px;
+  gap: 5px;
   background: rgba(0,0,0,.18);
   font-weight: 900;
-  font-size: 22px;
+  font-size: 16px;
 }
 .coinDot{
   width: 17px;
