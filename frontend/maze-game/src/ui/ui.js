@@ -718,7 +718,7 @@ function hideWelcome() {
   function setVibrationEnabled(v) {
     if (vibrationToggle) vibrationToggle.checked = !!v;
   }
-
+}
   return {
     hideWelcome,
     onHint(fn) { hintHandler = fn; },
@@ -772,7 +772,7 @@ function hideWelcome() {
     },
   };
 }
-}
+
 /* ---------------- UI helpers ---------------- */
 function iconBtn(id, svg, badgeText) {
   return `
