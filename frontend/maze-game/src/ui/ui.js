@@ -155,59 +155,7 @@ export function mountUI(app) {
     
     
     /* ✅ LOGIN GATE */
-    .loginGate{
-      position:fixed; inset:0; z-index:1000000;
-      display:none; align-items:center; justify-content:center;
-      padding:16px;
-      background: radial-gradient(1100px 800px at 50% 15%, rgba(37,215,255,.18), rgba(0,0,0,.72));
-      backdrop-filter: blur(10px);
-    }
-    .loginGate.show{ display:flex; }
-    .loginGateCard{
-      width:min(520px, 100%);
-      border-radius:24px;
-      border:1px solid rgba(37,215,255,.22);
-      background: rgba(10,12,24,.92);
-      box-shadow: 0 22px 80px rgba(0,0,0,.65);
-      padding:18px;
-      text-align:center;
-      color: rgba(240,247,255,.95);
-    }
-    .loginGateTitle{
-      font-size:22px;
-      font-weight:950;
-      letter-spacing:.3px;
-    }
-    .loginGateSub{
-      margin-top:8px;
-      font-size:13px;
-      opacity:.82;
-      line-height:1.35;
-    }
-    .loginGateBtn{
-      margin-top:14px;
-      width:100%;
-      height:48px;
-      border-radius:16px;
-      border:1px solid rgba(37,215,255,.35);
-      background: linear-gradient(180deg, rgba(37,215,255,.95), rgba(0,183,255,.85));
-      color:#07111f;
-      font-weight:950;
-      cursor:pointer;
-    }
-    .loginGateBtn:active{ transform: translateY(1px); }
-    .loginGateBtn:disabled{ opacity:.65; cursor:not-allowed; transform:none; }
-    .loginGateError{
-      margin-top:12px;
-      font-size:12px;
-      color: rgba(255,120,120,.95);
-      min-height: 16px;
-    }
-    .loginGateNote{
-      margin-top:10px;
-      font-size:12px;
-      opacity:.65;
-    }
+    
 
    `;
   document.head.appendChild(extra);
