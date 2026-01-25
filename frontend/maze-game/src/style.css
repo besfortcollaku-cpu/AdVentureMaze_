@@ -688,7 +688,11 @@ canvas {
   animation: sparksMove 2.2s linear infinite;
 }
 
-
+@keyframes sparksMove{
+  0%   { transform: translateY(0) rotate(0deg); opacity:.85; }
+  50%  { transform: translateY(10px) rotate(4deg); opacity:1; }
+  100% { transform: translateY(0) rotate(0deg); opacity:.85; }
+}
 
 .winHeader{
   position: relative;
@@ -997,3 +1001,8 @@ canvas {
   animation: sparksMove 2.2s linear infinite;
 }
 
+@keyframes sparksMove{
+  0%   { transform: translateY(0) rotate(0deg); opacity:.85; }
+  50%  { transform: translateY(10px) rotate(4deg); opacity:1; }
+  100% { transform: translateY(0) rotate(0deg); opacity:.85; }
+}
