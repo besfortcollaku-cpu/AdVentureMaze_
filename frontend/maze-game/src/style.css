@@ -14,28 +14,15 @@
 
 
 #app{
-  height:100%;
+  width: 100vw;
+  height: 100vh;
   display:flex;
   justify-content:center;
   align-items:center;
   padding:14px;
 }
-/* ===== ROOT ===== */
-.phone {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  padding: 0;
-}
 
-/* ===== TOP BAR ===== */
-.topbar {
-  height: 30vh;
-  padding: 10px 14px;
-  border-radius: 18px;
-  margin-bottom: 0px;
-  padding-bottom:0px;
-}
+
 
 /* ONE ROW ONLY */
 .topRow {
@@ -154,18 +141,6 @@
   }
 }
 
-
-
-
-.coinDot{
-  width:18px; height:18px;
-  border-radius:50%;
-  background: radial-gradient(circle at 30% 30%, #fff6c2, var(--gold) 55%, #d39a00);
-  box-shadow:
-    inset 0 2px 0 rgba(255,255,255,.35),
-    0 6px 14px rgba(255,204,51,.18);
-}
-
 /* Icon row like the screenshot */
 .iconRow{
   padding: 10px;
@@ -176,20 +151,7 @@
   gap:5px;
 }
 
-.iconBtn{
-  width:36px;
-  height:36px;
-  border-radius:12px;
-  background: rgba(255,255,255,.06);
-  border: 1px solid rgba(255,255,255,.12);
-  box-shadow: 0 12px 22px rgba(0,0,0,.35);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  position:relative;
-  padding:0;
-  cursor:pointer;
-}
+
 
 .iconBtn:active{ transform: translateY(1px); }
 
@@ -212,19 +174,7 @@
   border: 1px solid rgba(255,255,255,.25);
   box-shadow: 0 10px 18px rgba(255,75,58,.25);
 }
-.boardWrap{
-  margin-top:10px;        /* ⬅ reduce dead space */
-  display:flex;
-  justify-content:center;
-}
 
-.boardFrame{
-  width:min(390px, 100%);
-  aspect-ratio: 1 / 1;
-  border-radius:18px;    /* slightly tighter */
-  background: linear-gradient(...);
-  padding:0;
-}
 
 
 .btn{
@@ -306,25 +256,6 @@ html, body {
   font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
 
 }
-
-
-
-#app {
-
-  height: 100%;
-
-  display: flex;
-
-  flex-direction: column;
-
-  padding: env(safe-area-inset-top) 12px env(safe-area-inset-bottom) 12px;
-
-  box-sizing: border-box;
-
-}
-
-
-
 
 
 .brand {
@@ -565,15 +496,6 @@ html, body {
 
 
 
-.boardFrame {
-
-  width: min(92vw, 520px);
-
-  aspect-ratio: 1 / 1;
-
-  height: auto;
-
-}
 
 
 
@@ -1035,10 +957,6 @@ html, body {
   font-family: system-ui, sans-serif;
 }
 
-#app {
-  width: 100vw;
-  height: 100vh;
-}
 
 /* Phone frame */
 .phone{
@@ -1098,13 +1016,6 @@ html, body {
   justify-content: center;
 }
 
-.boardWrap{
-  flex: 1;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  padding: 10px 16px;
-}
 
 
 canvas {
@@ -1168,14 +1079,6 @@ html, body {
   overscroll-behavior: none;
 }
 
-/* Shell layout */
-.phone{
-  height: 100dvh;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  user-select: none;
-}
 
 /* Top */
 .topbar{
@@ -1199,13 +1102,7 @@ html, body {
   display:flex;
   gap: 12px;
 }
-.iconBtn{
-  width: 56px;
-  height: 56px;
-  border-radius: 18px;
-  border: 1px solid rgba(255,255,255,.12);
-  background: rgba(255,255,255,.06);
-}
+
 .iconBtn svg{ width: 26px; height: 26px; }
 
 .coins{
