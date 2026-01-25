@@ -1,7 +1,5 @@
 // src/main.js
 import "./style.css";
-import "./css/ui.css";
-
 
 import { mountUI } from "./ui/ui.js";
 import { enforcePiEnvironment } from "./pi/piDetect.js";
@@ -18,9 +16,6 @@ const BACKEND = "https://adventuremaze.onrender.com";
 
 let CURRENT_USER = { username: "guest", uid: null };
 let CURRENT_ACCESS_TOKEN = null;
-let IS_GUEST = true;
-const FREE_LEVEL_LIMIT = 5;
-let UNLOCKED_LEVEL = 1;
 
 let levelIndex = 0;
 let game = null;
@@ -168,68 +163,24 @@ function clampLevelIndex(i) {
 // Boot
 // ---------------------------
 async function boot() {
- 
+  ui = mountUI(document.querySelector("#app"));
 
-  const root = document.querySelector("#app");
-  if (!root) {
-    document.body.innerHTML = "<h1>#app not found</h1>";
-    return;
-  }
 
-  // mount UI
-  ui = mountUI(root);
-  
-  // ✅ initialize guest state ONCE
-IS_GUEST = true;
-CURRENT_USER = { uid: "guest", username: "guest" };
-CURRENT_ACCESS_TOKEN = null;
-UNLOCKED_LEVEL = FREE_LEVEL_LIMIT;
-  ui.onLoginClick(async () => {
-  try {
-    const auth = await ensurePiLogin();
-
-    // exchange token with backend
-    const res = await fetch(`${BACKEND}/api/pi-login`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ accessToken: auth.accessToken }),
-    });
-
-    const data = await res.json();
-    if (!data.ok) {
-      alert("Login failed on server");
-      return;
-    }
-
-    // ✅ SWITCH FROM GUEST → LOGGED IN
-    IS_GUEST = false;
-    CURRENT_USER = data.user;
-    CURRENT_ACCESS_TOKEN = data.token;
-
-    COINS = Number(data.user.coins || 0);
-    UNLOCKED_LEVEL = Math.max(UNLOCKED_LEVEL, data.progress.level);
-
-    ui.setCoins(COINS);
-    ui.hideLoginGate();
-
-    // continue game where user stopped
-    game.setLevel(levels[levelIndex]);
-    ui.setLevel(levelIndex + 1);
-
-  } catch (e) {
-    console.error("Pi login failed", e);
-    alert("Login failed. Please try again.");
-  }
+// Level select via joystick icon
+document.getElementById("controls")?.addEventListener("click", () => {
+  ui.showLevelSelect({
+  totalLevels: levels.length,
+  currentLevel: levelIndex + 1,
+  isCompleted: (lvl) => lvl < UNLOCKED_LEVEL,
 });
-  
+});
 
-  // ensure guest user
-  if (!CURRENT_USER) {
-    CURRENT_USER = { uid: "guest", username: "guest" };
-    IS_GUEST = true;
-  }
-
-  // audio unlock
+ui.onLevelSelect((selectedIndex) => {
+  levelIndex = clampLevelIndex(selectedIndex);
+  rewardedThisLevel = true; // prevent reward on replay
+  game.setLevel(levels[levelIndex]);
+});
+  // unlock audio after first gesture
   ui.onFirstUserGesture(() => ensureAudioUnlocked());
 
   // settings
@@ -241,7 +192,6 @@ UNLOCKED_LEVEL = FREE_LEVEL_LIMIT;
     setSetting("sound", v);
     if (!v) stopRollSound();
   });
-
   ui.onVibrationToggle((v) => setSetting("vibration", v));
 
   subscribeSettings((s) => {
@@ -251,142 +201,95 @@ UNLOCKED_LEVEL = FREE_LEVEL_LIMIT;
   });
 
   // Pi environment
-const env = await enforcePiEnvironment({
-  desktopBlockEl: document.getElementById("desktopBlock"),
-});
-
-// ⚠️ DO NOT RETURN — allow guest play
-if (!env.ok) {
-  console.warn("Pi environment not ready, continuing as guest");
-}
+  const env = await enforcePiEnvironment({
+    desktopBlockEl: document.getElementById("desktopBlock"),
+  });
+  if (!env.ok) return;
 
   // init Pi SDK
   initPi();
 
-  // load server state ONLY if logged in
-  if (!IS_GUEST) {
-    try {
-      const me = await apiGetMe();
-      const serverUser = me.user;
-      const serverProgress = me.progress;
+  // login
+  const loginRes = await ensurePiLogin({
+    BACKEND,
+    ui,
+    onLogin: ({ user, accessToken }) => {
+      CURRENT_USER = user;
+      CURRENT_ACCESS_TOKEN = accessToken;
 
-      const savedLevel = Number(serverProgress?.level || 1);
-      levelIndex = clampLevelIndex(savedLevel - 1);
-      UNLOCKED_LEVEL = savedLevel;
-
-      CURRENT_USER = { username: serverUser.username, uid: serverUser.uid };
-      COINS = Number(serverUser.coins || 0);
-      ui.setCoins(COINS);
-    } catch (e) {
-      const msg = normalizeErr(e);
-      if (!handleAuthExpiredIfNeeded(msg)) {
-        alert("Failed to load profile: " + msg);
-      }
-      return;
-    }
-  }
-
-  // CREATE GAME (ON APP LOAD — ONLY ONCE)
-  rewardedThisLevel = false;
-  const firstLevel = levels[0];
-// 🔥 FORCE CANVAS SIZE BEFORE GAME CREATION
-const canvas = ui.canvas;
-const rect = canvas.parentElement.getBoundingClientRect();
-canvas.width = Math.floor(rect.width);
-canvas.height = Math.floor(rect.height);
-
-// create game ONLY after canvas has size
-game = createGame({
-  BACKEND,
-  canvas,
-  getCurrentUser: () => CURRENT_USER,
-  level: firstLevel,
-  onLevelComplete,
-});
-
-game.start();
-  // level select button
-  document.getElementById("controls")?.addEventListener("click", () => {
-    ui.showLevelSelect({
-      totalLevels: levels.length,
-      currentLevel: levelIndex + 1,
-      isCompleted: (lvl) => lvl < UNLOCKED_LEVEL,
-    });
+      if (ui?.userPill) ui.userPill.textContent = `${user.username}`;
+      if (ui?.loginBtnText) ui.loginBtnText.textContent = "✅";
+    },
   });
 
-  ui.onLevelSelect((selectedIndex) => {
-    const targetLevel = selectedIndex + 1;
+  if (!loginRes?.ok) return;
 
-    if (IS_GUEST && targetLevel > FREE_LEVEL_LIMIT) {
-  ui.showLoginGate({
-    title: "Login to continue",
-    message: "You’ve reached the free limit. Log in with Pi to unlock more levels and save your progress.",
-  });
-  return;
-}
-
-    levelIndex = clampLevelIndex(selectedIndex);
-    rewardedThisLevel = false;
-    game.setLevel(levels[levelIndex]);
-    ui.setLevel(levelIndex + 1);
-  });
-
-  // WIN popup actions
-ui.onWinNext(async () => {
-  ui.hideWinPopup();
-
-  const nextLevel = levelIndex + 2;
-
-  if (IS_GUEST && nextLevel > FREE_LEVEL_LIMIT) {
-    ui.showLoginGate({
-      title: "Login to continue",
-      message:
-        "You’ve reached the free limit. Log in with Pi to unlock more levels and save your progress.",
-    });
+  // load server state
+  let me;
+  try {
+    me = await apiGetMe();
+  } catch (e) {
+    const msg = normalizeErr(e);
+    if (!handleAuthExpiredIfNeeded(msg)) alert("Failed to load profile: " + msg);
     return;
   }
 
-  await goNextLevel();
-});
+  const serverUser = me.user;
+  const serverProgress = me.progress;
+  
+const savedLevel = Number(serverProgress?.level || 1);
+  levelIndex = clampLevelIndex(savedLevel - 1);
+  
+  let UNLOCKED_LEVEL = savedLevel;
+  CURRENT_USER = { username: serverUser.username, uid: serverUser.uid };
 
-ui.onWinAd(async () => {
-  try {
-    ui.showToast?.("Watching ad…");
-    await delay(5000);
+  COINS = Number(serverUser.coins || 0);
+  ui.setCoins(COINS);
 
-    if (IS_GUEST) {
-      ui.showLoginGate({
-        title: "Login to earn rewards",
-        message:
-          "Log in with Pi to earn coins, unlock more levels, and save your progress.",
-      });
-      return;
+  
+
+  // WIN popup actions
+  ui.onWinNext(async () => {
+    ui.hideWinPopup();
+    await goNextLevel();
+  });
+
+  // ✅ Watch Ad: wait 5s then call backend
+  ui.onWinAd(async () => {
+    try {
+      ui.showToast?.("Watching ad…");
+      await delay(5000);
+
+      const out = await apiAd50();
+      COINS = Number(out?.user?.coins ?? COINS);
+      ui.setCoins(COINS);
+
+      ui.showToast?.("Reward granted +50");
+    } catch (e) {
+      const msg = normalizeErr(e);
+      if (!handleAuthExpiredIfNeeded(msg)) {
+        alert("Ad reward failed: " + msg);
+      }
     }
 
-    const out = await apiAd50();
-    COINS = Number(out?.user?.coins ?? COINS);
-    ui.setCoins(COINS);
+    ui.hideWinPopup();
+    await goNextLevel();
+  });
 
-    ui.showToast?.("Reward granted +50");
-  } catch (e) {
-    const msg = normalizeErr(e);
-    if (!handleAuthExpiredIfNeeded(msg)) {
-      alert("Ad reward failed: " + msg);
-    }
-  }
-
-  ui.hideWinPopup();
-  await goNextLevel();
-});
-  // Skip
+  // ✅ Hook Skip / Hint buttons
   document.getElementById("x3Btn")?.addEventListener("click", async () => {
-    if (IS_GUEST) return;
+    if (!CURRENT_USER?.uid) return;
 
     try {
+      ui.showToast?.("Processing skip…");
       await delay(5000);
+
       const out = await apiSkip();
       COINS = Number(out?.user?.coins ?? COINS);
       ui.setCoins(COINS);
+
+      ui.showToast?.(out?.mode === "free" ? "Free skip used" : "Skip used (-50 coins)");
+
       await goNextLevel();
     } catch (e) {
       const msg = normalizeErr(e);
@@ -394,20 +297,58 @@ ui.onWinAd(async () => {
     }
   });
 
-  // Hint
   document.getElementById("hintBtn")?.addEventListener("click", async () => {
-    if (IS_GUEST) return;
+    if (!CURRENT_USER?.uid) return;
 
     try {
+      ui.showToast?.("Loading hint…");
       await delay(5000);
+
       const out = await apiHint();
       COINS = Number(out?.user?.coins ?? COINS);
       ui.setCoins(COINS);
+
+      const mode = out?.mode === "free" ? "Free hint used" : "Paid hint (-50)";
+      ui.showToast?.(`${mode}. Free hints left: ${out?.freeLeft ?? 0}`);
     } catch (e) {
       const msg = normalizeErr(e);
       if (!handleAuthExpiredIfNeeded(msg)) alert(msg);
     }
   });
+
+  // create game
+  const firstLevel = levels[levelIndex];
+  rewardedThisLevel = false;
+
+  game = createGame({
+    BACKEND,
+    canvas: ui.canvas,
+    getCurrentUser: () => CURRENT_USER,
+    level: firstLevel,
+    onLevelComplete,
+  });
+
+  game.start();
+
+
+  document.getElementById("controls")?.addEventListener("click", () => {
+    ui.showLevelSelect({
+      totalLevels: levels.length,
+      currentLevel: levelIndex + 1,
+      isCompleted: (lvl) => lvl <= UNLOCKED_LEVEL,
+    });
+  });
+
+  ui.onLevelSelect((selectedIndex) => {
+  levelIndex = clampLevelIndex(selectedIndex);
+  rewardedThisLevel = false;  // ✅ MUST be false to allow play
+  game.setLevel(levels[levelIndex]);
+  game.start();               // ✅ RESTART GAME LOOP
+  ui.setLevel(levelIndex + 1);
+});
+
+  ui.onFirstUserGesture(() => ensureAudioUnlocked());
+
 }
 
 // ---------------------------
@@ -416,6 +357,7 @@ ui.onWinAd(async () => {
 function onLevelComplete() {
   const isLastLevel = levelIndex >= levels.length - 1;
 
+  // ✅ claim +1 once per level completion
   if (!rewardedThisLevel) {
     rewardedThisLevel = true;
     (async () => {
@@ -423,24 +365,26 @@ function onLevelComplete() {
         const out = await apiClaimLevelComplete(levelIndex + 1);
         COINS = Number(out?.user?.coins ?? COINS);
         ui.setCoins(COINS);
-      } catch {}
+      } catch (e) {
+        console.warn("level reward failed:", e);
+      }
     })();
   }
 
+  // save progress (next unlocked level)
   const nextLevelNumber = isLastLevel ? 1 : levelIndex + 2;
-
-  if (!IS_GUEST) {
-    (async () => {
-      try {
-        await apiSetProgress({
-          uid: CURRENT_USER.uid,
-          level: nextLevelNumber,
-          coins: COINS,
-        });
-        UNLOCKED_LEVEL = nextLevelNumber;
-      } catch {}
-    })();
-  }
+  (async () => {
+    try {
+      await apiSetProgress({
+        uid: CURRENT_USER.uid,
+        level: nextLevelNumber,
+        coins: COINS,
+      });
+      UNLOCKED_LEVEL = nextLevelNumber;
+    } catch (e) {
+      console.warn("progress save failed:", e);
+    }
+  })();
 
   ui.showWinPopup({
     levelNumber: levelIndex + 1,
@@ -451,15 +395,26 @@ function onLevelComplete() {
 async function goNextLevel() {
   const next = levelIndex + 1;
 
-  if (IS_GUEST && next + 1 > FREE_LEVEL_LIMIT) {
-    ui.showLoginGate();
-    return;
+  if (next >= levels.length) {
+    levelIndex = 0;
+  } else {
+    levelIndex = next;
   }
 
-  levelIndex = next >= levels.length ? 0 : next;
   rewardedThisLevel = false;
+
   game.setLevel(levels[levelIndex]);
-  ui.setLevel(levelIndex + 1);
+
+  // best-effort save current progress level
+  try {
+    await apiSetProgress({
+      uid: CURRENT_USER.uid,
+      level: levelIndex + 1,
+      coins: COINS,
+    });
+  } catch (e) {
+    console.warn("progress save failed:", e);
+  }
 }
 
 boot();
