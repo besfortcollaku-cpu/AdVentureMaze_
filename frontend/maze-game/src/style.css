@@ -1149,5 +1149,5 @@ canvas {
       vertical-align:-2px;
       box-shadow: 0 8px 16px rgba(255,204,51,.18);
     }
-    .winHint{ position:relative; z-index:2; margin-top:12px; font-size:12px; opacity:.75; }
+    .winHint{ position:relative; z-index:2; margin-top:12px; font-size:12px; opacity:.75; };
   `;
