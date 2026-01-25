@@ -155,8 +155,6 @@ export function mountUI(app) {
 </div>
   `;
 
-   document.head.appendChild(extra);
-
   // ---------------------------
   // Elements
   // ---------------------------
