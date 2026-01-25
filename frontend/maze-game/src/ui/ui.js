@@ -76,6 +76,19 @@ export function mountUI(app) {
       </div>
     </div>
 
+ <!-- ✅ ACCOUNT OVERLAY -->
+    <div class="accountOverlay" id="accountOverlay" aria-hidden="true">
+      <div class="accountCard">
+        <div class="accountHeader">
+          <div class="settingsTitle">Account</div>
+          <button class="accountClose" id="accountClose" aria-label="Close">✕</button>
+        </div>
+            <div class="settingsFoot">
+            <div class="settingsNote"> Here will be displayed all users settings.</div>
+            </div>
+      </div>
+    </div>
+
     <!-- ✅ SETTINGS OVERLAY -->
     <div class="settingsOverlay" id="settingsOverlay" aria-hidden="true">
       <div class="settingsCard">
@@ -315,6 +328,32 @@ export function mountUI(app) {
     .settingsFoot{ margin-top:12px; padding:8px 4px 0; }
     .settingsNote{ opacity:.7; font-size:12px; }
 
+    .accountOverlay.show{ display:flex; }
+    .accountCard{
+      width:min(520px, 100%);
+      border-radius:22px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(10,14,30,.88);
+      box-shadow: 0 18px 60px rgba(0,0,0,.55);
+      padding:16px;
+      color: rgba(240,247,255,.95);
+    }
+    .accountHeader{
+      display:flex; align-items:center; justify-content:space-between;
+      margin-bottom:12px;
+    }
+    .accountTitle{ font-size:18px; font-weight:900; letter-spacing:.3px; }
+    .accountClose{
+      width:40px; height:40px; border-radius:14px;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.06);
+      color:#fff; font-weight:900;
+      cursor:pointer;
+    }
+    .accountClose:active{ transform: translateY(1px); }
+    .accountFoot{ margin-top:12px; padding:8px 4px 0; }
+    .accountNote{ opacity:.7; font-size:12px; }
+
     /* WIN POPUP */
     .winOverlay{
       position:fixed; inset:0; z-index:99998;
@@ -442,6 +481,11 @@ export function mountUI(app) {
   const settingsCloseBtn = document.getElementById("settingsCloseBtn");
   const soundToggle = document.getElementById("soundToggle");
   const vibrationToggle = document.getElementById("vibrationToggle");
+
+  // Account
+  const accountBtn = document.getElementById("accountBtn");
+  const accountOverlay = document.getElementById("accountOverlay");
+  const accountCloseBtn = document.getElementById("accountCloseBtn");
 
   // Win popup
   const winOverlay = document.getElementById("winOverlay");
@@ -638,6 +682,24 @@ function hideWelcome() {
 
   vibrationToggle?.addEventListener("change", () => {
     vibrationHandler?.(!!vibrationToggle.checked);
+  });
+
+function openAccount() {
+    if (!accountOverlay) return;
+    accountOverlay.classList.add("show");
+    accountOverlay.setAttribute("aria-hidden", "false");
+  }
+
+  function closeAccount() {
+    if (!accountOverlay) return;
+    accountOverlay.classList.remove("show");
+    accountOverlay.setAttribute("aria-hidden", "true");
+  }
+
+  accountBtn?.addEventListener("click", openAccount);
+  accountCloseBtn?.addEventListener("click", closeAccount);
+  accountOverlay?.addEventListener("click", (e) => {
+    if (e.target === accountOverlay) closeAccount();
   });
 
   // ---------------------------
