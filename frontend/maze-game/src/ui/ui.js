@@ -3,46 +3,55 @@
 export function mountUI(app) {
   app.innerHTML = `
     <div class="phone">
-      <div class="topbar">
-        <div class="topRow">
-            <div class="levelWrap">
-              <div class="levelText">Level 1</div>
-                
-            </div>
-         </div>     
-        
-          </div>
-            <div class="iconRow">
-            ${iconBtn("accountBtn", userAccountSVG(), "")}
-            ${iconBtn("settingsBtn", gearSVG(), "")}
-            ${iconBtn("controls", joystickSVG(), "")}
-         </div>
-         <div class="coins" title="Coins">
+        <div class="topbar">
+          <div class="topRow">
+              <div class="levelWrap">
+                  <div class="levelText" id="levelText">Level 1</div>
+              </div>
+          </div> <!--TopRow -->
+
+          <div class="secondRow">
+              <div class="iconRow">
+                    ${iconBtn("accountBtn", userAccountSVG(), "")}
+                    ${iconBtn("settingsBtn", gearSVG(), "")}
+                    ${iconBtn("controls", joystickSVG(), "")}
+               </div> <!--iconRow -->
+               
+              <div class="coins" title="Coins">
                   <div class="coinDot"></div>
                    <div id="coinCount">0</div>
-                </div>
-         </div>
+                </div> <!--coins -->
+          </div> <!--secondRow -->
+        </div> <!--TopBar -->
+
+
             <div class="boardWrap">
               <div class="boardFrame">
                 <canvas id="game"></canvas>
-              </div>
-            </div>
+              </div><!--Board Frame -->
+            </div><!--boardWrap -->
+       
   <div class="bottomBar">
-       <div class="icon-item">
-           <span class="icon" aria-hidden="true">
-               ${iconBtn("hintsBtn", gameHintsSVG(), "")}
-                </span>
-                <span class="icon-label">Hints</span>
-              </div>
-              <div class="pill">Swipe to move</div>
-             <span class="icon" aria-hidden="true">
-               ${iconBtn("skipBtn", skipSVG(), "")}
-                </span>
-                <span class="icon-label">Skip</span>
-        </div>
-     </div>
+        <div class="bottomIcon">
+          <button id="hintBtn" class="bottomBtn left"><span class="icon">❓</span><span>Hint</span></button>
 
-   
+          <div class="swipeHint">Swipe to move</div>
+
+          <button id="x3Btn" class="bottomBtn right"><span class="icon">⏭</span><span>Skip</span></button>
+
+        </div>    <!--Botom Icon -->
+        <div class="adsbanner">
+           <p> Here Ads Banner</p>
+        </div> <!--adsbanner -->
+</div>    <!--bottomBar -->
+
+
+
+
+
+
+    </div>        <!--Phone -->
+ 
 
     <!-- Desktop block (used by Pi detection) -->
     <div class="desktopBlock" id="desktopBlock" style="display:none;">
