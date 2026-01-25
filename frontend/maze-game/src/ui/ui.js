@@ -46,6 +46,12 @@ export function mountUI(app) {
 <div class="adBanner" id="adBanner">Ad Banner</div>
   `;
 
+
+const canvas = document.getElementById("game");
+const rect = canvas.parentElement.getBoundingClientRect();
+
+canvas.width = rect.width;
+canvas.height = rect.height;
   // Elements
   const canvas = document.getElementById("game");
   const levelTextEl = document.getElementById("levelText");
