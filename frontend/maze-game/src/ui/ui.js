@@ -164,23 +164,7 @@ export function mountUI(app) {
 </div>
 </div>
     
-    <!-- ✅ FULLSCREEN WELCOME OVERLAY -->
-<div class="welcomeOverlay" id="welcomeOverlay" aria-hidden="false">
-  <div class="welcomeCard">
-    <h1 class="welcomeTitle">Welcome to Adventure Maze</h1>
-    <div class="loginWrap">
-  <button class="iconBtnWide" id="loginBtn">
-    <span id="loginBtnText">Login</span>
-  </button>
 
-  <div class="userPill" id="userPill">U:guest</div>
-
-  <!-- ✅ NEW: TEST button (hidden by default) -->
-  <button class="iconBtnWide" id="testBtn" style="display:none;">
-    Tap To Play
-  </button>
-
-</div>
   `;
 
   // ✅ Inject UI styles (Login Gate + Settings + Win overlay + login wrap)
