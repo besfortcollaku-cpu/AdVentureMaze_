@@ -33,6 +33,7 @@ function boot() {
 
   // Mount UI
   const ui = mountUI(root);
+  ui.showWelcome()
   
 
   // Create game (LEVEL 1 ONLY)
@@ -46,8 +47,6 @@ function boot() {
   ui.hideWelcome();
   game.start();
 });
-game.start();
-
   
   
 }
