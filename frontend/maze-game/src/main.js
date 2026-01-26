@@ -42,7 +42,10 @@ document.body.style.height = "100%";
     game.start();
   });
   ui.onLoginClick(async () => {
+  alert("Login button clicked"); // 🔴 MUST SHOW
+
   try {
+    alert("Calling Pi login"); // 🔴 MUST SHOW
     const user = await ensurePiLogin();
 
     document.body.classList.add("game-running");
