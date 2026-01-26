@@ -11,7 +11,21 @@ import { levels } from "./levels/index.js";
 
 import { getSettings, setSetting, subscribeSettings } from "./settings.js";
 import { ensureAudioUnlocked, stopRollSound } from "./game/rollSound.js";
+import { mountUI } from "./ui/ui.js";
 
+const root = document.querySelector("#app");
+const ui = mountUI(root);
+
+// 🔴 HARD RENDER TEST
+const ctx = ui.canvas.getContext("2d");
+
+ui.canvas.width = ui.canvas.clientWidth;
+ui.canvas.height = ui.canvas.clientHeight;
+
+ctx.fillStyle = "red";
+ctx.fillRect(20, 20, 100, 100);
+
+console.log("TEST DRAW DONE", ui.canvas.width, ui.canvas.height);
 const BACKEND = "https://adventuremaze.onrender.com";
 
 // ---------------------------

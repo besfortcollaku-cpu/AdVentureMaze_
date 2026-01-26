@@ -38,6 +38,10 @@ export function mountUI(root) {
   `;
 
   const canvas = root.querySelector("#game");
+  canvas.style.width = "100%";
+canvas.style.height = "100%";
+canvas.style.background = "rgba(255,0,0,0.05)"; // debug
+  
   const levelText = root.querySelector("#levelText");
   const coinText = root.querySelector("#coinText");
 
