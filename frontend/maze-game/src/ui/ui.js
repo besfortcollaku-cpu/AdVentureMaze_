@@ -36,6 +36,40 @@ export function mountUI(root) {
     </div>
   `;
 
+const confirmOverlay = document.createElement("div");
+confirmOverlay.className = "confirmOverlay hidden";
+confirmOverlay.innerHTML = `
+  <div class="confirmBox">
+    <div class="confirmTitle">Quit game?</div>
+    <div class="confirmText">
+      Your progress in this level will be lost.
+    </div>
+    <div class="confirmActions">
+      <button id="confirmCancel">Cancel</button>
+      <button id="confirmOk">Quit</button>
+    </div>
+  </div>
+`;
+app.appendChild(confirmOverlay);
+let confirmResolver = null;
+
+function showConfirmQuit() {
+  confirmOverlay.classList.remove("hidden");
+
+  return new Promise((resolve) => {
+    confirmResolver = resolve;
+  });
+}
+
+document.getElementById("confirmCancel").onclick = () => {
+  confirmOverlay.classList.add("hidden");
+  confirmResolver(false);
+};
+
+document.getElementById("confirmOk").onclick = () => {
+  confirmOverlay.classList.add("hidden");
+  confirmResolver(true);
+};
   const canvas = root.querySelector("#game");
 
   return {
@@ -104,6 +138,10 @@ export function mountUI(root) {
 // ---------------------------
 return {
   canvas,
+  canvas,
+  showConfirmQuit,
+  onFirstUserGesture(cb) { ... }
+};
 
   // Stubs (safe no-ops for now)
   setLevel() {},

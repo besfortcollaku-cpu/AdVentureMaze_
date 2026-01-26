@@ -7,25 +7,20 @@ import { createGame } from "./game/game.js";
 import { levels } from "./levels/index.js";
 
 
-function enableBackConfirm() {
-  // Push fake history state
+function enableBackConfirm(ui) {
   history.pushState({ game: true }, "");
 
-  window.addEventListener("popstate", (e) => {
-    // Ask user
-    const ok = confirm("Quit game? Your progress in this level will be lost.");
+  window.addEventListener("popstate", async () => {
+    const ok = await ui.showConfirmQuit();
 
     if (ok) {
-      // allow back navigation
       window.removeEventListener("popstate", () => {});
       history.back();
     } else {
-      // stay in game
       history.pushState({ game: true }, "");
     }
   });
 }
-
 // ---------------------------
 // BOOT
 // ---------------------------
