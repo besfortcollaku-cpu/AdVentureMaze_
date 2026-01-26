@@ -1,97 +1,45 @@
 // src/ui/ui.js
-export function mountUI(app) {
-  app.innerHTML = `
-    <div class="phone">
-      <div class="topbar">
-        <div class="topRow">
-          <div class="levelWrap">
-            <div class="levelText" id="levelText">Level 1</div>
-          </div>
-        </div>
+export function mountUI(root) {
+  root.innerHTML = `
+    <div class="app">
+      <header class="top">
+        <h1 id="levelText">Level 1</h1>
+      </header>
 
-        <div class="secondRow">
-          <div class="iconRow">
-            <button class="iconBtn" id="accountBtn" type="button" aria-label="Account">👤</button>
-            <button class="iconBtn" id="settingsBtn" type="button" aria-label="Settings">⚙️</button>
-            <button class="iconBtn" id="controls" type="button" aria-label="Levels">≡</button>
-          </div>
-
-          <div class="coins" title="Coins">
-            <div class="coinDot"></div>
-            <div id="coinCount">0</div>
-          </div>
+      <div class="hud">
+        <button class="icon">👤</button>
+        <button class="icon">⚙️</button>
+        <button class="icon">☰</button>
+        <div class="coins">
+          <span id="coinCount">0</span>
         </div>
       </div>
 
       <div class="boardWrap">
-        <div class="boardFrame">
-          <canvas id="game"></canvas>
-        </div>
+        <canvas id="game"></canvas>
       </div>
 
-      <div class="bottomBar">
-        <div class="bottomIcon">
-          <button id="hintBtn" class="bottomBtn left" type="button">
-            <span class="icon">❓</span><span>Hint</span>
-          </button>
+      <footer class="bottom">
+        <button>❓ Hint</button>
+        <span>Swipe to move</span>
+        <button>⏭ Skip</button>
+      </footer>
 
-          <div class="swipeHint">Swipe to move</div>
-
-          <button id="x3Btn" class="bottomBtn right" type="button">
-            <span class="icon">⏭</span><span>Skip</span>
-          </button>
-        </div>
-
-        <div class="adsbanner" id="adBanner">
-          <p>Ad Banner</p>
-        </div>
-      </div>
+      <div class="ad">Ad Banner</div>
     </div>
   `;
 
-  const levelTextEl = document.getElementById("levelText");
-  const coinCountEl = document.getElementById("coinCount");
-  const hintBtn = document.getElementById("hintBtn");
-  const skipBtn = document.getElementById("x3Btn");
-  const canvas = document.getElementById("game");
-
-  let hintHandler = null;
-  let skipHandler = null;
-
-  hintBtn?.addEventListener("click", () => hintHandler?.());
-  skipBtn?.addEventListener("click", () => skipHandler?.());
-
-  // mobile audio unlock hook (main.js will use this)
-  let firstGestureHandler = null;
-  window.addEventListener(
-    "pointerdown",
-    () => {
-      firstGestureHandler?.();
-      firstGestureHandler = null;
-    },
-    { once: true }
-  );
-
-  function setLevel(n) {
-    if (levelTextEl) levelTextEl.textContent = `Level ${n}`;
-  }
-
-  function setCoins(n) {
-    if (coinCountEl) coinCountEl.textContent = String(n ?? 0);
-  }
+  const canvas = root.querySelector("#game");
+  const levelText = root.querySelector("#levelText");
+  const coinCount = root.querySelector("#coinCount");
 
   return {
     canvas,
-    setLevel,
-    setCoins,
-    onHint(fn) {
-      hintHandler = fn;
+    setLevel(n) {
+      levelText.textContent = `Level ${n}`;
     },
-    onSkip(fn) {
-      skipHandler = fn;
-    },
-    onFirstUserGesture(fn) {
-      firstGestureHandler = fn;
+    setCoins(n) {
+      coinCount.textContent = n;
     },
   };
 }
