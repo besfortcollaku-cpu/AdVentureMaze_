@@ -717,6 +717,19 @@ function hideWelcome() {
     guestBtn,
     guestBtnText,
     userPill,
+    // --- Welcome API ---
+hideWelcome() {
+  const el = document.getElementById("welcomeOverlay");
+  if (el) {
+    el.style.display = "none";
+    el.setAttribute("aria-hidden", "true");
+  }
+},
+
+onGuestStart(fn) {
+  const btn = document.getElementById("guestBtn");
+  if (btn) btn.onclick = fn;
+},
 
     setCoins,
 

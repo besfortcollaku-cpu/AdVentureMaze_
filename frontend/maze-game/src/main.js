@@ -164,7 +164,35 @@ function clampLevelIndex(i) {
 // ---------------------------
 async function boot() {
   ui = mountUI(document.querySelector("#app"));
+// ---------------------------
+// WELCOME → GUEST
+// ---------------------------
+ui.onGuestStart(async () => {
+  // mark guest
+  CURRENT_USER = { username: "guest", uid: null };
+  IS_GUEST = true;
 
+  // optional: backend guest start
+  // await apiGuestStart();
+
+  ui.hideWelcome();
+});
+// ---------------------------
+// WELCOME → LOGIN
+// ---------------------------
+ui.onLoginClick(async () => {
+  try {
+    const user = await ensurePiLogin();
+
+    CURRENT_USER = user;
+    IS_GUEST = false;
+
+    ui.setUser?.(user); // safe if exists
+    ui.hideWelcome();
+  } catch (err) {
+    ui.showLoginError?.(err?.message || "Login failed");
+  }
+});
 
 // Level select via joystick icon
 document.getElementById("controls")?.addEventListener("click", () => {
