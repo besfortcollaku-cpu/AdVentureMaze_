@@ -1,34 +1,65 @@
 // src/ui/ui.js
 
 export function mountUI(root) {
-  // Clear root safely
-  root.innerHTML = "";
+  root.innerHTML = `
+    <div class="gameWrap">
 
-  // ---------------------------
-  // APP WRAPPER
-  // ---------------------------
-  const app = document.createElement("div");
-  app.className = "app";
-
-  // ---------------------------
-  // HEADER
-  // ---------------------------
-  const header = document.createElement("div");
-  header.className = "header";
-
-  header.innerHTML = `
-    <div class="levelTitle">Level 1</div>
-    <div class="headerRow">
-      <button class="iconBtn userBtn"></button>
-      <button class="iconBtn settingsBtn"></button>
-      <button class="iconBtn menuBtn"></button>
-      <div class="coinPill">
-        <span class="coinIcon"></span>
-        <span id="coinCount">0</span>
+      <div class="header">
+        <div class="levelText" id="levelText">Level 1</div>
       </div>
+
+      <div class="topBar">
+        <button class="iconBtn" id="userBtn">👤</button>
+        <button class="iconBtn" id="settingsBtn">⚙️</button>
+        <button class="iconBtn" id="menuBtn">☰</button>
+
+        <div class="coinPill">
+          <span class="coinIcon">🟡</span>
+          <span id="coinCount">0</span>
+        </div>
+      </div>
+
+      <div class="boardWrap">
+        <canvas id="game"></canvas>
+      </div>
+
+      <div class="bottomBar">
+        <button class="hintBtn">❓ Hint</button>
+        <div class="swipeText">Swipe to move</div>
+        <button class="skipBtn">⏭ Skip</button>
+      </div>
+
+      <div class="adBanner">
+        Ad Banner
+      </div>
+
     </div>
   `;
 
+  const canvas = root.querySelector("#game");
+
+  return {
+    canvas,
+
+    setLevel(n) {
+      const el = root.querySelector("#levelText");
+      if (el) el.textContent = `Level ${n}`;
+    },
+
+    setCoins(n) {
+      const el = root.querySelector("#coinCount");
+      if (el) el.textContent = n;
+    },
+
+    onFirstUserGesture(fn) {
+      const handler = () => {
+        fn();
+        window.removeEventListener("pointerdown", handler);
+      };
+      window.addEventListener("pointerdown", handler);
+    },
+  };
+}
   // ---------------------------
   // BOARD (CANVAS HOLDER)
   // ---------------------------
