@@ -41,6 +41,8 @@ export function mountUI(root) {
   const loginBtn = root.querySelector("#loginBtn");
 
   let guestHandler = null;
+ let loginHandler = null;
+
 
   guestBtn.addEventListener("click", () => {
     guestHandler?.();
