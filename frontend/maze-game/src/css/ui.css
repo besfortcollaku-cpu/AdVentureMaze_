@@ -10,7 +10,7 @@ body {
   margin: 0;
   padding: 0;
   height: 100%;
-  background: #0b1020;
+  background: radial-gradient(circle at top, #1b255c, #070b18);
   font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   overflow: hidden;
   touch-action: manipulation;
@@ -22,141 +22,113 @@ body {
 }
 
 /* =========================
-   PHONE CONTAINER
+   APP LAYOUT
 ========================= */
-.phone {
-  width: 100%;
+.app {
   height: 100%;
   display: flex;
   flex-direction: column;
+  color: #fff;
 }
 
 /* =========================
    TOP BAR
 ========================= */
-.topbar {
-  flex: 0 0 auto;
-  padding: 10px 12px;
-  background: linear-gradient(180deg, #121a3a, #0c1228);
-  color: #fff;
+.top {
+  padding: 14px 12px 10px;
+  text-align: center;
 }
 
-.topRow {
+.level {
+  margin: 0 0 10px;
+  font-size: 36px;
+  font-weight: 800;
+}
+
+.icons {
   display: flex;
   justify-content: center;
-  margin-bottom: 6px;
+  gap: 12px;
+  margin-bottom: 10px;
 }
 
-.levelText {
-  font-size: 16px;
-  font-weight: 700;
-}
-
-.secondRow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.iconRow {
-  display: flex;
-  gap: 10px;
-}
-
-.iconBtn {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
+.icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
   border: none;
   background: rgba(255,255,255,0.08);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  color: #fff;
+  font-size: 18px;
 }
 
 .coins {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 20px;
+  border: 2px solid #8a6d1d;
   font-weight: 700;
-}
-
-.coinDot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: gold;
 }
 
 /* =========================
    GAME BOARD
 ========================= */
-.boardWrap {
-  flex: 1 1 auto;
+.board {
+  flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: radial-gradient(circle at top, #18245c, #070b18);
-}
-
-.boardFrame {
-  width: 100%;
-  height: 100%;
-  max-width: 520px;
-  max-height: 520px;
-  padding: 10px;
 }
 
 canvas#game {
-  width: 100%;
-  height: 100%;
-  display: block;
-  background: rgba(255,255,255,0.03);
-  border-radius: 12px;
+  width: 90vw;
+  max-width: 360px;
+  aspect-ratio: 1 / 1;
+  background: rgba(255,255,255,0.05);
+  border-radius: 22px;
 }
 
 /* =========================
    BOTTOM BAR
 ========================= */
-.bottomBar {
-  flex: 0 0 auto;
-  background: linear-gradient(0deg, #0c1228, #121a3a);
-  padding: 8px 12px 6px;
-}
-
-.bottomIcon {
+.bottom {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  padding: 12px;
+  gap: 8px;
 }
 
-.bottomBtn {
-  flex: 0 0 auto;
-  padding: 8px 14px;
+.btn {
+  padding: 10px 14px;
   border-radius: 10px;
   border: none;
-  background: rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.12);
   color: #fff;
   font-weight: 600;
 }
 
-.swipeHint {
-  opacity: 0.7;
-  font-size: 13px;
+.bottom span {
+  opacity: 0.75;
+  font-size: 14px;
 }
 
-.adsbanner {
-  margin-top: 6px;
+/* =========================
+   AD BANNER
+========================= */
+.ad {
+  margin: 10px 12px 16px;
+  padding: 16px;
+  border-radius: 18px;
+  background: #2b4a7a;
   text-align: center;
-  font-size: 12px;
-  opacity: 0.5;
+  font-weight: 700;
 }
 
 /* =========================
    WELCOME OVERLAY
-========================= */
-/* =========================
-   WELCOME OVERLAY (FIXED)
 ========================= */
 #welcomeOverlay {
   position: fixed;
@@ -169,51 +141,42 @@ canvas#game {
 
   background: radial-gradient(
     circle at top,
-    rgba(30,40,90,0.75),
-    rgba(5,10,20,0.95)
+    rgba(30,40,90,0.85),
+    rgba(5,10,20,0.98)
   );
-
-  pointer-events: auto;
 }
 
 #welcomeOverlay.show {
   display: flex;
 }
+
 .welcomeCard {
   width: 100%;
   max-width: 420px;
   padding: 24px;
   margin-bottom: 120px;
-
-  color: #fff;
-  background: none;
+  text-align: left;
 }
 
+.welcomeCard h1 {
+  font-size: 34px;
+  margin-bottom: 20px;
+}
+
+.startBtn {
+  width: 100%;
+  padding: 16px;
+  border-radius: 14px;
+  border: none;
+  font-size: 18px;
+  font-weight: 700;
+  background: #fff;
+  color: #000;
+}
 
 /* =========================
    GAME RUNNING STATE
 ========================= */
 body.game-running #welcomeOverlay {
   display: none !important;
-}
-
-/* =========================
-   DESKTOP BLOCK (PI)
-========================= */
-.desktopBlock {
-  position: fixed;
-  inset: 0;
-  z-index: 999;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #050814;
-  color: #fff;
-}
-
-.desktopCard {
-  padding: 20px;
-  border-radius: 14px;
-  background: rgba(255,255,255,0.08);
-  text-align: center;
 }
