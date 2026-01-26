@@ -3,6 +3,7 @@
 import "./css/ui.css";
 import { mountUI } from "./ui/ui.js";
 import { createGame } from "./game/game.js";
+import { initPi } from "./pi/piInit.js";
 import { ensurePiLogin } from "./pi/piClient.js";
 import { levels } from "./levels/index.js";
 
@@ -15,6 +16,7 @@ function boot() {
 
   // Mount UI
   const ui = mountUI(root);
+  initPi();
   // iOS hard lock
 document.body.style.position = "fixed";
 document.body.style.width = "100%";
