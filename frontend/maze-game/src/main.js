@@ -356,7 +356,30 @@ const savedLevel = Number(serverProgress?.level || 1);
     onLevelComplete,
   });
 
-  game.start();
+ ui.onGuestStart(() => {
+  CURRENT_USER = { username: "guest", uid: null };
+  IS_GUEST = true;
+
+  ui.setUser?.(CURRENT_USER);
+  ui.hideWelcome();
+
+  game.start(); // ✅ START GAME HERE
+});
+ui.onLoginClick(async () => {
+  try {
+    const user = await ensurePiLogin();
+
+    CURRENT_USER = user;
+    IS_GUEST = false;
+
+    ui.setUser?.(user);
+    ui.hideWelcome();
+
+    game.start(); // ✅ START GAME HERE
+  } catch (err) {
+    ui.showLoginError?.(err?.message || "Login failed");
+  }
+});
 
 
   document.getElementById("controls")?.addEventListener("click", () => {

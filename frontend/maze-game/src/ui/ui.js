@@ -525,12 +525,7 @@ export function mountUI(app) {
   levelSelectOverlay?.addEventListener("click", (e) => {
     if (e.target === levelSelectOverlay) hideLevelSelect();
   });
-function hideWelcome() {
-  if (!welcomeOverlay) return;
 
-  welcomeOverlay.style.display = "none";
-  welcomeOverlay.setAttribute("aria-hidden", "true");
-}
 
 
   // ---------------------------
