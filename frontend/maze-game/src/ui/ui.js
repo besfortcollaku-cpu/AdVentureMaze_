@@ -4,46 +4,56 @@ export function mountUI(app) {
   app.innerHTML = `
     <div class="phone">
       <div class="topbar">
-        <div class="levelText" id="levelText">Level 1</div>
-
         <div class="topRow">
-          <div class="iconRow">
-            ${iconBtn("accountBtn", userAccountSVG())}
-            ${iconBtn("settingsBtn", gearSVG())}
-            ${iconBtn("controls", joystickSVG())}
+            <div class="levelWrap">
+              <div class="levelText">Level 1</div>
+                
+            </div>
+         </div>     
+        
           </div>
-               
-          <div class="coins" title="Coins">
-            <div class="coinDot"></div>
-            <div id="coinCount">0</div>
-          </div>
+            <div class="iconRow">
+            ${iconBtn("accountBtn", userAccountSVG(), "")}
+            ${iconBtn("settingsBtn", gearSVG(), "")}
+            ${iconBtn("controls", joystickSVG(), "")}
+         </div>
+         <div class="coins" title="Coins">
+                  <div class="coinDot"></div>
+                   <div id="coinCount">0</div>
+                </div>
+         </div>
+            <div class="boardWrap">
+              <div class="boardFrame">
+                <canvas id="game"></canvas>
+              </div>
+            </div>
+  <div class="bottomBar">
+       <div class="icon-item">
+           <span class="icon" aria-hidden="true">
+               ${iconBtn("hintsBtn", gameHintsSVG(), "")}
+                </span>
+                <span class="icon-label">Hints</span>
+              </div>
+              <div class="pill">Swipe to move</div>
+             <span class="icon" aria-hidden="true">
+               ${iconBtn("skipBtn", skipSVG(), "")}
+                </span>
+                <span class="icon-label">Skip</span>
         </div>
-      </div>
+     </div>
 
-            <!-- BOARD -->
-      <div class="boardWrap">
-        <div class="boardFrame">
-          <canvas id="game"></canvas>
-        </div>
-      </div>
-  <!-- BOTTOM -->
-<div class="bottomBar">
-  <div class="bottomBtns">
-    <button id="hintBtn" class="bottomBtn left">
-      <span class="icon">❓</span><span>Hint</span>
-    </button>
+   
 
-    <div class="swipeHint">Swipe to move</div>
+    <!-- Desktop block (used by Pi detection) -->
+    <div class="desktopBlock" id="desktopBlock" style="display:none;">
+    <div class="desktopCard">
+    <h2>Mobile game</h2>
+    <p>This Game is designed for Pi Network Browser Only!</p>
+    </div>
+    </div>
 
-    <button id="x3Btn" class="bottomBtn right">
-      <span class="icon">⏭</span><span>Skip</span>
-    </button>
-  </div>
-</div>
 
-<!-- AD (always bottom) -->
-<div class="adBanner" id="adBanner">Ad Banner</div
-     
+
     <!-- ✅ LOGIN GATE (blocks game until Pi login) -->
     <div class="loginGate" id="loginGate" aria-hidden="true">
       <div class="loginGateCard">
@@ -144,14 +154,290 @@ export function mountUI(app) {
 </div>
 </div>
 </div>
+    
+    <!-- ✅ FULLSCREEN WELCOME OVERLAY -->
+<div class="welcomeOverlay" id="welcomeOverlay" aria-hidden="false">
+  <div class="welcomeCard">
+    <h1 class="welcomeTitle">Welcome to Adventure Maze</h1>
+    <div class="loginWrap">
+  <button class="iconBtnWide" id="loginBtn">
+    <span id="loginBtnText">Login with Pi</span>
+  </button>
+   <button class="iconBtnWide" id="guestBtn">
+    <span id="guestBtnText">Play as Guest</span>
+  </button>
+
+ <!-- <div class="userPill" id="userPill">U:guest</div> -->
+
+  <!-- ✅ NEW: TEST button (hidden by default) 
+  <button class="iconBtnWide" id="testBtn" style="display:none;">
+    Tap To Play
+  </button>-->
+
+</div>
   `;
-// ✅ Inject UI styles (Login Gate + Settings + Win overlay + login wrap)
+
+  // ✅ Inject UI styles (Login Gate + Settings + Win overlay + login wrap)
   const extra = document.createElement("style");
   extra.textContent = `
-  
+    .loginWrap{ display:flex; gap:10px; align-items:center; margin-left:auto; }
+    .iconBtnWide{
+      height:42px; padding:0 14px; border-radius:14px;
+      border:1px solid rgba(255,255,255,.18);
+      background: rgba(18,28,60,.55);
+      color:#fff; font-weight:800; letter-spacing:.2px;
+      cursor:pointer; white-space:nowrap;
+    }
+    .iconBtnWide:active{ transform: translateY(1px); }
+    .iconBtnWide:disabled{ opacity:.6; cursor:not-allowed; transform:none; }
+    .userPill{
+      height:42px; display:flex; align-items:center;
+      padding:0 12px; border-radius:14px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.22);
+      color: rgba(234,243,255,.9);
+      font-weight:700; font-size:13px; white-space:nowrap;
+    }
+    @media (max-width: 420px){
+      .loginWrap{ width:100%; justify-content:space-between; margin-left:0; }
+      .iconBtnWide{ flex:1; }
+      .userPill{ flex:1; justify-content:center; }
+    }
+
+    /* ✅ LOGIN GATE */
+    .loginGate{
+      position:fixed; inset:0; z-index:1000000;
+      display:none; align-items:center; justify-content:center;
+      padding:16px;
+      background: radial-gradient(1100px 800px at 50% 15%, rgba(37,215,255,.18), rgba(0,0,0,.72));
+      backdrop-filter: blur(10px);
+    }
+    .loginGate.show{ display:flex; }
+    .loginGateCard{
+      width:min(520px, 100%);
+      border-radius:24px;
+      border:1px solid rgba(37,215,255,.22);
+      background: rgba(10,12,24,.92);
+      box-shadow: 0 22px 80px rgba(0,0,0,.65);
+      padding:18px;
+      text-align:center;
+      color: rgba(240,247,255,.95);
+    }
+    .loginGateTitle{
+      font-size:22px;
+      font-weight:950;
+      letter-spacing:.3px;
+    }
+    .loginGateSub{
+      margin-top:8px;
+      font-size:13px;
+      opacity:.82;
+      line-height:1.35;
+    }
+    .loginGateBtn{
+      margin-top:14px;
+      width:100%;
+      height:48px;
+      border-radius:16px;
+      border:1px solid rgba(37,215,255,.35);
+      background: linear-gradient(180deg, rgba(37,215,255,.95), rgba(0,183,255,.85));
+      color:#07111f;
+      font-weight:950;
+      cursor:pointer;
+    }
+    .loginGateBtn:active{ transform: translateY(1px); }
+    .loginGateBtn:disabled{ opacity:.65; cursor:not-allowed; transform:none; }
+    .loginGateError{
+      margin-top:12px;
+      font-size:12px;
+      color: rgba(255,120,120,.95);
+      min-height: 16px;
+    }
+    .loginGateNote{
+      margin-top:10px;
+      font-size:12px;
+      opacity:.65;
+    }
+
+    /* SETTINGS */
+    .settingsOverlay{
+      position:fixed; inset:0; z-index:99999;
+      display:none; align-items:center; justify-content:center;
+      padding:16px;
+      background: rgba(0,0,0,.45);
+      backdrop-filter: blur(8px);
+    }
+    .settingsOverlay.show{ display:flex; }
+    .settingsCard{
+      width:min(520px, 100%);
+      border-radius:22px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(10,14,30,.88);
+      box-shadow: 0 18px 60px rgba(0,0,0,.55);
+      padding:16px;
+      color: rgba(240,247,255,.95);
+    }
+    .settingsHeader{
+      display:flex; align-items:center; justify-content:space-between;
+      margin-bottom:12px;
+    }
+    .settingsTitle{ font-size:18px; font-weight:900; letter-spacing:.3px; }
+    .settingsClose{
+      width:40px; height:40px; border-radius:14px;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.06);
+      color:#fff; font-weight:900;
+      cursor:pointer;
+    }
+    .settingsClose:active{ transform: translateY(1px); }
+    .settingsRow{
+      display:flex; align-items:center; justify-content:space-between;
+      gap:12px;
+      padding:12px 10px;
+      border-radius:16px;
+      background: rgba(255,255,255,.04);
+      border:1px solid rgba(255,255,255,.08);
+      margin-top:10px;
+    }
+    .settingsLeft{ display:flex; flex-direction:column; gap:3px; }
+    .settingsLabel{ font-weight:900; font-size:14px; }
+    .settingsSub{ opacity:.78; font-size:12px; line-height:1.25; }
+
+    .toggle{ position:relative; width:52px; height:30px; display:inline-block; }
+    .toggle input{ opacity:0; width:0; height:0; }
+    .toggle .track{
+      position:absolute; inset:0;
+      background: rgba(255,255,255,.12);
+      border:1px solid rgba(255,255,255,.14);
+      border-radius:999px;
+      transition: .15s ease;
+    }
+    .toggle .track::after{
+      content:"";
+      position:absolute;
+      width:24px; height:24px;
+      left:3px; top:2px;
+      border-radius:50%;
+      background: rgba(240,247,255,.95);
+      box-shadow: 0 10px 18px rgba(0,0,0,.35);
+      transition: .15s ease;
+    }
+    .toggle input:checked + .track{
+      background: rgba(37,215,255,.25);
+      border-color: rgba(37,215,255,.45);
+    }
+    .toggle input:checked + .track::after{
+      transform: translateX(22px);
+      background: #25d7ff;
+    }
+
+    .settingsFoot{ margin-top:12px; padding:8px 4px 0; }
+    .settingsNote{ opacity:.7; font-size:12px; }
+
+    /* WIN POPUP */
+    .winOverlay{
+      position:fixed; inset:0; z-index:99998;
+      display:none;
+      align-items:center; justify-content:center;
+      padding:16px;
+      background: rgba(0,0,0,.55);
+      backdrop-filter: blur(10px);
+    }
+    .winOverlay.show{ display:flex; }
+    .winCard{
+      width:min(560px, 100%);
+      border-radius:24px;
+      border:1px solid rgba(37,215,255,.22);
+      background: radial-gradient(900px 520px at 50% 10%, rgba(37,215,255,.18), rgba(10,12,24,.92));
+      box-shadow: 0 22px 80px rgba(0,0,0,.65);
+      padding:18px;
+      position:relative;
+      overflow:hidden;
+    }
+    .winSparkLayer{
+      position:absolute; inset:-40px;
+      background:
+        radial-gradient(10px 10px at 10% 20%, rgba(255,255,255,.7), transparent 60%),
+        radial-gradient(12px 12px at 80% 30%, rgba(37,215,255,.7), transparent 60%),
+        radial-gradient(9px 9px at 35% 70%, rgba(255,204,51,.7), transparent 60%),
+        radial-gradient(8px 8px at 65% 80%, rgba(255,255,255,.55), transparent 60%);
+      opacity:.35;
+      animation: sparks 1.6s linear infinite;
+      pointer-events:none;
+    }
+    @keyframes sparks{
+      0%{ transform: translateY(0); }
+      100%{ transform: translateY(18px); }
+    }
+    .winHeader{ position:relative; z-index:2; display:flex; flex-direction:column; gap:6px; }
+    .winBadge{
+      align-self:flex-start;
+      font-weight:950;
+      font-size:12px;
+      padding:6px 10px;
+      border-radius:999px;
+      background: linear-gradient(180deg, #ff4b3a, #d61e12);
+      box-shadow: 0 12px 22px rgba(255,75,58,.25);
+      border:1px solid rgba(255,255,255,.18);
+    }
+    .winTitle{ font-size:26px; font-weight:950; letter-spacing:.3px; }
+    .winSub{ opacity:.82; font-size:13px; }
+
+    .winMusic{
+      position:relative; z-index:2;
+      margin-top:14px;
+      display:flex; align-items:center; gap:10px;
+      padding:10px 12px;
+      border-radius:18px;
+      background: rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.10);
+    }
+    .winPulse{
+      width:34px; height:34px; border-radius:50%;
+      background: rgba(37,215,255,.22);
+      border:1px solid rgba(37,215,255,.35);
+      animation: pulse 1.1s ease-in-out infinite;
+    }
+    @keyframes pulse{
+      0%,100%{ transform: scale(1); opacity:.75; }
+      50%{ transform: scale(1.08); opacity:1; }
+    }
+    .winNote{ font-weight:950; font-size:18px; }
+    .winMusicText{ font-weight:900; opacity:.85; }
+
+    .winRow{ position:relative; z-index:2; display:flex; gap:10px; margin-top:16px; flex-wrap:wrap; }
+    .winBtnPrimary, .winBtnSecondary{
+      height:46px;
+      border-radius:16px;
+      border:1px solid rgba(255,255,255,.14);
+      font-weight:950;
+      cursor:pointer;
+      padding:0 14px;
+    }
+    .winBtnPrimary{
+      flex:1;
+      background: linear-gradient(180deg, rgba(37,215,255,.95), rgba(0,183,255,.85));
+      color:#061020;
+      border-color: rgba(37,215,255,.55);
+    }
+    .winBtnSecondary{
+      flex:1;
+      background: rgba(255,255,255,.06);
+      color: rgba(240,247,255,.95);
+    }
+    .winBtnPrimary:active, .winBtnSecondary:active{ transform: translateY(1px); }
+    .winPlus{ margin-left:6px; font-weight:950; color:#ffcc33; }
+    .winCoinDot{
+      display:inline-block;
+      width:14px; height:14px;
+      border-radius:50%;
+      margin-left:8px;
+      background: radial-gradient(circle at 30% 30%, #fff6c2, #ffcc33 55%, #d39a00);
+      vertical-align:-2px;
+      box-shadow: 0 8px 16px rgba(255,204,51,.18);
+    }
     .winHint{ position:relative; z-index:2; margin-top:12px; font-size:12px; opacity:.75; }
   `;
- 
   document.head.appendChild(extra);
 
   // ---------------------------
@@ -162,6 +448,8 @@ export function mountUI(app) {
   // Header login UI
   const loginBtn = document.getElementById("loginBtn");
   const loginBtnText = document.getElementById("loginBtnText");
+  const guestBtn = document.getElementById("guestBtn");
+  const guestBtnText = document.getElementById("guestBtnText");
   const userPill = document.getElementById("userPill");
 
   // Login gate
@@ -426,6 +714,8 @@ function hideWelcome() {
     // header login UI
     loginBtn,
     loginBtnText,
+    guestBtn,
+    guestBtnText,
     userPill,
 
     setCoins,
