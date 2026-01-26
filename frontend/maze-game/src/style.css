@@ -1,141 +1,154 @@
-/* -------------------------
-   RESET & BASE
--------------------------- */
+/* ------------------------------
+   RESET
+--------------------------------*/
 * {
   box-sizing: border-box;
-  -webkit-tap-highlight-color: transparent;
+  margin: 0;
+  padding: 0;
 }
 
 html, body {
-  margin: 0;
-  padding: 0;
-  width: 100%;
   height: 100%;
-  background: radial-gradient(circle at 50% 20%, #0e1a2b, #050a14 70%);
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  background: radial-gradient(circle at top, #0e1a2b, #050b14 70%);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   color: #fff;
 }
 
+/* ------------------------------
+   ROOT WRAP
+--------------------------------*/
 #app {
-  width: 100%;
   height: 100%;
-  display: flex;
-  justify-content: center;
 }
 
-/* -------------------------
-   GAME LAYOUT
--------------------------- */
 .gameWrap {
-  width: 100%;
-  max-width: 420px;
-  height: 100%;
+  min-height: 100%;
   display: flex;
   flex-direction: column;
-  padding: 14px;
+  padding: 18px;
+  gap: 16px;
 }
 
-/* -------------------------
+/* ------------------------------
    HEADER
--------------------------- */
+--------------------------------*/
 .header {
   text-align: center;
-  font-size: 36px;
-  font-weight: 800;
-  margin: 10px 0 14px;
+  padding-top: 6px;
 }
 
-/* -------------------------
+.levelText {
+  font-size: 38px;
+  font-weight: 800;
+  letter-spacing: 1px;
+}
+
+/* ------------------------------
    TOP BAR
--------------------------- */
+--------------------------------*/
 .topBar {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 14px;
+  gap: 12px;
 }
 
 .iconBtn {
-  width: 46px;
-  height: 46px;
+  width: 44px;
+  height: 44px;
   border-radius: 14px;
   background: rgba(255,255,255,0.06);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  border: 1px solid rgba(255,255,255,0.08);
+  color: #cfe9ff;
   font-size: 18px;
+  cursor: pointer;
+}
+
+.iconBtn:active {
+  transform: scale(0.96);
 }
 
 .coinPill {
   margin-left: auto;
-  height: 46px;
-  padding: 0 18px;
-  border-radius: 18px;
-  background: rgba(0,0,0,0.35);
-  border: 2px solid #8a6a1a;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 18px;
+  background: rgba(0,0,0,0.35);
+  border: 2px solid rgba(255,215,0,0.35);
   font-weight: 700;
 }
 
-/* -------------------------
-   BOARD
--------------------------- */
+.coinIcon {
+  font-size: 18px;
+}
+
+/* ------------------------------
+   GAME BOARD
+--------------------------------*/
 .boardWrap {
   flex: 1;
-  background: rgba(255,255,255,0.04);
-  border-radius: 26px;
-  padding: 12px;
-  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
 }
 
-canvas {
+.boardWrap canvas {
   width: 100%;
-  height: 100%;
-  border-radius: 20px;
-  display: block;
+  max-width: 360px;
+  aspect-ratio: 1 / 1;
+  background: linear-gradient(180deg, #0d1726, #08111e);
+  border-radius: 26px;
+  box-shadow:
+    inset 0 0 0 2px rgba(255,255,255,0.04),
+    0 20px 40px rgba(0,0,0,0.6);
 }
 
-/* -------------------------
-   BOTTOM CONTROLS
--------------------------- */
+/* ------------------------------
+   BOTTOM BAR
+--------------------------------*/
 .bottomBar {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: 12px;
 }
 
 .hintBtn,
 .skipBtn {
-  height: 52px;
-  padding: 0 18px;
+  padding: 10px 14px;
   border-radius: 16px;
   background: rgba(255,255,255,0.06);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-weight: 700;
+  border: 1px solid rgba(255,255,255,0.08);
+  color: #fff;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.hintBtn span {
+  color: #ff4d4d;
+}
+
+.skipBtn {
+  margin-left: auto;
 }
 
 .swipeText {
-  flex: 1;
-  text-align: center;
   opacity: 0.7;
-  font-weight: 600;
+  font-size: 15px;
 }
 
-/* -------------------------
+/* ------------------------------
    AD BANNER
--------------------------- */
+--------------------------------*/
 .adBanner {
-  height: 72px;
-  border-radius: 20px;
-  background: #2d4f8c;
+  margin-top: 8px;
+  height: 64px;
+  border-radius: 18px;
+  background: #27467a;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 22px;
-  font-weight: 800;
+  font-weight: 700;
+  letter-spacing: 0.5px;
 }
