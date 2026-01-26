@@ -99,7 +99,27 @@ document.getElementById("confirmOk").onclick = () => {
   // ---------------------------
   const boardWrap = document.createElement("div");
   boardWrap.className = "boardWrap";
+const welcome = document.createElement("div");
+welcome.id = "welcomeOverlay";
+welcome.innerHTML = `
+  <div class="welcomeCard">
+    <h1>Adventure Maze</h1>
 
+    <button id="guestBtn">Play as Guest</button>
+    <button id="loginBtn">Login with Pi</button>
+  </div>
+`;
+app.appendChild(welcome);
+let guestHandler = null;
+let loginHandler = null;
+
+welcome.querySelector("#guestBtn").onclick = () => {
+  guestHandler?.();
+};
+
+welcome.querySelector("#loginBtn").onclick = () => {
+  loginHandler?.();
+};
 
   // ---------------------------
   // FOOTER
@@ -138,6 +158,30 @@ document.getElementById("confirmOk").onclick = () => {
 // ---------------------------
 return {
   canvas,
+  showWelcome() {
+    welcome.style.display = "flex";
+  },
+
+  hideWelcome() {
+    welcome.style.display = "none";
+  },
+
+  onGuestStart(cb) {
+    guestHandler = cb;
+  },
+
+  onLoginClick(cb) {
+    loginHandler = cb;
+  },
+
+  onFirstUserGesture(cb) {
+    const handler = () => {
+      window.removeEventListener("pointerdown", handler);
+      cb?.();
+    };
+    window.addEventListener("pointerdown", handler);
+  }
+};
   showConfirmQuit,
 
   // ---- STUBS (safe, do nothing for now) ----
