@@ -1,53 +1,34 @@
 // src/main.js
-import "./style.css";
+import "./css/ui.css";
 
 import { mountUI } from "./ui/ui.js";
 import { createGame } from "./game/game.js";
 import { levels } from "./levels/index.js";
 
-import { ensureAudioUnlocked } from "./game/rollSound.js";
-
-const BACKEND = "https://adventuremaze.onrender.com";
-
-let CURRENT_USER = { username: "guest", uid: null };
-let levelIndex = 0;
-
-async function boot() {
+// ---------------------------
+// BOOT
+// ---------------------------
+function boot() {
   const root = document.querySelector("#app");
   if (!root) {
     document.body.innerHTML = "<h1>#app not found</h1>";
     return;
   }
 
+  // Mount UI
   const ui = mountUI(root);
 
-  // Audio unlock (prevents silent WebAudio on mobile)
-  ui.onFirstUserGesture(() => ensureAudioUnlocked());
-
-  // Create game ONCE
+  // Create game (LEVEL 1 ONLY)
   const game = createGame({
-    BACKEND,
     canvas: ui.canvas,
-    getCurrentUser: () => CURRENT_USER,
-    level: levels[levelIndex],
-    onLevelComplete() {
-      // keep empty for now
-    },
+    level: levels[0],
+    getCurrentUser: () => ({ username: "guest", uid: null }),
+    onLevelComplete() {},
   });
 
-  // Wire buttons (safe even if not implemented in engine)
-  ui.onHint(() => {
-    if (typeof game.hint === "function") game.hint();
-  });
-
-  ui.onSkip(() => {
-    if (typeof game.skip === "function") game.skip();
-  });
-
-  ui.setLevel(levelIndex + 1);
-
-  // Start rendering
+  // Start game ONCE
   game.start();
 }
 
+// Start app
 boot();

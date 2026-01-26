@@ -1,21 +1,141 @@
-/* CLEANED, STATIC CSS ONLY / / No JS, no document.*, no injected styles */
+/* -------------------------
+   RESET & BASE
+-------------------------- */
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
 
-:root { --bg:#0b1220; --panel:#0f1a2b; --panel-2:#0c1626; --accent:#25d7ff; --gold:#f6c343; --text:#e9eef7; --muted:#9aa7bd; --radius:18px; }
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at 50% 20%, #0e1a2b, #050a14 70%);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  color: #fff;
+}
 
-*{box-sizing:border-box} html,body{margin:0;padding:0;height:100%;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu}
+#app {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+}
 
-#app{min-height:100vh;display:flex;flex-direction:column}
+/* -------------------------
+   GAME LAYOUT
+-------------------------- */
+.gameWrap {
+  width: 100%;
+  max-width: 420px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 14px;
+}
 
-/* ---------------- Header ---------------- */ .header{padding:18px 16px 10px;text-align:center} .header h1{margin:0;font-size:42px;letter-spacing:.5px}
+/* -------------------------
+   HEADER
+-------------------------- */
+.header {
+  text-align: center;
+  font-size: 36px;
+  font-weight: 800;
+  margin: 10px 0 14px;
+}
 
-.topbar{display:flex;align-items:center;gap:10px;justify-content:center;margin-top:12px} .iconBtn{width:44px;height:44px;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);display:grid;place-items:center;color:#cfe8ff}
+/* -------------------------
+   TOP BAR
+-------------------------- */
+.topBar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
 
-.coinPill{margin-left:auto;display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:16px;border:2px solid rgba(246,195,67,.35);background:rgba(0,0,0,.25)} .coin{width:18px;height:18px;border-radius:50%;background:radial-gradient(circle at 30% 30%,#fff6c2,#ffcc33 55%,#d39a00)}
+.iconBtn {
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  background: rgba(255,255,255,0.06);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
 
-/* ---------------- Board ---------------- */ .boardWrap{flex:1;display:flex;justify-content:center;align-items:center;padding:12px} .board{width:100%;max-width:420px;aspect-ratio:1/1;border-radius:22px;background:linear-gradient(180deg,var(--panel),var(--panel-2));box-shadow:inset 0 0 0 1px rgba(255,255,255,.06)} canvas{width:100%;height:100%;display:block;border-radius:22px}
+.coinPill {
+  margin-left: auto;
+  height: 46px;
+  padding: 0 18px;
+  border-radius: 18px;
+  background: rgba(0,0,0,0.35);
+  border: 2px solid #8a6a1a;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+}
 
-/* ---------------- Bottom ---------------- */ .bottom{padding:14px;display:flex;align-items:center;gap:10px} .bottom .center{flex:1;text-align:center;color:var(--muted)} .btn{padding:14px 18px;border-radius:16px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.05);color:var(--text);font-weight:600} .btn.primary{background:linear-gradient(180deg,#2c4f8f,#203c6e)}
+/* -------------------------
+   BOARD
+-------------------------- */
+.boardWrap {
+  flex: 1;
+  background: rgba(255,255,255,0.04);
+  border-radius: 26px;
+  padding: 12px;
+  margin-bottom: 14px;
+}
 
-/* ---------------- Ad ---------------- */ .ad{margin:0 14px 16px;padding:16px;border-radius:18px;background:#2a4f8f;text-align:center;font-weight:700}
+canvas {
+  width: 100%;
+  height: 100%;
+  border-radius: 20px;
+  display: block;
+}
 
-/* ---------------- Utilities ---------------- */ .hidden{display:none}
+/* -------------------------
+   BOTTOM CONTROLS
+-------------------------- */
+.bottomBar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.hintBtn,
+.skipBtn {
+  height: 52px;
+  padding: 0 18px;
+  border-radius: 16px;
+  background: rgba(255,255,255,0.06);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+}
+
+.swipeText {
+  flex: 1;
+  text-align: center;
+  opacity: 0.7;
+  font-weight: 600;
+}
+
+/* -------------------------
+   AD BANNER
+-------------------------- */
+.adBanner {
+  height: 72px;
+  border-radius: 20px;
+  background: #2d4f8c;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  font-weight: 800;
+}
