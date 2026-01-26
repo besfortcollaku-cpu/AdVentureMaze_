@@ -22,7 +22,10 @@ export function mountUI(root) {
       <div class="boardWrap">
         <canvas id="game"></canvas>
       </div>
-
+<div id="welcome" class="welcome-overlay">
+  <h2>Welcome to AdVenture Maze</h2>
+  <button id="guestBtn" class="iconBtnWide">Play as Guest</button>
+</div>
       <div class="bottomBar">
         <button class="hintBtn">❓ Hint</button>
         <div class="swipeText">Swipe to move</div>
@@ -35,7 +38,10 @@ export function mountUI(root) {
 
     </div>
   `;
-
+const guestBtn = document.getElementById("guestBtn");
+guestBtn.addEventListener("click", () => {
+  guestHandler?.();
+});
 const confirmOverlay = document.createElement("div");
 confirmOverlay.className = "confirmOverlay hidden";
 confirmOverlay.innerHTML = `
