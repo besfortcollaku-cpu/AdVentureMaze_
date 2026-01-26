@@ -62,7 +62,7 @@ ui.onLoginClick(async () => {
         accessToken: auth.accessToken
       })
     });
-
+alert("BACKEND LOGIN OK");
     // ✅ ONLY AFTER BACKEND CONFIRM
     ui.hideWelcome();
     document.body.classList.add("game-running");
