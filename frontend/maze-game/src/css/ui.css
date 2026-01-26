@@ -284,3 +284,18 @@ html, body {
   background: #e74c3c;
   color: #fff;
 }
+/* ================================
+   WHEN GAME STARTS
+================================ */
+
+/* Hide welcome fully */
+body.game-running #welcomeOverlay {
+  display: none !important;
+}
+
+/* Prevent screen swipe moving layout */
+html,
+body {
+  overscroll-behavior: none;
+  touch-action: manipulation;
+}

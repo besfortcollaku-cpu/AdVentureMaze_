@@ -1,6 +1,6 @@
 // src/main.js
 
-import "./style.css";
+import "./css/ui.css";
 import { mountUI } from "./ui/ui.js";
 import { createGame } from "./game/game.js";
 import { levels } from "./levels/index.js";
@@ -26,6 +26,7 @@ function boot() {
 
   // Start game ONLY after guest click
   ui.onGuestStart(() => {
+      document.body.classList.add("game-running");
     ui.hideWelcome();
     game.start();
   });

@@ -46,6 +46,7 @@ export function mountUI(root) {
     canvas,
 
     showWelcome() {
+        document.body.classList.remove("game-running");
       welcome.style.display = "flex";
     },
 
