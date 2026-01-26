@@ -182,6 +182,7 @@ return {
     window.addEventListener("pointerdown", handler);
   }
 };
+,
   showConfirmQuit,
 
   // ---- STUBS (safe, do nothing for now) ----
