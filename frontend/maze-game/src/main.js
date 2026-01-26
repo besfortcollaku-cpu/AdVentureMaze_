@@ -43,24 +43,21 @@ document.body.style.height = "100%";
     ui.hideWelcome();
     game.start();
   });
-  ui.onLoginClick(async () => {
-  alert("Login button clicked"); // 🔴 MUST SHOW
-
+ui.onLoginClick(async () => {
   try {
-    alert("Calling Pi login"); // 🔴 MUST SHOW
-    const user = await ensurePiLogin();
+    const auth = await window.Pi.authenticate(
+      ["username"],
+      () => {}
+    );
 
+    console.log("PI AUTH OK", auth);
+
+    ui.hideWelcome();
     document.body.classList.add("game-running");
 
-    CURRENT_USER = user;
-    IS_GUEST = false;
-
-    ui.setUser?.(user); // safe if stub
-    ui.hideWelcome();
-
     game.start();
-  } catch (e) {
-    alert("Pi login failed");
+  } catch (err) {
+    console.error("PI LOGIN FAILED", err);
   }
 });
 }
