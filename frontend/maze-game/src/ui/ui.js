@@ -158,6 +158,8 @@ welcome.querySelector("#loginBtn").onclick = () => {
 // ---------------------------
 return {
   canvas,
+
+  // ---- Welcome overlay ----
   showWelcome() {
     welcome.style.display = "flex";
   },
@@ -174,26 +176,15 @@ return {
     loginHandler = cb;
   },
 
-  onFirstUserGesture(cb) {
-    const handler = () => {
-      window.removeEventListener("pointerdown", handler);
-      cb?.();
-    };
-    window.addEventListener("pointerdown", handler);
-  }
-};
-,
+  // ---- Quit confirm (toast / modal handler) ----
   showConfirmQuit,
 
-  // ---- STUBS (safe, do nothing for now) ----
+  // ---- Game UI stubs (safe no-ops for now) ----
   setLevel() {},
   setUser() {},
   setCoins() {},
-  hideWelcome() {},
-  showWelcome() {},
-  onGuestStart() {},
-  onLoginClick() {},
 
+  // ---- First interaction (audio unlock etc.) ----
   onFirstUserGesture(cb) {
     const handler = () => {
       window.removeEventListener("pointerdown", handler);
