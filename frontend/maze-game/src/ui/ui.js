@@ -59,7 +59,7 @@ export function mountUI(root) {
       window.addEventListener("pointerdown", handler);
     },
   };
-}
+
   // ---------------------------
   // BOARD (CANVAS HOLDER)
   // ---------------------------
