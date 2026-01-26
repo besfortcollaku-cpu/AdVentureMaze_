@@ -138,12 +138,9 @@ document.getElementById("confirmOk").onclick = () => {
 // ---------------------------
 return {
   canvas,
-  canvas,
   showConfirmQuit,
-  onFirstUserGesture(cb) { ... }
-};
 
-  // Stubs (safe no-ops for now)
+  // ---- STUBS (safe, do nothing for now) ----
   setLevel() {},
   setUser() {},
   setCoins() {},
@@ -151,12 +148,13 @@ return {
   showWelcome() {},
   onGuestStart() {},
   onLoginClick() {},
+
   onFirstUserGesture(cb) {
     const handler = () => {
       window.removeEventListener("pointerdown", handler);
       cb?.();
     };
     window.addEventListener("pointerdown", handler);
-  },
+  }
 };
 }

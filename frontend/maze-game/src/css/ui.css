@@ -224,3 +224,63 @@ html, body {
 .startBtn:active {
   transform: scale(0.96);
 }
+
+
+.confirmOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.confirmOverlay.hidden {
+  display: none;
+}
+
+.confirmBox {
+  background: #121a26;
+  border-radius: 16px;
+  padding: 20px;
+  width: 85%;
+  max-width: 320px;
+  box-shadow: 0 20px 60px rgba(0,0,0,.5);
+}
+
+.confirmTitle {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.confirmText {
+  font-size: 14px;
+  opacity: .8;
+}
+
+.confirmActions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 16px;
+}
+
+.confirmActions button {
+  flex: 1;
+  margin: 0 6px;
+  padding: 10px;
+  border-radius: 10px;
+  border: none;
+  font-weight: 700;
+}
+
+#confirmCancel {
+  background: #2a3446;
+  color: #fff;
+}
+
+#confirmOk {
+  background: #e74c3c;
+  color: #fff;
+}
