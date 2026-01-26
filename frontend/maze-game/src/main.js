@@ -1,5 +1,6 @@
 // src/main.js
-import "./style.css";
+
+import "./css/ui.css";
 
 import { mountUI } from "./ui/ui.js";
 import { createGame } from "./game/game.js";

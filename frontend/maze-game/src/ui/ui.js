@@ -99,24 +99,26 @@ export function mountUI(root) {
   // ---------------------------
   // RETURN UI API
   // ---------------------------
-  return {
-    canvas,
+  // ---------------------------
+// RETURN UI API
+// ---------------------------
+return {
+  canvas,
 
-    // Stubs (safe no-ops for now)
-    setLevel() {},
-    setUser() {},
-    setCoins() {},
-    hideWelcome() {},
-    showWelcome() {},
-    onGuestStart() {},
-    onLoginClick() {},
-    onFirstUserGesture(cb) {
-      // fire once on first interaction
-      const handler = () => {
-        window.removeEventListener("pointerdown", handler);
-        cb?.();
-      };
-      window.addEventListener("pointerdown", handler);
-    },
-  };
+  // Stubs (safe no-ops for now)
+  setLevel() {},
+  setUser() {},
+  setCoins() {},
+  hideWelcome() {},
+  showWelcome() {},
+  onGuestStart() {},
+  onLoginClick() {},
+  onFirstUserGesture(cb) {
+    const handler = () => {
+      window.removeEventListener("pointerdown", handler);
+      cb?.();
+    };
+    window.addEventListener("pointerdown", handler);
+  },
+};
 }

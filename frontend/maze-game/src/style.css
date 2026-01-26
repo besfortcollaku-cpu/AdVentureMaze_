@@ -152,3 +152,46 @@ html, body {
   font-weight: 700;
   letter-spacing: 0.5px;
 }
+
+
+
+/* ------------------------------
+   WELCOME OVERLAY
+--------------------------------*/
+.welcomeOverlay {
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(circle at top, #0e1a2b, #050b14 75%);
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.welcomeOverlay.hide {
+  display: none;
+}
+
+.welcomeCard {
+  text-align: center;
+}
+
+.welcomeCard h1 {
+  font-size: 36px;
+  margin-bottom: 24px;
+}
+
+.startBtn {
+  padding: 14px 26px;
+  font-size: 18px;
+  font-weight: 700;
+  border-radius: 18px;
+  border: none;
+  background: #25d7ff;
+  color: #02121f;
+  cursor: pointer;
+}
+
+.startBtn:active {
+  transform: scale(0.96);
+}
