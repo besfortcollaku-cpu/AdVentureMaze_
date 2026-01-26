@@ -155,45 +155,40 @@ canvas#game {
 /* =========================
    WELCOME OVERLAY
 ========================= */
+/* =========================
+   WELCOME OVERLAY (FIXED)
+========================= */
 #welcomeOverlay {
   position: fixed;
   inset: 0;
-  z-index: 100;
+  z-index: 1000;
+
   display: none;
   align-items: flex-end;
   justify-content: center;
-  background: radial-gradient(circle at top, rgba(30,40,90,0.85), rgba(5,10,20,0.98));
+
+  background: radial-gradient(
+    circle at top,
+    rgba(30,40,90,0.75),
+    rgba(5,10,20,0.95)
+  );
+
+  pointer-events: auto;
 }
 
 #welcomeOverlay.show {
   display: flex;
 }
-
 .welcomeCard {
   width: 100%;
   max-width: 420px;
   padding: 24px;
-  margin-bottom: 96px;
+  margin-bottom: 120px;
+
   color: #fff;
+  background: none;
 }
 
-.welcomeCard h1 {
-  font-size: 32px;
-  font-weight: 800;
-  margin-bottom: 16px;
-}
-
-.welcomeCard button {
-  width: 100%;
-  margin-top: 14px;
-  padding: 14px 16px;
-  font-size: 16px;
-  font-weight: 700;
-  border-radius: 12px;
-  border: none;
-  background: #ffffff;
-  color: #111;
-}
 
 /* =========================
    GAME RUNNING STATE
