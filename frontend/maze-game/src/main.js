@@ -46,6 +46,7 @@ function boot() {
   ui.hideWelcome();
   game.start();
 });
+game.start();
 
   
   
