@@ -14,6 +14,10 @@ function boot() {
 
   // Mount UI
   const ui = mountUI(root);
+  // iOS hard lock
+document.body.style.position = "fixed";
+document.body.style.width = "100%";
+document.body.style.height = "100%";
   document.addEventListener(
   "touchmove",
   (e) => e.preventDefault(),

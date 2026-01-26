@@ -1,3 +1,20 @@
+
+
+
+
+html,
+body {
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+#app {
+  height: 100%;
+  overflow: hidden;
+}
+
+
 /* =========================
    RESET / BASE
 ========================= */
@@ -179,4 +196,10 @@ canvas#game {
 ========================= */
 body.game-running #welcomeOverlay {
   display: none !important;
+}
+
+body.game-running {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
 }
