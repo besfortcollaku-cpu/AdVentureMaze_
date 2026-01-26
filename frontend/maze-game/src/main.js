@@ -52,10 +52,22 @@ ui.onLoginClick(async () => {
 
     console.log("PI AUTH OK", auth);
 
+    // 🔥 ADD THIS BLOCK (BACKEND HANDSHAKE)
+    await fetch("/api/login/pi", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        uid: auth.user.uid,
+        username: auth.user.username,
+        accessToken: auth.accessToken
+      })
+    });
+
+    // ✅ ONLY AFTER BACKEND CONFIRM
     ui.hideWelcome();
     document.body.classList.add("game-running");
-
     game.start();
+
   } catch (err) {
     console.error("PI LOGIN FAILED", err);
   }
