@@ -11,7 +11,6 @@ import { levels } from "./levels/index.js";
 
 import { getSettings, setSetting, subscribeSettings } from "./settings.js";
 import { ensureAudioUnlocked, stopRollSound } from "./game/rollSound.js";
-import { mountUI } from "./ui/ui.js";
 
 const root = document.querySelector("#app");
 const ui = mountUI(root);
