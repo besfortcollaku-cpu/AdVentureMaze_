@@ -6,6 +6,26 @@ import { mountUI } from "./ui/ui.js";
 import { createGame } from "./game/game.js";
 import { levels } from "./levels/index.js";
 
+
+function enableBackConfirm() {
+  // Push fake history state
+  history.pushState({ game: true }, "");
+
+  window.addEventListener("popstate", (e) => {
+    // Ask user
+    const ok = confirm("Quit game? Your progress in this level will be lost.");
+
+    if (ok) {
+      // allow back navigation
+      window.removeEventListener("popstate", () => {});
+      history.back();
+    } else {
+      // stay in game
+      history.pushState({ game: true }, "");
+    }
+  });
+}
+
 // ---------------------------
 // BOOT
 // ---------------------------
@@ -29,6 +49,7 @@ function boot() {
 
   // Start game ONCE
   game.start();
+  enableBackConfirm();
 }
 
 // Start app
