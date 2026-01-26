@@ -66,9 +66,6 @@ export function mountUI(root) {
   const boardWrap = document.createElement("div");
   boardWrap.className = "boardWrap";
 
-  const canvas = document.createElement("canvas");
-  canvas.id = "game";
-  boardWrap.appendChild(canvas);
 
   // ---------------------------
   // FOOTER
