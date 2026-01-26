@@ -28,6 +28,7 @@ export function mountUI(root) {
       <div id="welcomeOverlay" class="welcomeOverlay">
   <div class="welcomeCard">
     <h1>Welcome to AdVenture Maze</h1>
+    <button id="loginBtn" class="startBtn secondary">Login with Pi</button>
     <button id="guestBtn" class="startBtn">Play as Guest</button>
   </div>
 </div>
@@ -37,12 +38,16 @@ export function mountUI(root) {
   const canvas = root.querySelector("#game");
   const welcome = root.querySelector("#welcomeOverlay");
   const guestBtn = root.querySelector("#guestBtn");
+  const loginBtn = root.querySelector("#loginBtn");
 
   let guestHandler = null;
 
   guestBtn.addEventListener("click", () => {
     guestHandler?.();
   });
+  loginBtn.addEventListener("click", () => {
+  loginHandler?.();
+});
 // Edge guards (block iOS back swipe)
 const leftGuard = document.createElement("div");
 leftGuard.className = "edge-guard left";
@@ -63,7 +68,9 @@ document.body.appendChild(rightGuard);
     hideWelcome() {
       welcome.style.display = "none";
     },
-
+onLoginClick(cb) {
+  loginHandler = cb;
+},
     onGuestStart(cb) {
       guestHandler = cb;
     },

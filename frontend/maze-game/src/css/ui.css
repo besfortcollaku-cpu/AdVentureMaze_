@@ -147,48 +147,45 @@ canvas#game {
 /* =========================
    WELCOME OVERLAY
 ========================= */
-#welcomeOverlay {
+.welcomeOverlay {
   position: fixed;
   inset: 0;
-  z-index: 1000;
+  z-index: 50;
 
-  display: none;
+  display: flex;
   align-items: flex-end;
   justify-content: center;
 
-  background: radial-gradient(
-    circle at top,
-    rgba(30,40,90,0.85),
-    rgba(5,10,20,0.98)
-  );
-}
+  padding-bottom: 120px;
 
+  background: radial-gradient(circle at top, rgba(15,30,51,0.95), rgba(7,13,24,0.98));
+  backdrop-filter: blur(6px);
+}
 #welcomeOverlay.show {
   display: flex;
 }
 
 .welcomeCard {
-  width: 100%;
-  max-width: 420px;
-  padding: 24px;
-  margin-bottom: 120px;
+  width: min(92%, 420px);
   text-align: left;
 }
 
 .welcomeCard h1 {
-  font-size: 34px;
+  font-size: 36px;
+  line-height: 1.2;
   margin-bottom: 20px;
+  color: #fff;
 }
-
 .startBtn {
   width: 100%;
   padding: 16px;
-  border-radius: 14px;
-  border: none;
+  border-radius: 16px;
   font-size: 18px;
-  font-weight: 700;
-  background: #fff;
+  font-weight: 600;
+
+  background: #ffffff;
   color: #000;
+  border: none;
 }
 
 /* =========================
@@ -206,20 +203,28 @@ body.game-running {
 
 /* ---------- GLOBAL STATES ---------- */
 
-body.welcome-visible .game-shell {
+body.welcome-visible .app {
   filter: blur(6px);
   pointer-events: none;
 }
 
-body.welcome-visible .welcome-overlay {
+body.welcome-visible .welcomeoverlay {
   display: flex;
 }
 
-body.game-running .welcome-overlay {
+body.game-running .welcomeoverlay {
   display: none;
 }
 
-body.game-running .game-shell {
+body.game-running .app {
   filter: none;
   pointer-events: auto;
+}
+.game-running .welcomeOverlay {
+  display: none;
+}
+.startBtn.secondary {
+  margin-top: 12px;
+  background: rgba(255,255,255,0.15);
+  color: #fff;
 }

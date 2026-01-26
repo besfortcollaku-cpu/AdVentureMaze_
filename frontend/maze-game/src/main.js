@@ -3,6 +3,7 @@
 import "./css/ui.css";
 import { mountUI } from "./ui/ui.js";
 import { createGame } from "./game/game.js";
+import { ensurePiLogin } from "./pi/piClient.js";
 import { levels } from "./levels/index.js";
 
 function boot() {
@@ -40,6 +41,23 @@ document.body.style.height = "100%";
     ui.hideWelcome();
     game.start();
   });
+  ui.onLoginClick(async () => {
+  try {
+    const user = await ensurePiLogin();
+
+    document.body.classList.add("game-running");
+
+    CURRENT_USER = user;
+    IS_GUEST = false;
+
+    ui.setUser?.(user); // safe if stub
+    ui.hideWelcome();
+
+    game.start();
+  } catch (e) {
+    alert("Pi login failed");
+  }
+});
 }
 
 boot();
