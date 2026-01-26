@@ -33,7 +33,7 @@ function boot() {
 
   // Mount UI
   const ui = mountUI(root);
-  ui.showWelcome();
+  
 
   // Create game (LEVEL 1 ONLY)
   const game = createGame({
