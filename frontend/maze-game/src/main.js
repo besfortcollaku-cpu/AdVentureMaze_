@@ -45,7 +45,6 @@ function boot() {
   ui.onGuestStart(() => {
   ui.hideWelcome();
   game.start();
-  enableBackConfirm();
 });
 
   
