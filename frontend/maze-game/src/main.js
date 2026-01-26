@@ -42,10 +42,14 @@ function boot() {
     getCurrentUser: () => ({ username: "guest", uid: null }),
     onLevelComplete() {},
   });
-
-  // Start game ONCE
+  ui.onGuestStart(() => {
+  ui.hideWelcome();
   game.start();
   enableBackConfirm();
+});
+
+  
+  
 }
 
 // Start app
