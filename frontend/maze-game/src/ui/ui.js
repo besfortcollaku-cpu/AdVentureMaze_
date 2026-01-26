@@ -43,7 +43,15 @@ export function mountUI(root) {
   guestBtn.addEventListener("click", () => {
     guestHandler?.();
   });
+// Edge guards (block iOS back swipe)
+const leftGuard = document.createElement("div");
+leftGuard.className = "edge-guard left";
 
+const rightGuard = document.createElement("div");
+rightGuard.className = "edge-guard right";
+
+document.body.appendChild(leftGuard);
+document.body.appendChild(rightGuard);
   return {
     canvas,
 
