@@ -14,6 +14,11 @@ function boot() {
 
   // Mount UI
   const ui = mountUI(root);
+  document.addEventListener(
+  "touchmove",
+  (e) => e.preventDefault(),
+  { passive: false }
+);
   ui.showWelcome();
 
   // Create game (DO NOT START)
