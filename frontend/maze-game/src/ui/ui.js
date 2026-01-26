@@ -25,15 +25,17 @@ export function mountUI(root) {
 
       <div class="ad">Ad Banner</div>
 
-      <div id="welcome" class="welcome">
-        <h2>Welcome to AdVenture Maze</h2>
-        <button id="guestBtn" class="guestBtn">Play as Guest</button>
-      </div>
+      <div id="welcomeOverlay" class="welcomeOverlay">
+  <div class="welcomeCard">
+    <h1>Welcome to AdVenture Maze</h1>
+    <button id="guestBtn" class="startBtn">Play as Guest</button>
+  </div>
+</div>
     </div>
   `;
 
   const canvas = root.querySelector("#game");
-  const welcome = root.querySelector("#welcome");
+  const welcome = root.querySelector("#welcomeOverlay");
   const guestBtn = root.querySelector("#guestBtn");
 
   let guestHandler = null;
