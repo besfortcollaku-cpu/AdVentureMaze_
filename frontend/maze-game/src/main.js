@@ -36,7 +36,6 @@ let IS_GUEST = true;
 
 let levelIndex = 0;
 let game = null;
-let ui = null;
 
 // ---------------------------
 // BOOT
