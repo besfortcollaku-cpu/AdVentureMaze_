@@ -203,3 +203,23 @@ body.game-running {
   inset: 0;
   overflow: hidden;
 }
+
+/* ---------- GLOBAL STATES ---------- */
+
+body.welcome-visible .game-shell {
+  filter: blur(6px);
+  pointer-events: none;
+}
+
+body.welcome-visible .welcome-overlay {
+  display: flex;
+}
+
+body.game-running .welcome-overlay {
+  display: none;
+}
+
+body.game-running .game-shell {
+  filter: none;
+  pointer-events: auto;
+}

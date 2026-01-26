@@ -35,6 +35,7 @@ document.body.style.height = "100%";
 
   // Start game ONLY after guest click
   ui.onGuestStart(() => {
+      document.body.classList.remove("welcome-visible");
       document.body.classList.add("game-running");
     ui.hideWelcome();
     game.start();
