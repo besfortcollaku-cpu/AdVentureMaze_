@@ -46,8 +46,7 @@ async function boot() {
     return;
   }
 
-  // UI
-  ui = mountUI(root);
+  
 
   // Audio unlock (mobile safe)
   ui.onFirstUserGesture(() => ensureAudioUnlocked());
