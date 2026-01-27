@@ -88,11 +88,15 @@ if (CURRENT_USER && CURRENT_ACCESS_TOKEN) {
  ui.onLoginClick(async () => {
   try {
     await ensurePiLogin({
-      BACKEND: "https://adventuremaze.onrender.com",
-      ui,
-onLogin: ({ user, accessToken }) => {
-  CURRENT_USER = user;
-  CURRENT_ACCESS_TOKEN = accessToken;
+  BACKEND,
+  ui,
+  onLogin: ({ user, accessToken }) => {
+    CURRENT_USER = user;
+    CURRENT_ACCESS_TOKEN = accessToken;
+
+    // 🔑 POPULATE COINS
+    if (typeof user.coins === "number") {
+      ui.setCoins(user.coins);
 
   localStorage.setItem("pi_user", JSON.stringify(user));
   localStorage.setItem("pi_token", accessToken);
