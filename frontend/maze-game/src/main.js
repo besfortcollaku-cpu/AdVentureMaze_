@@ -17,6 +17,10 @@ function boot() {
   // Mount UI
   const ui = mountUI(root);
   initPi();
+  
+
+  return data;
+}
   // iOS hard lock
 document.body.style.position = "fixed";
 document.body.style.width = "100%";
@@ -45,33 +49,28 @@ document.body.style.height = "100%";
   });
 ui.onLoginClick(async () => {
   try {
-    const auth = await window.Pi.authenticate(
-      ["username"],
-      () => {}
-    );
+    const BACKEND = import.meta.env.VITE_BACKEND_URL;
 
-    console.log("PI AUTH OK", auth);
-
-    // 🔥 ADD THIS BLOCK (BACKEND HANDSHAKE)
-    await fetch("/api/login/pi", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        uid: auth.user.uid,
-        username: auth.user.username,
-        accessToken: auth.accessToken
-      })
+    const loginRes = await ensurePiLogin({
+      BACKEND,
+      ui,
+      onLogin: ({ user, accessToken }) => {
+        CURRENT_USER = user;
+        CURRENT_ACCESS_TOKEN = accessToken;
+      },
     });
-alert("BACKEND LOGIN OK");
-    // ✅ ONLY AFTER BACKEND CONFIRM
-    ui.hideWelcome();
+
+    document.body.classList.remove("welcome-visible");
     document.body.classList.add("game-running");
+    ui.hideWelcome();
     game.start();
 
   } catch (err) {
     console.error("PI LOGIN FAILED", err);
   }
 });
+
+
 }
 
 boot();
