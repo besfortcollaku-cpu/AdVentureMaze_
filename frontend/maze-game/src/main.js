@@ -108,10 +108,14 @@ ui.onLoginClick(async () => {
       BACKEND,
       ui,
       onLogin: ({ user, accessToken }) => {
-  CURRENT_USER = user;
+  CURRENT_USER = {
+    uid: user.uid,
+    username: user.username || user.uid
+  };
   CURRENT_ACCESS_TOKEN = accessToken;
-  ui.setUser(user); // ✅ SHOW USERNAME
-},
+
+  ui.setUser(CURRENT_USER); // 🔥 THIS WAS MISSING
+};
     });
 
     // ✅ FETCH COINS AFTER LOGIN
