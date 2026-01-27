@@ -71,6 +71,5 @@ ui.onLoginClick(async () => {
 });
 
 
-}
 
 boot();
