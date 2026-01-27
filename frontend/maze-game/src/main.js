@@ -116,6 +116,7 @@ ui.onLoginClick(async () => {
 
   ui.setUser(CURRENT_USER); // 🔥 THIS WAS MISSING
 };
+}
     });
 
     // ✅ FETCH COINS AFTER LOGIN
