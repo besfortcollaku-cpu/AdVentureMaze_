@@ -37,6 +37,25 @@ async function loadCoins({ BACKEND, token, ui }) {
     ui.setCoins(data.user.coins);
   }
 }
+async function loadMeAndSyncUI({ BACKEND, token, ui }) {
+  const res = await fetch(`${BACKEND}/api/me`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  if (!res.ok) return;
+
+  const me = await res.json();
+
+  const serverUser = me.user;
+
+  CURRENT_USER = {
+    uid: serverUser.uid,
+    username: serverUser.username,
+  };
+
+  ui.setUser(CURRENT_USER);
+  ui.setCoins(serverUser.coins);
+}
 function boot() {
   const root = document.querySelector("#app");
   if (!root) {
@@ -105,17 +124,17 @@ ui.onLoginClick(async () => {
     const BACKEND = import.meta.env.VITE_BACKEND_URL;
 
     await ensurePiLogin({
-      BACKEND,
-      ui,
-      onLogin: ({ user, accessToken }) => {
-  CURRENT_USER = {
-    uid: user.uid,
-    username: user.username || user.uid
-  };
-  CURRENT_ACCESS_TOKEN = accessToken;
-
-  ui.setUser(CURRENT_USER); // ✅ THIS LINE
-},
+  BACKEND,
+  ui,
+  onLogin: ({ user, accessToken }) => {
+    CURRENT_ACCESS_TOKEN = accessToken;
+  },
+});
+await loadMeAndSyncUI({
+  BACKEND,
+  token: CURRENT_ACCESS_TOKEN,
+  ui,
+});
     });
 
     document.body.classList.remove("welcome-visible");
