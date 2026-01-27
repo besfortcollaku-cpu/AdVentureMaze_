@@ -66,7 +66,7 @@ document.body.appendChild(rightGuard);
 
   return {
     canvas,
-    levelsBtn, 
+    levelsBtn,
     showWelcome() {
         document.body.classList.remove("game-running");
       welcome.style.display = "flex";
