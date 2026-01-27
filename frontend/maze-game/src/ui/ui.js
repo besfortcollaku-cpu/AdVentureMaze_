@@ -11,7 +11,7 @@ export function mountUI(root) {
           <button class="icon">☰</button>
         </div>
     <div class="coins">
-  <span id="username" class="userName">Guest:</span>
+  <span id="userName" class="userName">Guest:</span>
   🪙 <span id="coinCount">0</span>
 </div>
       </header>
@@ -102,9 +102,6 @@ onLoginClick(cb) {
   el.textContent = user?.username || "Guest";
 },
 
-  // 🔥 THIS IS THE IMPORTANT PART
-  el.textContent = user.username ?? "Guest";
-},
     setCoins(count) {
   const coinEl = document.getElementById("coinCount");
   if (coinEl) coinEl.textContent = count ?? 0;
