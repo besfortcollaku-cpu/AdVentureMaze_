@@ -52,7 +52,7 @@ function boot() {
   // ---- PI LOGIN ----
   ui.onLoginClick(async () => {
     try {
-      const BACKEND = import.meta.env.VITE_BACKEND_URL;
+      const BACKEND: "https://adventuremaze.onrender.com",
 
       await ensurePiLogin({
         BACKEND,
