@@ -11,7 +11,7 @@ export function mountUI(root) {
           <button class="icon">☰</button>
         </div>
     <div class="coins">
-  <span id="userName" class="userName">Guest:</span>
+  <span id="userName" class="userName">Guest</span>
   🪙 <span id="coinCount">0</span>
 </div>
       </header>
