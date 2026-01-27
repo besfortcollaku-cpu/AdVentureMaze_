@@ -27,36 +27,7 @@ function boot() {
 
   // Mount UI
   const ui = mountUI(root);
-  ui.onLoginClick(async () => {
-  alert("LOGIN HANDLER ACTIVE");
-
-  if (!window.Pi) {
-    alert("Pi SDK NOT FOUND");
-    return;
-  }
-
-  try {
-    const BACKEND = import.meta.env.VITE_BACKEND_URL;
-
-    const loginRes = await ensurePiLogin({
-      BACKEND,
-      ui,
-      onLogin: ({ user, accessToken }) => {
-        CURRENT_USER = user;
-        CURRENT_ACCESS_TOKEN = accessToken;
-      },
-    });
-
-    document.body.classList.remove("welcome-visible");
-    document.body.classList.add("game-running");
-    ui.hideWelcome();
-    game.start();
-
-  } catch (err) {
-    console.error("PI LOGIN FAILED", err);
-    alert("PI LOGIN FAILED");
-  }
-});
+  
   ui.showWelcome();
 
   // Init Pi SDK
