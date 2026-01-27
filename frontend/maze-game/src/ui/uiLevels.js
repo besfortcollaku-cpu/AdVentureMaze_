@@ -1,73 +1,51 @@
-// src/ui/uiLevels.js
-import "../css/levels.css";
+export function mountLevelsUI(root) {
+  const el = document.createElement("div");
+  el.id = "levelsOverlay";
+  el.className = "levels-overlay hidden";
 
-export function mountLevelsUI(root, options = {}) {
-  const {
-    unlockedLevels = 1,
-    completedLevels = [],
-    onSelectLevel = () => {},
-  } = options;
+  el.innerHTML = `
+    <div class="levels-card">
+      <h2>Select Level</h2>
 
-  // ===== Overlay =====
-  const overlay = document.createElement("div");
-  overlay.className = "levelsOverlay";
-
-  overlay.innerHTML = `
-    <div class="levelsModal">
-      <div class="levelsHeader">
-        <div class="levelsBadge">LEVELS</div>
-        <div class="levelsTitle">Select Level</div>
+      <div class="levels-grid">
+        ${Array.from({ length: 20 }, (_, i) => `
+          <button class="level-btn locked" data-level="${i + 1}">
+            ${i + 1}
+          </button>
+        `).join("")}
       </div>
 
-      <div class="levelsGrid"></div>
-
-      <button class="levelsClose">Close</button>
+      <button id="closeLevels" class="close-btn">Close</button>
     </div>
   `;
 
-  root.appendChild(overlay);
+  root.appendChild(el);
 
-  const grid = overlay.querySelector(".levelsGrid");
-  const closeBtn = overlay.querySelector(".levelsClose");
+  const closeBtn = el.querySelector("#closeLevels");
 
-  // ===== Build levels =====
-  for (let level = 1; level <= 9; level++) {
-    const btn = document.createElement("button");
-    btn.classList.add("levelBtn");
+  function open() {
+    document.body.classList.add("blurred");
+    el.classList.remove("hidden");
+  }
 
-    const isUnlocked = level <= unlockedLevels;
-    const isCompleted = completedLevels.includes(level);
+  function close() {
+    document.body.classList.remove("blurred");
+    el.classList.add("hidden");
+  }
 
-    if (!isUnlocked) {
-      btn.classList.add("locked");
-      btn.innerHTML = `
-        <span class="levelNumber">${level}</span>
-        <span class="lockIcon">🔒</span>
-      `;
-    } else {
-      btn.classList.add("unlocked");
-      btn.innerHTML = `
-        <span class="levelNumber">Level ${level}</span>
-        ${isCompleted ? `<span class="checkIcon">✓</span>` : ""}
-      `;
+  closeBtn.addEventListener("click", close);
 
-      btn.addEventListener("click", () => {
-        hide();
-        onSelectLevel(level);
+  return {
+    open,
+    close,
+    setUnlocked(maxLevel = 1) {
+      el.querySelectorAll(".level-btn").forEach(btn => {
+        const lvl = Number(btn.dataset.level);
+        if (lvl <= maxLevel) {
+          btn.classList.remove("locked");
+          btn.classList.add("unlocked");
+        }
       });
-    }
-
-    grid.appendChild(btn);
-  }
-
-  // ===== Close =====
-  closeBtn.addEventListener("click", hide);
-
-  function hide() {
-    overlay.style.opacity = "0";
-    overlay.style.pointerEvents = "none";
-    setTimeout(() => overlay.remove(), 200);
-  }
-
-  return { hide };
+    },
+  };
 }

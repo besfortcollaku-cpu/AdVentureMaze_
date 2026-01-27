@@ -8,7 +8,7 @@ export function mountUI(root) {
         <div class="icons">
           <button class="icon">👤</button>
           <button class="icon">⚙️</button>
-          <button class="icon">☰</button>
+          <button class="icon" id="levelsBtn">☰</button>
         </div>
     <div class="coins">
   <span id="userName" class="userName">Guest</span>
@@ -37,7 +37,7 @@ export function mountUI(root) {
 </div>
     </div>
   `;
-
+const levelsBtn = root.querySelector("#levelsBtn");
   const canvas = root.querySelector("#game");
   const welcome = root.querySelector("#welcomeOverlay");
   const guestBtn = root.querySelector("#guestBtn");
@@ -66,7 +66,7 @@ document.body.appendChild(rightGuard);
 
   return {
     canvas,
-
+    levelsBtn, 
     showWelcome() {
         document.body.classList.remove("game-running");
       welcome.style.display = "flex";

@@ -1,4 +1,6 @@
 import "./css/ui.css";
+import "./css/levels.css";
+import { mountLevelsUI } from "./ui/uiLevels.js";
 import { mountUI } from "./ui/ui.js";
 import { createGame } from "./game/game.js";
 import { initPi } from "./pi/piInit.js";
@@ -82,7 +84,11 @@ if (savedUser && savedToken) {
 }
 
   // Mount UI
-  const ui = mountUI(root);
+const ui = mountUI(root);
+const levelsUI = mountLevelsUI(root);  
+ui.levelsBtn.addEventListener("click", () => {
+  levelsUI.open();
+});
   
   ui.showWelcome();
 
