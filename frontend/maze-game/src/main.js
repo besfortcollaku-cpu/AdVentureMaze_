@@ -24,6 +24,14 @@ function boot() {
     (e) => e.preventDefault(),
     { passive: false }
   );
+  
+  const savedUser = localStorage.getItem("pi_user");
+const savedToken = localStorage.getItem("pi_token");
+
+if (savedUser && savedToken) {
+  CURRENT_USER = JSON.parse(savedUser);
+  CURRENT_ACCESS_TOKEN = savedToken;
+}
 
   // Mount UI
   const ui = mountUI(root);
@@ -40,6 +48,12 @@ function boot() {
     getCurrentUser: () => CURRENT_USER ?? { username: "guest", uid: null },
     onLevelComplete() {},
   });
+  if (CURRENT_USER) {
+  document.body.classList.add("game-running");
+  ui.hideWelcome();
+  game.start();
+  return;
+}
 
   // ---- GUEST ----
   ui.onGuestStart(() => {
@@ -55,10 +69,13 @@ function boot() {
     await ensurePiLogin({
       BACKEND: "https://adventuremaze.onrender.com",
       ui,
-      onLogin: ({ user, accessToken }) => {
-        CURRENT_USER = user;
-        CURRENT_ACCESS_TOKEN = accessToken;
-      },
+onLogin: ({ user, accessToken }) => {
+  CURRENT_USER = user;
+  CURRENT_ACCESS_TOKEN = accessToken;
+
+  localStorage.setItem("pi_user", JSON.stringify(user));
+  localStorage.setItem("pi_token", accessToken);
+}
     });
 
     document.body.classList.remove("welcome-visible");
