@@ -114,15 +114,8 @@ ui.onLoginClick(async () => {
   };
   CURRENT_ACCESS_TOKEN = accessToken;
 
-  ui.setUser(CURRENT_USER); // 🔥 THIS WAS MISSING
+  ui.setUser(CURRENT_USER); // ✅ THIS LINE
 },
-    });
-
-    // ✅ FETCH COINS AFTER LOGIN
-    await loadCoins({
-      BACKEND,
-      token: CURRENT_ACCESS_TOKEN,
-      ui,
     });
 
     document.body.classList.remove("welcome-visible");

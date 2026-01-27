@@ -94,14 +94,9 @@ onLoginClick(cb) {
     setLevel() {},
     setUser(user) {
   const el = document.getElementById("userName");
-  if (!el) {
-    console.warn("userName element not found");
-    return;
-  }
-
-  el.textContent = user?.username || "Guest";
+  if (!el) return;
+  el.textContent = (user && (user.username || user.uid)) || "Guest";
 },
-
     setCoins(count) {
   const coinEl = document.getElementById("coinCount");
   if (coinEl) coinEl.textContent = count ?? 0;
