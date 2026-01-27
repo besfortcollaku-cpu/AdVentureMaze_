@@ -228,3 +228,8 @@ body.game-running .app {
   background: rgba(255,255,255,0.15);
   color: #fff;
 }
+.username{
+  font-weight:700;
+  opacity:.95;
+  margin-right:6px;
+}
