@@ -52,7 +52,7 @@ function boot() {
   // ---- PI LOGIN ----
   ui.onLoginClick(async () => {
     try {
-      const BACKEND: "https://adventuremaze.onrender.com",
+      const BACKEND: "https://adventuremaze.onrender.com";
 
       await ensurePiLogin({
         BACKEND,
