@@ -57,7 +57,7 @@ async function loadMeAndSyncUI({ BACKEND, token, ui }) {
   ui.setCoins(serverUser.coins);
     return me; // 🔥 THIS IS THE FIX
 }
-function boot() {
+async function boot() {
   const root = document.querySelector("#app");
   if (!root) {
     document.body.innerHTML = "<h1>#app not found</h1>";
@@ -105,11 +105,20 @@ if (CURRENT_USER && CURRENT_ACCESS_TOKEN) {
   document.body.classList.add("game-running");
   ui.hideWelcome();
 
-  loadCoins({
+  // ✅ sync real username + real coins from backend
+  const me = await loadMeAndSyncUI({
     BACKEND,
     token: CURRENT_ACCESS_TOKEN,
     ui,
   });
+
+  // ✅ unlock levels if your backend returns progress
+  const maxLevel =
+    me?.progress?.maxLevel ??
+    me?.progress?.highestLevel ??
+    1;
+
+  levelsUI.setUnlocked?.(maxLevel);
 
   game.start();
   return;
@@ -126,7 +135,6 @@ if (CURRENT_USER && CURRENT_ACCESS_TOKEN) {
 // ---- PI LOGIN ----
 ui.onLoginClick(async () => {
   try {
-    const BACKEND = import.meta.env.VITE_BACKEND_URL;
 
     await ensurePiLogin({
       BACKEND,
@@ -141,12 +149,18 @@ ui.onLoginClick(async () => {
     });
 
     // ✅ STEP 3 — RIGHT HERE
-    await loadMeAndSyncUI({
-      BACKEND,
-      token: CURRENT_ACCESS_TOKEN,
-      ui,
-    });
+    const me = await loadMeAndSyncUI({
+  BACKEND,
+  token: CURRENT_ACCESS_TOKEN,
+  ui,
+});
 
+const maxLevel =
+  me?.progress?.maxLevel ??
+  me?.progress?.highestLevel ??
+  1;
+
+levelsUI.setUnlocked?.(maxLevel);
     document.body.classList.remove("welcome-visible");
     document.body.classList.add("game-running");
     ui.hideWelcome();

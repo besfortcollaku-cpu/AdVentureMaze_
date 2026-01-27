@@ -68,13 +68,14 @@ document.body.appendChild(rightGuard);
     canvas,
     levelsBtn,
     showWelcome() {
-        document.body.classList.remove("game-running");
-      welcome.style.display = "flex";
-    },
-
+  document.body.classList.remove("game-running");
+  document.body.classList.add("welcome-visible");
+  welcome.style.display = "flex";
+},
     hideWelcome() {
-      welcome.style.display = "none";
-    },
+  document.body.classList.remove("welcome-visible");
+  welcome.style.display = "none";
+},
 onLoginClick(cb) {
   loginHandler = cb;
 },
