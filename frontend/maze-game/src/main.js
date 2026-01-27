@@ -59,7 +59,7 @@ async function loadMeAndSyncUI({ BACKEND, token, ui }) {
   ui.setUser(CURRENT_USER);
   ui.setCoins(serverUser.coins);
     return me; // 🔥 THIS IS THE FIX
-    console.log("ME DATA", me);
+    alert("ME DATA:\n" + JSON.stringify(me, null, 2));
 }
 function boot() {
   const root = document.querySelector("#app");
