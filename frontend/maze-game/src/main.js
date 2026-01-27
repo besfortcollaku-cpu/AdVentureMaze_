@@ -22,6 +22,21 @@ async function fetchAndSetCoins({ BACKEND, token, ui }) {
   const data = await res.json();
   ui.setCoins(data.coins ?? 0);
 }
+async function loadCoins({ BACKEND, token, ui }) {
+  const res = await fetch(`${BACKEND}/api/me`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!res.ok) return;
+
+  const data = await res.json();
+
+  if (typeof data?.user?.coins === "number") {
+    ui.setCoins(data.user.coins);
+  }
+}
 function boot() {
   const root = document.querySelector("#app");
   if (!root) {
@@ -66,8 +81,8 @@ if (CURRENT_USER && CURRENT_ACCESS_TOKEN) {
   document.body.classList.add("game-running");
   ui.hideWelcome();
 
-  fetchAndSetCoins({
-    BACKEND: import.meta.env.VITE_BACKEND_URL,
+  loadCoins({
+    BACKEND,
     token: CURRENT_ACCESS_TOKEN,
     ui,
   });
@@ -94,10 +109,12 @@ if (CURRENT_USER && CURRENT_ACCESS_TOKEN) {
     CURRENT_USER = user;
     CURRENT_ACCESS_TOKEN = accessToken;
 
-    // 🔑 POPULATE COINS
-    if (typeof user.coins === "number") {
-      ui.setCoins(user.coins);
-
+// ✅ ADD THIS LINE
+await loadCoins({
+  BACKEND,
+  token: CURRENT_ACCESS_TOKEN,
+  ui,
+    });
   localStorage.setItem("pi_user", JSON.stringify(user));
   localStorage.setItem("pi_token", accessToken);
 }
