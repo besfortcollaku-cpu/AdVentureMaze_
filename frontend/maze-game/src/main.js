@@ -2,6 +2,7 @@ import "./css/ui.css";
 import "./css/levels.css";
 import { mountLevelsUI } from "./ui/uiLevels.js";
 import { mountUI } from "./ui/ui.js";
+import { loadProgress } from "./api/loadProgress.js";
 import { createGame } from "./game/game.js";
 import { initPi } from "./pi/piInit.js";
 import { ensurePiLogin } from "./pi/piClient.js";
@@ -130,22 +131,23 @@ ui.onLoginClick(async () => {
     const BACKEND = import.meta.env.VITE_BACKEND_URL;
 
     await ensurePiLogin({
-  BACKEND,
-  ui,
-  onLogin: ({ user, accessToken }) => {
-    CURRENT_USER = user;
-    CURRENT_ACCESS_TOKEN = accessToken;
+      BACKEND,
+      ui,
+      onLogin: ({ user, accessToken }) => {
+        CURRENT_USER = user;
+        CURRENT_ACCESS_TOKEN = accessToken;
 
-    localStorage.setItem("pi_user", JSON.stringify(user));
-    localStorage.setItem("pi_token", accessToken);
-  },
-});
-await loadMeAndSyncUI({
-  BACKEND,
-  token: CURRENT_ACCESS_TOKEN,
-  ui,
-});
+        localStorage.setItem("pi_user", JSON.stringify(user));
+        localStorage.setItem("pi_token", accessToken);
+      },
+    });
 
+    // ✅ STEP 3 — RIGHT HERE
+    await loadMeAndSyncUI({
+      BACKEND,
+      token: CURRENT_ACCESS_TOKEN,
+      ui,
+    });
 
     document.body.classList.remove("welcome-visible");
     document.body.classList.add("game-running");
