@@ -135,7 +135,7 @@ await loadMeAndSyncUI({
   token: CURRENT_ACCESS_TOKEN,
   ui,
 });
-    });
+
 
     document.body.classList.remove("welcome-visible");
     document.body.classList.add("game-running");
