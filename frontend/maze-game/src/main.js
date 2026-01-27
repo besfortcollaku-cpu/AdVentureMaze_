@@ -99,31 +99,26 @@ if (CURRENT_USER && CURRENT_ACCESS_TOKEN) {
     game.start();
   });
 
-  // ---- PI LOGIN ----
- ui.onLoginClick(async () => {
+// ---- PI LOGIN ----
+ui.onLoginClick(async () => {
   try {
+    const BACKEND = import.meta.env.VITE_BACKEND_URL;
+
     await ensurePiLogin({
-  BACKEND,
-  ui,
-  onLogin: ({ user, accessToken }) => {
-    CURRENT_USER = user;
-    CURRENT_ACCESS_TOKEN = accessToken;
-
-// ✅ ADD THIS LINE
-await loadCoins({
-  BACKEND,
-  token: CURRENT_ACCESS_TOKEN,
-  ui,
-
-  localStorage.setItem("pi_user", JSON.stringify(user));
-  localStorage.setItem("pi_token", accessToken);
-}
+      BACKEND,
+      ui,
+      onLogin: ({ user, accessToken }) => {
+        CURRENT_USER = user;
+        CURRENT_ACCESS_TOKEN = accessToken;
+      }, // <-- ✅ this closing brace was missing!
     });
-await fetchAndSetCoins({
-  BACKEND,
-  token: CURRENT_ACCESS_TOKEN,
-  ui,
-});
+
+    // ✅ FETCH COINS AFTER LOGIN
+    await loadCoins({
+      BACKEND,
+      token: CURRENT_ACCESS_TOKEN,
+      ui,
+    });
 
     document.body.classList.remove("welcome-visible");
     document.body.classList.add("game-running");
@@ -133,7 +128,6 @@ await fetchAndSetCoins({
   } catch (err) {
     console.error("PI LOGIN FAILED", err);
   }
-  
 });
 }
 
