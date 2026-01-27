@@ -114,7 +114,7 @@ await loadCoins({
   BACKEND,
   token: CURRENT_ACCESS_TOKEN,
   ui,
-    });
+
   localStorage.setItem("pi_user", JSON.stringify(user));
   localStorage.setItem("pi_token", accessToken);
 }
