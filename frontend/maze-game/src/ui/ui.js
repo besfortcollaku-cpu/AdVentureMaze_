@@ -59,6 +59,8 @@ rightGuard.className = "edge-guard right";
 
 document.body.appendChild(leftGuard);
 document.body.appendChild(rightGuard);
+
+
   return {
     canvas,
 
@@ -88,6 +90,9 @@ onLoginClick(cb) {
     // stubs (do not remove)
     setLevel() {},
     setUser() {},
-    setCoins() {},
+    setCoins(count) {
+  const coinEl = document.getElementById("coinCount");
+  if (coinEl) coinEl.textContent = count ?? 0;
+},
   };
 }

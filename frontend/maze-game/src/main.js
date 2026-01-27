@@ -8,6 +8,20 @@ import { levels } from "./levels/index.js";
 let CURRENT_USER = null;
 let CURRENT_ACCESS_TOKEN = null;
 const BACKEND = "https://adventuremaze.onrender.com";
+async function fetchAndSetCoins({ BACKEND, token, ui }) {
+  if (!token) return;
+
+  const res = await fetch(`${BACKEND}/me`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!res.ok) return;
+
+  const data = await res.json();
+  ui.setCoins(data.coins ?? 0);
+}
 function boot() {
   const root = document.querySelector("#app");
   if (!root) {
@@ -48,9 +62,16 @@ if (savedUser && savedToken) {
     getCurrentUser: () => CURRENT_USER ?? { username: "guest", uid: null },
     onLevelComplete() {},
   });
-  if (CURRENT_USER) {
+if (CURRENT_USER && CURRENT_ACCESS_TOKEN) {
   document.body.classList.add("game-running");
   ui.hideWelcome();
+
+  fetchAndSetCoins({
+    BACKEND: import.meta.env.VITE_BACKEND_URL,
+    token: CURRENT_ACCESS_TOKEN,
+    ui,
+  });
+
   game.start();
   return;
 }
@@ -77,6 +98,11 @@ onLogin: ({ user, accessToken }) => {
   localStorage.setItem("pi_token", accessToken);
 }
     });
+await fetchAndSetCoins({
+  BACKEND,
+  token: CURRENT_ACCESS_TOKEN,
+  ui,
+});
 
     document.body.classList.remove("welcome-visible");
     document.body.classList.add("game-running");
@@ -86,6 +112,7 @@ onLogin: ({ user, accessToken }) => {
   } catch (err) {
     console.error("PI LOGIN FAILED", err);
   }
+  
 });
 }
 
