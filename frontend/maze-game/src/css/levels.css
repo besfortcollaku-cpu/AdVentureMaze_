@@ -1,13 +1,9 @@
-body.blurred .app {
-  filter: blur(6px);
-  pointer-events: none;
-}
-
 .levels-overlay {
   position: fixed;
   inset: 0;
-  z-index: 9999;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(6px);
+  z-index: 1000;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -18,43 +14,62 @@ body.blurred .app {
 }
 
 .levels-card {
-  width: 90%;
+  width: 92%;
   max-width: 420px;
-  background: linear-gradient(180deg, #0e2a36, #06161d);
-  border-radius: 24px;
+  background: linear-gradient(180deg,#0e2230,#08141e);
+  border-radius: 22px;
   padding: 20px;
-  color: #fff;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+}
+
+.levels-header {
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+.levels-header .badge {
+  background: #ff3b30;
+  color: white;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
 }
 
 .levels-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(4,1fr);
   gap: 12px;
-  margin: 20px 0;
+  margin-bottom: 16px;
 }
 
 .level-btn {
-  padding: 16px 0;
+  height: 52px;
   border-radius: 14px;
   border: none;
-  font-weight: bold;
-}
-
-.level-btn.locked {
-  background: rgba(255,255,255,0.08);
-  color: #777;
+  background: #132b3a;
+  color: #9fb8c8;
+  font-weight: 600;
 }
 
 .level-btn.unlocked {
-  background: #1ec8ff;
-  color: #000;
+  background: #1f4c66;
+  color: white;
+}
+
+.level-btn.locked {
+  opacity: 0.5;
 }
 
 .close-btn {
   width: 100%;
-  padding: 14px;
-  border-radius: 16px;
-  background: #222;
-  color: #fff;
+  height: 48px;
+  border-radius: 18px;
+  background: #1c2f3d;
+  color: white;
   border: none;
+  font-size: 16px;
+}
+
+body.blurred #app {
+  filter: blur(6px);
 }
