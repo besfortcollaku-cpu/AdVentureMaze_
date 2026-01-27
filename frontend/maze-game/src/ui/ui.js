@@ -94,7 +94,13 @@ onLoginClick(cb) {
     setLevel() {},
     setUser(user) {
   const el = document.getElementById("userName");
-  if (!el) return;
+  if (!el) {
+    console.warn("userName element not found");
+    return;
+  }
+
+  el.textContent = user?.username || "Guest";
+},
 
   // 🔥 THIS IS THE IMPORTANT PART
   el.textContent = user.username ?? "Guest";
