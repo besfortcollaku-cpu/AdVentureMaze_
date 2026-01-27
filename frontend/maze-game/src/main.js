@@ -127,7 +127,11 @@ ui.onLoginClick(async () => {
   BACKEND,
   ui,
   onLogin: ({ user, accessToken }) => {
+    CURRENT_USER = user;
     CURRENT_ACCESS_TOKEN = accessToken;
+
+    localStorage.setItem("pi_user", JSON.stringify(user));
+    localStorage.setItem("pi_token", accessToken);
   },
 });
 await loadMeAndSyncUI({
