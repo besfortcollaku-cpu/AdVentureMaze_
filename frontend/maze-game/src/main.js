@@ -108,7 +108,7 @@ ui.onLoginClick(async () => {
       BACKEND,
       ui,
       onLogin: ({ user, accessToken }) => {
-        CURRENT_USER = user;
+ui.setUser(user); // ✅ SHOW USERNAME
         CURRENT_ACCESS_TOKEN = accessToken;
       }, // <-- ✅ this closing brace was missing!
     });

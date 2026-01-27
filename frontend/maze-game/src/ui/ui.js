@@ -10,7 +10,10 @@ export function mountUI(root) {
           <button class="icon">⚙️</button>
           <button class="icon">☰</button>
         </div>
-        <div class="coins">🟡 <span id="coinCount">0</span></div>
+    <div class="coins">
+  <span id="username" class="username">Guest:</span>
+  🪙 <span id="coinCount">0</span>
+</div>
       </header>
 
       <div class="board">
@@ -89,7 +92,10 @@ onLoginClick(cb) {
 
     // stubs (do not remove)
     setLevel() {},
-    setUser() {},
+    setUser(user) {
+  const userEl = document.getElementById("username");
+  if (userEl) userEl.textContent = user?.username ?? "Guest";
+},
     setCoins(count) {
   const coinEl = document.getElementById("coinCount");
   if (coinEl) coinEl.textContent = count ?? 0;
