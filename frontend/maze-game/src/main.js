@@ -33,14 +33,10 @@ async function loadCoins({ BACKEND, token, ui }) {
   });
 
   if (!res.ok) return;
-
-  const data = await res.json();
-
-  if (typeof data?.user?.coins === "number") {
-    ui.setCoins(data.user.coins);
-  }
 }
+
 async function loadMeAndSyncUI({ BACKEND, token, ui }) {
+    
   const res = await fetch(`${BACKEND}/api/me`, {
     headers: { Authorization: `Bearer ${token}` },
   });
@@ -48,6 +44,7 @@ async function loadMeAndSyncUI({ BACKEND, token, ui }) {
   if (!res.ok) return;
 
   const me = await res.json();
+  alert("loadMeAndSyncUI EXECUTED ✅");
 
   const serverUser = me.user;
 
@@ -59,7 +56,6 @@ async function loadMeAndSyncUI({ BACKEND, token, ui }) {
   ui.setUser(CURRENT_USER);
   ui.setCoins(serverUser.coins);
     return me; // 🔥 THIS IS THE FIX
-    alert("ME DATA:\n" + JSON.stringify(me, null, 2));
 }
 function boot() {
   const root = document.querySelector("#app");
