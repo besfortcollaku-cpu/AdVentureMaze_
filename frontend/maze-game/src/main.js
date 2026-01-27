@@ -7,7 +7,7 @@ import { levels } from "./levels/index.js";
 
 let CURRENT_USER = null;
 let CURRENT_ACCESS_TOKEN = null;
-
+const BACKEND = "https://adventuremaze.onrender.com";
 function boot() {
   const root = document.querySelector("#app");
   if (!root) {
@@ -50,28 +50,26 @@ function boot() {
   });
 
   // ---- PI LOGIN ----
-  ui.onLoginClick(async () => {
-    try {
-      const BACKEND: "https://adventuremaze.onrender.com";
+ ui.onLoginClick(async () => {
+  try {
+    await ensurePiLogin({
+      BACKEND: "https://adventuremaze.onrender.com",
+      ui,
+      onLogin: ({ user, accessToken }) => {
+        CURRENT_USER = user;
+        CURRENT_ACCESS_TOKEN = accessToken;
+      },
+    });
 
-      await ensurePiLogin({
-        BACKEND,
-        ui,
-        onLogin: ({ user, accessToken }) => {
-          CURRENT_USER = user;
-          CURRENT_ACCESS_TOKEN = accessToken;
-        },
-      });
+    document.body.classList.remove("welcome-visible");
+    document.body.classList.add("game-running");
+    ui.hideWelcome();
+    game.start();
 
-      document.body.classList.remove("welcome-visible");
-      document.body.classList.add("game-running");
-      ui.hideWelcome();
-      game.start();
-
-    } catch (err) {
-      console.error("PI LOGIN FAILED", err);
-    }
-  });
+  } catch (err) {
+    console.error("PI LOGIN FAILED", err);
+  }
+});
 }
 
 boot();
