@@ -1,51 +1,104 @@
+// uiLevels.js
+import "./levels/levels.css";
+
 export function mountLevelsUI(root) {
-  const el = document.createElement("div");
-  el.id = "levelsOverlay";
-  el.className = "levels-overlay hidden";
+  // ----- DOM -----
+  const overlay = document.createElement("div");
+  overlay.id = "levelsOverlay";
+  overlay.className = "levelsOverlay";
 
-  el.innerHTML = `
-    <div class="levels-card">
-      <h2>Select Level</h2>
-
-      <div class="levels-grid">
-        ${Array.from({ length: 20 }, (_, i) => `
-          <button class="level-btn locked" data-level="${i + 1}">
-            ${i + 1}
-          </button>
-        `).join("")}
+  overlay.innerHTML = `
+    <div class="levelsCard">
+      <div class="levelsHeader">
+        <span class="badge">LEVELS</span>
+        <h2>Select Level</h2>
       </div>
 
-      <button id="closeLevels" class="close-btn">Close</button>
+      <div class="levelsGrid" id="levelsGrid"></div>
+
+      <button class="closeBtn" id="levelsClose">Close</button>
     </div>
   `;
 
-  root.appendChild(el);
+  root.appendChild(overlay);
 
-  const closeBtn = el.querySelector("#closeLevels");
+  const grid = overlay.querySelector("#levelsGrid");
+  const closeBtn = overlay.querySelector("#levelsClose");
 
+  // ----- STATE -----
+  let maxUnlocked = 1;
+  let selectHandler = null;
+  const TOTAL_LEVELS = 20;
+
+  // ----- BUILD GRID ONCE -----
+  const levelButtons = [];
+
+  for (let i = 1; i <= TOTAL_LEVELS; i++) {
+    const btn = document.createElement("button");
+    btn.className = "levelBtn";
+    btn.dataset.level = i;
+
+    btn.innerHTML = `
+      <span class="icon"></span>
+      <span class="label">Level ${i}</span>
+    `;
+
+    btn.addEventListener("click", () => {
+      if (btn.classList.contains("locked")) return;
+      selectHandler?.(i);
+      close();
+    });
+
+    grid.appendChild(btn);
+    levelButtons.push(btn);
+  }
+
+  // ----- RENDER STATES -----
+  function render() {
+    levelButtons.forEach((btn) => {
+      const level = Number(btn.dataset.level);
+      btn.classList.remove("locked", "completed", "unlocked");
+
+      const icon = btn.querySelector(".icon");
+
+      if (level < maxUnlocked) {
+        btn.classList.add("completed");
+        icon.textContent = "✔️";
+      } else if (level === maxUnlocked) {
+        btn.classList.add("unlocked");
+        icon.textContent = "";
+      } else {
+        btn.classList.add("locked");
+        icon.textContent = "🔒";
+      }
+    });
+  }
+
+  // ----- OPEN / CLOSE -----
   function open() {
-    document.body.classList.add("blurred");
-    el.classList.remove("hidden");
+    document.body.classList.add("overlay-open");
+    overlay.style.display = "flex";
   }
 
   function close() {
-    document.body.classList.remove("blurred");
-    el.classList.add("hidden");
+    document.body.classList.remove("overlay-open");
+    overlay.style.display = "none";
   }
 
   closeBtn.addEventListener("click", close);
 
+  // ----- PUBLIC API -----
   return {
     open,
     close,
-    setUnlocked(maxLevel = 1) {
-      el.querySelectorAll(".level-btn").forEach(btn => {
-        const lvl = Number(btn.dataset.level);
-        if (lvl <= maxLevel) {
-          btn.classList.remove("locked");
-          btn.classList.add("unlocked");
-        }
-      });
+
+    setUnlocked(level) {
+      maxUnlocked = Math.max(1, level || 1);
+      render();
+    },
+
+    onSelect(cb) {
+      selectHandler = cb;
     },
   };
 }
