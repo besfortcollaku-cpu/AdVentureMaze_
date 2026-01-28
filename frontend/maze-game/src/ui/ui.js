@@ -80,9 +80,6 @@ export function mountUI(root) {
     // ----- --level UI (NEW) -----
 
   const levelsUI = mountLevelsUI(root);
-  levelBtn.addEventListener("click", () => {
-    levelUI.open();
-  });
 levelsUI.onSelect((levelNumber) => {
   // levelNumber is 1-based
   ui.setLevel(levelNumber);
