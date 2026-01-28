@@ -55,7 +55,7 @@ export function mountUI(root) {
   // ----- ACCOUNT UI -----
   const accountUI = mountAccountUI(root);
   accountBtn.addEventListener("click", () => {
-    accountUI.open();
+    accountUI.show();
   });
 
   // ----- SETTINGS UI -----
