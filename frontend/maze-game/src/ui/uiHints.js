@@ -1,5 +1,5 @@
 // uiHints.js
-import "./css/hints.css";
+import "../css/hints.css";
 
 export function mountHintsUI(root) {
   const el = document.createElement("div");

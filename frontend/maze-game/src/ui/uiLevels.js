@@ -1,5 +1,5 @@
 // uiLevels.js
-import "./levels/levels.css";
+import "../levels/levels.css";
 
 export function mountLevelsUI(root) {
   // ----- DOM -----

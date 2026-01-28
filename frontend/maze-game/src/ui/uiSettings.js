@@ -1,5 +1,5 @@
 
-import "./css/settings.css";
+import "../css/settings.css";
 
 
 export function mountSettingsUI(root) {

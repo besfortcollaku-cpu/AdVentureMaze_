@@ -1,5 +1,5 @@
 // src/ui/uiAccount.js
-import "./css/account.css";
+import "../css/account.css";
 
 export function mountAccountUI(root) {
   // Inject overlay HTML once
