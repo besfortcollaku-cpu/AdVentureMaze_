@@ -1,5 +1,5 @@
 // uiSkip.js
-import "./css/skip.css";
+import "../css/skip.css";
 
 export function mountSkipUI(root) {
   // ----- DOM -----
