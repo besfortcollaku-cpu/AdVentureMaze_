@@ -2,7 +2,7 @@ import { mountAccountUI } from "./uiAccount.js";
 import { mountSettingsUI } from "./uiSettings.js";
 import { mountHintsUI } from "./uiHints.js";
 import { mountSkipUI } from "./uiSkip.js";
-import { mountLevelsUi } from "./uiLevels.js";
+import { mountLevelsUI } from "./uiLevels.js";
 // ✅ NEW
 
 export function mountUI(root) {
