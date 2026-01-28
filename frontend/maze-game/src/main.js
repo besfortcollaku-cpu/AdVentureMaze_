@@ -84,6 +84,15 @@ if (savedUser && savedToken) {
 
   // Mount UI
 const ui = mountUI(root);
+ui.onGuestStart(() => {
+  console.log("Guest start clicked");
+  ui.hideWelcome();
+});
+
+ui.onLoginClick(() => {
+  console.log("Login clicked");
+  ui.hideWelcome();
+});
 const levelsUI = mountLevelsUI(root);  
 ui.levelsBtn.addEventListener("click", () => {
   levelsUI.open();
