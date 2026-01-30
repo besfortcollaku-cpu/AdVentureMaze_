@@ -128,8 +128,6 @@ ui.levelsBtn.addEventListener("click", () => {
   
   ui.showWelcome();
 
-  // Init Pi SDK
-  initPi();
 
   // Create game (DO NOT START)
   const game = createGame({
