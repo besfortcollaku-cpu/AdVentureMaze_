@@ -1,9 +1,7 @@
 import { mountAccountUI } from "./uiAccount.js";
 import { mountSettingsUI } from "./uiSettings.js";
 import { mountHintsUI } from "./uiHints.js";
-import { mountSkipUI } from "./uiSkip.js";
-import { mountLevelsUI } from "./uiLevels.js";
-// ✅ NEW
+import { mountSkipUI } from "./uiSkip.js"; // ✅ NEW
 
 export function mountUI(root) {
   root.innerHTML = `
@@ -77,24 +75,7 @@ export function mountUI(root) {
   skipBtn.addEventListener("click", () => {
     skipUI.open();
   });
-    // ----- --level UI (NEW) -----
 
-  const levelsUI = mountLevelsUI(root);
-  levelBtn.addEventListener("click", () => {
-    levelUI.open();
-  });
-levelsUI.onSelect((levelNumber) => {
-  // levelNumber is 1-based
-  ui.setLevel(levelNumber);
-
-  // tell game to switch level
-  if (typeof game?.setLevel === "function") {
-    game.setLevel(levelNumber);
-  }
-
-  levelsUI.close();
-});
-levelsUI.setUnlocked(7);
   // ----- HANDLERS -----
   let guestHandler = null;
   let loginHandler = null;
