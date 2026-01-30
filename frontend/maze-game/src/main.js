@@ -6,7 +6,7 @@ import { loadProgress } from "./api/loadProgress.js";
 import { createGame } from "./game/game.js";
 import { ensurePiLogin } from "./pi/piClient.js";
 import { levels } from "./levels/index.js";
-import { createWinPopup } from "/ui./uiWin.js";
+import { createWinPopup } from "./ui./uiWin.js";
 
 const winPopup = createWinPopup();
 const GUEST_PROGRESS_KEY = "guest_progress_v1";
