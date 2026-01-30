@@ -11,20 +11,7 @@ const GUEST_MAX_LEVEL = 5;
 let CURRENT_USER = null;
 let CURRENT_ACCESS_TOKEN = null;
 const BACKEND = "https://triumphant-gentleness-production.up.railway.app/";
-async function fetchAndSetCoins({ BACKEND, token, ui }) {
-  if (!token) return;
 
-  const res = await fetch(`${BACKEND}/me`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-
-  if (!res.ok) return;
-
-  const data = await res.json();
-  ui.setCoins(data.coins ?? 0);
-}
 async function loadCoins({ BACKEND, token, ui }) {
   const res = await fetch(`${BACKEND}/api/me`, {
     headers: {
