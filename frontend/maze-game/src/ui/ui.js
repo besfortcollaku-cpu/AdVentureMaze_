@@ -102,6 +102,17 @@ export function mountUI(root) {
   return {
     canvas,
     levelsBtn,
+    showLoginGate() {
+  this.showWelcome();
+},
+
+hideLoginGate() {
+  this.hideWelcome();
+},
+
+showLoginError(msg) {
+  alert(msg); // TEMP – replace later with UI label
+},
 
     showWelcome() {
       document.body.classList.remove("game-running");
