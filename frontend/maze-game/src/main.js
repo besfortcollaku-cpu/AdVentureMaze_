@@ -6,6 +6,9 @@ import { loadProgress } from "./api/loadProgress.js";
 import { createGame } from "./game/game.js";
 import { ensurePiLogin } from "./pi/piClient.js";
 import { levels } from "./levels/index.js";
+import { createWinPopup } from "./uiWin.js";
+
+const winPopup = createWinPopup();
 const GUEST_PROGRESS_KEY = "guest_progress_v1";
 const GUEST_MAX_LEVEL = 5;
 let CURRENT_USER = null;
@@ -111,6 +114,8 @@ async function boot() {
 
   // Mount UI
 const ui = mountUI(root);
+const winPopup = createWinPopup();
+
 ui.onAccountClick(async () => {
   // already logged in → show account
   if (CURRENT_USER?.uid) {
@@ -134,8 +139,21 @@ ui.levelsBtn.addEventListener("click", () => {
     canvas: ui.canvas,
     level: levels[0],
     getCurrentUser: () => CURRENT_USER ?? { username: "guest", uid: null },
-    onLevelComplete() {},
+    onLevelComplete() { 
+        winPopup.show({
+    levelNumber: levelIndex + 1,
+    },
   });
+  winPopup.onNextLevel(() => {
+  winPopup.hide();
+  goNextLevel();
+});
+
+winPopup.onWatchAdClick(() => {
+  // STEP 3: reward logic will go here later
+  winPopup.hide();
+  goNextLevel();
+});
 
   // ---- GUEST ----
   ui.onGuestStart(() => {
@@ -155,8 +173,6 @@ ui.levelsBtn.addEventListener("click", () => {
 // ---- PI LOGIN ----
 ui.onLoginClick(async () => {
   const result = await ensurePiLogin({
-          ui.showToast?.("Logged in with Pi");
-
     BACKEND,
     ui,
     onLogin: ({ user, accessToken }) => {
