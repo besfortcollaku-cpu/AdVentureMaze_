@@ -118,7 +118,5 @@ export async function ensurePiLogin({ BACKEND, ui, onLogin }) {
       return;
     }
 
-    // gate button click triggers login (single handler)
-    ui.onLoginClick(runLogin);
   });
 }
