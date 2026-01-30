@@ -44,6 +44,34 @@ async function loadMeAndSyncUI({ BACKEND, token, ui }) {
   ui.setCoins(serverUser.coins);
     return me; // 🔥 THIS IS THE FIX
 }
+function requireAuthOrOfferAd(actionName) {
+  if (CURRENT_USER?.uid) return true;
+
+  ui.showToast?.(`${actionName} requires login`);
+  ui.showLoginGate();
+  return false;
+}
+
+function onLevelComplete() {
+  const isLastLevel = levelIndex >= levels.length - 1;
+
+  if (!rewardedThisLevel && CURRENT_USER?.uid) {
+    rewardedThisLevel = true;
+
+    (async () => {
+      try {
+        const out = await apiClaimLevelComplete(levelIndex + 1);
+        COINS = Number(out?.user?.coins ?? COINS);
+        ui.setCoins(COINS);
+      } catch (e) {
+        console.warn("level reward failed:", e);
+      }
+    })();
+  }
+
+  ui.showWinPopup({ levelNumber: levelIndex + 1, isLastLevel });
+}
+
 function loadGuestProgress() {
   try {
     const raw = localStorage.getItem(GUEST_PROGRESS_KEY);
@@ -94,6 +122,50 @@ async function boot() {
     (e) => e.preventDefault(),
     { passive: false }
   );
+  ui.onWinAd(async () => {
+  if (!requireAuthOrOfferAd("Ad reward")) return;
+
+  try {
+    ui.showToast?.("Watching ad…");
+    await delay(5000);
+
+    const out = await apiAd50();
+    COINS = Number(out?.user?.coins ?? COINS);
+    ui.setCoins(COINS);
+  } catch (e) {
+    alert("Ad reward failed");
+  }
+
+  ui.hideWinPopup();
+  await goNextLevel();
+});
+  document.getElementById("skipBtn")?.addEventListener("click", async () => {
+  if (!requireAuthOrOfferAd("Skip")) return;
+
+  try {
+    await delay(5000);
+    const out = await apiSkip();
+    COINS = Number(out?.user?.coins ?? COINS);
+    ui.setCoins(COINS);
+    await goNextLevel();
+  } catch (e) {
+    alert("Skip failed");
+  }
+});
+
+document.getElementById("hintBtn")?.addEventListener("click", async () => {
+  if (!requireAuthOrOfferAd("Hint")) return;
+
+  try {
+    await delay(5000);
+    const out = await apiHint();
+    COINS = Number(out?.user?.coins ?? COINS);
+    ui.setCoins(COINS);
+  } catch (e) {
+    alert("Hint failed");
+  }
+});
+
   
 
   // Mount UI
