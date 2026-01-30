@@ -160,6 +160,8 @@ ui.onLoginClick(async () => {
     onLogin: ({ user, accessToken }) => {
       CURRENT_USER = user;
       CURRENT_ACCESS_TOKEN = accessToken;
+    ui.showToast?.("Logged in with Pi");
+        
     },
   });
 
