@@ -138,19 +138,7 @@ const ui = mountUI(root);
   });
 
   // ---- GUEST ----
-  ui.onGuestStart(() => {
-  CURRENT_USER = { username: "Guest", uid: null };
-  CURRENT_ACCESS_TOKEN = null;
-
-  const guestProgress = loadGuestProgress();
-  levelsUI.setUnlocked?.(
-    Math.min(guestProgress.maxLevel, GUEST_MAX_LEVEL)
-  );
-
-  document.body.classList.add("game-running");
-  ui.hideWelcome();
-  game.start();
-});
+  
 
 // ---- PI LOGIN ----
 ui.onLoginClick(async () => {

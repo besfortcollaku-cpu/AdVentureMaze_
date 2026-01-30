@@ -91,7 +91,32 @@ accountBtn.addEventListener("click", () => {
   });
 
   loginBtn.addEventListener("click", () => {
-    loginHandler?.();
+    ui.onLoginClick(async () => {
+  const result = await ensurePiLogin({
+    BACKEND,
+    ui,
+    onLogin: ({ user, accessToken }) => {
+      CURRENT_USER = user;
+      CURRENT_ACCESS_TOKEN = accessToken;
+    },
+  });
+
+  if (!result?.ok) return;
+
+  const me = await loadMeAndSyncUI({
+    BACKEND,
+    token: CURRENT_ACCESS_TOKEN,
+    ui,
+  });
+
+  levelsUI.setUnlocked?.(
+    me?.progress?.maxLevel ?? 1
+  );
+
+  document.body.classList.add("game-running");
+  ui.hideWelcome?.();
+  game.start();
+});
   });
 
   // ----- iOS EDGE GUARDS -----
