@@ -11,7 +11,20 @@ const GUEST_MAX_LEVEL = 5;
 let CURRENT_USER = null;
 let CURRENT_ACCESS_TOKEN = null;
 const BACKEND = "https://triumphant-gentleness-production.up.railway.app/";
+async function fetchAndSetCoins({ BACKEND, token, ui }) {
+  if (!token) return;
 
+  const res = await fetch(`${BACKEND}/me`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!res.ok) return;
+
+  const data = await res.json();
+  ui.setCoins(data.coins ?? 0);
+}
 async function loadCoins({ BACKEND, token, ui }) {
   const res = await fetch(`${BACKEND}/api/me`, {
     headers: {
@@ -44,34 +57,6 @@ async function loadMeAndSyncUI({ BACKEND, token, ui }) {
   ui.setCoins(serverUser.coins);
     return me; // 🔥 THIS IS THE FIX
 }
-
-/*function requireAuthOrOfferAd(actionName) {
-  if (CURRENT_USER?.uid) return true;
-
- ui.showToast?.(`${actionName} requires login`);
- ui.showLoginGate();
-  return false;}
-
-function onLevelComplete() {
-  const isLastLevel = levelIndex >= levels.length - 1;
-
-  if (!rewardedThisLevel && CURRENT_USER?.uid) {
-    rewardedThisLevel = true;
-
-    (async () => {
-      try {
-        const out = await apiClaimLevelComplete(levelIndex + 1);
-        COINS = Number(out?.user?.coins ?? COINS);
-        ui.setCoins(COINS);
-      } catch (e) {
-        console.warn("level reward failed:", e);
-      }
-    })();
-  }
-
-  ui.showWinPopup({ levelNumber: levelIndex + 1, isLastLevel });
-}
-*/
 function loadGuestProgress() {
   try {
     const raw = localStorage.getItem(GUEST_PROGRESS_KEY);
@@ -126,7 +111,22 @@ async function boot() {
 
   // Mount UI
 const ui = mountUI(root);
+ui.onAccountClick(async () => {
+  // already logged in → show account
+  if (CURRENT_USER?.uid) {
+    return; // ui.js will open account UI
+  }
 
+  // guest → force Pi login
+  ui.showWelcome();
+  ui.triggerLogin();
+});
+const levelsUI = mountLevelsUI(root);  
+ui.levelsBtn.addEventListener("click", () => {
+  levelsUI.open();
+});
+  
+  ui.showWelcome();
 
 
   // Create game (DO NOT START)
@@ -138,7 +138,19 @@ const ui = mountUI(root);
   });
 
   // ---- GUEST ----
-  
+  ui.onGuestStart(() => {
+  CURRENT_USER = { username: "Guest", uid: null };
+  CURRENT_ACCESS_TOKEN = null;
+
+  const guestProgress = loadGuestProgress();
+  levelsUI.setUnlocked?.(
+    Math.min(guestProgress.maxLevel, GUEST_MAX_LEVEL)
+  );
+
+  document.body.classList.add("game-running");
+  ui.hideWelcome();
+  game.start();
+});
 
 // ---- PI LOGIN ----
 ui.onLoginClick(async () => {
