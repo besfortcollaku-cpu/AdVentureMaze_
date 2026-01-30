@@ -1,6 +1,6 @@
 import { mountAccountUI } from "./uiAccount.js";
 import { mountSettingsUI } from "./uiSettings.js";
-import { mountHintsUI } from "./uiHint.js";
+import { mountHintsUI } from "./uiHints.js";
 import { mountSkipUI } from "./uiSkip.js"; // ✅ NEW
 import { mountLevelspUI } from "./uiLevels.js"; 
 export function mountUI(root) {
