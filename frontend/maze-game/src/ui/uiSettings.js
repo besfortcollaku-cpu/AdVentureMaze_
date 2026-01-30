@@ -1,26 +1,23 @@
-// src/ui/uiSettings.js
-// Settings popup UI (Sound / Vibration)
 
-export function createSettingsUI() {
-  let onSoundChange = null;
-  let onVibrationChange = null;
+import "../css/settings.css";
 
-  // ---------------------------
-  // HTML
-  // ---------------------------
+
+export function mountSettingsUI(root) {
   const el = document.createElement("div");
-  el.className = "overlay settingsOverlay hidden";
+  el.id = "settingsOverlay";
+  el.className = "settings-overlay hidden";
 
   el.innerHTML = `
-    <div class="modal settingsModal">
-      <div class="settingsHeader">
+    <div class="settings-backdrop"></div>
+    <div class="settings-card">
+      <div class="settings-header">
         <h2>Settings</h2>
-        <button class="closeBtn">✕</button>
+        <button class="close-btn">✕</button>
       </div>
 
-      <div class="settingItem">
+      <div class="settings-item">
         <div>
-          <div class="title">Sound</div>
+          <strong>Sound</strong>
           <div class="desc">Rolling + victory (no wall-hit sound)</div>
         </div>
         <label class="switch">
@@ -29,9 +26,9 @@ export function createSettingsUI() {
         </label>
       </div>
 
-      <div class="settingItem">
+      <div class="settings-item">
         <div>
-          <div class="title">Vibration</div>
+          <strong>Vibration</strong>
           <div class="desc">Small vibration when ball stops</div>
         </div>
         <label class="switch">
@@ -40,67 +37,53 @@ export function createSettingsUI() {
         </label>
       </div>
 
-      <div class="settingsFooter">
-        Changes are saved automatically.
+      <!-- FUTURE -->
+      <div class="settings-item disabled">
+        <div>
+          <strong>Background music</strong>
+          <div class="desc">Coming soon</div>
+        </div>
+        <label class="switch">
+          <input type="checkbox" disabled>
+          <span class="slider"></span>
+        </label>
       </div>
+
+      <p class="settings-hint">Changes are saved automatically.</p>
     </div>
   `;
 
-  document.body.appendChild(el);
+  root.appendChild(el);
 
-  // ---------------------------
-  // Elements
-  // ---------------------------
-  const closeBtn = el.querySelector(".closeBtn");
   const soundToggle = el.querySelector("#soundToggle");
   const vibrationToggle = el.querySelector("#vibrationToggle");
 
-  // ---------------------------
-  // Events
-  // ---------------------------
-  closeBtn.addEventListener("click", hide);
+  // ---- LOAD SAVED SETTINGS ----
+  soundToggle.checked = localStorage.getItem("sound") !== "off";
+  vibrationToggle.checked = localStorage.getItem("vibration") !== "off";
 
+  // ---- SAVE ON CHANGE ----
   soundToggle.addEventListener("change", () => {
-    onSoundChange?.(soundToggle.checked);
+    localStorage.setItem("sound", soundToggle.checked ? "on" : "off");
   });
 
   vibrationToggle.addEventListener("change", () => {
-    onVibrationChange?.(vibrationToggle.checked);
+    localStorage.setItem("vibration", vibrationToggle.checked ? "on" : "off");
   });
 
-  // ---------------------------
-  // API
-  // ---------------------------
-  function show() {
+  // ---- OPEN / CLOSE ----
+  el.querySelector(".close-btn").onclick = close;
+  el.querySelector(".settings-backdrop").onclick = close;
+
+  function open() {
     el.classList.remove("hidden");
+    document.body.classList.add("modal-open");
   }
 
-  function hide() {
+  function close() {
     el.classList.add("hidden");
+    document.body.classList.remove("modal-open");
   }
 
-  function setSoundEnabled(val) {
-    soundToggle.checked = !!val;
-  }
-
-  function setVibrationEnabled(val) {
-    vibrationToggle.checked = !!val;
-  }
-
-  function onSoundToggle(cb) {
-    onSoundChange = cb;
-  }
-
-  function onVibrationToggle(cb) {
-    onVibrationChange = cb;
-  }
-
-  return {
-    show,
-    hide,
-    setSoundEnabled,
-    setVibrationEnabled,
-    onSoundToggle,
-    onVibrationToggle,
-  };
+  return { open, close };
 }

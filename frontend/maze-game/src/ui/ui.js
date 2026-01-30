@@ -1,4 +1,9 @@
-// src/ui/ui.js
+import { mountAccountUI } from "./uiAccount.js";
+import { mountSettingsUI } from "./uiSettings.js";
+import { mountHintsUI } from "./uiHints.js";
+import { mountSkipUI } from "./uiSkip.js";
+import { mountLevelsUI } from "./uiLevels.js";
+// ✅ NEW
 
 export function mountUI(root) {
   root.innerHTML = `
@@ -6,14 +11,14 @@ export function mountUI(root) {
       <header class="top">
         <h1 class="level">Level 1</h1>
         <div class="icons">
-          <button class="icon">👤</button>
-          <button class="icon">⚙️</button>
-          <button class="icon">☰</button>
+          <button class="icon" id="accountBtn">👤</button>
+          <button class="icon" id="settingsBtn">⚙️</button>
+          <button class="icon" id="levelsBtn">☰</button>
         </div>
-    <div class="coins">
-  <span id="username" class="username">Guest:</span>
-  🪙 <span id="coinCount">0</span>
-</div>
+        <div class="coins">
+          <span id="userName" class="userName">Guest</span>
+          🪙 <span id="coinCount">0</span>
+        </div>
       </header>
 
       <div class="board">
@@ -21,63 +26,117 @@ export function mountUI(root) {
       </div>
 
       <footer class="bottom">
-        <button class="btn">❓ Hint</button>
+        <button class="btn" id="hintBtn">❓ Hint</button>
         <span>Swipe to move</span>
-        <button class="btn">⏭ Skip</button>
+        <button class="btn" id="skipBtn">⏭ Skip</button>
       </footer>
 
       <div class="ad">Ad Banner</div>
 
       <div id="welcomeOverlay" class="welcomeOverlay">
-  <div class="welcomeCard">
-    <h1>Welcome to AdVenture Maze</h1>
-    <button id="loginBtn" class="startBtn secondary">Login with Pi</button>
-    <button id="guestBtn" class="startBtn">Play as Guest</button>
-  </div>
-</div>
+        <div class="welcomeCard">
+          <h1>Welcome to AdVenture Maze</h1>
+          <button id="loginBtn" class="startBtn secondary">Login with Pi</button>
+          <button id="guestBtn" class="startBtn">Play as Guest</button>
+        </div>
+      </div>
     </div>
   `;
 
+  // ----- CORE ELEMENTS -----
   const canvas = root.querySelector("#game");
   const welcome = root.querySelector("#welcomeOverlay");
   const guestBtn = root.querySelector("#guestBtn");
   const loginBtn = root.querySelector("#loginBtn");
+  const levelsBtn = root.querySelector("#levelsBtn");
+  const accountBtn = root.querySelector("#accountBtn");
+  const settingsBtn = root.querySelector("#settingsBtn");
+  const hintBtn = root.querySelector("#hintBtn");
+  const skipBtn = root.querySelector("#skipBtn"); // ✅ NEW
 
+  // ----- ACCOUNT UI -----
+  const accountUI = mountAccountUI(root);
+  accountBtn.addEventListener("click", () => {
+    accountUI.show();
+  });
+
+  // ----- SETTINGS UI -----
+  const settingsUI = mountSettingsUI(root);
+  settingsBtn.addEventListener("click", () => {
+    settingsUI.open();
+  });
+
+  // ----- HINTS UI -----
+  const hintsUI = mountHintsUI(root);
+  hintBtn.addEventListener("click", () => {
+    hintsUI.open();
+  });
+
+  // ----- SKIP UI (NEW) -----
+  const skipUI = mountSkipUI(root);
+  skipBtn.addEventListener("click", () => {
+    skipUI.open();
+  });
+    // ----- --level UI (NEW) -----
+
+  const levelsUI = mountLevelsUI(root);
+  levelBtn.addEventListener("click", () => {
+    levelUI.open();
+  });
+levelsUI.onSelect((levelNumber) => {
+  // levelNumber is 1-based
+  ui.setLevel(levelNumber);
+
+  // tell game to switch level
+  if (typeof game?.setLevel === "function") {
+    game.setLevel(levelNumber);
+  }
+
+  levelsUI.close();
+});
+levelsUI.setUnlocked(7);
+  // ----- HANDLERS -----
   let guestHandler = null;
- let loginHandler = null;
-
+  let loginHandler = null;
 
   guestBtn.addEventListener("click", () => {
     guestHandler?.();
   });
+
   loginBtn.addEventListener("click", () => {
-  loginHandler?.();
-});
-// Edge guards (block iOS back swipe)
-const leftGuard = document.createElement("div");
-leftGuard.className = "edge-guard left";
+    loginHandler?.();
+  });
 
-const rightGuard = document.createElement("div");
-rightGuard.className = "edge-guard right";
+  // ----- iOS EDGE GUARDS -----
+  const leftGuard = document.createElement("div");
+  leftGuard.className = "edge-guard left";
 
-document.body.appendChild(leftGuard);
-document.body.appendChild(rightGuard);
+  const rightGuard = document.createElement("div");
+  rightGuard.className = "edge-guard right";
 
+  document.body.appendChild(leftGuard);
+  document.body.appendChild(rightGuard);
 
+  // ----- PUBLIC API -----
   return {
     canvas,
+    levelsBtn,
 
     showWelcome() {
-        document.body.classList.remove("game-running");
+      document.body.classList.remove("game-running");
+      document.body.classList.add("welcome-visible");
       welcome.style.display = "flex";
     },
 
     hideWelcome() {
+      document.body.classList.remove("welcome-visible");
       welcome.style.display = "none";
     },
-onLoginClick(cb) {
-  loginHandler = cb;
-},
+
+    onLoginClick(cb) {
+      loginHandler = cb;
+    },
+
     onGuestStart(cb) {
       guestHandler = cb;
     },
@@ -90,15 +149,20 @@ onLoginClick(cb) {
       window.addEventListener("pointerdown", handler);
     },
 
-    // stubs (do not remove)
-    setLevel() {},
+    // ---- DATA BINDINGS ----
     setUser(user) {
-  const userEl = document.getElementById("username");
-  if (userEl) userEl.textContent = user?.username ?? "Guest";
-},
+      const el = document.getElementById("userName");
+      if (el) el.textContent = (user && (user.username || user.uid)) || "Guest";
+      accountUI.setUser(user);
+    },
+
     setCoins(count) {
-  const coinEl = document.getElementById("coinCount");
-  if (coinEl) coinEl.textContent = count ?? 0;
-},
+      const coinEl = document.getElementById("coinCount");
+      if (coinEl) coinEl.textContent = count ?? 0;
+      accountUI.setCoins(count);
+    },
+
+    // ---- STUBS (KEEP) ----
+    setLevel() {},
   };
 }

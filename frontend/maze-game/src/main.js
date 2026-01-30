@@ -1,5 +1,8 @@
 import "./css/ui.css";
+import "./css/levels.css";
+import { mountLevelsUI } from "./ui/uiLevels.js";
 import { mountUI } from "./ui/ui.js";
+import { loadProgress } from "./api/loadProgress.js";
 import { createGame } from "./game/game.js";
 import { initPi } from "./pi/piInit.js";
 import { ensurePiLogin } from "./pi/piClient.js";
@@ -7,7 +10,7 @@ import { levels } from "./levels/index.js";
 
 let CURRENT_USER = null;
 let CURRENT_ACCESS_TOKEN = null;
-const BACKEND = "https://triumphant-gentleness-production.up.railway.app";
+const BACKEND = "https://triumphant-gentleness-production.up.railway.app/";
 async function fetchAndSetCoins({ BACKEND, token, ui }) {
   if (!token) return;
 
@@ -30,14 +33,31 @@ async function loadCoins({ BACKEND, token, ui }) {
   });
 
   if (!res.ok) return;
-
-  const data = await res.json();
-
-  if (typeof data?.user?.coins === "number") {
-    ui.setCoins(data.user.coins);
-  }
 }
-function boot() {
+
+async function loadMeAndSyncUI({ BACKEND, token, ui }) {
+    
+  const res = await fetch(`${BACKEND}/api/me`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  if (!res.ok) return;
+
+  const me = await res.json();
+  alert("loadMeAndSyncUI EXECUTED ✅");
+
+  const serverUser = me.user;
+
+  CURRENT_USER = {
+    uid: serverUser.uid,
+    username: serverUser.username,
+  };
+
+  ui.setUser(CURRENT_USER);
+  ui.setCoins(serverUser.coins);
+    return me; // 🔥 THIS IS THE FIX
+}
+async function boot() {
   const root = document.querySelector("#app");
   if (!root) {
     document.body.innerHTML = "<h1>#app not found</h1>";
@@ -63,7 +83,11 @@ if (savedUser && savedToken) {
 }
 
   // Mount UI
-  const ui = mountUI(root);
+const ui = mountUI(root);
+const levelsUI = mountLevelsUI(root);  
+ui.levelsBtn.addEventListener("click", () => {
+  levelsUI.open();
+});
   
   ui.showWelcome();
 
@@ -81,11 +105,20 @@ if (CURRENT_USER && CURRENT_ACCESS_TOKEN) {
   document.body.classList.add("game-running");
   ui.hideWelcome();
 
-  loadCoins({
+  // ✅ sync real username + real coins from backend
+  const me = await loadMeAndSyncUI({
     BACKEND,
     token: CURRENT_ACCESS_TOKEN,
     ui,
   });
+
+  // ✅ unlock levels if your backend returns progress
+  const maxLevel =
+    me?.progress?.maxLevel ??
+    me?.progress?.highestLevel ??
+    1;
+
+  levelsUI.setUnlocked?.(maxLevel);
 
   game.start();
   return;
@@ -102,25 +135,32 @@ if (CURRENT_USER && CURRENT_ACCESS_TOKEN) {
 // ---- PI LOGIN ----
 ui.onLoginClick(async () => {
   try {
-    const BACKEND = import.meta.env.VITE_BACKEND_URL;
 
     await ensurePiLogin({
       BACKEND,
       ui,
       onLogin: ({ user, accessToken }) => {
-  CURRENT_USER = user;
-  CURRENT_ACCESS_TOKEN = accessToken;
-  ui.setUser(user); // ✅ SHOW USERNAME
-},
+        CURRENT_USER = user;
+        CURRENT_ACCESS_TOKEN = accessToken;
+
+        localStorage.setItem("pi_user", JSON.stringify(user));
+        localStorage.setItem("pi_token", accessToken);
+      },
     });
 
-    // ✅ FETCH COINS AFTER LOGIN
-    await loadCoins({
-      BACKEND,
-      token: CURRENT_ACCESS_TOKEN,
-      ui,
-    });
+    // ✅ STEP 3 — RIGHT HERE
+    const me = await loadMeAndSyncUI({
+  BACKEND,
+  token: CURRENT_ACCESS_TOKEN,
+  ui,
+});
 
+const maxLevel =
+  me?.progress?.maxLevel ??
+  me?.progress?.highestLevel ??
+  1;
+
+levelsUI.setUnlocked?.(maxLevel);
     document.body.classList.remove("welcome-visible");
     document.body.classList.add("game-running");
     ui.hideWelcome();
