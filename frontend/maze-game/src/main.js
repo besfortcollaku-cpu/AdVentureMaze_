@@ -155,13 +155,13 @@ ui.levelsBtn.addEventListener("click", () => {
 // ---- PI LOGIN ----
 ui.onLoginClick(async () => {
   const result = await ensurePiLogin({
+          ui.showToast?.("Logged in with Pi");
+
     BACKEND,
     ui,
     onLogin: ({ user, accessToken }) => {
       CURRENT_USER = user;
       CURRENT_ACCESS_TOKEN = accessToken;
-    ui.showToast?.("Logged in with Pi");
-        
     },
   });
 
