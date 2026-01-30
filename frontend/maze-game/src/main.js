@@ -163,11 +163,18 @@ ui.onLoginClick(async () => {
     },
   });
 
-  if (!result?.ok) return;
+  // no session → start Pi auth NOW
+  if (!result?.ok) {
+    const { auth } = await import("./pi/piAuth.js").then(m =>
+      m.piLoginAndVerify(BACKEND)
+    );
+    CURRENT_ACCESS_TOKEN = auth.accessToken;
+  }
+
   await migrateGuestProgress({
-  BACKEND,
-  token: CURRENT_ACCESS_TOKEN,
-});
+    BACKEND,
+    token: CURRENT_ACCESS_TOKEN,
+  });
 
   const me = await loadMeAndSyncUI({
     BACKEND,
@@ -183,7 +190,10 @@ ui.onLoginClick(async () => {
   levelsUI.setUnlocked?.(maxLevel);
   document.body.classList.add("game-running");
   ui.hideWelcome();
-  game.start();
+
+  if (!game.isRunning?.()) {
+    game.start();
+  }
 });
 }
 

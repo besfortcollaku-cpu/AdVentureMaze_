@@ -74,49 +74,6 @@ export async function ensurePiLogin({ BACKEND, ui, onLogin }) {
   // 2) Force login before game start
   ui?.showLoginGate?.();
 
-  return await new Promise((resolve) => {
-    const hasGate = typeof ui?.onLoginClick === "function";
-
-    const runLogin = async () => {
-      if (isLoggingIn) return; // block double clicks
-      isLoggingIn = true;
-
-      try {
-        ui?.showLoginError?.("");
-
-        // Pi login + backend verify (creates user in DB via /api/pi/verify inside your piAuth)
-        const { auth } = await piLoginAndVerify(BACKEND);
-
-        const accessToken = auth?.accessToken || null;
-        if (!accessToken) throw new Error("Missing accessToken");
-
-        // ✅ confirm backend accepts token and returns /api/me
-        const check = await verifySessionWithBackend(BACKEND, accessToken);
-        if (!check.ok) throw new Error(check.error || "Session verify failed");
-
-        // persist
-        saveSession({ user: check.data.user, accessToken });
-
-        onLogin?.({ user: check.data.user, accessToken });
-        ui?.setUser?.(check.data.user);
-        ui?.hideLoginGate?.();
-
-        resolve({ ok: true, restored: false });
-      } catch (e) {
-        // ✅ IMPORTANT CHANGE: show the REAL error (no generic message)
-        const msg = String(e?.message || e || "Login failed");
-        ui?.showLoginError?.(msg);
-        resolve({ ok: false, error: msg });
-      } finally {
-        isLoggingIn = false;
-      }
-    };
-
-    // fallback: no UI gate implemented -> try immediately
-    if (!hasGate) {
-      runLogin();
-      return;
-    }
-
-  });
+  // no valid session → caller must trigger login
+return { ok: false, needsLogin: true };
 }
