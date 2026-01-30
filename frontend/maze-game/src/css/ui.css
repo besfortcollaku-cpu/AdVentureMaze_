@@ -201,7 +201,6 @@ body.game-running {
 /* ---------- GLOBAL STATES ---------- */
 
 body.welcome-visible .app {
-  filter: blur(6px);
   pointer-events: none;
 }
 
