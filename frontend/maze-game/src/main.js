@@ -10,7 +10,7 @@ import { levels } from "./levels/index.js";
 
 let CURRENT_USER = null;
 let CURRENT_ACCESS_TOKEN = null;
-const BACKEND = "https://adventuremaze.onrender.com";
+const BACKEND = "https://triumphant-gentleness-production.up.railway.app";
 async function fetchAndSetCoins({ BACKEND, token, ui }) {
   if (!token) return;
 
