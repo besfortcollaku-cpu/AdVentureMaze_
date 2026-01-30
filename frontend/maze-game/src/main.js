@@ -149,17 +149,19 @@ ui.levelsBtn.addEventListener("click", () => {
 
   // Create game (DO NOT START)
   const game = createGame({
-    canvas: ui.canvas,
-    level: levels[0],
-    getCurrentUser: () => CURRENT_USER ?? { username: "guest", uid: null },
-    onLevelComplete() { 
-        winPopup.show({
-    levelNumber: levelIndex + 1,
-    },
-  });
+  canvas: ui.canvas,
+  level: levels[0],
+  getCurrentUser: () => CURRENT_USER ?? { username: "guest", uid: null },
+  onLevelComplete() {
+    winPopup.show({
+      levelNumber: levelIndex + 1,
+    });
+  },
+});
   winPopup.onNextLevel(() => {
   winPopup.hide();
   goNextLevel();
+});
 
 winPopup.onWatchAdClick(() => {
   // STEP 3: reward logic will go here later
