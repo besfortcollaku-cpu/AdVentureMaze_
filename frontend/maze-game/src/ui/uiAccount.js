@@ -1,74 +1,69 @@
 // src/ui/uiAccount.js
-import "../css/account.css";
+// Account / Profile popup UI (info only for now)
 
-export function mountAccountUI(root) {
-  // Inject overlay HTML once
-  const wrap = document.createElement("div");
-  wrap.innerHTML = `
-    <div class="accountOverlay" id="accountOverlay" aria-hidden="true">
-      <div class="accountCard">
-        <div class="accountHeader">
-          <div class="accountTitle">Account</div>
-          <button class="accountClose" id="accountCloseBtn" aria-label="Close">✕</button>
-        </div>
+export function createAccountPopup() {
+  // ---------------------------
+  // HTML
+  // ---------------------------
+  const el = document.createElement("div");
+  el.className = "overlay accountOverlay hidden";
 
-        <div class="accountSection">
-          <div class="accountLabel">Username</div>
-          <div class="accountValue" id="accountUsername">guest</div>
-        </div>
+  el.innerHTML = `
+    <div class="modal accountModal">
+      <h2 class="title">Account</h2>
 
-        <div class="accountSection">
-          <div class="accountLabel">UID</div>
-          <div class="accountValue mono" id="accountUid">-</div>
-        </div>
-
-        <div class="accountSection">
-          <div class="accountLabel">Coins</div>
-          <div class="accountValue" id="accountCoins">0</div>
-        </div>
-
-        <div class="accountNote">
-          Account switching / logout is disabled (Pi Browser).
-        </div>
+      <div class="accountRow">
+        <span class="label">Username</span>
+        <span class="value" id="accountUsername">—</span>
       </div>
+
+      <div class="accountRow">
+        <span class="label">Free Hints</span>
+        <span class="value" id="accountHints">0</span>
+      </div>
+
+      <div class="accountRow">
+        <span class="label">Free Skips</span>
+        <span class="value" id="accountSkips">0</span>
+      </div>
+
+      <button class="btn closeBtn" id="accountCloseBtn">
+        Close
+      </button>
     </div>
   `;
-  root.appendChild(wrap);
 
-  const overlay = root.querySelector("#accountOverlay");
-  const closeBtn = root.querySelector("#accountCloseBtn");
+  document.body.appendChild(el);
 
-  const usernameEl = root.querySelector("#accountUsername");
-  const uidEl = root.querySelector("#accountUid");
-  const coinsEl = root.querySelector("#accountCoins");
+  // ---------------------------
+  // Elements
+  // ---------------------------
+  const usernameEl = el.querySelector("#accountUsername");
+  const hintsEl = el.querySelector("#accountHints");
+  const skipsEl = el.querySelector("#accountSkips");
+  const closeBtn = el.querySelector("#accountCloseBtn");
 
-  function show() {
-    if (!overlay) return;
-    overlay.classList.add("show");
-    overlay.setAttribute("aria-hidden", "false");
+  // ---------------------------
+  // Events
+  // ---------------------------
+  closeBtn.addEventListener("click", hide);
+
+  // ---------------------------
+  // API
+  // ---------------------------
+  function show({ username = "guest", freeHints = 0, freeSkips = 0 }) {
+    usernameEl.textContent = username;
+    hintsEl.textContent = freeHints;
+    skipsEl.textContent = freeSkips;
+    el.classList.remove("hidden");
   }
 
   function hide() {
-    if (!overlay) return;
-    overlay.classList.remove("show");
-    overlay.setAttribute("aria-hidden", "true");
+    el.classList.add("hidden");
   }
 
-  function setUser(user) {
-    const name = user?.username ?? "guest";
-    const uid = user?.uid ?? "-";
-    if (usernameEl) usernameEl.textContent = name;
-    if (uidEl) uidEl.textContent = uid;
-  }
-
-  function setCoins(n) {
-    if (coinsEl) coinsEl.textContent = String(n ?? 0);
-  }
-
-  closeBtn?.addEventListener("click", hide);
-  overlay?.addEventListener("click", (e) => {
-    if (e.target === overlay) hide();
-  });
-
-  return { show, hide, setUser, setCoins };
+  return {
+    show,
+    hide,
+  };
 }

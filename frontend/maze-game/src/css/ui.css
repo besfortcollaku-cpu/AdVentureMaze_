@@ -1,235 +1,102 @@
+// src/ui/ui.js
 
+let loginGateHandler = null;
+let welcomeContinueHandler = null;
+let firstGestureHandler = null;
 
+export function mountUI(app) {
+  app.innerHTML = `
+    <div class="phone">
+      <div id="bootOverlay" class="bootOverlay">
+        <div class="spinner"></div>
+        <div id="bootText">Tap to continue</div>
+      </div>
 
+      <div class="topbar">
+        <div class="title">Adventure Maze</div>
+        <div class="coins"><span id="coinCount">0</span></div>
+      </div>
 
-html,
-body {
-  height: 100%;
-  overflow: hidden;
-  overscroll-behavior: none;
-}
+      <canvas id="gameCanvas"></canvas>
 
-#app {
-  height: 100%;
-  overflow: hidden;
-}
+      <div id="welcomeScreen" class="welcomeScreen hidden">
+        <h1>Welcome</h1>
+        <p>Guide the ball through the maze.<br/>Tap anywhere to start</p>
+      </div>
 
+      <div id="winPopup" class="winPopup hidden">
+        <button id="winNextBtn">Next</button>
+      </div>
+    </div>
+  `;
 
-/* =========================
-   RESET / BASE
-========================= */
-* {
-  box-sizing: border-box;
-}
+  const canvas = document.getElementById("gameCanvas");
+  const bootOverlay = document.getElementById("bootOverlay");
+  const bootText = document.getElementById("bootText");
+  const welcomeScreen = document.getElementById("welcomeScreen");
+  const winPopup = document.getElementById("winPopup");
 
-html,
-body {
-  margin: 0;
-  padding: 0;
-  height: 100%;
-  background: radial-gradient(circle at top, #1b255c, #070b18);
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-  overflow: hidden;
-  touch-action: manipulation;
-}
+  // 🔴 TAP TO LOGIN
+  bootOverlay.addEventListener("click", () => {
+    if (firstGestureHandler) firstGestureHandler();
+    if (loginGateHandler) loginGateHandler();
+  });
 
-#app {
-  width: 100%;
-  height: 100%;
-}
+  // 🔴 TAP TO START GAME
+  welcomeScreen.addEventListener("click", () => {
+    if (welcomeContinueHandler) welcomeContinueHandler();
+  });
 
-/* =========================
-   APP LAYOUT
-========================= */
-.app {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  color: #fff;
-}
+  return {
+    canvas,
 
-/* =========================
-   TOP BAR
-========================= */
-.top {
-  padding: 14px 12px 10px;
-  text-align: center;
-}
+    showBootOverlay(text = "Tap to continue") {
+      bootText.textContent = text;
+      bootOverlay.classList.remove("hidden");
+    },
 
-.level {
-  margin: 0 0 10px;
-  font-size: 36px;
-  font-weight: 800;
-}
+    hideBootOverlay() {
+      bootOverlay.classList.add("hidden");
+    },
 
-.icons {
-  display: flex;
-  justify-content: center;
-  gap: 12px;
-  margin-bottom: 10px;
-}
+    showWelcomeScreen() {
+      welcomeScreen.classList.remove("hidden");
+    },
 
-.icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 14px;
-  border: none;
-  background: rgba(255,255,255,0.08);
-  color: #fff;
-  font-size: 18px;
-}
+    hideWelcomeScreen() {
+      welcomeScreen.classList.add("hidden");
+    },
 
-.coins {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 16px;
-  border-radius: 20px;
-  border: 2px solid #8a6d1d;
-  font-weight: 700;
-}
+    setCoins(v) {
+      document.getElementById("coinCount").textContent = v;
+    },
 
-/* =========================
-   GAME BOARD
-========================= */
-.board {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
+    showWinPopup() {
+      winPopup.classList.remove("hidden");
+    },
 
-canvas#game {
-  width: 90vw;
-  max-width: 360px;
-  aspect-ratio: 1 / 1;
-  background: rgba(255,255,255,0.05);
-  border-radius: 22px;
-}
+    hideWinPopup() {
+      winPopup.classList.add("hidden");
+    },
 
-/* =========================
-   BOTTOM BAR
-========================= */
-.bottom {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px;
-  gap: 8px;
-}
+    onLoginGateClick(fn) {
+      loginGateHandler = fn;
+    },
 
-.btn {
-  padding: 10px 14px;
-  border-radius: 10px;
-  border: none;
-  background: rgba(255,255,255,0.12);
-  color: #fff;
-  font-weight: 600;
-}
+    onWelcomeContinue(fn) {
+      welcomeContinueHandler = fn;
+    },
 
-.bottom span {
-  opacity: 0.75;
-  font-size: 14px;
-}
+    onFirstUserGesture(fn) {
+      firstGestureHandler = fn;
+    },
 
-/* =========================
-   AD BANNER
-========================= */
-.ad {
-  margin: 10px 12px 16px;
-  padding: 16px;
-  border-radius: 18px;
-  background: #2b4a7a;
-  text-align: center;
-  font-weight: 700;
-}
+    onWinNext(fn) {
+      document.getElementById("winNextBtn").onclick = fn;
+    },
 
-/* =========================
-   WELCOME OVERLAY
-========================= */
-.welcomeOverlay {
-  position: fixed;
-  inset: 0;
-  z-index: 50;
-
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-
-  padding-bottom: 120px;
-
-  background: radial-gradient(circle at top, rgba(15,30,51,0.95), rgba(7,13,24,0.98));
-  backdrop-filter: blur(6px);
-}
-#welcomeOverlay.show {
-  display: flex;
-}
-
-.welcomeCard {
-  width: min(92%, 420px);
-  text-align: left;
-}
-
-.welcomeCard h1 {
-  font-size: 36px;
-  line-height: 1.2;
-  margin-bottom: 20px;
-  color: #fff;
-}
-.startBtn {
-  width: 100%;
-  padding: 16px;
-  border-radius: 16px;
-  font-size: 18px;
-  font-weight: 600;
-
-  background: #ffffff;
-  color: #000;
-  border: none;
-}
-
-/* =========================
-   GAME RUNNING STATE
-========================= */
-body.game-running #welcomeOverlay {
-  display: none !important;
-}
-
-body.game-running {
-  position: fixed;
-  inset: 0;
-  overflow: hidden;
-}
-
-/* ---------- GLOBAL STATES ---------- */
-
-body.welcome-visible .app {
-  filter: blur(6px);
-  pointer-events: none;
-}
-
-body.welcome-visible .welcomeoverlay {
-  display: flex;
-}
-
-body.game-running .welcomeoverlay {
-  display: none;
-}
-
-body.game-running .app {
-  filter: none;
-  pointer-events: auto;
-}
-.game-running .welcomeOverlay {
-  display: none;
-}
-.startBtn.secondary {
-  margin-top: 12px;
-  background: rgba(255,255,255,0.15);
-  color: #fff;
-}
-.username{
-  font-weight:700;
-  opacity:.95;
-  margin-right:6px;
+    setSoundEnabled() {},
+    setVibrationEnabled() {},
+    setUser() {},
+  };
 }
