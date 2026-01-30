@@ -1,8 +1,8 @@
 import { mountAccountUI } from "./uiAccount.js";
 import { mountSettingsUI } from "./uiSettings.js";
-import { mountHintsUI } from "./uiHints.js";
+import { mountHintsUI } from "./uiHint.js";
 import { mountSkipUI } from "./uiSkip.js"; // ✅ NEW
-
+import { mountLevelspUI } from "./uiLevels.js"; 
 export function mountUI(root) {
   root.innerHTML = `
     <div id="app" class="app">
