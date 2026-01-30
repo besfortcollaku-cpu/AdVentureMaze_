@@ -28,6 +28,19 @@ async function fetchAndSetCoins({ BACKEND, token, ui }) {
   const data = await res.json();
   ui.setCoins(data.coins ?? 0);
 }
+let levelIndex = 0;
+function goNextLevel() {
+  levelIndex++;
+
+  // safety: prevent overflow
+  if (levelIndex >= levels.length) {
+    levelIndex = levels.length - 1;
+    return;
+  }
+
+  game.loadLevel(levels[levelIndex]);
+  game.start();
+}
 async function loadCoins({ BACKEND, token, ui }) {
   const res = await fetch(`${BACKEND}/api/me`, {
     headers: {
@@ -147,7 +160,6 @@ ui.levelsBtn.addEventListener("click", () => {
   winPopup.onNextLevel(() => {
   winPopup.hide();
   goNextLevel();
-});
 
 winPopup.onWatchAdClick(() => {
   // STEP 3: reward logic will go here later
