@@ -145,6 +145,7 @@ canvas#game {
    WELCOME OVERLAY
 ========================= */
 .welcomeOverlay {
+    pointer-events: auto;
   position: fixed;
   inset: 0;
   z-index: 50;
