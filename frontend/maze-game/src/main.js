@@ -1,5 +1,5 @@
 import "./style.css";
-import "../css/ui.css";
+import "./css/ui.css";
 import { mountLevelsUI } from "./ui/uiLevels.js";
 import { mountUI } from "./ui/ui.js";
 import { loadProgress } from "./api/loadProgress.js";
