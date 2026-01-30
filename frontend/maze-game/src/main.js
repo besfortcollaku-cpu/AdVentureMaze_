@@ -80,6 +80,9 @@ const savedToken = localStorage.getItem("pi_token");
 if (savedUser && savedToken) {
   CURRENT_USER = JSON.parse(savedUser);
   CURRENT_ACCESS_TOKEN = savedToken;
+} else {
+  CURRENT_USER = null;
+  CURRENT_ACCESS_TOKEN = null;
 }
 
   // Mount UI
@@ -101,41 +104,50 @@ ui.levelsBtn.addEventListener("click", () => {
     getCurrentUser: () => CURRENT_USER ?? { username: "guest", uid: null },
     onLevelComplete() {},
   });
-if (CURRENT_USER && CURRENT_ACCESS_TOKEN) {
-  document.body.classList.add("game-running");
-  ui.hideWelcome();
-
-  // ✅ sync real username + real coins from backend
+if (CURRENT_ACCESS_TOKEN) {
   const me = await loadMeAndSyncUI({
     BACKEND,
     token: CURRENT_ACCESS_TOKEN,
     ui,
   });
 
-  // ✅ unlock levels if your backend returns progress
-  const maxLevel =
-    me?.progress?.maxLevel ??
-    me?.progress?.highestLevel ??
-    1;
+  if (me && me.user) {
+    // ✅ AUTH CONFIRMED
+    document.body.classList.add("game-running");
+    ui.hideWelcome();
 
-  levelsUI.setUnlocked?.(maxLevel);
+    const maxLevel =
+      me?.progress?.maxLevel ??
+      me?.progress?.highestLevel ??
+      1;
 
-  game.start();
-  return;
+    levelsUI.setUnlocked?.(maxLevel);
+    game.start();
+    return;
+  }
+
+  // ❌ TOKEN INVALID → RESET
+  CURRENT_USER = null;
+  CURRENT_ACCESS_TOKEN = null;
+  localStorage.removeItem("pi_user");
+  localStorage.removeItem("pi_token");
 }
 
   // ---- GUEST ----
   ui.onGuestStart(() => {
-    document.body.classList.remove("welcome-visible");
-    document.body.classList.add("game-running");
-    ui.hideWelcome();
-    game.start();
-  });
+  CURRENT_USER = { username: "Guest", uid: null };
+  CURRENT_ACCESS_TOKEN = null;
+
+  document.body.classList.remove("welcome-visible");
+  document.body.classList.add("game-running");
+  ui.hideWelcome();
+
+  game.start();
+});
 
 // ---- PI LOGIN ----
 ui.onLoginClick(async () => {
   try {
-
     await ensurePiLogin({
       BACKEND,
       ui,
@@ -148,26 +160,32 @@ ui.onLoginClick(async () => {
       },
     });
 
-    // ✅ STEP 3 — RIGHT HERE
     const me = await loadMeAndSyncUI({
-  BACKEND,
-  token: CURRENT_ACCESS_TOKEN,
-  ui,
-});
+      BACKEND,
+      token: CURRENT_ACCESS_TOKEN,
+      ui,
+    });
 
-const maxLevel =
-  me?.progress?.maxLevel ??
-  me?.progress?.highestLevel ??
-  1;
+    if (!me?.user) throw new Error("Auth failed");
 
-levelsUI.setUnlocked?.(maxLevel);
-    document.body.classList.remove("welcome-visible");
+    const maxLevel =
+      me?.progress?.maxLevel ??
+      me?.progress?.highestLevel ??
+      1;
+
+    levelsUI.setUnlocked?.(maxLevel);
     document.body.classList.add("game-running");
     ui.hideWelcome();
     game.start();
 
   } catch (err) {
-    console.error("PI LOGIN FAILED", err);
+    console.error("LOGIN FAILED", err);
+
+    // 🔁 rollback
+    CURRENT_USER = null;
+    CURRENT_ACCESS_TOKEN = null;
+    localStorage.clear();
+    ui.showWelcome();
   }
 });
 }
