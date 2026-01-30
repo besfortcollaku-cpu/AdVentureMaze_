@@ -54,9 +54,15 @@ export function mountUI(root) {
 
   // ----- ACCOUNT UI -----
   const accountUI = mountAccountUI(root);
-  accountBtn.addEventListener("click", () => {
+  let accountClickHandler = null;
+
+accountBtn.addEventListener("click", () => {
+  if (accountClickHandler) {
+    accountClickHandler();
+  } else {
     accountUI.show();
-  });
+  }
+});
 
   // ----- SETTINGS UI -----
   const settingsUI = mountSettingsUI(root);
@@ -105,7 +111,9 @@ export function mountUI(root) {
     showLoginGate() {
   this.showWelcome();
 },
-
+onAccountClick(cb) {
+  accountClickHandler = cb;
+},
 hideLoginGate() {
   this.hideWelcome();
 },
@@ -128,7 +136,9 @@ showLoginError(msg) {
     onLoginClick(cb) {
       loginHandler = cb;
     },
-
+triggerLogin() {
+  loginHandler?.();
+},
     onGuestStart(cb) {
       guestHandler = cb;
     },

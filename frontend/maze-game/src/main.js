@@ -1,4 +1,5 @@
 import "./style.css";
+import "../css/ui.css";
 import { mountLevelsUI } from "./ui/uiLevels.js";
 import { mountUI } from "./ui/ui.js";
 import { loadProgress } from "./api/loadProgress.js";
@@ -110,6 +111,16 @@ async function boot() {
 
   // Mount UI
 const ui = mountUI(root);
+ui.onAccountClick(async () => {
+  // already logged in → show account
+  if (CURRENT_USER?.uid) {
+    return; // ui.js will open account UI
+  }
+
+  // guest → force Pi login
+  ui.showWelcome();
+  ui.triggerLogin();
+});
 const levelsUI = mountLevelsUI(root);  
 ui.levelsBtn.addEventListener("click", () => {
   levelsUI.open();
