@@ -907,43 +907,7 @@ canvas {
 
 
 /* ✅ FULLSCREEN WELCOME */
-.welcomeOverlay{
-  position:fixed;
-  inset:0;
-  z-index:2000000;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  background: radial-gradient(
-    900px 600px at 50% 20%,
-    rgba(37,215,255,.18),
-    rgba(0,0,0,.85)
-  );
-  backdrop-filter: blur(12px);
-}
-
-.welcomeCard{
-  text-align:center;
-  padding:28px;
-  border-radius:26px;
-  background: rgba(10,14,30,.92);
-  border:1px solid rgba(255,255,255,.15);
-  box-shadow: 0 30px 90px rgba(0,0,0,.75);
-  max-width: 90%;
-}
-
-.welcomeTitle{
-  font-size:28px;
-  font-weight:950;
-  color:#fff;
-  margin-bottom:10px;
-}
-
-.welcomeText{
-  font-size:14px;
-  opacity:.8;
-  color:#eaf3ff;
-}
+.
 /* ✅ Welcome login layout */
 .welcomeLogin{
   margin-top:18px;
