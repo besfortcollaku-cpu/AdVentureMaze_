@@ -8,7 +8,7 @@ import { ensurePiLogin } from "./pi/piClient.js";
 import { levels } from "./levels/index.js";
 import { createWinPopup } from "./ui/uiWin.js";
 
-const winPopup = createWinPopup();
+
 const GUEST_PROGRESS_KEY = "guest_progress_v1";
 const GUEST_MAX_LEVEL = 5;
 let CURRENT_USER = null;
@@ -33,14 +33,14 @@ async function apiClaimAdReward() {
     throw new Error("Not authenticated");
   }
 
-  const res = await fetch(`${BACKEND}/api/rewards/ad-50`, {
+  const res = await fetch(`${BACKEND}/api/rewards/Ad`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${CURRENT_ACCESS_TOKEN}`,
     },
     body: JSON.stringify({
-      nonce: crypto.randomUUID(), // ✅ REQUIRED
+      type: "ad",
     }),
   });
 
@@ -50,6 +50,7 @@ async function apiClaimAdReward() {
 
   return res.json();
 }
+
 
 let levelIndex = 0;
 function goNextLevel() {
@@ -146,7 +147,10 @@ async function boot() {
 
   // Mount UI
 const ui = mountUI(root);
-const winPopup = createWinPopup();
+winPopup.onWatchAdClick(() => {
+  alert("WATCH AD CLICKED");
+});
+
 
 ui.onAccountClick(async () => {
   // already logged in → show account
@@ -217,6 +221,7 @@ winPopup.onWatchAdClick(async () => {
   winPopup.hide();
   goNextLevel();
 });
+
   // ---- GUEST ----
   ui.onGuestStart(() => {
   CURRENT_USER = { username: "Guest", uid: null };
