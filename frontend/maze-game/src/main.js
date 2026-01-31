@@ -32,14 +32,12 @@ let levelIndex = 0;
 function goNextLevel() {
   levelIndex++;
 
-  // safety: prevent overflow
   if (levelIndex >= levels.length) {
     levelIndex = levels.length - 1;
     return;
   }
 
-  game.loadLevel(levels[levelIndex]);
-  game.start();
+  game.setLevel(levels[levelIndex]);
 }
 async function loadCoins({ BACKEND, token, ui }) {
   const res = await fetch(`${BACKEND}/api/me`, {
