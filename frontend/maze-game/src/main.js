@@ -247,27 +247,7 @@ winPopup.onWatchAdClick(async () => {
     alert("Watching ad... wait 5 seconds");
     await new Promise((r) => setTimeout(r, 5000));
 
-    // Claim +50 from backend
-    const out = await apiClaimAd50();
-
-    // Update UI coins from backend response
-    if (out?.user?.coins != null) {
-      ui.setCoins(out.user.coins);
-    } else {
-      // if backend returns a different shape
-      alert("Ad claimed, but coins not returned in response");
-    }
-
-    // proceed
-    winPopup.hide();
-    goNextLevel();
-  } catch (e) {
-    alert("Ad reward failed");
-  }
-
-  winPopup.hide();
-  goNextLevel();
-});
+    
 
   // ---- GUEST ----
   ui.onGuestStart(() => {
