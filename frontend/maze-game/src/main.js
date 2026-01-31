@@ -153,6 +153,7 @@ ui.levelsBtn.addEventListener("click", () => {
   level: levels[0],
   getCurrentUser: () => CURRENT_USER ?? { username: "guest", uid: null },
   onLevelComplete() {
+      alert("LEVEL COMPLETE FIRED");
     winPopup.show({
       levelNumber: levelIndex + 1,
     });
