@@ -62,9 +62,7 @@ export function createWinPopup() {
   // ---------------------------
   // API
   // ---------------------------
-  function show({ levelNumber }) {
-      alert("WIN POPUP SHOW()");
-    levelText.textContent = `You finished Level ${levelNumber}`;
+  function show({ levelNumber }) {    levelText.textContent = `You finished Level ${levelNumber}`;
     el.classList.remove("hidden");
   }
 

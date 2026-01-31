@@ -60,8 +60,6 @@ async function loadMeAndSyncUI({ BACKEND, token, ui }) {
   if (!res.ok) return;
 
   const me = await res.json();
-  alert("loadMeAndSyncUI EXECUTED ✅");
-
   const serverUser = me.user;
 
   CURRENT_USER = {
@@ -153,11 +151,25 @@ ui.levelsBtn.addEventListener("click", () => {
   level: levels[0],
   getCurrentUser: () => CURRENT_USER ?? { username: "guest", uid: null },
   onLevelComplete() {
-      alert("LEVEL COMPLETE FIRED");
-    winPopup.show({
-      levelNumber: levelIndex + 1,
-    });
-  },
+  const levelNumber = levelIndex + 1;
+
+  // 🔐 only Pi users get backend reward
+  if (CURRENT_USER?.uid && CURRENT_ACCESS_TOKEN) {
+    apiClaimLevelComplete(levelNumber)
+      .then((out) => {
+        if (out?.user?.coins != null) {
+          ui.setCoins(out.user.coins);
+        }
+      })
+      .catch(() => {
+        // silent fail: do NOT block game
+      });
+  }
+
+  winPopup.show({
+    levelNumber,
+  });
+},
 });
   winPopup.onNextLevel(() => {
   winPopup.hide();
