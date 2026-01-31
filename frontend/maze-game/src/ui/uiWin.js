@@ -1,6 +1,6 @@
 // src/ui/uiWin.js
 // Level Complete / Win popup UI
-import "../css/win.css";
+import "./css/win.css";
 export function createWinPopup() {
   let onNext = null;
   let onWatchAd = null;
