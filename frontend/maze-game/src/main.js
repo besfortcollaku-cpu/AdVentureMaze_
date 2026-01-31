@@ -122,7 +122,25 @@ function loadGuestProgress() {
     return { maxLevel: 1 };
   }
 }
+async function apiClaimAd50() {
+  if (!CURRENT_ACCESS_TOKEN) throw new Error("No access token");
 
+  const nonce =
+    (globalThis.crypto?.randomUUID?.() ?? null) ||
+    `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+
+  const res = await fetch(`${BACKEND}/api/rewards/ad-50`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${CURRENT_ACCESS_TOKEN}`,
+    },
+    body: JSON.stringify({ nonce }),
+  });
+
+  if (!res.ok) throw new Error(`ad-50 failed: ${res.status}`);
+  return res.json();
+}
 function saveGuestProgress(maxLevel) {
   const capped = Math.min(maxLevel, GUEST_MAX_LEVEL);
   localStorage.setItem(
@@ -218,24 +236,33 @@ ui.levelsBtn.addEventListener("click", () => {
 });
 
 winPopup.onWatchAdClick(async () => {
+  // Must be logged in
   if (!CURRENT_USER?.uid || !CURRENT_ACCESS_TOKEN) {
-    ui.showToast?.("Login required for rewards");
+    alert("Login required for rewards");
     return;
   }
 
   try {
-    // simulate ad watching (same as old version)
-    ui.showToast?.("Watching ad…");
+    // Simulate watching ad
+    alert("Watching ad... wait 5 seconds");
     await new Promise((r) => setTimeout(r, 5000));
 
+    // Claim +50 from backend
     const out = await apiClaimAd50();
 
+    // Update UI coins from backend response
     if (out?.user?.coins != null) {
       ui.setCoins(out.user.coins);
+    } else {
+      // if backend returns a different shape
+      alert("Ad claimed, but coins not returned in response");
     }
+
+    // proceed
+    winPopup.hide();
+    goNextLevel();
   } catch (e) {
-    ui.showToast?.("Ad reward failed");
-    return;
+    alert("Ad reward failed");
   }
 
   winPopup.hide();
