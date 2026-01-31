@@ -229,7 +229,7 @@ ui.levelsBtn.addEventListener("click", () => {
     levelNumber: level?.number ?? 1,
   });
 },
-});
+
   winPopup.onNextLevel(() => {
   winPopup.hide();
   goNextLevel();
@@ -247,7 +247,7 @@ winPopup.onWatchAdClick(async () => {
     alert("Watching ad... wait 5 seconds");
     await new Promise((r) => setTimeout(r, 5000));
 
-};
+
 
   // ---- GUEST ----
   ui.onGuestStart(() => {
