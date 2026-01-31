@@ -28,22 +28,7 @@ async function fetchAndSetCoins({ BACKEND, token, ui }) {
   const data = await res.json();
   ui.setCoins(data.coins ?? 0);
 }
-  const res = await fetch(`${BACKEND}/api/rewards/ad-50"`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${CURRENT_ACCESS_TOKEN}`,
-    },
-    body: JSON.stringify({
-      type: "ad",
-    }),
-  });
 
-  if (!res.ok) {
-    throw new Error("Ad reward failed");
-  }
-
-  return res.json();
 
 let levelIndex = 0;
 function goNextLevel() {
