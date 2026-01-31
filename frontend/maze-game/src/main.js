@@ -149,23 +149,20 @@ ui.levelsBtn.addEventListener("click", () => {
   level: levels[0],
   getCurrentUser: () => CURRENT_USER ?? { username: "guest", uid: null },
   onLevelComplete() {
-  const levelNumber = levelIndex + 1;
+  const unlockedLevel = levelIndex + 2; // 🔥 IMPORTANT
 
-  // 🔐 only Pi users get backend reward
   if (CURRENT_USER?.uid && CURRENT_ACCESS_TOKEN) {
-    apiClaimLevelComplete(levelNumber)
+    apiClaimLevelComplete(unlockedLevel)
       .then((out) => {
         if (out?.user?.coins != null) {
           ui.setCoins(out.user.coins);
         }
       })
-      .catch(() => {
-        // silent fail: do NOT block game
-      });
+      .catch(() => {});
   }
 
   winPopup.show({
-    levelNumber,
+    levelNumber: levelIndex + 1,
   });
 },
 });
