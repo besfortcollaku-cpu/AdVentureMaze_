@@ -4,25 +4,37 @@
 }
    
    
-    .winOverlay{
-      position:fixed; inset:0; z-index:99998;
-      display:Flex;
-      align-items:center; justify-content:center;
-      padding:16px;
-      background: rgba(0,0,0,.55);
-      backdrop-filter: blur(10px);
-    }
+  .winOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: rgba(5, 10, 25, 0.65);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
     .winOverlay.show{ display:flex; }
-    .winCard{
-      width:min(560px, 100%);
-      border-radius:24px;
-      border:1px solid rgba(37,215,255,.22);
-      background: radial-gradient(900px 520px at 50% 10%, rgba(37,215,255,.18), rgba(10,12,24,.92));
-      box-shadow: 0 22px 80px rgba(0,0,0,.65);
-      padding:18px;
-      position:relative;
-      overflow:hidden;
-    }
+    .winCard {
+  width: min(90%, 420px);
+  padding: 24px;
+  border-radius: 20px;
+
+  background: linear-gradient(
+    180deg,
+    rgba(30, 60, 90, 0.95),
+    rgba(15, 25, 45, 0.95)
+  );
+
+  box-shadow:
+    0 20px 40px rgba(0, 0, 0, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+
+  text-align: center;
+}
     .winSparkLayer{
       position:absolute; inset:-40px;
       background:
@@ -51,6 +63,12 @@
     }
     .winTitle{ font-size:26px; font-weight:950; letter-spacing:.3px; }
     .winSub{ opacity:.82; font-size:13px; }
+    .winActions {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 20px;
+}
 
 .winOverlay:not(.hidden) {
   opacity: 1;
@@ -110,3 +128,20 @@
       box-shadow: 0 8px 16px rgba(255,204,51,.18);
     }
     .winHint{ position:relative; z-index:2; margin-top:12px; font-size:12px; opacity:.75; }
+    
+    .winTitle {
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.winSubtitle {
+  font-size: 16px;
+  opacity: 0.85;
+}
+
+.winTip {
+  margin-top: 12px;
+  font-size: 13px;
+  opacity: 0.6;
+}
