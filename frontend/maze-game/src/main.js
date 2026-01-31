@@ -29,9 +29,14 @@ async function fetchAndSetCoins({ BACKEND, token, ui }) {
   ui.setCoins(data.coins ?? 0);
 }
 async function apiClaimAd50() {
+  alert("FETCH ABOUT TO RUN"); // 🔥 PROOF 1
+
   if (!CURRENT_ACCESS_TOKEN) {
+    alert("NO TOKEN");
     throw new Error("Not authenticated");
   }
+
+  alert("TOKEN OK"); // 🔥 PROOF 2
 
   const res = await fetch(`${BACKEND}/api/rewards/ad-50`, {
     method: "POST",
@@ -40,36 +45,18 @@ async function apiClaimAd50() {
       Authorization: `Bearer ${CURRENT_ACCESS_TOKEN}`,
     },
     body: JSON.stringify({
-      nonce: crypto.randomUUID(), // REQUIRED by backend
+      nonce: crypto.randomUUID(),
     }),
   });
 
+  alert("FETCH FINISHED"); // 🔥 PROOF 3
+
   if (!res.ok) {
+    alert("FETCH FAILED");
     throw new Error("Ad reward failed");
   }
 
   return res.json();
-}
-
-let levelIndex = 0;
-function goNextLevel() {
-  levelIndex++;
-
-  if (levelIndex >= levels.length) {
-    levelIndex = levels.length - 1;
-    return;
-  }
-
-  game.setLevel(levels[levelIndex]);
-}
-async function loadCoins({ BACKEND, token, ui }) {
-  const res = await fetch(`${BACKEND}/api/me`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-
-  if (!res.ok) return;
 }
 
 async function loadMeAndSyncUI({ BACKEND, token, ui }) {
