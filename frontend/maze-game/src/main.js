@@ -197,6 +197,7 @@ ui.levelsBtn.addEventListener("click", () => {
 });
 
 winPopup.onWatchAdClick(async () => {
+    alert("WATCH AD CLICKED");
   if (!CURRENT_USER?.uid || !CURRENT_ACCESS_TOKEN) {
     ui.showToast?.("Login required for rewards");
     return;
