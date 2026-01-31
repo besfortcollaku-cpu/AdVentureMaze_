@@ -55,7 +55,6 @@ export function createWinPopup() {
   });
 
   adBtn.addEventListener("click", () => {
-    hide();
     onWatchAd?.();
   });
 
