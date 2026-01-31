@@ -44,7 +44,7 @@ async function fetchAndSetCoins({ BACKEND, token, ui }) {
   }
 
   return res.json();
-}
+
 let levelIndex = 0;
 function goNextLevel() {
   levelIndex++;
