@@ -148,6 +148,10 @@ async function migrateGuestProgress({ BACKEND, token }) {
   localStorage.removeItem(GUEST_PROGRESS_KEY);
 }
 async function boot() {
+    const storedToken = localStorage.getItem("pi_access_token");
+if (storedToken) {
+  CURRENT_ACCESS_TOKEN = storedToken;
+}
   const root = document.querySelector("#app");
   if (!root) {
     document.body.innerHTML = "<h1>#app not found</h1>";
@@ -167,6 +171,22 @@ async function boot() {
 
   // Mount UI
 const ui = mountUI(root);
+if (CURRENT_ACCESS_TOKEN) {
+  fetch(`${BACKEND}/api/me`, {
+    headers: {
+      Authorization: `Bearer ${CURRENT_ACCESS_TOKEN}`,
+    },
+  })
+    .then((r) => r.ok ? r.json() : null)
+    .then((me) => {
+      if (me?.user) {
+        CURRENT_USER = me.user;
+        ui.setUser(me.user);
+        ui.setCoins(me.user.coins ?? 0);
+      }
+    })
+    .catch(() => {});
+}
 const winPopup = createWinPopup();
 
 
@@ -253,6 +273,8 @@ ui.onLoginClick(async () => {
     onLogin: ({ user, accessToken }) => {
       CURRENT_USER = user;
       CURRENT_ACCESS_TOKEN = accessToken;
+    localStorage.setItem("pi_access_token", accessToken);
+        
     },
   });
 
