@@ -29,7 +29,29 @@ async function fetchAndSetCoins({ BACKEND, token, ui }) {
   ui.setCoins(data.coins ?? 0);
 }
 
+app.post("/api/async (re
+async function apiClaimAdReward() {
+  if (!CURRENT_ACCESS_TOKEN) {
+    throw new Error("Not authenticated");
+  }
 
+  const res = await fetch(`${BACKEND}/api/reward`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${CURRENT_ACCESS_TOKEN}`,
+    },
+    body: JSON.stringify({
+      type: "ad",
+    }),
+  });
+
+  if (!res.ok) {
+    throw new Error("Ad reward failed");
+  }
+
+  return res.json();
+}
 let levelIndex = 0;
 function goNextLevel() {
   levelIndex++;
