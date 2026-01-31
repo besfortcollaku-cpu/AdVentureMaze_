@@ -28,6 +28,27 @@ async function fetchAndSetCoins({ BACKEND, token, ui }) {
   const data = await res.json();
   ui.setCoins(data.coins ?? 0);
 }
+async function apiClaimLevelComplete(unlockedLevel) {
+  if (!CURRENT_ACCESS_TOKEN) return null;
+
+  const res = await fetch(`${BACKEND}/api/level/complete`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${CURRENT_ACCESS_TOKEN}`,
+    },
+    body: JSON.stringify({
+      level: unlockedLevel,
+    }),
+  });
+
+  if (!res.ok) {
+    return null; // never break gameplay
+  }
+
+  return res.json();
+}
+
 async function apiClaimAd50() {
   if (!CURRENT_ACCESS_TOKEN) {
     throw new Error("Not authenticated");
@@ -173,9 +194,21 @@ ui.levelsBtn.addEventListener("click", () => {
   level: levels[0],
   getCurrentUser: () => CURRENT_USER ?? { username: "guest", uid: null },
   onLevelComplete({ level }) {
-  // TEMP: no rewards, no backend
+  const unlockedLevel = (level?.number ?? 1) + 1;
+
+  // 🔐 only logged-in users get coins
+  if (CURRENT_USER?.uid && CURRENT_ACCESS_TOKEN) {
+    apiClaimLevelComplete(unlockedLevel)
+      .then((out) => {
+        if (out?.user?.coins != null) {
+          ui.setCoins(out.user.coins);
+        }
+      })
+      .catch(() => {});
+  }
+
   winPopup.show({
-    levelNumber: level.number ?? 1,
+    levelNumber: level?.number ?? 1,
   });
 },
 });
