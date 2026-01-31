@@ -247,7 +247,7 @@ winPopup.onWatchAdClick(async () => {
     alert("Watching ad... wait 5 seconds");
     await new Promise((r) => setTimeout(r, 5000));
 
-
+};
 
   // ---- GUEST ----
   ui.onGuestStart(() => {
