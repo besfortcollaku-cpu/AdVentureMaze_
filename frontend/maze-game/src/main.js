@@ -147,9 +147,7 @@ async function boot() {
 
   // Mount UI
 const ui = mountUI(root);
-winPopup.onWatchAdClick(() => {
-  alert("WATCH AD CLICKED");
-});
+const winPopup = createWinPopup();
 
 
 ui.onAccountClick(async () => {
