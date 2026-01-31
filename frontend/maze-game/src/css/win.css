@@ -6,7 +6,7 @@
    
     .winOverlay{
       position:fixed; inset:0; z-index:99998;
-      display:none;
+      display:Flex;
       align-items:center; justify-content:center;
       padding:16px;
       background: rgba(0,0,0,.55);
