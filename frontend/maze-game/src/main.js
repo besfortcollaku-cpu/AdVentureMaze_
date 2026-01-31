@@ -28,14 +28,12 @@ async function fetchAndSetCoins({ BACKEND, token, ui }) {
   const data = await res.json();
   ui.setCoins(data.coins ?? 0);
 }
-
-app.post("/api/async (re
 async function apiClaimAdReward() {
   if (!CURRENT_ACCESS_TOKEN) {
     throw new Error("Not authenticated");
   }
 
-  const res = await fetch(`${BACKEND}/api/reward`, {
+  const res = await fetch(`${BACKEND}/api/rewards/Ad-50`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -52,6 +50,8 @@ async function apiClaimAdReward() {
 
   return res.json();
 }
+
+
 let levelIndex = 0;
 function goNextLevel() {
   levelIndex++;
@@ -218,7 +218,6 @@ winPopup.onWatchAdClick(async () => {
   winPopup.hide();
   goNextLevel();
 });
-
   // ---- GUEST ----
   ui.onGuestStart(() => {
   CURRENT_USER = { username: "Guest", uid: null };
