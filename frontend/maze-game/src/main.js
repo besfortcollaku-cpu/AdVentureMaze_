@@ -206,35 +206,23 @@ ui.levelsBtn.addEventListener("click", () => {
   ui.showWelcome();
 
 
-  // Create game (DO NOT START)
-  const game = createGame({
+// Create game (DO NOT START)
+const game = createGame({
   canvas: ui.canvas,
   level: levels[0],
   getCurrentUser: () => CURRENT_USER ?? { username: "guest", uid: null },
+
   onLevelComplete({ level }) {
-  const unlockedLevel = (level?.number ?? 1) + 1;
-
-  // 🔐 only logged-in users get coins
-  if (CURRENT_USER?.uid && CURRENT_ACCESS_TOKEN) {
-    apiClaimLevelComplete(unlockedLevel)
-      .then((out) => {
-        if (out?.user?.coins != null) {
-          ui.setCoins(out.user.coins);
-        }
-      })
-      .catch(() => {});
-  }
-
-  winPopup.show({
-    levelNumber: level?.number ?? 1,
-  });
-},
-
-  winPopup.onNextLevel(() => {
+    // (We leave level coin logic for later if needed)
+    winPopup.show({
+      levelNumber: level?.number ?? 1,
+    });
+  },
+});
+winPopup.onNextLevel(() => {
   winPopup.hide();
   goNextLevel();
 });
-
 winPopup.onWatchAdClick(async () => {
   // Must be logged in
   if (!CURRENT_USER?.uid || !CURRENT_ACCESS_TOKEN) {
@@ -247,7 +235,18 @@ winPopup.onWatchAdClick(async () => {
     alert("Watching ad... wait 5 seconds");
     await new Promise((r) => setTimeout(r, 5000));
 
-};
+    // (Reward logic will be added after syntax is stable)
+    // const out = await apiClaimAd50();
+    // if (out?.user?.coins != null) {
+    //   ui.setCoins(out.user.coins);
+    // }
+
+    winPopup.hide();
+    goNextLevel();
+  } catch {
+    alert("Ad reward failed");
+  }
+});
 
   // ---- GUEST ----
   ui.onGuestStart(() => {
