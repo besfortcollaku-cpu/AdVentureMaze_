@@ -52,7 +52,6 @@ async function apiClaimAd50() {
 }
 
 let levelIndex = 0;
-
 function goNextLevel() {
   levelIndex++;
 
@@ -177,21 +176,6 @@ ui.levelsBtn.addEventListener("click", () => {
   // TEMP: no rewards, no backend
   winPopup.show({
     levelNumber: level.number ?? 1,
-  });
-},
-
-  if (CURRENT_USER?.uid && CURRENT_ACCESS_TOKEN) {
-    apiClaimLevelComplete(unlockedLevel)
-      .then((out) => {
-        if (out?.user?.coins != null) {
-          ui.setCoins(out.user.coins);
-        }
-      })
-      .catch(() => {});
-  }
-
-  winPopup.show({
-    levelNumber: levelIndex + 1,
   });
 },
 });
