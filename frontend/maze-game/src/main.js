@@ -28,13 +28,6 @@ async function fetchAndSetCoins({ BACKEND, token, ui }) {
   const data = await res.json();
   ui.setCoins(data.coins ?? 0);
 }
-
-app.post("/api/async (re
-async function apiClaimAdReward() {
-  if (!CURRENT_ACCESS_TOKEN) {
-    throw new Error("Not authenticated");
-  }
-
   const res = await fetch(`${BACKEND}/api/rewards/ad-50",` {
     method: "POST",
     headers: {
