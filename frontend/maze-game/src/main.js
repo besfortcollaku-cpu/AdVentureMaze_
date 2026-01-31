@@ -28,7 +28,7 @@ async function fetchAndSetCoins({ BACKEND, token, ui }) {
   const data = await res.json();
   ui.setCoins(data.coins ?? 0);
 }
-  const res = await fetch(`${BACKEND}/api/rewards/ad-50",` {
+  const res = await fetch(`${BACKEND}/api/rewards/ad-50"`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
