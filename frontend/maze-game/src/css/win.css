@@ -52,6 +52,10 @@
     .winTitle{ font-size:26px; font-weight:950; letter-spacing:.3px; }
     .winSub{ opacity:.82; font-size:13px; }
 
+.winOverlay:not(.hidden) {
+  opacity: 1;
+  pointer-events: auto;
+}
     .winMusic{
       position:relative; z-index:2;
       margin-top:14px;
