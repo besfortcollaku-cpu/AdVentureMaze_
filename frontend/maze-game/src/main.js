@@ -173,7 +173,6 @@ ui.levelsBtn.addEventListener("click", () => {
   canvas: ui.canvas,
   level: levels[0],
   getCurrentUser: () => CURRENT_USER ?? { username: "guest", uid: null },
-  onLevelComplete() {
   onLevelComplete({ level }) {
   // TEMP: no rewards, no backend
   winPopup.show({
