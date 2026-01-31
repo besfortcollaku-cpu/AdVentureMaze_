@@ -150,7 +150,6 @@ ui.levelsBtn.addEventListener("click", () => {
   getCurrentUser: () => CURRENT_USER ?? { username: "guest", uid: null },
   onLevelComplete() {
   const levelNumber = levelIndex + 1;
-  alert("CALLING LEVEL COMPLETE API FOR LEVEL " + levelNumber);
 
   // 🔐 only Pi users get backend reward
   if (CURRENT_USER?.uid && CURRENT_ACCESS_TOKEN) {
