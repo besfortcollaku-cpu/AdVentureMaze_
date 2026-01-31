@@ -122,25 +122,7 @@ function loadGuestProgress() {
     return { maxLevel: 1 };
   }
 }
-async function apiClaimAd50() {
-  if (!CURRENT_ACCESS_TOKEN) throw new Error("No access token");
 
-  const nonce =
-    (globalThis.crypto?.randomUUID?.() ?? null) ||
-    `${Date.now()}-${Math.random().toString(16).slice(2)}`;
-
-  const res = await fetch(`${BACKEND}/api/rewards/ad-50`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${CURRENT_ACCESS_TOKEN}`,
-    },
-    body: JSON.stringify({ nonce }),
-  });
-
-  if (!res.ok) throw new Error(`ad-50 failed: ${res.status}`);
-  return res.json();
-}
 function saveGuestProgress(maxLevel) {
   const capped = Math.min(maxLevel, GUEST_MAX_LEVEL);
   localStorage.setItem(
