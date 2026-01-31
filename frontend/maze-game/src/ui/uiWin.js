@@ -1,4 +1,4 @@
-// src/ui/uiWinPopup.js
+// src/ui/uiWin.js
 // Level Complete / Win popup UI
 
 export function createWinPopup() {
