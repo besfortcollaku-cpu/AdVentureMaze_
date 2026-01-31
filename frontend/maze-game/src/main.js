@@ -28,6 +28,30 @@ async function fetchAndSetCoins({ BACKEND, token, ui }) {
   const data = await res.json();
   ui.setCoins(data.coins ?? 0);
 }
+
+app.post("/api/async (re
+async function apiClaimAdReward() {
+  if (!CURRENT_ACCESS_TOKEN) {
+    throw new Error("Not authenticated");
+  }
+
+  const res = await fetch(`${BACKEND}/api/rewards/ad-50",` {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${CURRENT_ACCESS_TOKEN}`,
+    },
+    body: JSON.stringify({
+      type: "ad",
+    }),
+  });
+
+  if (!res.ok) {
+    throw new Error("Ad reward failed");
+  }
+
+  return res.json();
+}
 let levelIndex = 0;
 function goNextLevel() {
   levelIndex++;
@@ -171,8 +195,26 @@ ui.levelsBtn.addEventListener("click", () => {
   goNextLevel();
 });
 
-winPopup.onWatchAdClick(() => {
-  // STEP 3: reward logic will go here later
+winPopup.onWatchAdClick(async () => {
+  if (!CURRENT_USER?.uid || !CURRENT_ACCESS_TOKEN) {
+    ui.showToast?.("Login required for rewards");
+    return;
+  }
+
+  try {
+    // simulate ad watching
+    ui.showToast?.("Watching ad…");
+    await new Promise((r) => setTimeout(r, 5000));
+
+    const out = await apiClaimAdReward();
+
+    if (out?.user?.coins != null) {
+      ui.setCoins(out.user.coins);
+    }
+  } catch (e) {
+    ui.showToast?.("Ad reward failed");
+  }
+
   winPopup.hide();
   goNextLevel();
 });
