@@ -210,21 +210,18 @@ winPopup.onWatchAdClick(async () => {
     return;
   }
 
-  const nonce = crypto.randomUUID();
-
   const res = await fetch(`${BACKEND}/api/rewards/ad-50`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${CURRENT_ACCESS_TOKEN}`,
     },
-    body: JSON.stringify({ nonce }),
+    body: JSON.stringify({ nonce: "ad-50" }),
   });
 
   const out = await res.json();
   console.log("AD +50 RESPONSE", out);
 
-  // ⏱️ COOLDOWN HANDLING (THIS WAS MISSING)
   if (out?.already) {
     alert("Ad already claimed. Please wait a few minutes.");
     return;
