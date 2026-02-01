@@ -1,79 +1,54 @@
-import { loadSession, saveSession, clearPiSession } from "./piSession.js";
-import { verifySessionWithBackend } from "../pi/piVerify.js";
 import { piLoginAndVerify } from "./piAuth.js";
 
+/**
+ * ensurePiLogin
+ *
+ * Guarantees:
+ * - Returns { ok: true, accessToken } on success
+ * - Sets frontend login state via onLogin callback
+ * - Works for BOTH fresh login and already-logged-in users
+ */
 export async function ensurePiLogin({ BACKEND, ui, onLogin }) {
-  // prevent double-run
+  // prevent double execution
   if (ensurePiLogin._running) {
     return { ok: false };
   }
   ensurePiLogin._running = true;
 
   try {
-    // -----------------------------
-    // 1️⃣ Try restore saved session
-    // -----------------------------
-    const saved = loadSession();
-
-    if (saved?.accessToken) {
-      const check = await verifySessionWithBackend(
-        BACKEND,
-        saved.accessToken
-      );
-
-      if (check.ok && check.data?.user) {
-        const user = check.data.user;
-
-        // 🔥 CRITICAL: propagate user + token
-        onLogin?.({
-          user,
-          accessToken: saved.accessToken,
-        });
-
-        ui?.setUser?.(user);
-        ui?.hideLoginGate?.();
-
-        return {
-          ok: true,
-          restored: true,
-          accessToken: saved.accessToken,
-        };
-      }
-
-      // invalid session → clear
-      clearPiSession();
-    }
-
-    // -----------------------------
-    // 2️⃣ Force Pi login (popup)
-    // -----------------------------
+    // 🔹 FORCE Pi login flow
+    // (Pi SDK decides whether popup is needed)
     ui?.showLoginGate?.();
 
-    const auth = await piLoginAndVerify(BACKEND);
+    const result = await piLoginAndVerify(BACKEND);
 
-    if (!auth?.accessToken || !auth?.user) {
-      ui?.showLoginError?.("Login failed");
+    // piAuth.js returns: { auth, verifiedUser }
+    const accessToken = result?.auth?.accessToken;
+    const user = result?.verifiedUser;
+
+    if (!accessToken || !user) {
+      ui?.showLoginError?.("Pi login failed");
       return { ok: false };
     }
 
-    // save session
-    saveSession({
-      accessToken: auth.accessToken,
-    });
-
-    // 🔥 CRITICAL: propagate user + token
+    // 🔹 Propagate login state to frontend
     onLogin?.({
-      user: auth.user,
-      accessToken: auth.accessToken,
+      user,
+      accessToken,
     });
 
-    ui?.setUser?.(auth.user);
+    ui?.setUser?.(user);
     ui?.hideLoginGate?.();
 
+    // 🔹 IMPORTANT: always return token
     return {
       ok: true,
-      accessToken: auth.accessToken,
+      accessToken,
     };
+  } catch (err) {
+    console.error("ensurePiLogin error", err);
+    ui?.showLoginError?.("Login error");
+    return { ok: false };
   } finally {
     ensurePiLogin._running = false;
   }
