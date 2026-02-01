@@ -205,25 +205,29 @@ winPopup.onNextLevel(() => {
   goNextLevel();
 });
 winPopup.onWatchAdClick(async () => {
-  try {
-    alert("Watching ad… wait 5 seconds");
-    await new Promise((r) => setTimeout(r, 5000));
+  if (!CURRENT_ACCESS_TOKEN) {
+    alert("Login required");
+    return;
+  }
 
-    const out = await apiClaimAd50();
+  const nonce = crypto.randomUUID();
 
-    if (out?.user?.coins != null) {
-      ui.setCoins(out.user.coins);
-    } else {
-      alert("Ad claimed but no coins returned");
-    }
+  const res = await fetch(`${BACKEND}/api/rewards/ad-50`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${CURRENT_ACCESS_TOKEN}`,
+    },
+    body: JSON.stringify({ nonce }),
+  });
 
-    winPopup.hide();
-    goNextLevel();
-  } catch (e) {
-    alert("Ad reward failed");
+  const out = await res.json();
+  console.log("AD +50 RESPONSE", out);
+
+  if (out?.user?.coins != null) {
+    ui.setCoins(out.user.coins);
   }
 });
-
   // ---- GUEST ----
   ui.onGuestStart(() => {
   CURRENT_USER = { username: "Guest", uid: null };
