@@ -11,7 +11,7 @@ body {
   overflow: hidden;
 }
 
-..toast {
+.toast {
   position: fixed;
 
   /* 👆 move it ABOVE win popup */
