@@ -7,7 +7,7 @@ import { createGame } from "./game/game.js";
 import { ensurePiLogin } from "./pi/piClient.js";
 import { levels } from "./levels/index.js";
 import { createWinPopup } from "./ui/uiWin.js";
-import { showToast } from "./ui/uiWin.js";
+import { showToast, setAdCooldown } from "./ui/uiWin.js";
 
 
 const GUEST_PROGRESS_KEY = "guest_progress_v1";
@@ -218,8 +218,11 @@ winPopup.onNextLevel(() => {
   goNextLevel();
 });
 winPopup.onWatchAdClick(async () => {
+    if (winPopup._adBusy) return;
+winPopup._adBusy = true;
   if (!CURRENT_ACCESS_TOKEN) {
     showToast("Login required");
+    setAdCooldown(wait);
     return;
   }
 
@@ -241,6 +244,7 @@ winPopup.onWatchAdClick(async () => {
     if (out?.already) {
   showToast("Please wait before watching another ad ⏳");
   return;
+  winPopup._adBusy = false;
 }
 
 if (out?.user?.coins != null) {
@@ -248,6 +252,7 @@ if (out?.user?.coins != null) {
   showToast("+50 coins 💰");
 }
 return;
+winPopup._adBusy = false;
   }
 
   if (out?.user?.coins != null) {

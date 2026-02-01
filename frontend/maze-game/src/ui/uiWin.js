@@ -79,6 +79,34 @@ export function showToast(message, duration = 2000) {
   }, duration);
 }
   
+  let adBtn;
+let adBtnLabel = "Watch Ad +50";
+
+export function setAdButton(el) {
+  adBtn = el;
+  adBtnLabel = el.textContent;
+}
+
+export function setAdCooldown(seconds) {
+  if (!adBtn) return;
+
+  adBtn.disabled = true;
+
+  let remaining = seconds;
+  adBtn.textContent = `Next ad in ${remaining}s`;
+
+  clearInterval(adBtn._cd);
+  adBtn._cd = setInterval(() => {
+    remaining--;
+    if (remaining <= 0) {
+      clearInterval(adBtn._cd);
+      adBtn.disabled = false;
+      adBtn.textContent = adBtnLabel;
+    } else {
+      adBtn.textContent = `Next ad in ${remaining}s`;
+    }
+  }, 1000);
+}
   function show({ levelNumber }) {    levelText.textContent = `You finished Level ${levelNumber}`;
     el.classList.remove("hidden");
   }
