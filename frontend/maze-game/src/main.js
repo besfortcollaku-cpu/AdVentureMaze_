@@ -274,9 +274,11 @@ ui.onLoginClick(async () => {
       CURRENT_USER = user;
       CURRENT_ACCESS_TOKEN = accessToken;
     localStorage.setItem("pi_access_token", accessToken);
+    
         
     },
   });
+  alert("AFTER LOGIN: token = " + (CURRENT_ACCESS_TOKEN ? "YES" : "NO"));
 
   // no session → start Pi auth NOW
   if (!result?.ok) {
@@ -292,6 +294,7 @@ ui.onLoginClick(async () => {
   });
 
   const me = await loadMeAndSyncUI({
+      alert("loadMeAndSyncUI CALLED");
     BACKEND,
     token: CURRENT_ACCESS_TOKEN,
     ui,
