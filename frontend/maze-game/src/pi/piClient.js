@@ -1,5 +1,5 @@
 import { loadSession, saveSession, clearPiSession } from "./piSession.js";
-import { verifySessionWithBackend } from "./piVerify.js";
+import { verifySessionWithBackend } from "../pi/piVerify.js";
 import { piLoginAndVerify } from "./piAuth.js";
 
 export async function ensurePiLogin({ BACKEND, ui, onLogin }) {
