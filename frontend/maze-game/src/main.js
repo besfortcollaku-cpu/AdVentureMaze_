@@ -41,26 +41,7 @@ function showToast(message, duration = 2500) {
     el.classList.remove("show");
   }, duration);
 }
-async function apiClaimLevelComplete(unlockedLevel) {
-  if (!CURRENT_ACCESS_TOKEN) return null;
 
-  const res = await fetch(`${BACKEND}/api/level/complete`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${CURRENT_ACCESS_TOKEN}`,
-    },
-    body: JSON.stringify({
-      level: unlockedLevel,
-    }),
-  });
-
-  if (!res.ok) {
-    return null; // never break gameplay
-  }
-
-  return res.json();
-}
 
 async function apiClaimAd50() {
   if (!CURRENT_ACCESS_TOKEN) {
