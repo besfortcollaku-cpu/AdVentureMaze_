@@ -18,6 +18,7 @@ export function mountUI(root) {
           🪙 <span id="coinCount">0</span>
         </div>
       </header>
+      <div id="toast" class="toast"></div>
 
       <div class="board">
         <canvas id="game"></canvas>

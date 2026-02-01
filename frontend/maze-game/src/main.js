@@ -28,6 +28,18 @@ async function fetchAndSetCoins({ BACKEND, token, ui }) {
   const data = await res.json();
   ui.setCoins(data.coins ?? 0);
 }
+function showToast(message, duration = 2500) {
+  const el = document.getElementById("toast");
+  if (!el) return;
+
+  el.textContent = message;
+  el.classList.add("show");
+
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(() => {
+    el.classList.remove("show");
+  }, duration);
+}
 async function apiClaimLevelComplete(unlockedLevel) {
   if (!CURRENT_ACCESS_TOKEN) return null;
 
@@ -206,7 +218,7 @@ winPopup.onNextLevel(() => {
 });
 winPopup.onWatchAdClick(async () => {
   if (!CURRENT_ACCESS_TOKEN) {
-    alert("Login required");
+    showToast("Login required");
     return;
   }
 
@@ -223,7 +235,7 @@ winPopup.onWatchAdClick(async () => {
   console.log("AD +50 RESPONSE", out);
 
   if (out?.already) {
-    alert("Ad already claimed. Please wait a few minutes.");
+    showToast("Ad already claimed. Please wait a few minutes.");
     return;
   }
 
