@@ -187,53 +187,45 @@ winPopup.onNextLevel(() => {
   goNextLevel();
 });
 winPopup.onWatchAdClick(async () => {
-    if (winPopup._adBusy) return;
+  if (winPopup._adBusy) return;
   winPopup._adBusy = true;
 
   try {
-    // fetch + logic
+    if (!CURRENT_ACCESS_TOKEN) {
+      winPopup.showToast("Login required");
+      return;
+    }
+
+    const res = await fetch(`${BACKEND}/api/rewards/ad-50`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${CURRENT_ACCESS_TOKEN}`,
+      },
+      body: JSON.stringify({
+        nonce: crypto.randomUUID(),
+      }),
+    });
+
+    const out = await res.json();
+    console.log("AD +50 RESPONSE", out);
+
+    if (out.already) {
+      winPopup.showToast(`Please wait ${out.wait}s ⏳`);
+      winPopup.setAdCooldown(out.wait);
+      return;
+    }
+
+    if (out?.user?.coins != null) {
+      ui.setCoins(out.user.coins);
+      winPopup.showToast("+50 coins 💰");
+      winPopup.setAdCooldown(30);
+    }
+  } catch (e) {
+    console.error(e);
+    winPopup.showToast("Ad reward failed");
   } finally {
     winPopup._adBusy = false;
-  }
-});
-  if (!CURRENT_ACCESS_TOKEN) {
-    showToast("Login required");
-    setAdCooldown(wait);
-    return;
-  }
-
-  const res = await fetch(`${BACKEND}/api/rewards/ad-50`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${CURRENT_ACCESS_TOKEN}`,
-    },
-    body: JSON.stringify({
-      nonce: crypto.randomUUID(), // ✅ UNIQUE EVERY TIME
-    }),
-  });
-
-  const out = await res.json();
-  console.log("AD +50 RESPONSE", out);
-
-  if (out?.already) {
-    if (out?.already) {
-  showToast("Please wait before watching another ad ⏳");
-  return;
-  winPopup._adBusy = false;
-}
-if (out?.user?.coins != null) {
-  ui.setCoins(out.user.coins);
-  showToast("+50 coins 💰");
-  setAdCooldown(30); // ⏳ START COOLDOWN
-}
-return;
-winPopup._adBusy = false;
-  }
-
-  if (out?.user?.coins != null) {
-    ui.setCoins(out.user.coins);
-    showToast("+50 coins 💰");
   }
 });
   // ---- GUEST ----

@@ -63,8 +63,10 @@ export function createWinPopup() {
   // API
   // ---------------------------
   let toastEl;
+let adBtn;
+let adBtnLabel = "Watch Ad +50";
 
-export function showToast(message, duration = 2000) {
+function showToast(message, duration = 2000) {
   if (!toastEl) {
     toastEl = document.createElement("div");
     toastEl.id = "game-toast";
@@ -78,6 +80,31 @@ export function showToast(message, duration = 2000) {
   toastEl._t = setTimeout(() => {
     toastEl.classList.remove("show");
   }, duration);
+}
+
+function setAdButton(el) {
+  adBtn = el;
+  adBtnLabel = el.textContent;
+}
+
+function setAdCooldown(seconds) {
+  if (!adBtn) return;
+
+  adBtn.disabled = true;
+  let remaining = seconds;
+  adBtn.textContent = `Next ad in ${remaining}s`;
+
+  clearInterval(adBtn._cd);
+  adBtn._cd = setInterval(() => {
+    remaining--;
+    if (remaining <= 0) {
+      clearInterval(adBtn._cd);
+      adBtn.disabled = false;
+      adBtn.textContent = adBtnLabel;
+    } else {
+      adBtn.textContent = `Next ad in ${remaining}s`;
+    }
+  }, 1000);
 }
   
   let adBtn;
@@ -126,8 +153,10 @@ export function setAdCooldown(seconds) {
 
   return {
     show,
-    hide,
-    onNextLevel,
-    onWatchAdClick,
+  hide,
+  onNextLevel,
+  onWatchAdClick,
+  showToast,
+  setAdCooldown,
   };
 }
