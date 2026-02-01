@@ -51,7 +51,7 @@ async function apiClaimLevelComplete(unlockedLevel) {
 
 async function apiClaimAd50() {
   if (!CURRENT_ACCESS_TOKEN) {
-    throw new Error("Not authenticated");
+    throw new Error("No access token");
   }
 
   const res = await fetch(`${BACKEND}/api/rewards/ad-50`, {
@@ -61,7 +61,7 @@ async function apiClaimAd50() {
       Authorization: `Bearer ${CURRENT_ACCESS_TOKEN}`,
     },
     body: JSON.stringify({
-      nonce: crypto.randomUUID(), // REQUIRED by backend
+      nonce: `${Date.now()}-${Math.random()}`,
     }),
   });
 
@@ -70,27 +70,6 @@ async function apiClaimAd50() {
   }
 
   return res.json();
-}
-
-let levelIndex = 0;
-function goNextLevel() {
-  levelIndex++;
-
-  if (levelIndex >= levels.length) {
-    levelIndex = levels.length - 1;
-    return;
-  }
-
-  game.setLevel(levels[levelIndex]);
-}
-async function loadCoins({ BACKEND, token, ui }) {
-  const res = await fetch(`${BACKEND}/api/me`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-
-  if (!res.ok) return;
 }
 
 async function loadMeAndSyncUI({ BACKEND, token, ui }) {
@@ -226,25 +205,21 @@ winPopup.onNextLevel(() => {
   goNextLevel();
 });
 winPopup.onWatchAdClick(async () => {
-  // Must be logged in
-  if (!CURRENT_USER?.uid || !CURRENT_ACCESS_TOKEN) {
-    return;
-  }
-
   try {
-    // Simulate watching ad
-    alert("Watching ad... wait 5 seconds");
+    alert("Watching ad… wait 5 seconds");
     await new Promise((r) => setTimeout(r, 5000));
 
-    // (Reward logic will be added after syntax is stable)
-    // const out = await apiClaimAd50();
-    // if (out?.user?.coins != null) {
-    //   ui.setCoins(out.user.coins);
-    // }
+    const out = await apiClaimAd50();
+
+    if (out?.user?.coins != null) {
+      ui.setCoins(out.user.coins);
+    } else {
+      alert("Ad claimed but no coins returned");
+    }
 
     winPopup.hide();
     goNextLevel();
-  } catch {
+  } catch (e) {
     alert("Ad reward failed");
   }
 });
