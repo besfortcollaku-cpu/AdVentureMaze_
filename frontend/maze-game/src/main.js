@@ -94,24 +94,24 @@ async function loadCoins({ BACKEND, token, ui }) {
 }
 
 async function loadMeAndSyncUI({ BACKEND, token, ui }) {
-    
   const res = await fetch(`${BACKEND}/api/me`, {
     headers: { Authorization: `Bearer ${token}` },
   });
 
-  if (!res.ok) return;
+  if (!res.ok) return null;
 
   const me = await res.json();
-  const serverUser = me.user;
 
+  // 🔥 THIS WAS MISSING
   CURRENT_USER = {
-    uid: serverUser.uid,
-    username: serverUser.username,
+    uid: me.user.uid,
+    username: me.user.username,
   };
 
   ui.setUser(CURRENT_USER);
-  ui.setCoins(serverUser.coins);
-    return me; // 🔥 THIS IS THE FIX
+  ui.setCoins(me.user.coins ?? 0);
+
+  return me;
 }
 function loadGuestProgress() {
   try {
@@ -226,16 +226,6 @@ winPopup.onNextLevel(() => {
   goNextLevel();
 });
 winPopup.onWatchAdClick(async () => {
-    alert(
-    "DEBUG:\n" +
-    "CURRENT_USER = " + JSON.stringify(CURRENT_USER) + "\n\n" +
-    "CURRENT_ACCESS_TOKEN = " + (CURRENT_ACCESS_TOKEN ? "YES" : "NO")
-  );
-
-  if (!CURRENT_USER?.uid || !CURRENT_ACCESS_TOKEN) {
-    alert("Login required for rewards");
-    return;
-  }
   // Must be logged in
   if (!CURRENT_USER?.uid || !CURRENT_ACCESS_TOKEN) {
     alert("Login required for rewards");
