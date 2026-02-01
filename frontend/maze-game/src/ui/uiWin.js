@@ -61,6 +61,24 @@ export function createWinPopup() {
   // ---------------------------
   // API
   // ---------------------------
+  let toastEl;
+
+export function showToast(message, duration = 2000) {
+  if (!toastEl) {
+    toastEl = document.createElement("div");
+    toastEl.id = "game-toast";
+    document.body.appendChild(toastEl);
+  }
+
+  toastEl.textContent = message;
+  toastEl.classList.add("show");
+
+  clearTimeout(toastEl._t);
+  toastEl._t = setTimeout(() => {
+    toastEl.classList.remove("show");
+  }, duration);
+}
+  
   function show({ levelNumber }) {    levelText.textContent = `You finished Level ${levelNumber}`;
     el.classList.remove("hidden");
   }

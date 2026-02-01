@@ -7,6 +7,7 @@ import { createGame } from "./game/game.js";
 import { ensurePiLogin } from "./pi/piClient.js";
 import { levels } from "./levels/index.js";
 import { createWinPopup } from "./ui/uiWin.js";
+import { showToast } from "./ui/uiWin.js";
 
 
 const GUEST_PROGRESS_KEY = "guest_progress_v1";
@@ -237,8 +238,16 @@ winPopup.onWatchAdClick(async () => {
   console.log("AD +50 RESPONSE", out);
 
   if (out?.already) {
-    showToast("Please wait before watching another ad ⏳");
-    return;
+    if (out?.already) {
+  showToast("Please wait before watching another ad ⏳");
+  return;
+}
+
+if (out?.user?.coins != null) {
+  ui.setCoins(out.user.coins);
+  showToast("+50 coins 💰");
+}
+return;
   }
 
   if (out?.user?.coins != null) {
