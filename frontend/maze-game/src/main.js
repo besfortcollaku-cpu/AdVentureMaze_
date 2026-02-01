@@ -228,19 +228,22 @@ winPopup.onWatchAdClick(async () => {
       "Content-Type": "application/json",
       Authorization: `Bearer ${CURRENT_ACCESS_TOKEN}`,
     },
-    body: JSON.stringify({ nonce: "ad-50" }),
+    body: JSON.stringify({
+      nonce: crypto.randomUUID(), // ✅ UNIQUE EVERY TIME
+    }),
   });
 
   const out = await res.json();
   console.log("AD +50 RESPONSE", out);
 
   if (out?.already) {
-    showToast("Ad already claimed. Please wait a few minutes.");
+    showToast("Please wait before watching another ad ⏳");
     return;
   }
 
   if (out?.user?.coins != null) {
     ui.setCoins(out.user.coins);
+    showToast("+50 coins 💰");
   }
 });
   // ---- GUEST ----
