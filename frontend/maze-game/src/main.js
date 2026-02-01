@@ -13,7 +13,7 @@ const GUEST_PROGRESS_KEY = "guest_progress_v1";
 const GUEST_MAX_LEVEL = 5;
 let CURRENT_USER = null;
 let CURRENT_ACCESS_TOKEN = null;
-const BACKEND = "https://triumphant-gentleness-production.up.railway.app/";
+const BACKEND = "https://triumphant-gentleness-production.up.railway.app";
 async function fetchAndSetCoins({ BACKEND, token, ui }) {
   if (!token) return;
 
