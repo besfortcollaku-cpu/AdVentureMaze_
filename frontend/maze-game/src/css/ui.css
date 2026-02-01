@@ -11,25 +11,33 @@ body {
   overflow: hidden;
 }
 
-.toast {
+..toast {
   position: fixed;
-  bottom: 90px;
+
+  /* 👆 move it ABOVE win popup */
+  top: 30%;
   left: 50%;
-  transform: translateX(-50%);
-  background: rgba(20, 20, 20, 0.9);
+  transform: translate(-50%, -10px);
+
+  background: rgba(20, 20, 20, 0.95);
   color: #fff;
-  padding: 12px 18px;
-  border-radius: 10px;
-  font-size: 14px;
+  padding: 14px 20px;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 500;
+
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.3s ease, transform 0.3s ease;
-  z-index: 9999;
+
+  transition: opacity 0.25s ease, transform 0.25s ease;
+
+  /* 🔥 higher than win popup overlay */
+  z-index: 20000;
 }
 
 .toast.show {
   opacity: 1;
-  transform: translateX(-50%) translateY(-6px);
+  transform: translate(-50%, 0);
 }
 /* =========================
    RESET / BASE
