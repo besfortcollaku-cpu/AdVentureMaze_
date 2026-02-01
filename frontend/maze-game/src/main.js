@@ -94,6 +94,7 @@ async function loadCoins({ BACKEND, token, ui }) {
 }
 
 async function loadMeAndSyncUI({ BACKEND, token, ui }) {
+      alert("loadMeAndSyncUI CALLED");
   const res = await fetch(`${BACKEND}/api/me`, {
     headers: { Authorization: `Bearer ${token}` },
   });
@@ -293,13 +294,13 @@ ui.onLoginClick(async () => {
     token: CURRENT_ACCESS_TOKEN,
   });
 
-  const me = await loadMeAndSyncUI({
-      alert("loadMeAndSyncUI CALLED");
-    BACKEND,
-    token: CURRENT_ACCESS_TOKEN,
-    ui,
-  });
+  alert("ABOUT TO CALL loadMeAndSyncUI");
 
+const me = await loadMeAndSyncUI({
+  BACKEND,
+  token: CURRENT_ACCESS_TOKEN,
+  ui,
+});
   const maxLevel =
     me?.progress?.maxLevel ??
     me?.progress?.highestLevel ??
