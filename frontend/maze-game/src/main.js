@@ -226,6 +226,16 @@ winPopup.onNextLevel(() => {
   goNextLevel();
 });
 winPopup.onWatchAdClick(async () => {
+    alert(
+    "DEBUG:\n" +
+    "CURRENT_USER = " + JSON.stringify(CURRENT_USER) + "\n\n" +
+    "CURRENT_ACCESS_TOKEN = " + (CURRENT_ACCESS_TOKEN ? "YES" : "NO")
+  );
+
+  if (!CURRENT_USER?.uid || !CURRENT_ACCESS_TOKEN) {
+    alert("Login required for rewards");
+    return;
+  }
   // Must be logged in
   if (!CURRENT_USER?.uid || !CURRENT_ACCESS_TOKEN) {
     alert("Login required for rewards");
