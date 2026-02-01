@@ -224,6 +224,12 @@ winPopup.onWatchAdClick(async () => {
   const out = await res.json();
   console.log("AD +50 RESPONSE", out);
 
+  // ⏱️ COOLDOWN HANDLING (THIS WAS MISSING)
+  if (out?.already) {
+    alert("Ad already claimed. Please wait a few minutes.");
+    return;
+  }
+
   if (out?.user?.coins != null) {
     ui.setCoins(out.user.coins);
   }
