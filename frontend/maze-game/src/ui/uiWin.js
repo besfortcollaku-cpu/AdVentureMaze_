@@ -45,6 +45,7 @@ export function createWinPopup() {
   const levelText = el.querySelector("#winLevelText");
   const nextBtn = el.querySelector("#nextLevelBtn");
   const adBtn = el.querySelector("#watchAdBtn");
+  setAdButton(adBtn);
 
   // ---------------------------
   // Events

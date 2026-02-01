@@ -188,7 +188,14 @@ winPopup.onNextLevel(() => {
 });
 winPopup.onWatchAdClick(async () => {
     if (winPopup._adBusy) return;
-winPopup._adBusy = true;
+  winPopup._adBusy = true;
+
+  try {
+    // fetch + logic
+  } finally {
+    winPopup._adBusy = false;
+  }
+});
   if (!CURRENT_ACCESS_TOKEN) {
     showToast("Login required");
     setAdCooldown(wait);
@@ -215,10 +222,10 @@ winPopup._adBusy = true;
   return;
   winPopup._adBusy = false;
 }
-
 if (out?.user?.coins != null) {
   ui.setCoins(out.user.coins);
   showToast("+50 coins 💰");
+  setAdCooldown(30); // ⏳ START COOLDOWN
 }
 return;
 winPopup._adBusy = false;
