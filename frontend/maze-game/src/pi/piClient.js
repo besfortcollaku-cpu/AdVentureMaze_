@@ -1,4 +1,6 @@
 // src/pi/piClient.js
+import { loadSession, saveSession, clearPiSession } from "./piSession.js";
+import { verifySessionWithBackend } from "./piVerify.js";
 import { piLoginAndVerify } from "./piAuth.js";
 
 /**
@@ -50,30 +52,78 @@ async function verifySessionWithBackend(BACKEND, accessToken) {
 
 
 export async function ensurePiLogin({ BACKEND, ui, onLogin }) {
-  // prevent double-run / double-click
-  let isLoggingIn = false;
+  // prevent double-run
+  if (ensurePiLogin._running) {
+    return { ok: false };
+  }
+  ensurePiLogin._running = true;
 
-  // 1) Try restore
-  const saved = loadSession();
-  if (saved?.accessToken) {
-    const check = await verifySessionWithBackend(BACKEND, saved.accessToken);
+  try {
+    // -----------------------------
+    // 1️⃣ Try restore saved session
+    // -----------------------------
+    const saved = loadSession();
 
-    if (check.ok) {
-      // ✅ session is valid
-      onLogin?.({ user: check.data.user, accessToken: saved.accessToken });
-      ui?.setUser?.(check.data.user);
-      ui?.hideLoginGate?.();
-      return { ok: true, restored: true };
+    if (saved?.accessToken) {
+      const check = await verifySessionWithBackend(
+        BACKEND,
+        saved.accessToken
+      );
+
+      if (check.ok && check.data?.user) {
+        const user = check.data.user;
+
+        // 🔥 CRITICAL: propagate user + token
+        onLogin?.({
+          user,
+          accessToken: saved.accessToken,
+        });
+
+        ui?.setUser?.(user);
+        ui?.hideLoginGate?.();
+
+        return {
+          ok: true,
+          restored: true,
+          accessToken: saved.accessToken,
+        };
+      }
+
+      // invalid session → clear
+      clearPiSession();
     }
 
-    // ❌ session invalid -> clear and continue to login
-    clearPiSession();
-    ui?.showLoginError?.("Session expired. Please login again.");
+    // -----------------------------
+    // 2️⃣ Force Pi login (popup)
+    // -----------------------------
+    ui?.showLoginGate?.();
+
+    const auth = await piLoginAndVerify(BACKEND);
+
+    if (!auth?.accessToken || !auth?.user) {
+      ui?.showLoginError?.("Login failed");
+      return { ok: false };
+    }
+
+    // save session
+    saveSession({
+      accessToken: auth.accessToken,
+    });
+
+    // 🔥 CRITICAL: propagate user + token
+    onLogin?.({
+      user: auth.user,
+      accessToken: auth.accessToken,
+    });
+
+    ui?.setUser?.(auth.user);
+    ui?.hideLoginGate?.();
+
+    return {
+      ok: true,
+      accessToken: auth.accessToken,
+    };
+  } finally {
+    ensurePiLogin._running = false;
   }
-
-  // 2) Force login before game start
-  ui?.showLoginGate?.();
-
-  // no valid session → caller must trigger login
-return { ok: false, needsLogin: true };
 }
