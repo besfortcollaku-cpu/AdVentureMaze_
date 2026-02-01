@@ -87,25 +87,7 @@ function setAdButton(el) {
   adBtnLabel = el.textContent;
 }
 
-function setAdCooldown(seconds) {
-  if (!adBtn) return;
 
-  adBtn.disabled = true;
-  let remaining = seconds;
-  adBtn.textContent = `Next ad in ${remaining}s`;
-
-  clearInterval(adBtn._cd);
-  adBtn._cd = setInterval(() => {
-    remaining--;
-    if (remaining <= 0) {
-      clearInterval(adBtn._cd);
-      adBtn.disabled = false;
-      adBtn.textContent = adBtnLabel;
-    } else {
-      adBtn.textContent = `Next ad in ${remaining}s`;
-    }
-  }, 1000);
-}
   
   let adBtn;
 let adBtnLabel = "Watch Ad +50";
@@ -114,27 +96,16 @@ export function setAdButton(el) {
   adBtn = el;
   adBtnLabel = el.textContent;
 }
+const res = await apiClaimAd50();
 
-export function setAdCooldown(seconds) {
-  if (!adBtn) return;
-
-  adBtn.disabled = true;
-
-  let remaining = seconds;
-  adBtn.textContent = `Next ad in ${remaining}s`;
-
-  clearInterval(adBtn._cd);
-  adBtn._cd = setInterval(() => {
-    remaining--;
-    if (remaining <= 0) {
-      clearInterval(adBtn._cd);
-      adBtn.disabled = false;
-      adBtn.textContent = adBtnLabel;
-    } else {
-      adBtn.textContent = `Next ad in ${remaining}s`;
-    }
-  }, 1000);
+if (res.already) {
+  showToast(`Wait ${res.wait}s before next ad`);
+  return;
 }
+
+ui.setCoins(res.user.coins);
+showToast("+ coins!");
+
   function show({ levelNumber }) {    levelText.textContent = `You finished Level ${levelNumber}`;
     el.classList.remove("hidden");
   }
