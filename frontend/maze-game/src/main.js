@@ -94,7 +94,6 @@ async function loadCoins({ BACKEND, token, ui }) {
 }
 
 async function loadMeAndSyncUI({ BACKEND, token, ui }) {
-      alert("loadMeAndSyncUI CALLED");
   const res = await fetch(`${BACKEND}/api/me`, {
     headers: { Authorization: `Bearer ${token}` },
   });
@@ -229,7 +228,6 @@ winPopup.onNextLevel(() => {
 winPopup.onWatchAdClick(async () => {
   // Must be logged in
   if (!CURRENT_USER?.uid || !CURRENT_ACCESS_TOKEN) {
-    alert("Login required for rewards");
     return;
   }
 
@@ -271,22 +269,19 @@ ui.onLoginClick(async () => {
   const result = await ensurePiLogin({
     BACKEND,
     ui,
-    onLogin: ({ user, accessToken }) => {
-      CURRENT_USER = user;
+    onLogin: ({ accessToken }) => {
+      // called ONLY on fresh login
       CURRENT_ACCESS_TOKEN = accessToken;
-    localStorage.setItem("pi_access_token", accessToken);
-    
-        
     },
   });
-  alert("AFTER LOGIN: token = " + (CURRENT_ACCESS_TOKEN ? "YES" : "NO"));
 
-  // no session → start Pi auth NOW
-  if (!result?.ok) {
-    const { auth } = await import("./pi/piAuth.js").then(m =>
-      m.piLoginAndVerify(BACKEND)
-    );
-    CURRENT_ACCESS_TOKEN = auth.accessToken;
+  // 🔥 CRITICAL FIX: handle existing session
+  if (!CURRENT_ACCESS_TOKEN && result?.accessToken) {
+    CURRENT_ACCESS_TOKEN = result.accessToken;
+  }
+
+  if (!CURRENT_ACCESS_TOKEN) {
+    return;
   }
 
   await migrateGuestProgress({
@@ -294,13 +289,12 @@ ui.onLoginClick(async () => {
     token: CURRENT_ACCESS_TOKEN,
   });
 
-  alert("ABOUT TO CALL loadMeAndSyncUI");
+  const me = await loadMeAndSyncUI({
+    BACKEND,
+    token: CURRENT_ACCESS_TOKEN,
+    ui,
+  });
 
-const me = await loadMeAndSyncUI({
-  BACKEND,
-  token: CURRENT_ACCESS_TOKEN,
-  ui,
-});
   const maxLevel =
     me?.progress?.maxLevel ??
     me?.progress?.highestLevel ??
