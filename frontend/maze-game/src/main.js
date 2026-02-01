@@ -29,18 +29,6 @@ async function fetchAndSetCoins({ BACKEND, token, ui }) {
   const data = await res.json();
   ui.setCoins(data.coins ?? 0);
 }
-function showToast(message, duration = 2500) {
-  const el = document.getElementById("toast");
-  if (!el) return;
-
-  el.textContent = message;
-  el.classList.add("show");
-
-  clearTimeout(showToast._t);
-  showToast._t = setTimeout(() => {
-    el.classList.remove("show");
-  }, duration);
-}
 
 
 async function apiClaimAd50() {
