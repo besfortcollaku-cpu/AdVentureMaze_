@@ -103,7 +103,16 @@ export function setAdButton(el) {
   adBtn = el;
   adBtnLabel = el.textContent;
 }
-const res = await apiClaimAd50();
+watchAdBtn.onclick = async () => {
+  const res = await apiClaimAd50();
+
+  if (res?.already) {
+    showToast(`Wait ${res.wait}s before next ad`);
+    return;
+  }
+
+  showToast("+50 coins");
+};
 
 if (res.already) {
   showToast(`Wait ${res.wait}s before next ad`);
