@@ -14,6 +14,7 @@ export function createWinPopup() {
   // HTML
   // ---------------------------
   const el = document.createElement("div");
+  export function setAdCooldown();
   el.className = "overlay winOverlay hidden";
 
   el.innerHTML = `
@@ -118,7 +119,7 @@ export function createWinPopup() {
   }
 
   // Public: call this when backend says wait seconds
-  export function setAdCooldown(waitSeconds) {
+  function setAdCooldown(waitSeconds) {
     const wait = Math.max(0, Number(waitSeconds || 0));
     if (!wait) return;
 
