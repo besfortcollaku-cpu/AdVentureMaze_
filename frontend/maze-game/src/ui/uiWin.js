@@ -118,7 +118,7 @@ export function createWinPopup() {
   }
 
   // Public: call this when backend says wait seconds
-  function setAdCooldown(waitSeconds) {
+  export function setAdCooldown(waitSeconds) {
     const wait = Math.max(0, Number(waitSeconds || 0));
     if (!wait) return;
 
