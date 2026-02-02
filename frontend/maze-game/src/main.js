@@ -187,45 +187,21 @@ winPopup.onNextLevel(() => {
   goNextLevel();
 });
 winPopup.onWatchAdClick(async () => {
-  if (winPopup._adBusy) return;
-  winPopup._adBusy = true;
-
   try {
-    if (!CURRENT_ACCESS_TOKEN) {
-      winPopup.showToast("Login required");
+    const res = await apiClaimAd50();
+
+    // ⛔ backend says: already claimed → cooldown active
+    if (res?.already) {
+      const wait = Number(res.wait || 30); // fallback safety
+      winPopup.setAdCooldown(wait);
+      winPopup.showToast(`Wait ${wait}s before next ad`);
       return;
     }
 
-    const res = await fetch(`${BACKEND}/api/rewards/ad-50`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${CURRENT_ACCESS_TOKEN}`,
-      },
-      body: JSON.stringify({
-        nonce: crypto.randomUUID(),
-      }),
-    });
-
-    const out = await res.json();
-    console.log("AD +50 RESPONSE", out);
-
-    if (out.already) {
-      winPopup.showToast(`Please wait ${out.wait}s ⏳`);
-      winPopup.setAdCooldown(out.wait);
-      return;
-    }
-
-    if (out?.user?.coins != null) {
-      ui.setCoins(out.user.coins);
-      winPopup.showToast("+50 coins 💰");
-      winPopup.setAdCooldown(30);
-    }
+    // ✅ success
+    winPopup.showToast("+50 coins");
   } catch (e) {
-    console.error(e);
-    winPopup.showToast("Ad reward failed");
-  } finally {
-    winPopup._adBusy = false;
+    winPopup.showToast("Ad failed");
   }
 });
   // ---- GUEST ----
