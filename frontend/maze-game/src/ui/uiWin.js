@@ -3,18 +3,51 @@
 
 import "../css/win.css";
 
+/* =====================================================
+   GLOBAL TOAST (EXPORTED)
+===================================================== */
+let toastEl = null;
+
+export function showToast(message, duration = 2000) {
+  if (!toastEl) {
+    toastEl = document.createElement("div");
+    toastEl.id = "game-toast";
+    document.body.appendChild(toastEl);
+  }
+
+  toastEl.textContent = message;
+  toastEl.classList.add("show");
+
+  clearTimeout(toastEl._t);
+  toastEl._t = setTimeout(() => {
+    toastEl.classList.remove("show");
+  }, duration);
+}
+
+/* =====================================================
+   GLOBAL AD COOLDOWN (EXPORTED)
+===================================================== */
+const COOLDOWN_KEY = "adCooldownUntil"; // ms timestamp
+
+export function setAdCooldown(waitSeconds) {
+  const wait = Math.max(0, Number(waitSeconds || 0));
+  if (!wait) return;
+
+  const until = Date.now() + wait * 1000;
+  localStorage.setItem(COOLDOWN_KEY, String(until));
+}
+
+/* =====================================================
+   WIN POPUP
+===================================================== */
 export function createWinPopup() {
   let onNext = null;
   let onWatchAd = null;
 
-  // --- cooldown state ---
-  const COOLDOWN_KEY = "adCooldownUntil"; // ms timestamp
-
-  // ---------------------------
-  // HTML
-  // ---------------------------
+  /* ---------------------------
+     HTML
+  --------------------------- */
   const el = document.createElement("div");
-  
   el.className = "overlay winOverlay hidden";
 
   el.innerHTML = `
@@ -45,49 +78,23 @@ export function createWinPopup() {
 
   document.body.appendChild(el);
 
-  // ---------------------------
-  // Elements
-  // ---------------------------
+  /* ---------------------------
+     Elements
+  --------------------------- */
   const levelText = el.querySelector("#winLevelText");
   const nextBtn = el.querySelector("#nextLevelBtn");
   const adBtn = el.querySelector("#watchAdBtn");
 
-  // keep original label so we can restore it
   const adBtnBaseLabel = adBtn.textContent;
-export function setAdCooldown = setAdCooldown;
-  // ---------------------------
-  // Toast
-  // ---------------------------
-  let toastEl = null;
 
-  function showToast(message, duration = 2000) {
-    if (!toastEl) {
-      toastEl = document.createElement("div");
-      toastEl.id = "game-toast";
-      document.body.appendChild(toastEl);
-    }
-
-    toastEl.textContent = message;
-    toastEl.classList.add("show");
-
-    clearTimeout(toastEl._t);
-    toastEl._t = setTimeout(() => {
-      toastEl.classList.remove("show");
-    }, duration);
-  }
-
-  // ---------------------------
-  // Cooldown helpers
-  // ---------------------------
+  /* ---------------------------
+     Cooldown helpers (PRIVATE)
+  --------------------------- */
   let cooldownTimer = null;
 
   function getCooldownUntilMs() {
     const v = Number(localStorage.getItem(COOLDOWN_KEY) || "0");
     return Number.isFinite(v) ? v : 0;
-  }
-
-  function setCooldownUntilMs(untilMs) {
-    localStorage.setItem(COOLDOWN_KEY, String(untilMs));
   }
 
   function clearCooldownTimer() {
@@ -118,28 +125,18 @@ export function setAdCooldown = setAdCooldown;
     cooldownTimer = setInterval(updateAdButtonFromCooldown, 250);
   }
 
-  // Public: call this when backend says wait seconds
-  function setAdCooldown(waitSeconds) {
-    const wait = Math.max(0, Number(waitSeconds || 0));
-    if (!wait) return;
-
-    const until = Date.now() + wait * 1000;
-    setCooldownUntilMs(until);
-    startCooldownCountdown();
-  }
-
-  // ---------------------------
-  // Events
-  // ---------------------------
+  /* ---------------------------
+     Events
+  --------------------------- */
   nextBtn.addEventListener("click", () => {
     hide();
     onNext?.();
   });
 
   adBtn.addEventListener("click", () => {
-    // if cooldown active, just show toast and do nothing
     const now = Date.now();
     const until = getCooldownUntilMs();
+
     if (until > now) {
       const leftSec = Math.ceil((until - now) / 1000);
       showToast(`Wait ${leftSec}s before next ad`);
@@ -149,14 +146,12 @@ export function setAdCooldown = setAdCooldown;
     onWatchAd?.();
   });
 
-  // ---------------------------
-  // API
-  // ---------------------------
+  /* ---------------------------
+     API
+  --------------------------- */
   function show({ levelNumber }) {
     levelText.textContent = `You finished Level ${levelNumber}`;
     el.classList.remove("hidden");
-
-    // refresh cooldown state whenever popup opens
     startCooldownCountdown();
   }
 
@@ -177,7 +172,5 @@ export function setAdCooldown = setAdCooldown;
     hide,
     onNextLevel,
     onWatchAdClick,
-    showToast,
-    setAdCooldown,
   };
 }
