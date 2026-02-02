@@ -14,7 +14,7 @@ export function createWinPopup() {
   // HTML
   // ---------------------------
   const el = document.createElement("div");
-  export function setAdCooldown()
+  
   el.className = "overlay winOverlay hidden";
 
   el.innerHTML = `
@@ -54,7 +54,7 @@ export function createWinPopup() {
 
   // keep original label so we can restore it
   const adBtnBaseLabel = adBtn.textContent;
-
+export function setAdCooldown;
   // ---------------------------
   // Toast
   // ---------------------------
