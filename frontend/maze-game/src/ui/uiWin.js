@@ -54,7 +54,7 @@ export function createWinPopup() {
 
   // keep original label so we can restore it
   const adBtnBaseLabel = adBtn.textContent;
-export function setAdCooldown;
+export function setAdCooldown = setAdCooldown;
   // ---------------------------
   // Toast
   // ---------------------------
