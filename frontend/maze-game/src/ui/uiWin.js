@@ -14,7 +14,7 @@ export function createWinPopup() {
   // HTML
   // ---------------------------
   const el = document.createElement("div");
-  export function setAdCooldown();
+  export function setAdCooldown()
   el.className = "overlay winOverlay hidden";
 
   el.innerHTML = `
