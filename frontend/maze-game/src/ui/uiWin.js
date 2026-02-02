@@ -1,5 +1,12 @@
 // src/ui/uiWin.js
 // Level Complete / Win popup UI
+
+if (window.__adLocked) return;
+window.__adLocked = true;
+setTimeout(() => {
+  window.__adLocked = false;
+}, wait * 1000);
+
 import "../css/win.css";
 export function createWinPopup() {
   let onNext = null;
