@@ -180,26 +180,22 @@ winPopup.onWatchAdClick(async () => {
   try {
     const res = await apiClaimAd50();
 
-    // ⛔ cooldown active
-    if (res?.already) {
-      winPopup.showToast("Ad already claimed. Please wait.");
-      if (res.cooldownSeconds) {
-        winPopup.setAdCooldown(res.cooldownSeconds);
-      }
+    if (res.cooldownSeconds > 0) {
+      winPopup.showToast(
+        `Wait ${res.cooldownSeconds}s before next ad`
+      );
+      winPopup.setAdCooldown(res.cooldownSeconds);
       return;
     }
 
-    // ✅ success
-    if (res?.user?.coins != null) {
+    // success
+    if (res.user?.coins != null) {
       ui.setCoins(res.user.coins);
     }
 
-    // ⏱️ start cooldown immediately after success
-    if (res.cooldownSeconds) {
-      winPopup.setAdCooldown(res.cooldownSeconds);
-    }
+    winPopup.showToast("+50 coins 🎉");
+    winPopup.setAdCooldown(30);
 
-    winPopup.showToast("+50 coins received 🎉");
   } catch (e) {
     winPopup.showToast("Ad reward failed");
   }
