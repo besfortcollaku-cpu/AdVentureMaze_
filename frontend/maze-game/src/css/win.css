@@ -179,3 +179,35 @@
   opacity: 1;
   transform: translateX(-50%) translateY(-6px);
 }
+
+/* --- Ad cooldown animation --- */
+#watchAdBtn {
+  position: relative;
+  overflow: hidden;
+}
+
+/* Progress bar that fills left -> right */
+#watchAdBtn .adCooldownBar {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 4px;
+  width: 100%;
+  transform: scaleX(0);
+  transform-origin: left;
+  opacity: 0.9;
+  background: rgba(255, 255, 255, 0.9);
+  transition: transform 0.2s linear;
+  pointer-events: none;
+}
+
+/* Subtle pulsing during cooldown */
+#watchAdBtn.cooling {
+  animation: adCooldownPulse 0.9s ease-in-out infinite;
+}
+
+@keyframes adCooldownPulse {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(-1px); }
+  100% { transform: translateY(0); }
+}
