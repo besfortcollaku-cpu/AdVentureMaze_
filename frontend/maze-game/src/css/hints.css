@@ -1,62 +1,67 @@
 /* hints.css */
 
 .hintsOverlay {
-  position: fixed;
+   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.55);
-  backdrop-filter: blur(8px);
-  display: flex;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(6px);
+  display: none;
   align-items: center;
   justify-content: center;
-  z-index: 50;
-}
-
-.hintsOverlay.hidden {
-  display: none;
+  z-index: 1000;
 }
 
 .hintsCard {
-  width: 90%;
-  max-width: 360px;
-  background: linear-gradient(180deg, #0e2430, #08151d);
-  border-radius: 18px;
+ background: #121826;
+  color: #fff;
   padding: 20px;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.6);
-  color: white;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 320px;
+  text-align: center;
 }
 
 .hintsCard h2 {
   margin-bottom: 16px;
-  text-align: center;
 }
 
 .hintOption {
   width: 100%;
-  padding: 14px;
-  margin-bottom: 12px;
-  border-radius: 14px;
+  padding: 12px;
+  margin-bottom: 10px;
+  border-radius: 10px;
+  font-size: 16px;
   border: none;
-  background: #102c3a;
-  color: white;
-  font-size: 15px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  cursor: pointer;
 }
 
 .hintOption.disabled {
   opacity: 0.4;
 }
 
+.hintOption.primary {
+  background: #25d7ff;
+  color: #000;
+}
+
+.hintOption.secondary {
+  background: #1e293b;
+  color: #fff;
+}
+
+.hintOption.ad {
+  background: #16a34a;
+  color: #fff;
+}
 .hintOption:disabled {
-  pointer-events: none;
+ opacity: 0.4;
+  cursor: not-allowed;
 }
 
 .closeBtn {
-  width: 100%;
-  padding: 12px;
-  border-radius: 14px;
+   margin-top: 10px;
+  background: transparent;
   border: none;
-  background: #1c3b4a;
-  color: white;
+  color: #aaa;
+  cursor: pointer;
 }
