@@ -1,32 +1,107 @@
-:root {
-  --bg-overlay: rgba(0, 0, 0, 0.65);
-  --card-bg: #1e1e2a;
-  --accent: #6cf2c2;
-  --accent-soft: rgba(108, 242, 194, 0.15);
-  --text-main: #ffffff;
-  --text-muted: #b8b8c8;
-  --radius: 18px;
-}
-
-.settingsOverlay {
+.settings-overlay {
   position: fixed;
   inset: 0;
-  background: var(--bg-overlay);
+  z-index: 50;
+}
+
+.settings-overlay.hidden {
   display: none;
-  align-items: center;
-  justify-content: center;
 }
 
-.settingsCard {
-  width: 420px;
-  background: var(--card-bg);
-  padding: 26px;
-  border-radius: var(--radius);
-  color: var(--text-main);
+.settings-backdrop {
+  position: absolute;
+  inset: 0;
+  backdrop-filter: blur(8px);
+  background: rgba(0, 0, 0, 0.5);
 }
 
-.settingRow {
+.settings-card {
+  position: relative;
+  max-width: 340px;
+  margin: 20vh auto;
+  background: #0f172a;
+  border-radius: 20px;
+  padding: 20px;
+  color: #fff;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+}
+
+.settings-header {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 16px;
+  align-items: center;
+}
+
+.settings-header h2 {
+  margin: 0;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 20px;
+}
+
+.settings-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 16px 0;
+  opacity: 1;
+}
+
+.settings-item.disabled {
+  opacity: 0.4;
+}
+
+.desc {
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+.settings-hint {
+  font-size: 12px;
+  color: #94a3b8;
+  margin-top: 16px;
+  text-align: center;
+}
+
+/* SWITCH */
+.switch {
+  position: relative;
+  width: 44px;
+  height: 24px;
+}
+
+.switch input {
+  display: none;
+}
+
+.slider {
+  position: absolute;
+  inset: 0;
+  background: #334155;
+  border-radius: 999px;
+  transition: 0.2s;
+}
+
+.slider::before {
+  content: "";
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  left: 3px;
+  top: 3px;
+  background: white;
+  border-radius: 50%;
+  transition: 0.2s;
+}
+
+input:checked + .slider {
+  background: #22d3ee;
+}
+
+input:checked + .slider::before {
+  transform: translateX(20px);
 }
