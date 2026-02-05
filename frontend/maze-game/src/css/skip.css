@@ -1,62 +1,36 @@
+:root {
+  --bg-overlay: rgba(0, 0, 0, 0.65);
+  --card-bg: #1e1e2a;
+  --accent: #6cf2c2;
+  --accent-soft: rgba(108, 242, 194, 0.15);
+  --text-main: #ffffff;
+  --text-muted: #b8b8c8;
+  --radius: 18px;
+}
 .skipOverlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.6);
-  backdrop-filter: blur(6px);
+  background: var(--bg-overlay);
   display: none;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
 }
 
 .skipCard {
-  background: #121826;
-  color: #fff;
-  padding: 20px;
-  border-radius: 16px;
-  width: 90%;
-  max-width: 320px;
+  width: 360px;
+  background: var(--card-bg);
+  padding: 24px;
+  border-radius: var(--radius);
+  color: var(--text-main);
   text-align: center;
 }
 
-.skipCard h2 {
-  margin-bottom: 16px;
-}
-
-.skipOption {
+.skipCard button {
+  margin-top: 20px;
   width: 100%;
-  padding: 12px;
-  margin-bottom: 10px;
-  border-radius: 10px;
-  font-size: 16px;
+  padding: 14px;
+  border-radius: 14px;
   border: none;
-  cursor: pointer;
-}
-
-.skipOption.primary {
-  background: #25d7ff;
-  color: #000;
-}
-
-.skipOption.secondary {
-  background: #1e293b;
-  color: #fff;
-}
-
-.skipOption.ad {
-  background: #16a34a;
-  color: #fff;
-}
-
-.skipOption:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-.closeBtn {
-  margin-top: 10px;
-  background: transparent;
-  border: none;
-  color: #aaa;
-  cursor: pointer;
+  background: var(--accent);
+  color: #0f1a16;
 }
