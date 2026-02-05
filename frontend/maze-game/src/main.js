@@ -28,17 +28,58 @@ async function fetchAndSetCoins({ BACKEND, token, ui }) {
   const data = await res.json();
   ui.setCoins(data.coins ?? 0);
 }
+function showToast(message, duration = 2500) {
+  const el = document.getElementById("toast");
+  if (!el) return;
 
+  el.textContent = message;
+  el.classList.add("show");
 
-export async function apiClaimAd50() {
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(() => {
+    el.classList.remove("show");
+  }, duration);
+}
+async function apiClaimLevelComplete(unlockedLevel) {
+  if (!CURRENT_ACCESS_TOKEN) return null;
+
+  const res = await fetch(`${BACKEND}/api/level/complete`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${CURRENT_ACCESS_TOKEN}`,
+    },
+    body: JSON.stringify({
+      level: unlockedLevel,
+    }),
+  });
+
+  if (!res.ok) {
+    return null; // never break gameplay
+  }
+
+  return res.json();
+}
+
+async function apiClaimAd50() {
+  if (!CURRENT_ACCESS_TOKEN) {
+    throw new Error("No access token");
+  }
+
   const res = await fetch(`${BACKEND}/api/rewards/ad-50`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${CURRENT_ACCESS_TOKEN}`,
     },
-    body: JSON.stringify({ nonce: "ad-50" }),
+    body: JSON.stringify({
+      nonce: `${Date.now()}-${Math.random()}`,
+    }),
   });
+
+  if (!res.ok) {
+    throw new Error("Ad reward failed");
+  }
 
   return res.json();
 }
@@ -176,27 +217,30 @@ winPopup.onNextLevel(() => {
   goNextLevel();
 });
 winPopup.onWatchAdClick(async () => {
-  try {
-    const res = await apiClaimAd50();
+  if (!CURRENT_ACCESS_TOKEN) {
+    showToast("Login required");
+    return;
+  }
 
-    if (res.cooldownSeconds > 0) {
-      winPopup.showToast(
-        `Wait ${res.cooldownSeconds}s before next ad`
-      );
-      winPopup.setAdCooldown(res.cooldownSeconds);
-      return;
-    }
+  const res = await fetch(`${BACKEND}/api/rewards/ad-50`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${CURRENT_ACCESS_TOKEN}`,
+    },
+    body: JSON.stringify({ nonce: "ad-50" }),
+  });
 
-    // success
-    if (res.user?.coins != null) {
-      ui.setCoins(res.user.coins);
-    }
+  const out = await res.json();
+  console.log("AD +50 RESPONSE", out);
 
-    winPopup.showToast("+50 coins 🎉");
-    winPopup.setAdCooldown(30);
+  if (out?.already) {
+    showToast("Ad already claimed. Please wait a few minutes.");
+    return;
+  }
 
-  } catch (e) {
-    winPopup.showToast("Ad reward failed");
+  if (out?.user?.coins != null) {
+    ui.setCoins(out.user.coins);
   }
 });
   // ---- GUEST ----
