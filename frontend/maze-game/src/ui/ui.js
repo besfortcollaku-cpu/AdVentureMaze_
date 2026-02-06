@@ -43,8 +43,8 @@ export function mountUI(root) {
 const loginRequiredOverlay = document.createElement("div");
 loginRequiredOverlay.className = "login-required-overlay hidden";
 
-loginRequiredOverlay.innerHTML = `
-  <div class="login-required-card">
+loginRequiredOverlay.innerHTML = 
+<div class="login-required-card">
     <h2>Login required</h2>
     <p>You need to login to use this feature.</p>
 
@@ -70,7 +70,7 @@ loginReqLoginBtn.onclick = () => {
   loginRequiredOverlay.classList.add("hidden");
   showWelcome(); // reuse existing welcome overlay
 };
-
+  `;
 
   // ----- CORE ELEMENTS -----
   const canvas = root.querySelector("#game");
