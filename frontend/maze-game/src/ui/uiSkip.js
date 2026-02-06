@@ -1,48 +1,68 @@
-import { apiMe, apiSkip } from "../api/api.js";
+import "../css/skip.css";
 
-export function openSkipPopup(onSkipSuccess) {
+export function createSkipPopup() {
   const overlay = document.createElement("div");
-  overlay.className = "popup-overlay";
+  overlay.className = "skipOverlay hidden";
 
-  const popup = document.createElement("div");
-  popup.className = "popup";
-
-  apiMe().then(me => {
-    popup.innerHTML = `
+  overlay.innerHTML = `
+    <div class="skipCard">
       <h2>Skip Level</h2>
-      <p>Free skips left: <b>${me.free.skips_left}</b></p>
 
-      <button id="skip-free">Use free skip</button>
-      <button id="skip-coins">Spend 50 coins</button>
-      <button id="skip-ad">Watch ad (free)</button>
-      <button id="skip-cancel">Cancel</button>
-    `;
+      <button id="skipFreeBtn">
+        ⏭ Free Skip <span id="skipFreeCount">x0</span>
+      </button>
 
-    popup.querySelector("#skip-free").onclick = async () => {
-      await apiSkip("free");
-      close();
-      onSkipSuccess?.();
-    };
+      <button id="skipCoinsBtn">
+        🪙 Skip for 50 coins
+      </button>
 
-    popup.querySelector("#skip-coins").onclick = async () => {
-      await apiSkip("coins");
-      close();
-      onSkipSuccess?.();
-    };
+      <button id="skipAdBtn">
+        ▶ Watch Ad — Skip
+      </button>
 
-    popup.querySelector("#skip-ad").onclick = async () => {
-      await apiSkip("ad", crypto.randomUUID());
-      close();
-      onSkipSuccess?.();
-    };
+      <button id="skipCloseBtn">Close</button>
+    </div>
+  `;
 
-    popup.querySelector("#skip-cancel").onclick = close;
-  });
+  document.body.appendChild(overlay);
 
-  function close() {
-    overlay.remove();
+  const freeBtn = overlay.querySelector("#skipFreeBtn");
+  const coinsBtn = overlay.querySelector("#skipCoinsBtn");
+  const adBtn = overlay.querySelector("#skipAdBtn");
+  const closeBtn = overlay.querySelector("#skipCloseBtn");
+  const countEl = overlay.querySelector("#skipFreeCount");
+
+  let freeHandler = null;
+  let buyHandler = null;
+  let adHandler = null;
+
+  closeBtn.onclick = hide;
+
+  freeBtn.onclick = () => freeHandler?.();
+  coinsBtn.onclick = () => buyHandler?.();
+  adBtn.onclick = () => adHandler?.();
+
+  function show({ freeLeft }) {
+    countEl.textContent = `x${freeLeft}`;
+    freeBtn.disabled = freeLeft <= 0;
+    overlay.classList.remove("hidden");
   }
 
-  overlay.appendChild(popup);
-  document.body.appendChild(overlay);
+  function hide() {
+    overlay.classList.add("hidden");
+  }
+
+  return {
+    show,
+    hide,
+    onFreeSkip(cb) {
+      freeHandler = cb;
+    },
+    onBuySkip(cb) {
+      buyHandler = cb;
+    },
+    onWatchAdSkip(cb) {
+      adHandler = cb;
+    },
+  };
 }

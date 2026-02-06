@@ -1,48 +1,68 @@
-import { apiMe, apiHint } from "../api/api.js";
+import "../css/hints.css";
 
-export function openHintPopup(onHintUnlocked) {
+export function createHintPopup() {
   const overlay = document.createElement("div");
-  overlay.className = "popup-overlay";
+  overlay.className = "hintsOverlay hidden";
 
-  const popup = document.createElement("div");
-  popup.className = "popup";
-
-  apiMe().then(me => {
-    popup.innerHTML = `
+  overlay.innerHTML = `
+    <div class="hintsCard">
       <h2>Hint</h2>
-      <p>Free hints left: <b>${me.free.hints_left}</b></p>
 
-      <button id="hint-free">Use free hint</button>
-      <button id="hint-coins">Spend 50 coins</button>
-      <button id="hint-ad">Watch ad (free)</button>
-      <button id="hint-cancel">Cancel</button>
-    `;
+      <button id="hintFreeBtn">
+        ❓ Free Hint <span id="hintFreeCount">x0</span>
+      </button>
 
-    popup.querySelector("#hint-free").onclick = async () => {
-      await apiHint("free");
-      close();
-      onHintUnlocked?.();
-    };
+      <button id="hintCoinsBtn">
+        🪙 Get 1 Hint – 50 coins
+      </button>
 
-    popup.querySelector("#hint-coins").onclick = async () => {
-      await apiHint("coins");
-      close();
-      onHintUnlocked?.();
-    };
+      <button id="hintAdBtn">
+        📺 Watch ad – Get 1 Hint
+      </button>
 
-    popup.querySelector("#hint-ad").onclick = async () => {
-      await apiHint("ad", crypto.randomUUID());
-      close();
-      onHintUnlocked?.();
-    };
+      <button id="hintCloseBtn">Close</button>
+    </div>
+  `;
 
-    popup.querySelector("#hint-cancel").onclick = close;
-  });
+  document.body.appendChild(overlay);
 
-  function close() {
-    overlay.remove();
+  const freeBtn = overlay.querySelector("#hintFreeBtn");
+  const coinsBtn = overlay.querySelector("#hintCoinsBtn");
+  const adBtn = overlay.querySelector("#hintAdBtn");
+  const closeBtn = overlay.querySelector("#hintCloseBtn");
+  const countEl = overlay.querySelector("#hintFreeCount");
+
+  let freeHandler = null;
+  let buyHandler = null;
+  let adHandler = null;
+
+  closeBtn.onclick = hide;
+
+  freeBtn.onclick = () => freeHandler?.();
+  coinsBtn.onclick = () => buyHandler?.();
+  adBtn.onclick = () => adHandler?.();
+
+  function show({ freeLeft }) {
+    countEl.textContent = `x${freeLeft}`;
+    freeBtn.disabled = freeLeft <= 0;
+    overlay.classList.remove("hidden");
   }
 
-  overlay.appendChild(popup);
-  document.body.appendChild(overlay);
+  function hide() {
+    overlay.classList.add("hidden");
+  }
+
+  return {
+    show,
+    hide,
+    onFreeHint(cb) {
+      freeHandler = cb;
+    },
+    onBuyHint(cb) {
+      buyHandler = cb;
+    },
+    onWatchAdHint(cb) {
+      adHandler = cb;
+    },
+  };
 }
