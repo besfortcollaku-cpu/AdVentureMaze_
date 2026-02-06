@@ -9,6 +9,21 @@ import { levels } from "./levels/index.js";
 import { createWinPopup } from "./ui/uiWin.js";
 import { createSkipPopup } from "./ui/uiSkipPopup.js";
 import { createHintPopup } from "./ui/uiHintPopup.js";
+import { skipBtn, hintBtn } from "./ui/ui.js";
+import { openSkipPopup } from "./ui/uiSkip.js";
+import { openHintPopup } from "./ui/uiHints.js";
+
+skipBtn.onclick = () => {
+  openSkipPopup(() => {
+    goNextLevel(); // or location.reload()
+  });
+};
+
+hintBtn.onclick = () => {
+  openHintPopup(() => {
+    alert("Hint unlocked! (replace with real hint)");
+  });
+};
 
 
 const GUEST_PROGRESS_KEY = "guest_progress_v1";

@@ -1,72 +1,48 @@
-// uiHints.js
-import "../css/hints.css";
+import { apiMe, apiHint } from "../api.js";
 
-export function mountHintsUI(root) {
-  const el = document.createElement("div");
-  el.id = "hintsOverlay";
-  el.className = "hintsOverlay hidden";
+export function openHintPopup(onHintUnlocked) {
+  const overlay = document.createElement("div");
+  overlay.className = "popup-overlay";
 
-  el.innerHTML = `
-    <div class="hintsCard">
-      <h2>Hints</h2>
+  const popup = document.createElement("div");
+  popup.className = "popup";
 
-      <button class="hintOption" id="freeHintBtn">
-        ❓ Free Hint <span class="count" id="freeHintCount">x3</span>
-      </button>
+  apiMe().then(me => {
+    popup.innerHTML = `
+      <h2>Hint</h2>
+      <p>Free hints left: <b>${me.free.hints_left}</b></p>
 
-      <button class="hintOption">
-        🪙 Get 1 Hint – 50 coins
-      </button>
+      <button id="hint-free">Use free hint</button>
+      <button id="hint-coins">Spend 50 coins</button>
+      <button id="hint-ad">Watch ad (free)</button>
+      <button id="hint-cancel">Cancel</button>
+    `;
 
-      <button class="hintOption">
-        📺 Watch ad – Get 1 Hint
-      </button>
+    popup.querySelector("#hint-free").onclick = async () => {
+      await apiHint("free");
+      close();
+      onHintUnlocked?.();
+    };
 
-      <button class="closeBtn" id="closeHintsBtn">Close</button>
-    </div>
-  `;
+    popup.querySelector("#hint-coins").onclick = async () => {
+      await apiHint("coins");
+      close();
+      onHintUnlocked?.();
+    };
 
-  root.appendChild(el);
+    popup.querySelector("#hint-ad").onclick = async () => {
+      await apiHint("ad", crypto.randomUUID());
+      close();
+      onHintUnlocked?.();
+    };
 
-  const freeHintCountEl = el.querySelector("#freeHintCount");
-  const freeHintBtn = el.querySelector("#freeHintBtn");
-  const closeBtn = el.querySelector("#closeHintsBtn");
-
-  let freeHints = 3;
-
-  function sync() {
-    freeHintCountEl.textContent = `x${freeHints}`;
-    freeHintBtn.disabled = freeHints <= 0;
-    freeHintBtn.classList.toggle("disabled", freeHints <= 0);
-  }
-
-  closeBtn.addEventListener("click", () => {
-    el.classList.add("hidden");
+    popup.querySelector("#hint-cancel").onclick = close;
   });
 
-  sync();
+  function close() {
+    overlay.remove();
+  }
 
-  return {
-    open() {
-      el.classList.remove("hidden");
-    },
-    close() {
-      el.classList.add("hidden");
-    },
-    setFreeHints(n) {
-      freeHints = n ?? 0;
-      sync();
-    },
-    useFreeHint() {
-      if (freeHints > 0) {
-        freeHints--;
-        sync();
-        return true;
-      }
-      return false;
-    },
-    getFreeHints() {
-      return freeHints;
-    },
-  };
+  overlay.appendChild(popup);
+  document.body.appendChild(overlay);
 }

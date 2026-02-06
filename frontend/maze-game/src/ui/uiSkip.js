@@ -1,89 +1,48 @@
-// uiSkip.js
-import "../css/skip.css";
+import { apiMe, apiSkip } from "../api.js";
 
-export function mountSkipUI(root) {
-  // ----- DOM -----
+export function openSkipPopup(onSkipSuccess) {
   const overlay = document.createElement("div");
-  overlay.className = "skipOverlay";
+  overlay.className = "popup-overlay";
 
-  overlay.innerHTML = `
-    <div class="skipCard">
+  const popup = document.createElement("div");
+  popup.className = "popup";
+
+  apiMe().then(me => {
+    popup.innerHTML = `
       <h2>Skip Level</h2>
+      <p>Free skips left: <b>${me.free.skips_left}</b></p>
 
-      <button class="skipOption primary" id="skipFreeBtn">
-        ⏭ Skip Free <span id="skipFreeCount">x3</span>
-      </button>
+      <button id="skip-free">Use free skip</button>
+      <button id="skip-coins">Spend 50 coins</button>
+      <button id="skip-ad">Watch ad (free)</button>
+      <button id="skip-cancel">Cancel</button>
+    `;
 
-      <button class="skipOption secondary" id="skipPaidBtn">
-        🪙 Skip for 50 coins
-      </button>
+    popup.querySelector("#skip-free").onclick = async () => {
+      await apiSkip("free");
+      close();
+      onSkipSuccess?.();
+    };
 
-      <button class="skipOption ad" id="skipAdBtn">
-        ▶ Watch Ad — Skip
-      </button>
+    popup.querySelector("#skip-coins").onclick = async () => {
+      await apiSkip("coins");
+      close();
+      onSkipSuccess?.();
+    };
 
-      <button class="closeBtn" id="skipCloseBtn">Close</button>
-    </div>
-  `;
+    popup.querySelector("#skip-ad").onclick = async () => {
+      await apiSkip("ad", crypto.randomUUID());
+      close();
+      onSkipSuccess?.();
+    };
 
-  root.appendChild(overlay);
-
-  // ----- ELEMENTS -----
-  const freeCountEl = overlay.querySelector("#skipFreeCount");
-  const freeBtn = overlay.querySelector("#skipFreeBtn");
-  const paidBtn = overlay.querySelector("#skipPaidBtn");
-  const adBtn = overlay.querySelector("#skipAdBtn");
-  const closeBtn = overlay.querySelector("#skipCloseBtn");
-
-  // ----- STATE -----
-  let freeSkips = 3;
-
-  // ----- HELPERS -----
-  function render() {
-    freeCountEl.textContent = `x${freeSkips}`;
-    freeBtn.disabled = freeSkips <= 0;
-  }
-
-  function open() {
-    document.body.classList.add("overlay-open");
-    overlay.style.display = "flex";
-    render();
-  }
+    popup.querySelector("#skip-cancel").onclick = close;
+  });
 
   function close() {
-    document.body.classList.remove("overlay-open");
-    overlay.style.display = "none";
+    overlay.remove();
   }
 
-  // ----- EVENTS -----
-  closeBtn.addEventListener("click", close);
-
-  freeBtn.addEventListener("click", () => {
-    if (freeSkips <= 0) return;
-    freeSkips--;
-    render();
-    // actual skip logic comes later
-    close();
-  });
-
-  paidBtn.addEventListener("click", () => {
-    // coin logic later
-    close();
-  });
-
-  adBtn.addEventListener("click", () => {
-    // rewarded ad later
-    close();
-  });
-
-  // ----- PUBLIC API -----
-  return {
-    open,
-    close,
-
-    setFreeSkips(n) {
-      freeSkips = Math.max(0, n ?? 0);
-      render();
-    },
-  };
+  overlay.appendChild(popup);
+  document.body.appendChild(overlay);
 }
