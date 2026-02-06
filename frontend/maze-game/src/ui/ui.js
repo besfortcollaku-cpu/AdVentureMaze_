@@ -39,6 +39,37 @@ export function mountUI(root) {
         </div>
       </div>
     </div>
+    // ===== Login Required Overlay =====
+const loginRequiredOverlay = document.createElement("div");
+loginRequiredOverlay.className = "login-required-overlay hidden";
+
+loginRequiredOverlay.innerHTML = `
+  <div class="login-required-card">
+    <h2>Login required</h2>
+    <p>You need to login to use this feature.</p>
+
+    <div class="login-required-actions">
+      <button class="login-btn">Login</button>
+      <button class="cancel-btn">Stay Guest</button>
+    </div>
+  </div>
+`;
+
+root.appendChild(loginRequiredOverlay);
+
+const loginReqLoginBtn =
+  loginRequiredOverlay.querySelector(".login-btn");
+const loginReqCancelBtn =
+  loginRequiredOverlay.querySelector(".cancel-btn");
+
+loginReqCancelBtn.onclick = () => {
+  loginRequiredOverlay.classList.add("hidden");
+};
+
+loginReqLoginBtn.onclick = () => {
+  loginRequiredOverlay.classList.add("hidden");
+  showWelcome(); // reuse existing welcome overlay
+};
   `;
 
   // ----- CORE ELEMENTS -----
@@ -96,6 +127,12 @@ accountBtn.addEventListener("click", () => {
 
   // ----- PUBLIC API -----
   return {
+      showLoginRequired() {
+  loginRequiredOverlay.classList.remove("hidden");
+},
+hideLoginRequired() {
+  loginRequiredOverlay.classList.add("hidden");
+},
     canvas,
     levelsBtn,
     hintBtn,
