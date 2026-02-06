@@ -221,8 +221,6 @@ if (CURRENT_ACCESS_TOKEN) {
   const winPopup = createWinPopup();
 const skipPopup = createSkipPopup();
 const hintPopup = createHintPopup();
-  const skipPopup = createSkipPopup();
-  const hintPopup = createHintPopup();
 
   let levelIndex = 0;
 
