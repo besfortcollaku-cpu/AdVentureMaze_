@@ -13,8 +13,6 @@ import { mountUI } from "./ui/ui.js";
 import { openHintPopup } from "./ui/uiHints.js";
 import { openSkipPopup } from "./ui/uiSkip.js";
 
-const ui = mountUI(document);
-
 ui.hintBtn.addEventListener("click", () => {
   openHintPopup(() => {
     alert("Hint unlocked!");
