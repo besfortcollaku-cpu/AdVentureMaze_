@@ -26,9 +26,6 @@ ui.skipBtn.addEventListener("click", () => {
     // goNextLevel() or reload
   });
 });
-import { openSkipPopup } from "./ui/uiSkip.js";
-import { openHintPopup } from "./ui/uiHints.js";
-
 skipBtn.onclick = () => {
   openSkipPopup(() => {
     goNextLevel(); // or location.reload()
