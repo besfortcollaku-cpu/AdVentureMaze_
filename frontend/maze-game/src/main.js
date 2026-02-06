@@ -9,7 +9,23 @@ import { levels } from "./levels/index.js";
 import { createWinPopup } from "./ui/uiWin.js";
 import { createSkipPopup } from "./ui/uiSkipPopup.js";
 import { createHintPopup } from "./ui/uiHintPopup.js";
-import { skipBtn, hintBtn } from "./ui/ui.js";
+import { mountUI } from "./ui/ui.js";
+import { openHintPopup } from "./ui/uiHints.js";
+import { openSkipPopup } from "./ui/uiSkip.js";
+
+const ui = mountUI(document);
+
+ui.hintBtn.addEventListener("click", () => {
+  openHintPopup(() => {
+    alert("Hint unlocked!");
+  });
+});
+
+ui.skipBtn.addEventListener("click", () => {
+  openSkipPopup(() => {
+    // goNextLevel() or reload
+  });
+});
 import { openSkipPopup } from "./ui/uiSkip.js";
 import { openHintPopup } from "./ui/uiHints.js";
 
