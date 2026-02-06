@@ -12,29 +12,21 @@ import { createHintPopup } from "./ui/uiHintPopup.js";
 import { openHintPopup } from "./ui/uiHints.js";
 import { openSkipPopup } from "./ui/uiSkip.js";
 
-ui.hintBtn.addEventListener("click", () => {
-  openHintPopup(() => {
-    alert("Hint unlocked!");
-  });
-});
-
 ui.skipBtn.addEventListener("click", () => {
-  openSkipPopup(() => {
-    // goNextLevel() or reload
-  });
+  if (!CURRENT_ACCESS_TOKEN) {
+    alert("Login required");
+    return;
+  }
+  skipPopup.show({ freeLeft: freeSkipsLeft() });
 });
-skipBtn.onclick = () => {
-  openSkipPopup(() => {
-    goNextLevel(); // or location.reload()
-  });
-};
 
-hintBtn.onclick = () => {
-  openHintPopup(() => {
-    alert("Hint unlocked! (replace with real hint)");
-  });
-};
-
+ui.hintBtn.addEventListener("click", () => {
+  if (!CURRENT_ACCESS_TOKEN) {
+    alert("Login required");
+    return;
+  }
+  hintPopup.show({ freeLeft: freeHintsLeft() });
+});
 
 const GUEST_PROGRESS_KEY = "guest_progress_v1";
 const GUEST_MAX_LEVEL = 5;
