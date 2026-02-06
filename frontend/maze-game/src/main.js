@@ -7,8 +7,8 @@ import { createGame } from "./game/game.js";
 import { ensurePiLogin } from "./pi/piClient.js";
 import { levels } from "./levels/index.js";
 import { createWinPopup } from "./ui/uiWin.js";
-import { createSkipPopup } from "./ui/uiSkipPopup.js";
-import { createHintPopup } from "./ui/uiHintPopup.js";
+// import { createSkipPopup } from "./ui/uiSkipPopup.js";
+//import { createHintPopup } from "./ui/uiHintPopup.js";
 import { openHintPopup } from "./ui/uiHints.js";
 import { openSkipPopup } from "./ui/uiSkip.js";
 
@@ -236,8 +236,8 @@ if (CURRENT_ACCESS_TOKEN) {
     .catch(() => {});
 }
   const winPopup = createWinPopup();
-const skipPopup = createSkipPopup();
-const hintPopup = createHintPopup();
+//const skipPopup = createSkipPopup();
+//const hintPopup = createHintPopup();
 
   let levelIndex = 0;
 
