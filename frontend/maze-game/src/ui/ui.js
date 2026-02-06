@@ -50,18 +50,6 @@ export function mountUI(root) {
   const accountBtn = root.querySelector("#accountBtn");
   const settingsBtn = root.querySelector("#settingsBtn");
 
-// TOP-LEVEL variables (can be exported)
-let hintBtn = null;
-let skipBtn = null;
-
-// init function (NO exports inside)
-function initUI(root) {
-  hintBtn = root.querySelector("#hintBtn");
-  skipBtn = root.querySelector("#skipBtn");
-}
-
-// TOP-LEVEL exports (this is critical)
-export { initUI, hintBtn, skipBtn };
   // ----- ACCOUNT UI -----
   const accountUI = mountAccountUI(root);
   let accountClickHandler = null;
