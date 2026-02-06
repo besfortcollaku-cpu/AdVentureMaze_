@@ -469,4 +469,4 @@ ui.onLoginClick(async () => {
 });
 }
 
-boot();
+window.addEventListener("DOMContentLoaded", boot);
