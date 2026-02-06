@@ -1,4 +1,4 @@
-import { apiMe, apiSkip } from "../api.js";
+import { apiMe, apiSkip } from "../api/api.js";
 
 export function openSkipPopup(onSkipSuccess) {
   const overlay = document.createElement("div");

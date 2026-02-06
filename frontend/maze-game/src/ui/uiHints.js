@@ -1,4 +1,4 @@
-import { apiMe, apiHint } from "../api.js";
+import { apiMe, apiHint } from "../api/api.js";
 
 export function openHintPopup(onHintUnlocked) {
   const overlay = document.createElement("div");
