@@ -11,34 +11,7 @@ body {
   overflow: hidden;
 }
 
-.toast {
-  position: fixed;
 
-  /* 👆 move it ABOVE win popup */
-  top: 30%;
-  left: 50%;
-  transform: translate(-50%, -10px);
-
-  background: rgba(20, 20, 20, 0.95);
-  color: #fff;
-  padding: 14px 20px;
-  border-radius: 12px;
-  font-size: 15px;
-  font-weight: 500;
-
-  opacity: 0;
-  pointer-events: none;
-
-  transition: opacity 0.25s ease, transform 0.25s ease;
-
-  /* 🔥 higher than win popup overlay */
-  z-index: 20000;
-}
-
-.toast.show {
-  opacity: 1;
-  transform: translate(-50%, 0);
-}
 /* =========================
    RESET / BASE
 ========================= */

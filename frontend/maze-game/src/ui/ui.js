@@ -1,7 +1,7 @@
 import { mountAccountUI } from "./uiAccount.js";
 import { mountSettingsUI } from "./uiSettings.js";
-import { mountHintsUI } from "./uiHints.js";
-import { mountSkipUI } from "./uiSkip.js"; // ✅ NEW
+// NOTE: Hint/Skip popups are now controlled from src/main.js so
+// they can call the backend (free/coins/ad) and update the game.
 import { mountLevelsUI } from "./uiLevels.js"; 
 export function mountUI(root) {
   root.innerHTML = `
@@ -18,7 +18,6 @@ export function mountUI(root) {
           🪙 <span id="coinCount">0</span>
         </div>
       </header>
-      <div id="toast" class="toast"></div>
 
       <div class="board">
         <canvas id="game"></canvas>
@@ -51,7 +50,7 @@ export function mountUI(root) {
   const accountBtn = root.querySelector("#accountBtn");
   const settingsBtn = root.querySelector("#settingsBtn");
   const hintBtn = root.querySelector("#hintBtn");
-  const skipBtn = root.querySelector("#skipBtn"); // ✅ NEW
+  const skipBtn = root.querySelector("#skipBtn");
 
   // ----- ACCOUNT UI -----
   const accountUI = mountAccountUI(root);
@@ -71,17 +70,7 @@ accountBtn.addEventListener("click", () => {
     settingsUI.open();
   });
 
-  // ----- HINTS UI -----
-  const hintsUI = mountHintsUI(root);
-  hintBtn.addEventListener("click", () => {
-    hintsUI.open();
-  });
-
-  // ----- SKIP UI (NEW) -----
-  const skipUI = mountSkipUI(root);
-  skipBtn.addEventListener("click", () => {
-    skipUI.open();
-  });
+  // Hint/Skip clicks are wired up by main.js
 
   // ----- HANDLERS -----
   let guestHandler = null;
@@ -109,6 +98,8 @@ accountBtn.addEventListener("click", () => {
   return {
     canvas,
     levelsBtn,
+    hintBtn,
+    skipBtn,
     showLoginGate() {
   this.showWelcome();
 },
@@ -166,6 +157,9 @@ triggerLogin() {
     },
 
     // ---- STUBS (KEEP) ----
-    setLevel() {},
+    setLevel(levelNumber) {
+      const el = root.querySelector(".top .level");
+      if (el) el.textContent = `Level ${levelNumber}`;
+    },
   };
 }
