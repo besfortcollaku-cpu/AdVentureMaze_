@@ -10,7 +10,6 @@ import { createWinPopup } from "./ui/uiWin.js";
 // import { createSkipPopup } from "./ui/uiSkipPopup.js";
 //import { createHintPopup } from "./ui/uiHintPopup.js";
 
-
 ui.skipBtn.addEventListener("click", () => {
   if (!CURRENT_ACCESS_TOKEN) {
     alert("Login required");
