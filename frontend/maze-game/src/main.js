@@ -3,7 +3,7 @@ import "./css/ui.css";
 
 import { mountUI } from "./ui/ui.js";
 import { mountLevelsUI } from "./ui/uiLevels.js";
-import { createHintPopup } from "./ui/uiHint.js";
+import { createHintPopup } from "./ui/uiHints.js";
 import { createSkipPopup } from "./ui/uiSkip.js";
 import { createGame } from "./game/game.js";
 import { levels } from "./levels/index.js";
