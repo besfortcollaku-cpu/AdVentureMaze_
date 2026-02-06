@@ -49,9 +49,15 @@ export function mountUI(root) {
   const levelsBtn = root.querySelector("#levelsBtn");
   const accountBtn = root.querySelector("#accountBtn");
   const settingsBtn = root.querySelector("#settingsBtn");
-  
-  export const hintBtn = root.querySelector("#hintBtn");
-export const skipBtn = root.querySelector("#skipBtn");
+  let hintBtn;
+let skipBtn;
+
+export function initUI(root) {
+  hintBtn = root.querySelector("#hintBtn");
+  skipBtn = root.querySelector("#skipBtn");
+}
+
+export { hintBtn, skipBtn };
 
   // ----- ACCOUNT UI -----
   const accountUI = mountAccountUI(root);
