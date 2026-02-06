@@ -10,8 +10,8 @@ import { createWinPopup } from "./ui/uiWin.js";
 import { createSkipPopup } from "./ui/uiSkipPopup.js";
 import { createHintPopup } from "./ui/uiHintPopup.js";
 import { skipBtn, hintBtn } from "./ui/ui.js";
-import { openSkipPopup } from "./ui/uiSkip.js";
-import { openHintPopup } from "./ui/uiHints.js";
+import { openSkipPopup } from "../ui/uiSkip.js";
+import { openHintPopup } from "../ui/uiHints.js";
 
 skipBtn.onclick = () => {
   openSkipPopup(() => {
