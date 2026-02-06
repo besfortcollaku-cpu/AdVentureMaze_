@@ -70,7 +70,7 @@ loginReqLoginBtn.onclick = () => {
   loginRequiredOverlay.classList.add("hidden");
   showWelcome(); // reuse existing welcome overlay
 };
-  `;
+
 
   // ----- CORE ELEMENTS -----
   const canvas = root.querySelector("#game");
