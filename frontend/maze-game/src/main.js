@@ -9,7 +9,6 @@ import { levels } from "./levels/index.js";
 import { createWinPopup } from "./ui/uiWin.js";
 import { createSkipPopup } from "./ui/uiSkipPopup.js";
 import { createHintPopup } from "./ui/uiHintPopup.js";
-import { mountUI } from "./ui/ui.js";
 import { openHintPopup } from "./ui/uiHints.js";
 import { openSkipPopup } from "./ui/uiSkip.js";
 
