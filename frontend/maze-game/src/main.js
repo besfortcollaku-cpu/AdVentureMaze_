@@ -7,11 +7,8 @@ import { createGame } from "./game/game.js";
 import { ensurePiLogin } from "./pi/piClient.js";
 import { levels } from "./levels/index.js";
 import { createWinPopup } from "./ui/uiWin.js";
-import { mountSkipUI } from "./ui/uiSkip.js";
-import { mountHintsUI } from "./ui/uiHints.js";
-
-
-
+import { createSkipPopup } from "./ui/uiSkip.js";
+import { createHintPopup } from "./ui/uiHints.js";
 const GUEST_PROGRESS_KEY = "guest_progress_v1";
 const GUEST_MAX_LEVEL = 5;
 let CURRENT_USER = null;
@@ -207,7 +204,7 @@ if (storedToken) {
 
   // Mount UI
 const ui = mountUI(root);
-initUI(root);
+
 // Expose a tiny bridge for UI modules that don't have direct access to `ui`.
 // (Used by the Levels screen to show "Login required" for locked guest levels.)
 window.__maze = window.__maze || {};
@@ -231,8 +228,8 @@ if (CURRENT_ACCESS_TOKEN) {
     .catch(() => {});
 }
 const winPopup = createWinPopup();
-const mountSkipUI = skipPopup();
-const mountHintsUI = hintPopup();
+const skipPopup = createSkipPopup();
+const hintPopup = createHintPopup();
 
 
 
