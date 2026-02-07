@@ -8,7 +8,7 @@ import { ensurePiLogin } from "./pi/piClient.js";
 import { levels } from "./levels/index.js";
 import { createWinPopup } from "./ui/uiWin.js";
 import { createSkipPopup } from "./ui/uiSkip.js";
-import { createHintPopup } from "./ui/uiHints.js";
+import { mountHintsUI } from "./ui/uiHints.js";
 
 
 const GUEST_PROGRESS_KEY = "guest_progress_v1";
