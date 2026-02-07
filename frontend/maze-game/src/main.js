@@ -272,25 +272,24 @@ const game = createGame({
   getCurrentUser: () => CURRENT_USER ?? { username: "guest", uid: null },
 
   onLevelComplete({ level }) {
-    // 🟡 Guest progress (session only)
     if (!CURRENT_ACCESS_TOKEN) {
       const completedLevel = level?.number ?? 1;
 
       GUEST_MAX_UNLOCKED_LEVEL = Math.max(
-        5,
+        GUEST_MAX_UNLOCKED_LEVEL,
         completedLevel + 1
       );
 
-      winPopup.show({
-  levelNumber: level?.number ?? 1,
-});
+      setTimeout(() => {
+        uiLevels.setUnlocked(GUEST_MAX_UNLOCKED_LEVEL);
+      }, 0);
+    }
 
-// update levels AFTER popup is shown
-setTimeout(() => {
-  uiLevels.setUnlocked(GUEST_MAX_UNLOCKED_LEVEL);
-}, 0);
-  }
-});
+    winPopup.show({
+      levelNumber: level?.number ?? 1,
+    });
+  }   // ← closes onLevelComplete
+});    // ← closes createGame
 function goToLevel(nextIndex) {
   levelIndex = Math.max(0, Math.min(levels.length - 1, nextIndex));
   const lvl = levels[levelIndex];
