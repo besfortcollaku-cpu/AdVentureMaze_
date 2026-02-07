@@ -263,9 +263,10 @@ ui.levelsBtn.addEventListener("click", () => {
   levelsUI.open();
 });
   
+  ui.showWelcome();
 
 
-// const game = createGame({
+const game = createGame({
   canvas: ui.canvas,
   level: levels[0],
   getCurrentUser: () => CURRENT_USER ?? { username: "guest", uid: null },
