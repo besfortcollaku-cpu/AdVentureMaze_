@@ -289,7 +289,7 @@ const game = createGame({
 setTimeout(() => {
   uiLevels.setUnlocked(GUEST_MAX_UNLOCKED_LEVEL);
 }, 0);
-  },
+
 });
 function goToLevel(nextIndex) {
   levelIndex = Math.max(0, Math.min(levels.length - 1, nextIndex));
