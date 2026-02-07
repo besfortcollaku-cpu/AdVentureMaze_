@@ -55,6 +55,8 @@ async function apiClaimLevelComplete(levelNumber) {
   return res.json();
 }
 
+
+
 async function apiSkip({ mode }) {
   const nonce = crypto.randomUUID?.() || `${Date.now()}-${Math.random()}`;
   const res = await fetch(`${BACKEND}/api/skip`, {
@@ -70,7 +72,9 @@ async function apiSkip({ mode }) {
   if (!res.ok || !data?.ok) throw new Error(data?.error || "Skip failed");
   return data;
 }
-
+ui.onLoginRequiredLogin = () => {
+  ui.showWelcome();
+};
 async function apiHint({ mode }) {
   const nonce = crypto.randomUUID?.() || `${Date.now()}-${Math.random()}`;
   const res = await fetch(`${BACKEND}/api/hint`, {
