@@ -231,8 +231,8 @@ if (CURRENT_ACCESS_TOKEN) {
     .catch(() => {});
 }
 const winPopup = createWinPopup();
-const skipPopup = createSkipPopup();
-const hintPopup = createHintPopup();
+const mountSkipUI = createSkipPopup();
+const mountHintsUI = createHintPopup();
 
 
 
