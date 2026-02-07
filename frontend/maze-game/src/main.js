@@ -9,6 +9,25 @@ import { levels } from "./levels/index.js";
 import { createWinPopup } from "./ui/uiWin.js";
 import { mountSkipUI } from "./ui/uiSkip.js";
 import { mountHintsUI } from "./ui/uiHints.js";
+// Hint button
+ui.hintBtn.addEventListener("click", () => {
+  if (!CURRENT_ACCESS_TOKEN) {
+    ui.showLoginRequired();
+    return;
+  }
+
+  hintPopup.open();
+});
+
+// Skip button
+ui.skipBtn.addEventListener("click", () => {
+  if (!CURRENT_ACCESS_TOKEN) {
+    ui.showLoginRequired();
+    return;
+  }
+
+  skipPopup.open();
+});
 
 
 const GUEST_PROGRESS_KEY = "guest_progress_v1";
@@ -206,7 +225,6 @@ if (storedToken) {
 
   // Mount UI
 const ui = mountUI(root);
-initUI(root);
 
 // Expose a tiny bridge for UI modules that don't have direct access to `ui`.
 // (Used by the Levels screen to show "Login required" for locked guest levels.)
