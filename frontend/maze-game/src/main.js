@@ -289,7 +289,6 @@ if (!CURRENT_ACCESS_TOKEN) {
       levelNumber: level?.number ?? 1,
     });
   },
-});
 
 function goToLevel(nextIndex) {
   levelIndex = Math.max(0, Math.min(levels.length - 1, nextIndex));
