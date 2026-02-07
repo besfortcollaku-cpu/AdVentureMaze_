@@ -204,6 +204,9 @@ if (storedToken) {
 
   // Mount UI
 const ui = mountUI(root);
+const hintsUI = mountHintsUI(ui);
+const skipUI = mountSkipUI(ui);
+
 
 // Expose a tiny bridge for UI modules that don't have direct access to `ui`.
 // (Used by the Levels screen to show "Login required" for locked guest levels.)
@@ -232,6 +235,26 @@ const skipPopup = createSkipPopup();
 const hintPopup = createHintPopup();
 
 
+hintsUI.onOpen(() => {
+  if (!CURRENT_USER?.uid) {
+    ui.showLoginRequired();
+    return;
+  }
+
+  hintPopup.show({
+    freeLeft: freeHintsLeft(),
+  });
+});
+skipUI.onOpen(() => {
+  if (!CURRENT_USER?.uid) {
+    ui.showLoginRequired();
+    return;
+  }
+
+  skipPopup.show({
+    freeLeft: freeSkipsLeft(),
+  });
+});
 
   function setLevel(i) {
     levelIndex = Math.max(0, Math.min(levels.length - 1, i));
@@ -416,24 +439,6 @@ skipPopup.onWatchAdSkip(async () => {
   const out = await apiSkip({ mode: "ad" });
   if (!out.ok) return alert(out.error || "Skip failed");
   goNextLevel();
-});
-
-ui.hintBtn.addEventListener("click", () => {
-  if (!CURRENT_USER?.uid) {
-  ui.showLoginRequired();
-  return;
-}
-  hintPopup.show({ freeLeft: freeHintsLeft() });
-});
-
-hintPopup.onFreeHint(async () => {
-  const out = await apiHint({ mode: "free" });
-  if (!out.ok) return alert(out.error || "Hint failed");
-  if (out.user) {
-    CURRENT_USER = { ...CURRENT_USER, ...out.user };
-    ui.setCoins(out.user.coins);
-  }
-  alert("Hint unlocked! (plug your hint text here)");
 });
 
 hintPopup.onBuyHint(async () => {

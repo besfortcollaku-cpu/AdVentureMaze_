@@ -1,73 +1,43 @@
-export function createHintPopup() {
-  const root = document.body;
+export function mountHintsUI({ root }) {
+  const el = root.querySelector("#hintPopup");
+  const btnFree = el.querySelector("[data-hint-free]");
+  const btnBuy = el.querySelector("[data-hint-buy]");
+  const btnAd = el.querySelector("[data-hint-ad]");
+  const btnClose = el.querySelector("[data-close]");
 
-  const overlay = document.createElement("div");
-  overlay.className = "overlay hint-overlay hidden";
-  overlay.innerHTML = `
-    <div class="popup">
-      <h2>Get Hint</h2>
-      <p class="free-info"></p>
-      <button class="free-btn">Use free hint</button>
-      <button class="buy-btn">Spend 50 coins</button>
-      <button class="ad-btn">Watch ad</button>
-      <button class="close-btn">Close</button>
-    </div>
-  `;
+  let onFree = () => {};
+  let onBuy = () => {};
+  let onAd = () => {};
 
-  root.appendChild(overlay);
+  function show({ freeLeft = 0 } = {}) {
+    el.classList.add("show");
 
-  const freeInfo = overlay.querySelector(".free-info");
-  const freeBtn = overlay.querySelector(".free-btn");
-  const buyBtn = overlay.querySelector(".buy-btn");
-  const adBtn = overlay.querySelector(".ad-btn");
-  const closeBtn = overlay.querySelector(".close-btn");
-
-  let onFree = null;
-  let onBuy = null;
-  let onAd = null;
-
-  function show({ freeLeft = 0 }) {
-    freeInfo.textContent =
-      freeLeft > 0
-        ? `Free hints left: ${freeLeft}`
-        : "No free hints left";
-
-    freeBtn.disabled = freeLeft <= 0;
-    overlay.classList.remove("hidden");
+    // update free counter if exists
+    const freeLabel = el.querySelector("[data-free-left]");
+    if (freeLabel) freeLabel.textContent = freeLeft;
   }
 
   function hide() {
-    overlay.classList.add("hidden");
+    el.classList.remove("show");
   }
 
-  freeBtn.addEventListener("click", () => {
-    hide();
-    onFree && onFree();
-  });
-
-  buyBtn.addEventListener("click", () => {
-    hide();
-    onBuy && onBuy();
-  });
-
-  adBtn.addEventListener("click", () => {
-    hide();
-    onAd && onAd();
-  });
-
-  closeBtn.addEventListener("click", hide);
+  btnFree?.addEventListener("click", () => onFree());
+  btnBuy?.addEventListener("click", () => onBuy());
+  btnAd?.addEventListener("click", () => onAd());
+  btnClose?.addEventListener("click", hide);
 
   return {
     show,
     hide,
-    onFreeHint(cb) {
-      onFree = cb;
+
+    onFreeHint(fn) {
+      onFree = fn;
     },
-    onBuyHint(cb) {
-      onBuy = cb;
+    onBuyHint(fn) {
+      onBuy = fn;
     },
-    onWatchAdHint(cb) {
-      onAd = cb;
+    onWatchAdHint(fn) {
+      onAd = fn;
     },
   };
 }
