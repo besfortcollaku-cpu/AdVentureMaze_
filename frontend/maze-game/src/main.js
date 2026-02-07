@@ -9,25 +9,7 @@ import { levels } from "./levels/index.js";
 import { createWinPopup } from "./ui/uiWin.js";
 import { mountSkipUI } from "./ui/uiSkip.js";
 import { mountHintsUI } from "./ui/uiHints.js";
-// Hint button
-ui.hintBtn.addEventListener("click", () => {
-  if (!CURRENT_ACCESS_TOKEN) {
-    ui.showLoginRequired();
-    return;
-  }
 
-  hintPopup.open();
-});
-
-// Skip button
-ui.skipBtn.addEventListener("click", () => {
-  if (!CURRENT_ACCESS_TOKEN) {
-    ui.showLoginRequired();
-    return;
-  }
-
-  skipPopup.open();
-});
 
 
 const GUEST_PROGRESS_KEY = "guest_progress_v1";
