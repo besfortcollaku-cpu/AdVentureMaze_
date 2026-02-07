@@ -70,9 +70,10 @@ loginReqCancelBtn.onclick = () => {
 };
 
 loginReqLoginBtn.onclick = () => {
-      alert("LOGIN REQUIRED → LOGIN CLICKED");
   loginRequiredOverlay.classList.add("hidden");
-  api.onLoginRequiredLogin?.();
+
+  // force open welcome overlay
+  document.body.classList.add("welcome-visible");
 };
 
 

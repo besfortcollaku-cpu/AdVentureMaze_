@@ -204,10 +204,6 @@ if (storedToken) {
 
   // Mount UI
 const ui = mountUI(root);
-ui.onLoginRequiredLogin = () => {
-  alert("MAIN RECEIVED LOGIN REQUEST");
-  ui.showWelcome();
-};
 if (CURRENT_ACCESS_TOKEN) {
   fetch(`${BACKEND}/api/me`, {
     headers: {
