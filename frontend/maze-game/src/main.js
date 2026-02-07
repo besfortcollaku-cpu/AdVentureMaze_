@@ -263,7 +263,6 @@ ui.levelsBtn.addEventListener("click", () => {
   levelsUI.open();
 });
   
-  ui.showWelcome();
 
 
 // const game = createGame({
@@ -277,8 +276,8 @@ ui.levelsBtn.addEventListener("click", () => {
     if (!CURRENT_ACCESS_TOKEN) {
       const completedLevel = level?.number ?? 1;
 
-      GUEST_MAX_UNLOCKED_LEVEL = Math.max(
-        GUEST_MAX_UNLOCKED_LEVEL,
+      GUEST_MAX_UNLOCKED_LEVEL = Math.max(5, 
+      GUEST_MAX_UNLOCKED_LEVEL,
         completedLevel + 1
       );
 
