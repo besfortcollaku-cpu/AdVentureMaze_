@@ -204,8 +204,7 @@ if (storedToken) {
 
   // Mount UI
 const ui = mountUI(root);
-const hintsUI = mountHintsUI(ui);
-const skipUI = mountSkipUI(ui);
+
 
 
 // Expose a tiny bridge for UI modules that don't have direct access to `ui`.
@@ -235,26 +234,7 @@ const skipPopup = createSkipPopup();
 const hintPopup = createHintPopup();
 
 
-hintsUI.onOpen(() => {
-  if (!CURRENT_USER?.uid) {
-    ui.showLoginRequired();
-    return;
-  }
 
-  hintPopup.show({
-    freeLeft: freeHintsLeft(),
-  });
-});
-skipUI.onOpen(() => {
-  if (!CURRENT_USER?.uid) {
-    ui.showLoginRequired();
-    return;
-  }
-
-  skipPopup.show({
-    freeLeft: freeSkipsLeft(),
-  });
-});
 
   function setLevel(i) {
     levelIndex = Math.max(0, Math.min(levels.length - 1, i));
@@ -304,7 +284,21 @@ levelsUI.onSelect((levelNumber) => {
 });
   
   ui.showWelcome();
+ui.hintBtn.addEventListener("click", () => {
+  if (!CURRENT_USER?.uid) {
+    ui.showLoginRequired();
+    return;
+  }
+  hintPopup.show({ freeLeft: freeHintsLeft() });
+});
 
+ui.skipBtn.addEventListener("click", () => {
+  if (!CURRENT_USER?.uid) {
+    ui.showLoginRequired();
+    return;
+  }
+  skipPopup.show({ freeLeft: freeSkipsLeft() });
+});
 
 // Create game (DO NOT START)
 const game = createGame({
