@@ -1,4 +1,4 @@
-export function mountSkipUI({ root }) {
+export function createSkipPopup({ root }) {
   const el = root.querySelector("#skipPopup");
   const btnFree = el.querySelector("[data-skip-free]");
   const btnBuy = el.querySelector("[data-skip-buy]");

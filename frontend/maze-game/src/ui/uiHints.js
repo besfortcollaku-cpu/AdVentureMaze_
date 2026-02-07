@@ -1,4 +1,4 @@
-export function mountHintsUI({ root }) {
+export function createHintPopup({ root }) {
   const el = root.querySelector("#hintPopup");
   const btnFree = el.querySelector("[data-hint-free]");
   const btnBuy = el.querySelector("[data-hint-buy]");
