@@ -70,11 +70,14 @@ loginReqCancelBtn.onclick = () => {
 };
 
 loginReqLoginBtn.onclick = () => {
+  // close login-required popup
   loginRequiredOverlay.classList.add("hidden");
+
+  // FORCE welcome overlay exactly like app start
   welcome.style.display = "flex";
   document.body.classList.add("welcome-visible");
+  document.body.classList.remove("game-running");
 };
-
 
 
   // ----- CORE ELEMENTS -----
