@@ -7,7 +7,7 @@ import { createGame } from "./game/game.js";
 import { ensurePiLogin } from "./pi/piClient.js";
 import { levels } from "./levels/index.js";
 import { createWinPopup } from "./ui/uiWin.js";
-import { createSkipPopup } from "./ui/uiSkip.js";
+import { mountSkipUI } from "./ui/uiSkip.js";
 import { mountHintsUI } from "./ui/uiHints.js";
 
 
