@@ -297,7 +297,7 @@ levelsUI.onSelect((levelNumber) => {
       return;
     }
 
-    hintPopup.show({ freeLeft: freeHintsLeft() });
+    hintPopup.open({ freeLeft: freeHintsLeft() });
   }
 
   if (skipBtn) {
@@ -308,7 +308,7 @@ levelsUI.onSelect((levelNumber) => {
       return;
     }
 
-    skipPopup.show({ freeLeft: freeSkipsLeft() });
+    skipPopup.open({ freeLeft: freeSkipsLeft() });
   }
 });
 
@@ -418,7 +418,7 @@ ui.skipBtn.addEventListener("click", () => {
   ui.showLoginRequired();
   return;
 }
-  skipPopup.show({ freeLeft: freeSkipsLeft() });
+  skipPopup.open({ freeLeft: freeSkipsLeft() });
 });
 
 skipPopup.onFreeSkip(async () => {
