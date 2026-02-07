@@ -72,9 +72,7 @@ async function apiSkip({ mode }) {
   if (!res.ok || !data?.ok) throw new Error(data?.error || "Skip failed");
   return data;
 }
-ui.onLoginRequiredLogin = () => {
-  ui.showWelcome();
-};
+
 async function apiHint({ mode }) {
   const nonce = crypto.randomUUID?.() || `${Date.now()}-${Math.random()}`;
   const res = await fetch(`${BACKEND}/api/hint`, {
@@ -222,9 +220,13 @@ if (CURRENT_ACCESS_TOKEN) {
     })
     .catch(() => {});
 }
-  const winPopup = createWinPopup();
+const winPopup = createWinPopup();
 const skipPopup = createSkipPopup();
 const hintPopup = createHintPopup();
+
+ui.onLoginRequiredLogin = () => {
+  ui.showWelcome();
+};
 
   let levelIndex = 0;
 
