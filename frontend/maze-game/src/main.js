@@ -284,7 +284,8 @@ levelsUI.onSelect((levelNumber) => {
 });
   
   ui.showWelcome();
-ui.hintBtn.addEventListener("click", () => {  console.log("HINT CLICK",CURRENT_USER);
+ui.onHintClick(() => {
+  console.log("HINT CLICK", CURRENT_USER);
   if (!CURRENT_USER?.uid) {
     ui.showLoginRequired();
     return;
@@ -292,14 +293,14 @@ ui.hintBtn.addEventListener("click", () => {  console.log("HINT CLICK",CURRENT_U
   hintPopup.show({ freeLeft: freeHintsLeft() });
 });
 
-ui.skipBtn.addEventListener("click", () => {console.log("SKIP CLICK", CURRENT_USER);
+ui.onSkipClick(() => {
+  console.log("SKIP CLICK", CURRENT_USER);
   if (!CURRENT_USER?.uid) {
     ui.showLoginRequired();
     return;
   }
   skipPopup.show({ freeLeft: freeSkipsLeft() });
 });
-
 // Create game (DO NOT START)
 const game = createGame({
   canvas: ui.canvas,

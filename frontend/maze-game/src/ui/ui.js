@@ -114,6 +114,11 @@ accountBtn.addEventListener("click", () => {
   // ----- HANDLERS -----
   let guestHandler = null;
   let loginHandler = null;
+let onHintClick = () => {};
+let onSkipClick = () => {};
+
+hintBtn.addEventListener("click", () => onHintClick());
+skipBtn.addEventListener("click", () => onSkipClick());
 
   guestBtn.addEventListener("click", () => {
     guestHandler?.();
@@ -135,6 +140,8 @@ accountBtn.addEventListener("click", () => {
 
   // ----- PUBLIC API -----
   return {
+      
+      
       showLoginRequired() {
   loginRequiredOverlay.classList.remove("hidden");
 },
@@ -145,6 +152,13 @@ hideLoginRequired() {
     levelsBtn,
     hintBtn,
     skipBtn,
+    onHintClick(fn) {
+    onHintClick = fn;
+  },
+
+  onSkipClick(fn) {
+    onSkipClick = fn;
+  },
     showLoginGate() {
   this.showWelcome();
 },
