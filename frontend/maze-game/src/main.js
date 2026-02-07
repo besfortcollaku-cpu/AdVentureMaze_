@@ -20,7 +20,7 @@ const FREE_SKIPS = 3;
 const FREE_HINTS = 3;
 
 let levelIndex = 0;
-// Keep the Levels screen consistent (guest: localStorage, logged-in: backend)
+// Keep the Levels 1screen consistent (guest: localStorage, logged-in: backend)
 let CURRENT_MAX_UNLOCKED_LEVEL = 1;
 async function fetchAndSetCoins({ BACKEND, token, ui }) {
   if (!token) return;
