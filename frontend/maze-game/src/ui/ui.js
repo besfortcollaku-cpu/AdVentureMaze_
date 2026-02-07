@@ -72,7 +72,7 @@ loginReqCancelBtn.onclick = () => {
 loginReqLoginBtn.onclick = () => {
       alert("LOGIN REQUIRED → LOGIN CLICKED");
   loginRequiredOverlay.classList.add("hidden");
-  onLoginRequiredLogin?.();
+  api.onLoginRequiredLogin?.();
 };
 
 
