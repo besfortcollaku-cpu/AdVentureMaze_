@@ -281,13 +281,14 @@ const game = createGame({
         completedLevel + 1
       );
 
-      uiLevels.setUnlocked(GUEST_MAX_UNLOCKED_LEVEL);
-    }
+      winPopup.show({
+  levelNumber: level?.number ?? 1,
+});
 
-    // ✅ ALWAYS show win popup
-    winPopup.show({
-      levelNumber: level?.number ?? 1,
-    });
+// update levels AFTER popup is shown
+setTimeout(() => {
+  uiLevels.setUnlocked(GUEST_MAX_UNLOCKED_LEVEL);
+}, 0);
   },
 });
 function goToLevel(nextIndex) {
