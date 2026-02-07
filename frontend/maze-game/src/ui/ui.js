@@ -136,6 +136,7 @@ accountBtn.addEventListener("click", () => {
 },
 hideLoginRequired() {
   loginRequiredOverlay.classList.add("hidden");
+  api.showWelcome();
 },
     canvas,
     levelsBtn,
