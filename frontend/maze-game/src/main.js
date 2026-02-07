@@ -225,6 +225,7 @@ const skipPopup = createSkipPopup();
 const hintPopup = createHintPopup();
 
 ui.onLoginRequiredLogin = () => {
+  alert("MAIN RECEIVED LOGIN REQUEST");
   ui.showWelcome();
 };
 
