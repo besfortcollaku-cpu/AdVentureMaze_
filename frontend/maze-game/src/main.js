@@ -272,13 +272,12 @@ const game = createGame({
   getCurrentUser: () => CURRENT_USER ?? { username: "guest", uid: null },
 
   onLevelComplete({ level }) {
-
     // 🟡 Guest progress (session only)
     if (!CURRENT_ACCESS_TOKEN) {
       const completedLevel = level?.number ?? 1;
 
-      GUEST_MAX_UNLOCKED_LEVEL = Math.max(5, 
-      GUEST_MAX_UNLOCKED_LEVEL,
+      GUEST_MAX_UNLOCKED_LEVEL = Math.max(
+        5,
         completedLevel + 1
       );
 
