@@ -44,10 +44,19 @@ export function mountLevelsUI(root) {
     `;
 
     btn.addEventListener("click", () => {
-      if (btn.classList.contains("locked")) return;
-      selectHandler?.(i);
-      close();
-    });
+  // 🔒 Locked levels
+  if (btn.classList.contains("locked")) {
+    // Guest trying to access levels > 5
+    if (i > 5 && window.ui?.showLoginRequired) {
+      window.ui.showLoginRequired();
+    }
+    return;
+  }
+
+  // Allowed level
+  selectHandler?.(i);
+  close();
+});
 
     grid.appendChild(btn);
     levelButtons.push(btn);

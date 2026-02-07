@@ -302,6 +302,14 @@ function goNextLevel() {
   goToLevel(levelIndex + 1);
 }
 winPopup.onNextLevel(() => {
+  const nextLevelNumber = levelIndex + 2; // levelIndex is 0-based
+
+  // 🔒 Guest limit = 5
+  if (!CURRENT_ACCESS_TOKEN && nextLevelNumber > 5) {
+    ui.showLoginRequired();
+    return;
+  }
+
   winPopup.hide();
   goNextLevel();
 });
