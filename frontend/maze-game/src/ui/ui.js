@@ -71,8 +71,7 @@ loginReqCancelBtn.onclick = () => {
 
 loginReqLoginBtn.onclick = () => {
   loginRequiredOverlay.classList.add("hidden");
-
-  // force open welcome overlay
+  welcome.style.display = "flex";
   document.body.classList.add("welcome-visible");
 };
 
