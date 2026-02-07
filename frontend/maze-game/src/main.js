@@ -18,7 +18,15 @@ let CURRENT_ACCESS_TOKEN = null;
 const BACKEND = "https://triumphant-gentleness-production.up.railway.app";
 const FREE_SKIPS = 3;
 const FREE_HINTS = 3;
+function getMaxUnlockedLevel() {
+  if (CURRENT_ACCESS_TOKEN && me?.progress?.maxLevel) {
+    return me.progress.maxLevel;
+  }
 
+  // guest
+  const guest = loadGuestProgress();
+  return guest?.maxLevel ?? 1;
+}
 let levelIndex = 0;
 async function fetchAndSetCoins({ BACKEND, token, ui }) {
   if (!token) return;
@@ -203,7 +211,7 @@ if (storedToken) {
   
 
   // Mount UI
-const ui = mountUI(root);
+const ui = mountUI(root); 
 if (CURRENT_ACCESS_TOKEN) {
   fetch(`${BACKEND}/api/me`, {
     headers: {
@@ -265,17 +273,18 @@ const game = createGame({
   getCurrentUser: () => CURRENT_USER ?? { username: "guest", uid: null },
 
   onLevelComplete({ level }) {
-    // ✅ server reward: +1 coin once per level
-    if (CURRENT_ACCESS_TOKEN) {
-      apiClaimLevelComplete(level?.number ?? levelIndex + 1)
-        .then((out) => {
-          if (out?.user) {
-            CURRENT_USER = { ...CURRENT_USER, ...out.user };
-            ui.setCoins(out.user.coins ?? 0);
-          }
-        })
-        .catch(() => {});
-    }
+// 🟡 Guest progress (session only)
+if (!CURRENT_ACCESS_TOKEN) {
+  const completedLevel = level?.number ?? 1;
+
+  GUEST_MAX_UNLOCKED_LEVEL = Math.max(
+    GUEST_MAX_UNLOCKED_LEVEL,
+    completedLevel + 1
+  );
+
+  // update levels screen state
+  uiLevels.setUnlocked(GUEST_MAX_UNLOCKED_LEVEL);
+}
     winPopup.show({
       levelNumber: level?.number ?? 1,
     });
