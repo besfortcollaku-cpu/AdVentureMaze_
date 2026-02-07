@@ -284,7 +284,7 @@ levelsUI.onSelect((levelNumber) => {
 });
   
   ui.showWelcome();
-ui.hintBtn.addEventListener("click", () => {
+ui.hintBtn.addEventListener("click", () => {  console.log("HINT CLICK",CURRENT_USER);
   if (!CURRENT_USER?.uid) {
     ui.showLoginRequired();
     return;
@@ -292,7 +292,7 @@ ui.hintBtn.addEventListener("click", () => {
   hintPopup.show({ freeLeft: freeHintsLeft() });
 });
 
-ui.skipBtn.addEventListener("click", () => {
+ui.skipBtn.addEventListener("click", () => {console.log("SKIP CLICK", CURRENT_USER);
   if (!CURRENT_USER?.uid) {
     ui.showLoginRequired();
     return;
