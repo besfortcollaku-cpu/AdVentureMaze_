@@ -18,16 +18,10 @@ let CURRENT_ACCESS_TOKEN = null;
 const BACKEND = "https://triumphant-gentleness-production.up.railway.app";
 const FREE_SKIPS = 3;
 const FREE_HINTS = 3;
-function getMaxUnlockedLevel() {
-  if (CURRENT_ACCESS_TOKEN && me?.progress?.maxLevel) {
-    return me.progress.maxLevel;
-  }
 
-  // guest
-  const guest = loadGuestProgress();
-  return guest?.maxLevel ?? 1;
-}
 let levelIndex = 0;
+// Keep the Levels screen consistent (guest: localStorage, logged-in: backend)
+let CURRENT_MAX_UNLOCKED_LEVEL = 1;
 async function fetchAndSetCoins({ BACKEND, token, ui }) {
   if (!token) return;
 
@@ -211,7 +205,14 @@ if (storedToken) {
   
 
   // Mount UI
-const ui = mountUI(root); 
+const ui = mountUI(root);
+
+// Expose a tiny bridge for UI modules that don't have direct access to `ui`.
+// (Used by the Levels screen to show "Login required" for locked guest levels.)
+window.__maze = window.__maze || {};
+window.__maze.guestMaxLevel = GUEST_MAX_LEVEL;
+window.__maze.showLoginRequired = () => ui.showLoginRequired();
+window.__maze.isLoggedIn = () => Boolean(CURRENT_USER?.uid);
 if (CURRENT_ACCESS_TOKEN) {
   fetch(`${BACKEND}/api/me`, {
     headers: {
@@ -233,8 +234,6 @@ const skipPopup = createSkipPopup();
 const hintPopup = createHintPopup();
 
 
-
-  let levelIndex = 0;
 
   function setLevel(i) {
     levelIndex = Math.max(0, Math.min(levels.length - 1, i));
@@ -260,34 +259,78 @@ ui.onAccountClick(async () => {
 });
 const levelsUI = mountLevelsUI(root);  
 ui.levelsBtn.addEventListener("click", () => {
+  // keep levels UI in sync before opening
+  if (CURRENT_USER?.uid) {
+    levelsUI.setUnlocked?.(CURRENT_MAX_UNLOCKED_LEVEL || 1);
+  } else {
+    const guestProgress = loadGuestProgress();
+    const unlocked = Math.min(guestProgress.maxLevel || 1, GUEST_MAX_LEVEL);
+    CURRENT_MAX_UNLOCKED_LEVEL = unlocked;
+    levelsUI.setUnlocked?.(unlocked);
+  }
+
   levelsUI.open();
+});
+
+// Level select
+levelsUI.onSelect((levelNumber) => {
+  // Guest can only open levels 1..GUEST_MAX_LEVEL
+  if (!CURRENT_USER?.uid && levelNumber > GUEST_MAX_LEVEL) {
+    ui.showLoginRequired();
+    return;
+  }
+  goToLevel(levelNumber - 1);
 });
   
   ui.showWelcome();
 
 
+// Create game (DO NOT START)
 const game = createGame({
   canvas: ui.canvas,
   level: levels[0],
   getCurrentUser: () => CURRENT_USER ?? { username: "guest", uid: null },
 
   onLevelComplete({ level }) {
-  const levelNumber = level?.number ?? levelIndex + 1;
+    const completedLevel = level?.number ?? (levelIndex + 1);
 
-  // 🟡 Guest progress (session only)
-  if (!CURRENT_ACCESS_TOKEN) {
-    GUEST_MAX_UNLOCKED_LEVEL = Math.max(
-      GUEST_MAX_UNLOCKED_LEVEL,
-      levelNumber + 1
+    // ✅ server reward: +1 coin once per level
+    if (CURRENT_ACCESS_TOKEN) {
+      apiClaimLevelComplete(completedLevel)
+        .then((out) => {
+          if (out?.user) {
+            CURRENT_USER = { ...CURRENT_USER, ...out.user };
+            ui.setCoins(out.user.coins ?? 0);
+          }
+        })
+        .catch(() => {});
+    }
+    winPopup.show({
+      levelNumber: completedLevel,
+    });
+
+    // keep local max unlocked in sync (doesn't override backend, just helps UI)
+    CURRENT_MAX_UNLOCKED_LEVEL = Math.max(
+      CURRENT_MAX_UNLOCKED_LEVEL,
+      Math.min(levels.length, completedLevel + 1)
     );
-  }
 
-  // ✅ ALWAYS show win popup (NO CONDITIONS)
-  winPopup.show({
-    levelNumber,
-  });
-} // ← closes onLevelComplete
-});    // ← closes createGame
+    // 🟡 guest progress is local-only (levels 1..GUEST_MAX_LEVEL)
+    if (!CURRENT_USER?.uid) {
+      const nextUnlock = Math.min(GUEST_MAX_LEVEL, completedLevel + 1);
+      const current = loadGuestProgress();
+      const newMax = Math.min(
+        GUEST_MAX_LEVEL,
+        Math.max(current?.maxLevel || 1, nextUnlock)
+      );
+      saveGuestProgress(newMax);
+      CURRENT_MAX_UNLOCKED_LEVEL = newMax;
+      // update Levels UI after popup has been mounted
+      setTimeout(() => levelsUI.setUnlocked?.(newMax), 0);
+    }
+  },
+});
+
 function goToLevel(nextIndex) {
   levelIndex = Math.max(0, Math.min(levels.length - 1, nextIndex));
   const lvl = levels[levelIndex];
@@ -301,8 +344,9 @@ function goNextLevel() {
 winPopup.onNextLevel(() => {
   const nextLevelNumber = levelIndex + 2; // levelIndex is 0-based
 
-  // 🔒 Guest limit = 5
-  if (!CURRENT_ACCESS_TOKEN && nextLevelNumber > 5) {
+  // 🔒 Guest limit: require login after level 5
+  if (!CURRENT_USER?.uid && nextLevelNumber > GUEST_MAX_LEVEL) {
+    winPopup.hide();
     ui.showLoginRequired();
     return;
   }
@@ -415,9 +459,9 @@ hintPopup.onWatchAdHint(async () => {
   CURRENT_ACCESS_TOKEN = null;
 
   const guestProgress = loadGuestProgress();
-  levelsUI.setUnlocked?.(
-    Math.min(guestProgress.maxLevel, GUEST_MAX_LEVEL)
-  );
+  const unlocked = Math.min(guestProgress.maxLevel || 1, GUEST_MAX_LEVEL);
+  CURRENT_MAX_UNLOCKED_LEVEL = unlocked;
+  levelsUI.setUnlocked?.(unlocked);
 
   document.body.classList.add("game-running");
   ui.hideWelcome();
@@ -460,6 +504,7 @@ ui.onLoginClick(async () => {
     me?.progress?.highestLevel ??
     1;
 
+  CURRENT_MAX_UNLOCKED_LEVEL = Math.max(1, Number(maxLevel) || 1);
   levelsUI.setUnlocked?.(maxLevel);
   // start at the unlocked level (or 1)
   setLevel(Math.max(0, maxLevel - 1));

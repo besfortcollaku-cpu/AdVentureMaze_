@@ -44,19 +44,19 @@ export function mountLevelsUI(root) {
     `;
 
     btn.addEventListener("click", () => {
-  // 🔒 Locked levels
-  if (btn.classList.contains("locked")) {
-    // Guest trying to access levels > 5
-    if (i > 5 && window.ui?.showLoginRequired) {
-      window.ui.showLoginRequired();
-    }
-    return;
-  }
-
-  // Allowed level
-  selectHandler?.(i);
-  close();
-});
+      if (btn.classList.contains("locked")) {
+        // If guest taps a locked level above the guest limit, show login-required.
+        const maze = window.__maze;
+        const guestMax = Number(maze?.guestMaxLevel || 0);
+        const isLoggedIn = maze?.isLoggedIn?.() === true;
+        if (!isLoggedIn && guestMax > 0 && i > guestMax) {
+          maze?.showLoginRequired?.();
+        }
+        return;
+      }
+      selectHandler?.(i);
+      close();
+    });
 
     grid.appendChild(btn);
     levelButtons.push(btn);
