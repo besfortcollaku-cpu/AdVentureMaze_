@@ -96,75 +96,48 @@ export function createRenderer({ canvas, state }) {
 
 
   function drawMaze() {
-  // ─────────────────────────────
-  // PASS 1: BASE (NO CANVAS BG)
-  // ─────────────────────────────
-  ctx.clearRect(0, 0, w, h);
-
-  // ─────────────────────────────
-  // PASS 2: CONTINUOUS PATH BASE
-  // ─────────────────────────────
-  ctx.fillStyle = "#0a1626"; // dark path base (darker than app bg)
-
   for (let y = 0; y < state.rows; y++) {
     for (let x = 0; x < state.cols; x++) {
-      if (state.grid[y][x] === 1) continue;
-
       const px = ox + x * tile;
       const py = oy + y * tile;
 
-      // full tile
-      ctx.fillRect(px, py, tile, tile);
+      if (state.grid[y][x] === 1) {
+        // ─────────────────────────
+        // WALL — ENGRAVED / BEVELED
+        // ─────────────────────────
 
-      // horizontal merge
-      if (x < state.cols - 1 && state.grid[y][x + 1] === 0) {
-        ctx.fillRect(px + tile - 1, py, 2, tile);
-      }
+        // base wall color (same as app bg)
+        ctx.fillStyle = "#0e1b2c";
+        ctx.fillRect(px, py, tile, tile);
 
-      // vertical merge
-      if (y < state.rows - 1 && state.grid[y + 1][x] === 0) {
-        ctx.fillRect(px, py + tile - 1, tile, 2);
-      }
-    }
-  }
+        // top highlight (light source top-left)
+        ctx.fillStyle = "rgba(255,255,255,0.06)";
+        ctx.fillRect(px, py, tile, 2);
+        ctx.fillRect(px, py, 2, tile);
 
-  // ─────────────────────────────
-  // PASS 3: ENGRAVED SHADOW (DEPTH)
-  // ─────────────────────────────
-  ctx.fillStyle = "rgba(0,0,0,0.6)";
+        // bottom shadow (depth)
+        ctx.fillStyle = "rgba(0,0,0,0.45)";
+        ctx.fillRect(px, py + tile - 2, tile, 2);
+        ctx.fillRect(px + tile - 2, py, 2, tile);
 
-  for (let y = 0; y < state.rows; y++) {
-    for (let x = 0; x < state.cols; x++) {
-      if (state.grid[y][x] === 1) continue;
+      } else {
+        // ─────────────────────────
+        // PATH — FLAT, SOLID PLATE
+        // ─────────────────────────
 
-      const px = ox + x * tile;
-      const py = oy + y * tile;
+        // flat base (no grid gaps)
+        ctx.fillStyle = "#0e1b2c";
+        ctx.fillRect(px, py, tile, tile);
 
-      ctx.fillRect(px, py, tile, 2); // top
-      ctx.fillRect(px, py, 2, tile); // left
-    }
-  }
+        // engraved inset
+        ctx.fillStyle = "rgba(0,0,0,0.5)";
+        ctx.fillRect(px + 2, py + 2, tile - 4, tile - 4);
 
-  // ─────────────────────────────
-  // PASS 4: VISITED / PAINTED PATH (NO GAPS)
-  // ─────────────────────────────
-  ctx.fillStyle = "#25d7ff";
-
-  for (let y = 0; y < state.rows; y++) {
-    for (let x = 0; x < state.cols; x++) {
-      if (!state.isPainted(x, y)) continue;
-
-      const px = ox + x * tile;
-      const py = oy + y * tile;
-
-      ctx.fillRect(px, py, tile, tile);
-
-      // merge painted neighbors
-      if (x < state.cols - 1 && state.isPainted(x + 1, y)) {
-        ctx.fillRect(px + tile - 1, py, 2, tile);
-      }
-      if (y < state.rows - 1 && state.isPainted(x, y + 1)) {
-        ctx.fillRect(px, py + tile - 1, tile, 2);
+        // painted path overlay (visited)
+        if (state.isPainted(x, y)) {
+          ctx.fillStyle = "#25d7ff";
+          ctx.fillRect(px + 3, py + 3, tile - 6, tile - 6);
+        }
       }
     }
   }
