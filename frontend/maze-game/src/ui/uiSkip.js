@@ -1,42 +1,43 @@
 import "../css/skip.css";
-
 export function createSkipPopup() {
-  let onFree = null;
-  let onBuy = null;
-  let onAd = null;
-
   const el = document.createElement("div");
   el.className = "popup hidden";
   el.innerHTML = `
     <div class="popup-card">
-      <h2>Skip</h2>
-      <button class="free">Free (<span class="freeLeft"></span>)</button>
-      <button class="buy">Buy</button>
-      <button class="ad">Watch Ad</button>
-      <button class="close">Close</button>
+      <h3>Skip Level</h3>
+      <button id="freeSkipBtn">Free Skip</button>
+      <button id="buySkipBtn">Buy Skip</button>
+      <button id="watchAdSkipBtn">Watch Ad</button>
+      <button id="closeSkipBtn">Close</button>
     </div>
   `;
   document.body.appendChild(el);
 
-  el.querySelector(".close").onclick = () => hide();
-  el.querySelector(".free").onclick = () => onFree?.();
-  el.querySelector(".buy").onclick = () => onBuy?.();
-  el.querySelector(".ad").onclick = () => onAd?.();
+  const api = {
+    show({ freeLeft } = {}) {
+      el.classList.remove("hidden");
+    },
+    hide() {
+      el.classList.add("hidden");
+    },
 
-  function show({ freeLeft }) {
-    el.querySelector(".freeLeft").textContent = freeLeft ?? 0;
-    el.classList.remove("hidden");
-  }
+    // 🔥 CRITICAL FIX
+    open(opts) {
+      this.show(opts);
+    },
 
-  function hide() {
-    el.classList.add("hidden");
-  }
-
-  return {
-    show,
-    hide,
-    onFreeSkip(cb) { onFree = cb; },
-    onBuySkip(cb) { onBuy = cb; },
-    onWatchAdSkip(cb) { onAd = cb; },
+    onFreeSkip(cb) {
+      el.querySelector("#freeSkipBtn").onclick = cb;
+    },
+    onBuySkip(cb) {
+      el.querySelector("#buySkipBtn").onclick = cb;
+    },
+    onWatchAdSkip(cb) {
+      el.querySelector("#watchAdSkipBtn").onclick = cb;
+    },
   };
+
+  el.querySelector("#closeSkipBtn").onclick = () => api.hide();
+
+  return api;
 }
