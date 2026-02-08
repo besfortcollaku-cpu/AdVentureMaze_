@@ -115,6 +115,58 @@ function ensurePatterns() {
 
 
 
+function getBoardBounds() {
+  return {
+    x: ox,
+    y: oy,
+    w: state.cols * tile,
+    h: state.rows * tile
+  };
+}
+
+function drawBoardShadow() {
+  const b = getBoardBounds();
+  const shadowY = b.y + b.h + tile * 0.3;
+
+  ctx.fillStyle = "rgba(0,0,0,0.45)";
+  ctx.beginPath();
+  ctx.ellipse(
+    b.x + b.w / 2,
+    shadowY,
+    b.w * 0.55,
+    tile * 0.5,
+    0,
+    0,
+    Math.PI * 2
+  );
+  ctx.fill();
+}
+
+function drawBoardFrontFace() {
+  const b = getBoardBounds();
+  const slabDepth = Math.round(tile * 0.65);
+
+  const grad = ctx.createLinearGradient(
+    0,
+    b.y + b.h,
+    0,
+    b.y + b.h + slabDepth
+  );
+
+  grad.addColorStop(0, "#0f2540");
+  grad.addColorStop(1, "#09192e");
+
+  ctx.fillStyle = grad;
+  ctx.fillRect(
+    b.x,
+    b.y + b.h,
+    b.w,
+    slabDepth
+  );
+}
+
+
+
   function drawMaze() {
   ensurePatterns();
 
@@ -243,6 +295,19 @@ ctx.fillRect(
   }
 
   ctx.globalAlpha = 1;
+}
+
+function drawCrystalEdge() {
+  const b = getBoardBounds();
+
+  ctx.strokeStyle = "rgba(255,255,255,0.12)";
+  ctx.lineWidth = 2;
+  ctx.strokeRect(
+    b.x + 1,
+    b.y + 1,
+    b.w - 2,
+    b.h - 2
+  );
 }
   function drawBall(playerFloat) {
   const r = Math.max(10, tile * 0.24);
@@ -403,17 +468,14 @@ ctx.fillRect(
   ctx.stroke();
 }
   function render(playerFloat) {
-      const time = performance.now() * 0.0006;
+  ctx.clearRect(0, 0, w, h);
 
-    ctx.clearRect(0, 0, w, h);
-
-    drawBackground();
-
-    drawMaze();
-
-    drawBall(playerFloat);
-
-  }
+  drawBoardShadow();
+  drawBoardFrontFace();
+  drawMaze();
+  drawCrystalEdge();
+  drawBall(playerFloat);
+}
 
 
 
