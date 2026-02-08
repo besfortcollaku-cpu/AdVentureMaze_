@@ -102,23 +102,36 @@ export function createRenderer({ canvas, state }) {
       const py = oy + y * tile;
 
       if (state.grid[y][x] === 1) {
-        // WALL — slightly darker than background
-        ctx.fillStyle = "#0b1624";
+        // ─── WALL (semi-transparent engraved) ───
+
+        // base wall (transparent)
+        ctx.fillStyle = "rgba(14,27,44,0.65)"; // app bg but transparent
         ctx.fillRect(px, py, tile, tile);
 
-      } else {
-        // WALKABLE BASE — same tone as app background
-        ctx.fillStyle = "#0e1b2c";
-        ctx.fillRect(px, py, tile, tile);
-
-        // ENGRAVED EDGES (top + left)
+        // inner shadow (engraved depth)
         ctx.fillStyle = "rgba(0,0,0,0.35)";
-        ctx.fillRect(px, py, tile, 2);
-        ctx.fillRect(px, py, 2, tile);
+        ctx.fillRect(px, py, tile, 2); // top
+        ctx.fillRect(px, py, 2, tile); // left
 
-        // PAINTED PATH (after ball passes)
+        // highlight edge (subtle bevel)
+        ctx.fillStyle = "rgba(255,255,255,0.04)";
+        ctx.fillRect(px, py + tile - 2, tile, 2); // bottom
+        ctx.fillRect(px + tile - 2, py, 2, tile); // right
+      } else {
+        // ─── WALKABLE TILE (engraved path) ───
+
+        // base (fully transparent but keeps grid logic)
+        ctx.fillStyle = "rgba(14,27,44,0.25)";
+        ctx.fillRect(px, py, tile, tile);
+
+        // engraved edges
+        ctx.fillStyle = "rgba(0,0,0,0.35)";
+        ctx.fillRect(px, py, tile, 1);
+        ctx.fillRect(px, py, 1, tile);
+
+        // painted / visited path
         if (state.isPainted(x, y)) {
-          ctx.fillStyle = "#25d7ff";
+          ctx.fillStyle = "rgba(37,215,255,0.85)";
           ctx.fillRect(px + 3, py + 3, tile - 6, tile - 6);
         }
       }
