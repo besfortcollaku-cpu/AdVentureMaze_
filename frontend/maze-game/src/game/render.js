@@ -96,53 +96,91 @@ export function createRenderer({ canvas, state }) {
 
 
   function drawMaze() {
+  // ─────────────────────────────
+  // PASS 0: CLEAR CANVAS (FULLY TRANSPARENT)
+  // ─────────────────────────────
+  ctx.clearRect(0, 0, w, h);
+
+  // ─────────────────────────────
+  // PASS 1: ENGRAVED PATH BASE (CUT INTO SURFACE)
+  // ─────────────────────────────
+  ctx.fillStyle = "#081321"; // darker than app bg → engraved feel
+
   for (let y = 0; y < state.rows; y++) {
     for (let x = 0; x < state.cols; x++) {
+      if (state.grid[y][x] === 1) continue; // WALLS = TRANSPARENT
+
       const px = ox + x * tile;
       const py = oy + y * tile;
 
-      if (state.grid[y][x] === 1) {
-        // ─────────────────────────
-        // WALL — ENGRAVED / BEVELED
-        // ─────────────────────────
+      // base tile
+      ctx.fillRect(px, py, tile, tile);
 
-        // base wall color (same as app bg)
-        ctx.fillStyle = "#0e1b2c";
-        ctx.fillRect(px, py, tile, tile);
-
-        // top highlight (light source top-left)
-        ctx.fillStyle = "rgba(255,255,255,0.06)";
-        ctx.fillRect(px, py, tile, 2);
-        ctx.fillRect(px, py, 2, tile);
-
-        // bottom shadow (depth)
-        ctx.fillStyle = "rgba(0,0,0,0.45)";
-        ctx.fillRect(px, py + tile - 2, tile, 2);
-        ctx.fillRect(px + tile - 2, py, 2, tile);
-
-      } else {
-        // ─────────────────────────
-        // PATH — FLAT, SOLID PLATE
-        // ─────────────────────────
-
-        // flat base (no grid gaps)
-        ctx.fillStyle = "#0e1b2c";
-        ctx.fillRect(px, py, tile, tile);
-
-        // engraved inset
-        ctx.fillStyle = "rgba(0,0,0,0.5)";
-        ctx.fillRect(px + 2, py + 2, tile - 4, tile - 4);
-
-        // painted path overlay (visited)
-        if (state.isPainted(x, y)) {
-          ctx.fillStyle = "#25d7ff";
-          ctx.fillRect(px + 3, py + 3, tile - 6, tile - 6);
-        }
+      // merge neighbors (remove seams)
+      if (x < state.cols - 1 && state.grid[y][x + 1] === 0) {
+        ctx.fillRect(px + tile - 1, py, 2, tile);
+      }
+      if (y < state.rows - 1 && state.grid[y + 1][x] === 0) {
+        ctx.fillRect(px, py + tile - 1, tile, 2);
       }
     }
   }
-}
 
+  // ─────────────────────────────
+  // PASS 2: ENGRAVED DEPTH (INNER SHADOW)
+  // ─────────────────────────────
+  for (let y = 0; y < state.rows; y++) {
+    for (let x = 0; x < state.cols; x++) {
+      if (state.grid[y][x] === 1) continue;
+
+      const px = ox + x * tile;
+      const py = oy + y * tile;
+
+      // top + left shadow (engraving)
+      ctx.fillStyle = "rgba(0,0,0,0.55)";
+      ctx.fillRect(px, py, tile, 2);
+      ctx.fillRect(px, py, 2, tile);
+
+      // bottom + right highlight
+      ctx.fillStyle = "rgba(255,255,255,0.05)";
+      ctx.fillRect(px, py + tile - 2, tile, 2);
+      ctx.fillRect(px + tile - 2, py, 2, tile);
+    }
+  }
+
+  // ─────────────────────────────
+  // PASS 3: LIQUID VISITED PATH (GLOSSY)
+  // ─────────────────────────────
+  for (let y = 0; y < state.rows; y++) {
+    for (let x = 0; x < state.cols; x++) {
+      if (!state.isPainted(x, y)) continue;
+
+      const px = ox + x * tile;
+      const py = oy + y * tile;
+
+      // liquid gradient
+      const grad = ctx.createLinearGradient(px, py, px, py + tile);
+      grad.addColorStop(0, "#4ff1ff");
+      grad.addColorStop(0.5, "#25d7ff");
+      grad.addColorStop(1, "#0bb7e6");
+
+      ctx.fillStyle = grad;
+      ctx.fillRect(px, py, tile, tile);
+
+      // merge liquid neighbors
+      if (x < state.cols - 1 && state.isPainted(x + 1, y)) {
+        ctx.fillRect(px + tile - 1, py, 2, tile);
+      }
+      if (y < state.rows - 1 && state.isPainted(x, y + 1)) {
+        ctx.fillRect(px, py + tile - 1, tile, 2);
+      }
+
+      // liquid shine
+      ctx.fillStyle = "rgba(255,255,255,0.25)";
+      ctx.fillRect(px + 3, py + 3, tile - 6, tile * 0.25);
+    }
+  }
+}
   function drawBall(playerFloat) {
   const r = Math.max(10, tile * 0.24);
   const c = cellCenter(playerFloat.x, playerFloat.y);
