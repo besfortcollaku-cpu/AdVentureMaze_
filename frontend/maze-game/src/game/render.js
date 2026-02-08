@@ -170,10 +170,26 @@ function drawBoardFrontFace() {
   function drawMaze() {
   ensurePatterns();
 
-  const time = performance.now() * 0.001; // ✅ FIX 1
+  const time = performance.now() * 0.001;
+
   const depth =
     Math.max(6, tile * 0.28) +
     Math.sin(performance.now() * 0.002) * 1.5;
+
+  const cameraTilt = Math.round(tile * 0.22);
+  const slabDepth = Math.round(depth * 1.2);
+
+  // ─────────────────────────────
+  // PASS 0: FRONT SLAB FACE (BOARD DEPTH)
+  // ─────────────────────────────
+  ctx.fillStyle = "rgba(0,0,0,0.35)";
+
+  for (let x = 0; x < state.cols; x++) {
+    const px = ox + x * tile - cameraTilt;
+    const py = oy + state.rows * tile - cameraTilt;
+
+    ctx.fillRect(px, py, tile, slabDepth);
+  }
 
   // ─────────────────────────────
   // PASS 1: DEEP TRENCH BASE
@@ -184,8 +200,8 @@ function drawBoardFrontFace() {
     for (let x = 0; x < state.cols; x++) {
       if (state.grid[y][x] === 1) continue;
 
-      const px = ox + x * tile;
-      const py = oy + y * tile;
+      const px = ox + x * tile - cameraTilt;
+      const py = oy + y * tile - cameraTilt;
 
       ctx.fillRect(px, py, tile, tile);
 
@@ -198,19 +214,21 @@ function drawBoardFrontFace() {
   }
 
   // ─────────────────────────────
-  // PASS 2: INNER DEPTH
+  // PASS 2: INNER DEPTH / CRYSTAL LIP
   // ─────────────────────────────
   for (let y = 0; y < state.rows; y++) {
     for (let x = 0; x < state.cols; x++) {
       if (state.grid[y][x] === 1) continue;
 
-      const px = ox + x * tile;
-      const py = oy + y * tile;
+      const px = ox + x * tile - cameraTilt;
+      const py = oy + y * tile - cameraTilt;
 
+      // deep inner shadow
       ctx.fillStyle = "rgba(0,0,0,0.75)";
       ctx.fillRect(px, py, tile, depth * 0.4);
       ctx.fillRect(px, py, depth * 0.4, tile);
 
+      // ambient occlusion core
       ctx.fillStyle = "rgba(0,0,0,0.15)";
       ctx.fillRect(
         px + depth * 0.4,
@@ -219,29 +237,39 @@ function drawBoardFrontFace() {
         tile - depth * 0.8
       );
 
+      // soft bottom/right highlight
       ctx.fillStyle = "rgba(255,255,255,0.06)";
       ctx.fillRect(px, py + tile - depth * 0.3, tile, depth * 0.3);
       ctx.fillRect(px + tile - depth * 0.3, py, depth * 0.3, tile);
+
+      // crystal bevel edge
+      ctx.strokeStyle = "rgba(255,255,255,0.12)";
+      ctx.lineWidth = 1;
+      ctx.strokeRect(
+        px + depth * 0.25,
+        py + depth * 0.25,
+        tile - depth * 0.5,
+        tile - depth * 0.5
+      );
     }
   }
 
   // ─────────────────────────────
-  // PASS 3: LIQUID PATH
+  // PASS 3: LIQUID / CRYSTAL PATH
   // ─────────────────────────────
   for (let y = 0; y < state.rows; y++) {
     for (let x = 0; x < state.cols; x++) {
       if (!state.isPainted(x, y)) continue;
 
-      const px = ox + x * tile;
-      const py = oy + y * tile;
+      const px = ox + x * tile - cameraTilt;
+      const py = oy + y * tile - cameraTilt;
 
       const grad = ctx.createLinearGradient(px, py, px, py + tile);
-      grad.addColorStop(0, "#1fbfe0");
-      grad.addColorStop(0.5, "#25d7ff");
-      grad.addColorStop(1, "#0a6a8f");
+      grad.addColorStop(0, "#bdf4ff");
+      grad.addColorStop(0.5, "#6fdfff");
+      grad.addColorStop(1, "#1a8fb8");
 
-      // base liquid
-      ctx.globalAlpha = 1;
+      // base crystal fill
       ctx.fillStyle = grad;
       ctx.fillRect(
         px + depth * 0.35,
@@ -250,53 +278,50 @@ function drawBoardFrontFace() {
         tile - depth * 0.7
       );
 
-      // liquid noise overlay
+      // subtle moving refraction (NOT glow)
       if (liquidPattern) {
         ctx.save();
-        ctx.globalAlpha = 0.22;
+        ctx.globalAlpha = 0.18;
         ctx.translate(
-          Math.sin(time + x * 0.7) * 6,
-          Math.cos(time + y * 0.7) * 6
+          Math.sin(time + x * 0.6) * 4,
+          Math.cos(time + y * 0.6) * 4
         );
-
-        ctx.fillStyle = "rgba(255,255,255,0.08)";
-ctx.fillRect(
-  px + depth * 0.6,
-  py + depth * 0.55,
-  tile - depth * 1.2,
-  depth * 0.12
-);
+        ctx.fillStyle = liquidPattern;
+        ctx.fillRect(
+          px + depth * 0.35,
+          py + depth * 0.35,
+          tile - depth * 0.7,
+          tile - depth * 0.7
+        );
         ctx.restore();
       }
 
-      // inner glow ✅ FIXED SCOPE
-      // subtle subsurface depth (NOT glow)
-const trenchShade = ctx.createRadialGradient(
-  px + tile / 2,
-  py + tile / 2,
-  tile * 0.15,
-  px + tile / 2,
-  py + tile / 2,
-  tile * 0.5
-);
+      // depth shading (crystal thickness)
+      const trenchShade = ctx.createRadialGradient(
+        px + tile / 2,
+        py + tile / 2,
+        tile * 0.15,
+        px + tile / 2,
+        py + tile / 2,
+        tile * 0.55
+      );
 
-trenchShade.addColorStop(0, "rgba(0,0,0,0)");
-trenchShade.addColorStop(0.7, "rgba(0,0,0,0.18)");
-trenchShade.addColorStop(1, "rgba(0,0,0,0.35)");
+      trenchShade.addColorStop(0, "rgba(255,255,255,0.05)");
+      trenchShade.addColorStop(0.6, "rgba(0,0,0,0.15)");
+      trenchShade.addColorStop(1, "rgba(0,0,0,0.35)");
 
-ctx.fillStyle = trenchShade;
-ctx.fillRect(
-  px + depth * 0.25,
-  py + depth * 0.25,
-  tile - depth * 0.5,
-  tile - depth * 0.5
-);
+      ctx.fillStyle = trenchShade;
+      ctx.fillRect(
+        px + depth * 0.25,
+        py + depth * 0.25,
+        tile - depth * 0.5,
+        tile - depth * 0.5
+      );
     }
   }
 
   ctx.globalAlpha = 1;
 }
-
 function drawCrystalEdge() {
   const b = getBoardBounds();
 
