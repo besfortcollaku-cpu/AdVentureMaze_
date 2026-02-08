@@ -96,17 +96,14 @@ export function createRenderer({ canvas, state }) {
 
 
   function drawMaze() {
-  // ─────────────────────────────
-  // PASS 0: CLEAR (TRANSPARENT)
-  // ─────────────────────────────
   ctx.clearRect(0, 0, w, h);
 
-  const depth = Math.max(6, tile * 0.28); // 👈 matches ball height
+  const depth = Math.max(6, tile * 0.3); // slightly deeper
 
   // ─────────────────────────────
   // PASS 1: DEEP TRENCH BASE
   // ─────────────────────────────
-  ctx.fillStyle = "#06101d"; // very deep trench
+  ctx.fillStyle = "#050c18"; // deeper than before
 
   for (let y = 0; y < state.rows; y++) {
     for (let x = 0; x < state.cols; x++) {
@@ -117,7 +114,6 @@ export function createRenderer({ canvas, state }) {
 
       ctx.fillRect(px, py, tile, tile);
 
-      // merge neighbors (no seams)
       if (x < state.cols - 1 && state.grid[y][x + 1] === 0) {
         ctx.fillRect(px + tile - 1, py, 2, tile);
       }
@@ -128,7 +124,7 @@ export function createRenderer({ canvas, state }) {
   }
 
   // ─────────────────────────────
-  // PASS 2: INNER WALL SHADOWS (DEPTH)
+  // PASS 2: INNER WALL DEPTH (STRONGER)
   // ─────────────────────────────
   for (let y = 0; y < state.rows; y++) {
     for (let x = 0; x < state.cols; x++) {
@@ -137,24 +133,40 @@ export function createRenderer({ canvas, state }) {
       const px = ox + x * tile;
       const py = oy + y * tile;
 
-      // TOP shadow (deep)
-      ctx.fillStyle = "rgba(0,0,0,0.65)";
-      ctx.fillRect(px, py, tile, depth * 0.35);
+      // top + left deep shadow
+      ctx.fillStyle = "rgba(0,0,0,0.75)";
+      ctx.fillRect(px, py, tile, depth * 0.4);
+      ctx.fillRect(px, py, depth * 0.4, tile);
 
-      // LEFT shadow
-      ctx.fillRect(px, py, depth * 0.35, tile);
-
-      // BOTTOM highlight
-      ctx.fillStyle = "rgba(255,255,255,0.07)";
-      ctx.fillRect(px, py + tile - depth * 0.25, tile, depth * 0.25);
-
-      // RIGHT highlight
-      ctx.fillRect(px + tile - depth * 0.25, py, depth * 0.25, tile);
+      // bottom + right soft highlight
+      ctx.fillStyle = "rgba(255,255,255,0.06)";
+      ctx.fillRect(px, py + tile - depth * 0.3, tile, depth * 0.3);
+      ctx.fillRect(px + tile - depth * 0.3, py, depth * 0.3, tile);
     }
   }
 
   // ─────────────────────────────
-  // PASS 3: LIQUID PAINTED PATH (DEEP CORE)
+  // PASS 3: CENTER DARKENING (DEPTH CORE)
+  // ─────────────────────────────
+  ctx.fillStyle = "rgba(0,0,0,0.25)";
+  for (let y = 0; y < state.rows; y++) {
+    for (let x = 0; x < state.cols; x++) {
+      if (state.grid[y][x] === 1) continue;
+
+      const px = ox + x * tile + depth * 0.35;
+      const py = oy + y * tile + depth * 0.35;
+
+      ctx.fillRect(
+        px,
+        py,
+        tile - depth * 0.7,
+        tile - depth * 0.7
+      );
+    }
+  }
+
+  // ─────────────────────────────
+  // PASS 4: LIQUID PAINTED PATH (DEEP + ROUND)
   // ─────────────────────────────
   for (let y = 0; y < state.rows; y++) {
     for (let x = 0; x < state.cols; x++) {
@@ -163,51 +175,44 @@ export function createRenderer({ canvas, state }) {
       const px = ox + x * tile;
       const py = oy + y * tile;
 
-      // vertical liquid gradient
-      const grad = ctx.createLinearGradient(
-        px,
-        py,
-        px,
-        py + tile
-      );
-
-      grad.addColorStop(0, "#1aa8cc");
+      const grad = ctx.createLinearGradient(px, py, px, py + tile);
+      grad.addColorStop(0, "#1fbfe0");
       grad.addColorStop(0.5, "#25d7ff");
-      grad.addColorStop(1, "#0b6f99");
+      grad.addColorStop(1, "#0a6a8f");
 
       ctx.fillStyle = grad;
       ctx.fillRect(
-        px + depth * 0.2,
-        py + depth * 0.2,
-        tile - depth * 0.4,
-        tile - depth * 0.4
+        px + depth * 0.35,
+        py + depth * 0.35,
+        tile - depth * 0.7,
+        tile - depth * 0.7
       );
 
       // merge neighbors
       if (x < state.cols - 1 && state.isPainted(x + 1, y)) {
         ctx.fillRect(
-          px + tile - depth * 0.2,
-          py + depth * 0.2,
-          depth * 0.4,
-          tile - depth * 0.4
+          px + tile - depth * 0.35,
+          py + depth * 0.35,
+          depth * 0.7,
+          tile - depth * 0.7
         );
       }
       if (y < state.rows - 1 && state.isPainted(x, y + 1)) {
         ctx.fillRect(
-          px + depth * 0.2,
-          py + tile - depth * 0.2,
-          tile - depth * 0.4,
-          depth * 0.4
+          px + depth * 0.35,
+          py + tile - depth * 0.35,
+          tile - depth * 0.7,
+          depth * 0.7
         );
       }
 
-      // liquid gloss line
-      ctx.fillStyle = "rgba(255,255,255,0.35)";
+      // curved gloss (less uniform)
+      ctx.fillStyle = "rgba(255,255,255,0.25)";
       ctx.fillRect(
-        px + depth * 0.35,
-        py + depth * 0.35,
-        tile - depth * 0.7,
-        depth * 0.2
+        px + depth * 0.55,
+        py + depth * 0.5,
+        tile - depth * 1.1,
+        depth * 0.18
       );
     }
   }
