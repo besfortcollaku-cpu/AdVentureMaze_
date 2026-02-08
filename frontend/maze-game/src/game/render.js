@@ -218,24 +218,27 @@ function ensurePatterns() {
       }
 
       // inner glow ✅ FIXED SCOPE
-      const glow = ctx.createRadialGradient(
-        px + tile / 2,
-        py + tile / 2,
-        tile * 0.1,
-        px + tile / 2,
-        py + tile / 2,
-        tile * 0.45
-      );
-      glow.addColorStop(0, "rgba(80,220,255,0.35)");
-      glow.addColorStop(1, "rgba(80,220,255,0)");
+      // subtle subsurface depth (NOT glow)
+const trenchShade = ctx.createRadialGradient(
+  px + tile / 2,
+  py + tile / 2,
+  tile * 0.15,
+  px + tile / 2,
+  py + tile / 2,
+  tile * 0.5
+);
 
-      ctx.fillStyle = glow;
-      ctx.fillRect(
-        px + depth * 0.2,
-        py + depth * 0.2,
-        tile - depth * 0.4,
-        tile - depth * 0.4
-      );
+trenchShade.addColorStop(0, "rgba(0,0,0,0)");
+trenchShade.addColorStop(0.7, "rgba(0,0,0,0.18)");
+trenchShade.addColorStop(1, "rgba(0,0,0,0.35)");
+
+ctx.fillStyle = trenchShade;
+ctx.fillRect(
+  px + depth * 0.25,
+  py + depth * 0.25,
+  tile - depth * 0.5,
+  tile - depth * 0.5
+);
     }
   }
 
