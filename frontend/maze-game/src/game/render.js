@@ -51,7 +51,7 @@ export function createRenderer({ canvas, state }) {
     );
     ctx.fill();
   }
-
+  resize();
   return {
     resize,
     render,
