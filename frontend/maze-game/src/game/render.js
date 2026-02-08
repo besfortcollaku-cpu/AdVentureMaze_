@@ -1,22 +1,6 @@
 // src/game/render.js
 
-const trenchTexture = new Image();
-trenchTexture.src = "/textures/trench_noise.png";
 
-const liquidTexture = new Image();
-liquidTexture.src = "/textures/liquid_noise.png";
-
-let trenchPattern = null;
-let liquidPattern = null;
-
-function ensurePatterns() {
-  if (!trenchPattern && trenchTexture.complete) {
-    trenchPattern = ctx.createPattern(trenchTexture, "repeat");
-  }
-  if (!liquidPattern && liquidTexture.complete) {
-    liquidPattern = ctx.createPattern(liquidTexture, "repeat");
-  }
-}
 
 export function createRenderer({ canvas, state }) {
 
@@ -113,14 +97,13 @@ export function createRenderer({ canvas, state }) {
 
   function drawMaze() {
   ctx.clearRect(0, 0, w, h);
-  ensurePatterns();
 
-  const depth = Math.max(6, tile * 0.28);
+  const depth = Math.max(6, tile * 0.3); // slightly deeper
 
   // ─────────────────────────────
   // PASS 1: DEEP TRENCH BASE
   // ─────────────────────────────
-  ctx.fillStyle = "#06101d";
+  ctx.fillStyle = "#050c18"; // deeper than before
 
   for (let y = 0; y < state.rows; y++) {
     for (let x = 0; x < state.cols; x++) {
@@ -141,26 +124,7 @@ export function createRenderer({ canvas, state }) {
   }
 
   // ─────────────────────────────
-  // PASS 2: TRENCH TEXTURE OVERLAY
-  // ─────────────────────────────
-  if (trenchPattern) {
-    ctx.globalAlpha = 0.18;
-    ctx.fillStyle = trenchPattern;
-
-    for (let y = 0; y < state.rows; y++) {
-      for (let x = 0; x < state.cols; x++) {
-        if (state.grid[y][x] === 1) continue;
-
-        const px = ox + x * tile;
-        const py = oy + y * tile;
-        ctx.fillRect(px, py, tile, tile);
-      }
-    }
-    ctx.globalAlpha = 1;
-  }
-
-  // ─────────────────────────────
-  // PASS 3: INNER SHADOWS (DEPTH)
+  // PASS 2: INNER WALL DEPTH (STRONGER)
   // ─────────────────────────────
   for (let y = 0; y < state.rows; y++) {
     for (let x = 0; x < state.cols; x++) {
@@ -169,18 +133,40 @@ export function createRenderer({ canvas, state }) {
       const px = ox + x * tile;
       const py = oy + y * tile;
 
-      ctx.fillStyle = "rgba(0,0,0,0.65)";
-      ctx.fillRect(px, py, tile, depth * 0.35);
-      ctx.fillRect(px, py, depth * 0.35, tile);
+      // top + left deep shadow
+      ctx.fillStyle = "rgba(0,0,0,0.75)";
+      ctx.fillRect(px, py, tile, depth * 0.4);
+      ctx.fillRect(px, py, depth * 0.4, tile);
 
+      // bottom + right soft highlight
       ctx.fillStyle = "rgba(255,255,255,0.06)";
-      ctx.fillRect(px, py + tile - depth * 0.25, tile, depth * 0.25);
-      ctx.fillRect(px + tile - depth * 0.25, py, depth * 0.25, tile);
+      ctx.fillRect(px, py + tile - depth * 0.3, tile, depth * 0.3);
+      ctx.fillRect(px + tile - depth * 0.3, py, depth * 0.3, tile);
     }
   }
 
   // ─────────────────────────────
-  // PASS 4: LIQUID PATH (COLOR)
+  // PASS 3: CENTER DARKENING (DEPTH CORE)
+  // ─────────────────────────────
+  ctx.fillStyle = "rgba(0,0,0,0.25)";
+  for (let y = 0; y < state.rows; y++) {
+    for (let x = 0; x < state.cols; x++) {
+      if (state.grid[y][x] === 1) continue;
+
+      const px = ox + x * tile + depth * 0.35;
+      const py = oy + y * tile + depth * 0.35;
+
+      ctx.fillRect(
+        px,
+        py,
+        tile - depth * 0.7,
+        tile - depth * 0.7
+      );
+    }
+  }
+
+  // ─────────────────────────────
+  // PASS 4: LIQUID PAINTED PATH (DEEP + ROUND)
   // ─────────────────────────────
   for (let y = 0; y < state.rows; y++) {
     for (let x = 0; x < state.cols; x++) {
@@ -189,44 +175,46 @@ export function createRenderer({ canvas, state }) {
       const px = ox + x * tile;
       const py = oy + y * tile;
 
-      const grad = ctx.createLinearGradient(py, py + tile, py, py);
-      grad.addColorStop(0, "#1aa8cc");
+      const grad = ctx.createLinearGradient(px, py, px, py + tile);
+      grad.addColorStop(0, "#1fbfe0");
       grad.addColorStop(0.5, "#25d7ff");
-      grad.addColorStop(1, "#0b6f99");
+      grad.addColorStop(1, "#0a6a8f");
 
       ctx.fillStyle = grad;
       ctx.fillRect(
-        px + depth * 0.2,
-        py + depth * 0.2,
-        tile - depth * 0.4,
-        tile - depth * 0.4
+        px + depth * 0.35,
+        py + depth * 0.35,
+        tile - depth * 0.7,
+        tile - depth * 0.7
       );
-    }
-  }
 
-  // ─────────────────────────────
-  // PASS 5: LIQUID TEXTURE + GLOSS
-  // ─────────────────────────────
-  if (liquidPattern) {
-    ctx.globalAlpha = 0.25;
-    ctx.fillStyle = liquidPattern;
-
-    for (let y = 0; y < state.rows; y++) {
-      for (let x = 0; x < state.cols; x++) {
-        if (!state.isPainted(x, y)) continue;
-
-        const px = ox + x * tile;
-        const py = oy + y * tile;
-
+      // merge neighbors
+      if (x < state.cols - 1 && state.isPainted(x + 1, y)) {
         ctx.fillRect(
-          px + depth * 0.2,
-          py + depth * 0.2,
-          tile - depth * 0.4,
-          tile - depth * 0.4
+          px + tile - depth * 0.35,
+          py + depth * 0.35,
+          depth * 0.7,
+          tile - depth * 0.7
         );
       }
+      if (y < state.rows - 1 && state.isPainted(x, y + 1)) {
+        ctx.fillRect(
+          px + depth * 0.35,
+          py + tile - depth * 0.35,
+          tile - depth * 0.7,
+          depth * 0.7
+        );
+      }
+
+      // curved gloss (less uniform)
+      ctx.fillStyle = "rgba(255,255,255,0.25)";
+      ctx.fillRect(
+        px + depth * 0.55,
+        py + depth * 0.5,
+        tile - depth * 1.1,
+        depth * 0.18
+      );
     }
-    ctx.globalAlpha = 1;
   }
 }
   function drawBall(playerFloat) {
