@@ -91,10 +91,10 @@
 
 /* Backdrop animation */
 .popup {
-  animation: popupFadeIn 0.18s ease-out;
+  animation: popupFadeIn 0.30s ease-out;
 }
 
 /* Card animation */
 .popup-card {
-  animation: popupSlideUp 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
+  animation: popupSlideUp 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
