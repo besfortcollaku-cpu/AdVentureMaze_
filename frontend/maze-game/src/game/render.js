@@ -96,17 +96,13 @@ export function createRenderer({ canvas, state }) {
 
 
   function drawMaze() {
-  // ─────────────────────────────
-  // PASS 0: CLEAR (TRANSPARENT)
-  // ─────────────────────────────
+  // clear fully (no canvas bg)
   ctx.clearRect(0, 0, w, h);
 
-  const depth = Math.max(6, tile * 0.28); // 👈 matches ball height
-
   // ─────────────────────────────
-  // PASS 1: DEEP TRENCH BASE
+  // PASS 1: CONTINUOUS CARVED PATH
   // ─────────────────────────────
-  ctx.fillStyle = "#06101d"; // very deep trench
+  ctx.fillStyle = PATH_BASE;
 
   for (let y = 0; y < state.rows; y++) {
     for (let x = 0; x < state.cols; x++) {
@@ -128,8 +124,14 @@ export function createRenderer({ canvas, state }) {
   }
 
   // ─────────────────────────────
-  // PASS 2: INNER WALL SHADOWS (DEPTH)
+  // PASS 2: DEPTH GRADIENT (TOP LIGHT)
   // ─────────────────────────────
+  const grad = ctx.createLinearGradient(0, oy, 0, oy + state.rows * tile);
+  grad.addColorStop(0, PATH_LIT);
+  grad.addColorStop(1, PATH_DARK);
+
+  ctx.fillStyle = grad;
+
   for (let y = 0; y < state.rows; y++) {
     for (let x = 0; x < state.cols; x++) {
       if (state.grid[y][x] === 1) continue;
@@ -137,25 +139,37 @@ export function createRenderer({ canvas, state }) {
       const px = ox + x * tile;
       const py = oy + y * tile;
 
-      // TOP shadow (deep)
-      ctx.fillStyle = "rgba(0,0,0,0.65)";
-      ctx.fillRect(px, py, tile, depth * 0.35);
-
-      // LEFT shadow
-      ctx.fillRect(px, py, depth * 0.35, tile);
-
-      // BOTTOM highlight
-      ctx.fillStyle = "rgba(255,255,255,0.07)";
-      ctx.fillRect(px, py + tile - depth * 0.25, tile, depth * 0.25);
-
-      // RIGHT highlight
-      ctx.fillRect(px + tile - depth * 0.25, py, depth * 0.25, tile);
+      ctx.fillRect(px, py, tile, tile);
     }
   }
 
   // ─────────────────────────────
-  // PASS 3: LIQUID PAINTED PATH (DEEP CORE)
+  // PASS 3: AMBIENT OCCLUSION (CORNERS)
   // ─────────────────────────────
+  ctx.fillStyle = "rgba(0,0,0,0.45)";
+
+  for (let y = 0; y < state.rows; y++) {
+    for (let x = 0; x < state.cols; x++) {
+      if (state.grid[y][x] === 1) continue;
+
+      const px = ox + x * tile;
+      const py = oy + y * tile;
+
+      // only draw where walls surround (depth illusion)
+      if (
+        (x > 0 && state.grid[y][x - 1] === 1) ||
+        (y > 0 && state.grid[y - 1][x] === 1)
+      ) {
+        ctx.fillRect(px, py, tile, tile);
+      }
+    }
+  }
+
+  // ─────────────────────────────
+  // PASS 4: PAINTED PATH (LIQUID)
+  // ─────────────────────────────
+  ctx.fillStyle = PAINTED;
+
   for (let y = 0; y < state.rows; y++) {
     for (let x = 0; x < state.cols; x++) {
       if (!state.isPainted(x, y)) continue;
@@ -163,52 +177,15 @@ export function createRenderer({ canvas, state }) {
       const px = ox + x * tile;
       const py = oy + y * tile;
 
-      // vertical liquid gradient
-      const grad = ctx.createLinearGradient(
-        px,
-        py,
-        px,
-        py + tile
-      );
+      ctx.fillRect(px, py, tile, tile);
 
-      grad.addColorStop(0, "#1aa8cc");
-      grad.addColorStop(0.5, "#25d7ff");
-      grad.addColorStop(1, "#0b6f99");
-
-      ctx.fillStyle = grad;
-      ctx.fillRect(
-        px + depth * 0.2,
-        py + depth * 0.2,
-        tile - depth * 0.4,
-        tile - depth * 0.4
-      );
-
-      // merge neighbors
+      // merge painted tiles
       if (x < state.cols - 1 && state.isPainted(x + 1, y)) {
-        ctx.fillRect(
-          px + tile - depth * 0.2,
-          py + depth * 0.2,
-          depth * 0.4,
-          tile - depth * 0.4
-        );
+        ctx.fillRect(px + tile - 1, py, 2, tile);
       }
       if (y < state.rows - 1 && state.isPainted(x, y + 1)) {
-        ctx.fillRect(
-          px + depth * 0.2,
-          py + tile - depth * 0.2,
-          tile - depth * 0.4,
-          depth * 0.4
-        );
+        ctx.fillRect(px, py + tile - 1, tile, 2);
       }
-
-      // liquid gloss line
-      ctx.fillStyle = "rgba(255,255,255,0.35)";
-      ctx.fillRect(
-        px + depth * 0.35,
-        py + depth * 0.35,
-        tile - depth * 0.7,
-        depth * 0.2
-      );
     }
   }
 }
