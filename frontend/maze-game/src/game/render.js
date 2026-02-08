@@ -212,7 +212,7 @@ export function createRenderer({ canvas, state }) {
       );
     }
   }
-}
+
 }
   function drawBall(playerFloat) {
   const r = Math.max(10, tile * 0.26);
