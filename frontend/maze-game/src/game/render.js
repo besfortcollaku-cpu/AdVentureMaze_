@@ -104,9 +104,7 @@ export function render(ctx, state) {
 }
 // 👇 Adapter for existing game.js (DO NOT REMOVE)
 export function createRenderer(ctx, state) {
-  return {
-    render() {
-      render(ctx, state);
-    },
+  return function () {
+    render(ctx, state);
   };
 }
