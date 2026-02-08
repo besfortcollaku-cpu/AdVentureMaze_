@@ -18,6 +18,11 @@ export function mountLevelsUI(root) {
 
       <button class="closeBtn" id="levelsClose">Close</button>
     </div>
+    <div class="levelsProgressWrap">
+  <div class="levelsProgressBar">
+    <div class="levelsProgressFill"></div>
+  </div>
+</div>
   `;
 
   root.appendChild(overlay);
