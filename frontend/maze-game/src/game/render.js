@@ -92,10 +92,10 @@ export function createRenderer({ canvas, state }) {
 
     // subtle bg so we always see something
 
-   // ctx.fillStyle = "rgba(255,255,255,0.04)";
+   ctx.fillStyle = "rgba(255,255,255,0.04)";
 
-    ctx.fillRect(0, 0, w, h);
-
+// clear canvas completely (transparent)
+ctx.clearRect(0, 0, w, h);
   }
 
 
@@ -125,14 +125,14 @@ export function createRenderer({ canvas, state }) {
           // walkable base
 
           // engraved base
-ctx.fillStyle = "#12233d";
+// base (same as app background)
+ctx.fillStyle = "#0e1b2c"; // EXACT app background color
 ctx.fillRect(px, py, tile, tile);
 
-// inner shadow (engrave illusion)
-ctx.fillStyle = "rgba(0,0,0,0.35)";
-ctx.fillRect(px, py, tile, 3);
-ctx.fillRect(px, py, 3, tile);
-
+// engraved edge
+ctx.fillStyle = "rgba(0,0,0,0.45)";
+ctx.fillRect(px, py, tile, 2);
+ctx.fillRect(px, py, 2, tile);
 
 
           // painted overlay
