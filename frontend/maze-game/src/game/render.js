@@ -102,3 +102,11 @@ export function render(ctx, state) {
   ctx.fill();
   ctx.restore();
 }
+// 👇 Adapter for existing game.js (DO NOT REMOVE)
+export function createRenderer(ctx, state) {
+  return {
+    render() {
+      render(ctx, state);
+    },
+  };
+}
