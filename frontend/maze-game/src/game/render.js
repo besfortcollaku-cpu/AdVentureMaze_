@@ -171,49 +171,82 @@ export function createRenderer({ canvas, state }) {
 }
 
   function drawBall(playerFloat) {
+  const r = Math.max(10, tile * 0.24);
+  const c = cellCenter(playerFloat.x, playerFloat.y);
 
-    const r = Math.max(10, tile * 0.24);
+  // ─────────────────────────
+  // SHADOW (ground contact)
+  // ─────────────────────────
+  ctx.fillStyle = "rgba(0,0,0,0.35)";
+  ctx.beginPath();
+  ctx.ellipse(
+    c.cx + r * 0.15,
+    c.cy + r * 0.55,
+    r * 1.05,
+    r * 0.55,
+    0,
+    0,
+    Math.PI * 2
+  );
+  ctx.fill();
 
-    const c = cellCenter(playerFloat.x, playerFloat.y);
+  // ─────────────────────────
+  // GOLD GRADIENT BALL
+  // ─────────────────────────
+  const grad = ctx.createRadialGradient(
+    c.cx - r * 0.4,
+    c.cy - r * 0.5,
+    r * 0.2,
+    c.cx,
+    c.cy,
+    r
+  );
 
+  grad.addColorStop(0.0, "#fff4b0"); // bright highlight
+  grad.addColorStop(0.25, "#ffd24a"); // gold shine
+  grad.addColorStop(0.55, "#f5b700"); // main gold
+  grad.addColorStop(0.8, "#c98a00"); // shadow gold
+  grad.addColorStop(1.0, "#8a5a00"); // deep edge
 
+  ctx.fillStyle = grad;
+  ctx.beginPath();
+  ctx.arc(c.cx, c.cy, r, 0, Math.PI * 2);
+  ctx.fill();
 
-    // shadow
+  // ─────────────────────────
+  // INNER SHADOW (depth)
+  // ─────────────────────────
+  ctx.strokeStyle = "rgba(0,0,0,0.25)";
+  ctx.lineWidth = r * 0.15;
+  ctx.beginPath();
+  ctx.arc(c.cx, c.cy, r - ctx.lineWidth / 2, 0, Math.PI * 2);
+  ctx.stroke();
 
-    ctx.fillStyle = "rgba(0,0,0,0.25)";
+  // ─────────────────────────
+  // SPECULAR GLOSS
+  // ─────────────────────────
+  ctx.fillStyle = "rgba(255,255,255,0.55)";
+  ctx.beginPath();
+  ctx.ellipse(
+    c.cx - r * 0.35,
+    c.cy - r * 0.4,
+    r * 0.35,
+    r * 0.25,
+    -0.4,
+    0,
+    Math.PI * 2
+  );
+  ctx.fill();
 
-    ctx.beginPath();
-
-    ctx.ellipse(c.cx + 2, c.cy + 5, r * 1.05, r * 0.85, 0, 0, Math.PI * 2);
-
-    ctx.fill();
-
-
-
-    // ball
-
-    ctx.fillStyle = "#25d7ff";
-
-    ctx.beginPath();
-
-    ctx.arc(c.cx, c.cy, r, 0, Math.PI * 2);
-
-    ctx.fill();
-
-
-
-    // highlight
-
-    ctx.fillStyle = "rgba(255,255,255,0.55)";
-
-    ctx.beginPath();
-
-    ctx.arc(c.cx - r * 0.3, c.cy - r * 0.35, r * 0.38, 0, Math.PI * 2);
-
-    ctx.fill();
-
-  }
-
+  // ─────────────────────────
+  // SOFT GLOW (premium feel)
+  // ─────────────────────────
+  ctx.strokeStyle = "rgba(255,215,90,0.35)";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(c.cx, c.cy, r + 1, 0, Math.PI * 2);
+  ctx.stroke();
+}
 
 
   function render(playerFloat) {
