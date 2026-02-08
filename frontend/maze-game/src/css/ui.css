@@ -287,3 +287,28 @@ body.game-running .app {
   background: #444;
   color: #fff;
 }
+
+/* ===== POPUPS (Hint / Skip / Win) ===== */
+.popup {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(0, 0, 0, 0.6);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.popup.hidden {
+  display: none;
+}
+
+.popup-card {
+  background: #0f172a;
+  color: white;
+  padding: 20px;
+  border-radius: 14px;
+  min-width: 260px;
+  max-width: 90%;
+}
