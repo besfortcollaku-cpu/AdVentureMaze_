@@ -100,7 +100,8 @@ canvas#game {
   width: 90vw;
   max-width: 360px;
   aspect-ratio: 1 / 1;
-  background: rgba(255,255,255,0.05);
+  background: transparent;
+  box-shadow: inset 0 0 0 2px rgba(255,255,255,0.05);
   border-radius: 22px;
 }
 
