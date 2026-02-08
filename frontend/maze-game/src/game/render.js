@@ -207,13 +207,13 @@ function ensurePatterns() {
           Math.cos(time + y * 0.7) * 6
         );
 
-        ctx.fillStyle = liquidPattern;
-        ctx.fillRect(
-          px + depth * 0.35 - 20,
-          py + depth * 0.35 - 20,
-          tile - depth * 0.7 + 40,
-          tile - depth * 0.7 + 40
-        );
+        ctx.fillStyle = "rgba(255,255,255,0.08)";
+ctx.fillRect(
+  px + depth * 0.6,
+  py + depth * 0.55,
+  tile - depth * 1.2,
+  depth * 0.12
+);
         ctx.restore();
       }
 
