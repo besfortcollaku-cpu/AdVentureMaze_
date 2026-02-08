@@ -97,35 +97,14 @@ export function createRenderer({ canvas, state }) {
 
   function drawMaze() {
   // ─────────────────────────────
-  // PASS 1: DRAW CONTINUOUS PATH BASE
+  // PASS 1: BASE (NO CANVAS BG)
   // ─────────────────────────────
-  ctx.fillStyle = "rgba(6, 14, 26, 0.95)"; // dark engraved base
-
-  for (let y = 0; y < state.rows; y++) {
-    for (let x = 0; x < state.cols; x++) {
-      if (state.grid[y][x] === 1) continue; // walls invisible
-
-      const px = ox + x * tile;
-      const py = oy + y * tile;
-
-      ctx.fillRect(px, py, tile, tile);
-
-      // connect right
-      if (x < state.cols - 1 && state.grid[y][x + 1] === 0) {
-        ctx.fillRect(px + tile - 1, py, 2, tile);
-      }
-
-      // connect down
-      if (y < state.rows - 1 && state.grid[y + 1][x] === 0) {
-        ctx.fillRect(px, py + tile - 1, tile, 2);
-      }
-    }
-  }
+  ctx.clearRect(0, 0, w, h);
 
   // ─────────────────────────────
-  // PASS 2: ENGRAVED SHADOW
+  // PASS 2: CONTINUOUS PATH BASE
   // ─────────────────────────────
-  ctx.fillStyle = "rgba(0,0,0,0.55)";
+  ctx.fillStyle = "#0a1626"; // dark path base (darker than app bg)
 
   for (let y = 0; y < state.rows; y++) {
     for (let x = 0; x < state.cols; x++) {
@@ -134,16 +113,43 @@ export function createRenderer({ canvas, state }) {
       const px = ox + x * tile;
       const py = oy + y * tile;
 
-      // top shadow
-      ctx.fillRect(px, py, tile, 2);
-      // left shadow
-      ctx.fillRect(px, py, 2, tile);
+      // full tile
+      ctx.fillRect(px, py, tile, tile);
+
+      // horizontal merge
+      if (x < state.cols - 1 && state.grid[y][x + 1] === 0) {
+        ctx.fillRect(px + tile - 1, py, 2, tile);
+      }
+
+      // vertical merge
+      if (y < state.rows - 1 && state.grid[y + 1][x] === 0) {
+        ctx.fillRect(px, py + tile - 1, tile, 2);
+      }
     }
   }
 
   // ─────────────────────────────
-  // PASS 3: PAINTED / VISITED PATH
+  // PASS 3: ENGRAVED SHADOW (DEPTH)
   // ─────────────────────────────
+  ctx.fillStyle = "rgba(0,0,0,0.6)";
+
+  for (let y = 0; y < state.rows; y++) {
+    for (let x = 0; x < state.cols; x++) {
+      if (state.grid[y][x] === 1) continue;
+
+      const px = ox + x * tile;
+      const py = oy + y * tile;
+
+      ctx.fillRect(px, py, tile, 2); // top
+      ctx.fillRect(px, py, 2, tile); // left
+    }
+  }
+
+  // ─────────────────────────────
+  // PASS 4: VISITED / PAINTED PATH (NO GAPS)
+  // ─────────────────────────────
+  ctx.fillStyle = "#25d7ff";
+
   for (let y = 0; y < state.rows; y++) {
     for (let x = 0; x < state.cols; x++) {
       if (!state.isPainted(x, y)) continue;
@@ -151,8 +157,15 @@ export function createRenderer({ canvas, state }) {
       const px = ox + x * tile;
       const py = oy + y * tile;
 
-      ctx.fillStyle = "rgba(37,215,255,0.85)";
-      ctx.fillRect(px + 4, py + 4, tile - 8, tile - 8);
+      ctx.fillRect(px, py, tile, tile);
+
+      // merge painted neighbors
+      if (x < state.cols - 1 && state.isPainted(x + 1, y)) {
+        ctx.fillRect(px + tile - 1, py, 2, tile);
+      }
+      if (y < state.rows - 1 && state.isPainted(x, y + 1)) {
+        ctx.fillRect(px, py + tile - 1, tile, 2);
+      }
     }
   }
 }
