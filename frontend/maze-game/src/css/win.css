@@ -214,4 +214,122 @@
     opacity: 1;
     transform: translateY(0);
   }
+}/* ===============================
+   POPUP ENTRANCE (CARD)
+================================ */
+.popup-overlay {
+  animation: overlayFade 0.25s ease-out forwards;
+}
+
+@keyframes overlayFade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.popup-card {
+  opacity: 0;
+  transform: translateY(22px) scale(0.96);
+  animation: popupIn 0.38s cubic-bezier(0.22, 1.4, 0.36, 1) forwards;
+}
+
+@keyframes popupIn {
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ===============================
+   BUTTON STAGGER (CASCADE)
+================================ */
+.popup-card button {
+  opacity: 0;
+  transform: translateY(14px);
+  animation: buttonIn 0.25s ease-out forwards;
+}
+
+.popup-card button:nth-child(1) { animation-delay: 0.10s; }
+.popup-card button:nth-child(2) { animation-delay: 0.16s; }
+.popup-card button:nth-child(3) { animation-delay: 0.22s; }
+.popup-card button:nth-child(4) { animation-delay: 0.28s; }
+
+@keyframes buttonIn {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ===============================
+   PRIMARY BUTTON GLOW
+================================ */
+.popup-card button.primary,
+.popup-card button.watch-ad {
+  background: linear-gradient(135deg, #2dd4ff, #1fa2ff);
+  box-shadow:
+    0 0 0 rgba(45, 212, 255, 0),
+    0 12px 28px rgba(0, 0, 0, 0.35);
+  animation: glowPulse 2.8s ease-in-out infinite;
+}
+
+@keyframes glowPulse {
+  0%, 100% {
+    box-shadow:
+      0 0 0 rgba(45, 212, 255, 0),
+      0 12px 28px rgba(0, 0, 0, 0.35);
+  }
+  50% {
+    box-shadow:
+      0 0 18px rgba(45, 212, 255, 0.55),
+      0 14px 34px rgba(0, 0, 0, 0.45);
+  }
+}
+
+/* ===============================
+   WATCH AD (STRONGER ATTENTION)
+================================ */
+.popup-card button.watch-ad {
+  animation:
+    buttonIn 0.25s ease-out forwards,
+    subtleBounce 2.2s ease-in-out infinite;
+}
+
+@keyframes subtleBounce {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-3px); }
+}
+
+/* ===============================
+   COIN ICON MICRO-BOUNCE
+================================ */
+.popup-card .coin,
+.popup-card .coin-icon,
+.popup-card .reward-icon {
+  display: inline-block;
+  animation: coinBounce 1.6s ease-in-out infinite;
+}
+
+@keyframes coinBounce {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-4px); }
+}
+
+/* ===============================
+   BUTTON PRESS FEEDBACK
+================================ */
+.popup-card button:active {
+  transform: scale(0.97);
+  transition: transform 0.08s ease;
+}
+
+/* ===============================
+   MOBILE SAFETY (NO JANK)
+================================ */
+@media (max-width: 600px) {
+  .popup-card {
+    animation-duration: 0.32s;
+  }
+  .popup-card button {
+    animation-duration: 0.22s;
+  }
 }
