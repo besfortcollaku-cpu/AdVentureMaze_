@@ -5,6 +5,26 @@
 export function createRenderer({ canvas, state }) {
 
   const ctx = canvas.getContext("2d");
+  // ─────────────────────────────
+// TEXTURES (SAFE, OPTIONAL)
+// ─────────────────────────────
+const trenchTex = new Image();
+trenchTex.src = "/textures/trench_noise.png";
+
+const liquidTex = new Image();
+liquidTex.src = "/textures/liquid_noise.png";
+
+let trenchPattern = null;
+let liquidPattern = null;
+
+function ensurePatterns() {
+  if (!trenchPattern && trenchTex.complete) {
+    trenchPattern = ctx.createPattern(trenchTex, "repeat");
+  }
+  if (!liquidPattern && liquidTex.complete) {
+    liquidPattern = ctx.createPattern(liquidTex, "repeat");
+  }
+}
 
 
 
@@ -96,6 +116,7 @@ export function createRenderer({ canvas, state }) {
 
 
   function drawMaze() {
+  ensurePatterns();
   ctx.clearRect(0, 0, w, h);
 
   const depth = Math.max(6, tile * 0.3); // slightly deeper
@@ -103,7 +124,7 @@ export function createRenderer({ canvas, state }) {
   // ─────────────────────────────
   // PASS 1: DEEP TRENCH BASE
   // ─────────────────────────────
-  ctx.fillStyle = "#050c18"; // deeper than before
+  ctx.fillStyle = trenchPattern || "#050c18"; // deeper than before
 
   for (let y = 0; y < state.rows; y++) {
     for (let x = 0; x < state.cols; x++) {
@@ -134,10 +155,18 @@ export function createRenderer({ canvas, state }) {
       const py = oy + y * tile;
 
       // top + left deep shadow
+      
       ctx.fillStyle = "rgba(0,0,0,0.75)";
       ctx.fillRect(px, py, tile, depth * 0.4);
       ctx.fillRect(px, py, depth * 0.4, tile);
-
+// subtle ambient occlusion
+ctx.fillStyle = "rgba(0,0,0,0.15)";
+ctx.fillRect(
+  px + depth * 0.4,
+  py + depth * 0.4,
+  tile - depth * 0.8,
+  tile - depth * 0.8
+);
       // bottom + right soft highlight
       ctx.fillStyle = "rgba(255,255,255,0.06)";
       ctx.fillRect(px, py + tile - depth * 0.3, tile, depth * 0.3);
@@ -181,6 +210,17 @@ export function createRenderer({ canvas, state }) {
       grad.addColorStop(1, "#0a6a8f");
 
       ctx.fillStyle = grad;
+      if (liquidPattern) {
+  ctx.globalAlpha = 0.18;
+  ctx.fillStyle = liquidPattern;
+  ctx.fillRect(
+    px + depth * 0.35,
+    py + depth * 0.35,
+    tile - depth * 0.7,
+    tile - depth * 0.7
+  );
+  ctx.globalAlpha = 1;
+}
       ctx.fillRect(
         px + depth * 0.35,
         py + depth * 0.35,
