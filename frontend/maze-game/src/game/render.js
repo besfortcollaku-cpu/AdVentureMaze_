@@ -115,12 +115,12 @@ export function createRenderer({ canvas, state }) {
   ctx.clearRect(0, 0, w, h);
   ensurePatterns();
 
-  const depth = Math.max(6, tile * 0.28);
+  const depth = Math.max(6, tile * 0.3);
 
   // ─────────────────────────────
-  // PASS 1: DEEP TRENCH BASE
+  // PASS 1: DEEP TRENCH (TEXTURED)
   // ─────────────────────────────
-  ctx.fillStyle = "#06101d";
+  ctx.fillStyle = "#081423"; // base darkness
 
   for (let y = 0; y < state.rows; y++) {
     for (let x = 0; x < state.cols; x++) {
@@ -141,26 +141,17 @@ export function createRenderer({ canvas, state }) {
   }
 
   // ─────────────────────────────
-  // PASS 2: TRENCH TEXTURE OVERLAY
+  // PASS 2: TRENCH NOISE (DEPTH)
   // ─────────────────────────────
   if (trenchPattern) {
-    ctx.globalAlpha = 0.18;
+    ctx.globalAlpha = 0.35;
     ctx.fillStyle = trenchPattern;
-
-    for (let y = 0; y < state.rows; y++) {
-      for (let x = 0; x < state.cols; x++) {
-        if (state.grid[y][x] === 1) continue;
-
-        const px = ox + x * tile;
-        const py = oy + y * tile;
-        ctx.fillRect(px, py, tile, tile);
-      }
-    }
+    ctx.fillRect(ox, oy, state.cols * tile, state.rows * tile);
     ctx.globalAlpha = 1;
   }
 
   // ─────────────────────────────
-  // PASS 3: INNER SHADOWS (DEPTH)
+  // PASS 3: INNER SHADOWS (ENGRAVED)
   // ─────────────────────────────
   for (let y = 0; y < state.rows; y++) {
     for (let x = 0; x < state.cols; x++) {
@@ -180,7 +171,7 @@ export function createRenderer({ canvas, state }) {
   }
 
   // ─────────────────────────────
-  // PASS 4: LIQUID PATH (COLOR)
+  // PASS 4: LIQUID PATH
   // ─────────────────────────────
   for (let y = 0; y < state.rows; y++) {
     for (let x = 0; x < state.cols; x++) {
@@ -189,10 +180,11 @@ export function createRenderer({ canvas, state }) {
       const px = ox + x * tile;
       const py = oy + y * tile;
 
-      const grad = ctx.createLinearGradient(py, py + tile, py, py);
-      grad.addColorStop(0, "#1aa8cc");
+      // liquid gradient
+      const grad = ctx.createLinearGradient(py, py, py, py + tile);
+      grad.addColorStop(0, "#3de8ff");
       grad.addColorStop(0.5, "#25d7ff");
-      grad.addColorStop(1, "#0b6f99");
+      grad.addColorStop(1, "#0a7aa6");
 
       ctx.fillStyle = grad;
       ctx.fillRect(
@@ -201,203 +193,63 @@ export function createRenderer({ canvas, state }) {
         tile - depth * 0.4,
         tile - depth * 0.4
       );
-    }
-  }
 
-  // ─────────────────────────────
-  // PASS 5: LIQUID TEXTURE + GLOSS
-  // ─────────────────────────────
-  if (liquidPattern) {
-    ctx.globalAlpha = 0.25;
-    ctx.fillStyle = liquidPattern;
-
-    for (let y = 0; y < state.rows; y++) {
-      for (let x = 0; x < state.cols; x++) {
-        if (!state.isPainted(x, y)) continue;
-
-        const px = ox + x * tile;
-        const py = oy + y * tile;
-
-        ctx.fillRect(
-          px + depth * 0.2,
-          py + depth * 0.2,
-          tile - depth * 0.4,
-          tile - depth * 0.4
-        );
+      // liquid texture
+      if (liquidPattern) {
+        ctx.globalAlpha = 0.25;
+        ctx.fillStyle = liquidPattern;
+        ctx.fillRect(px, py, tile, tile);
+        ctx.globalAlpha = 1;
       }
+
+      // gloss line
+      ctx.fillStyle = "rgba(255,255,255,0.35)";
+      ctx.fillRect(
+        px + depth * 0.35,
+        py + depth * 0.35,
+        tile - depth * 0.7,
+        depth * 0.18
+      );
     }
-    ctx.globalAlpha = 1;
   }
 }
+}
   function drawBall(playerFloat) {
-  const r = Math.max(10, tile * 0.24);
+  const r = Math.max(10, tile * 0.26);
   const c = cellCenter(playerFloat.x, playerFloat.y);
-  const t = performance.now() * 0.001;
 
-  // movement direction (safe fallback)
-  const dx = playerFloat.vx || 0;
-  const dy = playerFloat.vy || 0;
-
-  // normalize movement for rolling light
-  const len = Math.hypot(dx, dy) || 1;
-  const mx = dx / len;
-  const my = dy / len;
-
-  // ─────────────────────────
-  // CONTACT SHADOW (DEPTH)
-  // ─────────────────────────
-  ctx.fillStyle = "rgba(0,0,0,0.45)";
+  // shadow
+  ctx.fillStyle = "rgba(0,0,0,0.4)";
   ctx.beginPath();
-  ctx.ellipse(
-    c.cx + r * 0.25,
-    c.cy + r * 0.7,
-    r * 1.2,
-    r * 0.55,
-    0,
-    0,
-    Math.PI * 2
-  );
+  ctx.ellipse(c.cx + 2, c.cy + 6, r * 1.1, r * 0.8, 0, 0, Math.PI * 2);
   ctx.fill();
 
-  // ─────────────────────────
-  // METAL BODY (GOLD, DYNAMIC)
-  // rolling highlight follows movement
-  // ─────────────────────────
-  const lx = c.cx - r * (0.6 + mx * 0.35);
-  const ly = c.cy - r * (0.6 + my * 0.35);
-
-  const metal = ctx.createRadialGradient(
-    lx, ly, r * 0.12,
-    c.cx, c.cy, r
+  // gold gradient
+  const grad = ctx.createRadialGradient(
+    c.cx - r * 0.3,
+    c.cy - r * 0.4,
+    r * 0.2,
+    c.cx,
+    c.cy,
+    r
   );
 
-  metal.addColorStop(0.0, "#fffbe6");
-  metal.addColorStop(0.18, "#ffe27a");
-  metal.addColorStop(0.45, "#e6b200");
-  metal.addColorStop(0.72, "#9b6a00");
-  metal.addColorStop(1.0, "#2f2000");
+  grad.addColorStop(0, "#fff6c0");
+  grad.addColorStop(0.4, "#ffd34d");
+  grad.addColorStop(0.7, "#d4a017");
+  grad.addColorStop(1, "#8b6508");
 
-  ctx.fillStyle = metal;
+  ctx.fillStyle = grad;
   ctx.beginPath();
   ctx.arc(c.cx, c.cy, r, 0, Math.PI * 2);
   ctx.fill();
 
-  // ─────────────────────────
-  // BRUSHED METAL MICRO SCRATCHES
-  // subtle + cheap
-  // ─────────────────────────
-  ctx.save();
-  ctx.globalAlpha = 0.08;
-  ctx.strokeStyle = "#ffffff";
-  ctx.lineWidth = 1;
-
-  for (let i = 0; i < 6; i++) {
-    const a = (t * 2 + i) % (Math.PI * 2);
-    ctx.beginPath();
-    ctx.arc(
-      c.cx,
-      c.cy,
-      r * 0.9,
-      a,
-      a + Math.PI * 0.12
-    );
-    ctx.stroke();
-  }
-  ctx.restore();
-
-  // ─────────────────────────
-  // INNER SHADE (EDGE DEPTH)
-  // ─────────────────────────
-  ctx.strokeStyle = "rgba(0,0,0,0.35)";
-  ctx.lineWidth = r * 0.22;
+  // sharp highlight
+  ctx.fillStyle = "rgba(255,255,255,0.55)";
   ctx.beginPath();
-  ctx.arc(c.cx, c.cy, r - ctx.lineWidth / 2, 0, Math.PI * 2);
-  ctx.stroke();
-
-  // ─────────────────────────
-  // SPECULAR HOTSPOT (SHARP)
-  // ─────────────────────────
-  ctx.fillStyle = "rgba(255,255,255,0.9)";
-  ctx.beginPath();
-  ctx.ellipse(
-    c.cx - r * 0.45,
-    c.cy - r * 0.5,
-    r * 0.22,
-    r * 0.18,
-    -0.4,
-    0,
-    Math.PI * 2
-  );
+  ctx.arc(c.cx - r * 0.35, c.cy - r * 0.45, r * 0.3, 0, Math.PI * 2);
   ctx.fill();
-
-  // ─────────────────────────
-  // SECONDARY REFLECTION
-  // ─────────────────────────
-  ctx.fillStyle = "rgba(255,255,255,0.18)";
-  ctx.beginPath();
-  ctx.ellipse(
-    c.cx + r * 0.3,
-    c.cy + r * 0.15,
-    r * 0.5,
-    r * 0.32,
-    0.25,
-    0,
-    Math.PI * 2
-  );
-  ctx.fill();
-
-  // ─────────────────────────
-  // IMPACT FLASH (OPTIONAL)
-  // trigger by setting playerFloat.hit = true
-  // ─────────────────────────
-  if (playerFloat.hit) {
-    ctx.strokeStyle = "rgba(255,220,120,0.9)";
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.arc(c.cx, c.cy, r + 3, 0, Math.PI * 2);
-    ctx.stroke();
-    playerFloat.hit = false;
-  }
-
-  // ─────────────────────────
-  // WIN SHINE BURST (OPTIONAL)
-  // trigger by setting playerFloat.win = true
-  // ─────────────────────────
-  if (playerFloat.win) {
-    ctx.strokeStyle = "rgba(255,240,180,0.85)";
-    ctx.lineWidth = 2;
-    for (let i = 0; i < 8; i++) {
-      const a = (i / 8) * Math.PI * 2 + t;
-      ctx.beginPath();
-      ctx.moveTo(c.cx, c.cy);
-      ctx.lineTo(
-        c.cx + Math.cos(a) * r * 1.8,
-        c.cy + Math.sin(a) * r * 1.8
-      );
-      ctx.stroke();
-    }
-  }
-
-  // ─────────────────────────
-  // SUBTLE GOLD AURA (NOT NEON)
-  // ─────────────────────────
-  ctx.strokeStyle = "rgba(255,190,80,0.25)";
-  ctx.lineWidth = 1.5 + Math.sin(t * 2) * 0.5;
-  ctx.beginPath();
-  ctx.arc(c.cx, c.cy, r + 1.5, 0, Math.PI * 2);
-  ctx.stroke();
 }
-  function render(playerFloat) {
-
-    ctx.clearRect(0, 0, w, h);
-
-    drawBackground();
-
-    drawMaze();
-
-    drawBall(playerFloat);
-
-  }
 
 
 
