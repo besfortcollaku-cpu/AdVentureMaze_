@@ -165,6 +165,8 @@ export function createRenderer({ canvas, state }) {
   // - walls are raised blocks (like your screenshot)
   // ─────────────────────────────
   function drawMaze() {
+      
+      const wall = Math.round(tile * 0.22); // constant wall thickness
     ensurePatterns();
 
     const time = performance.now() * 0.001;
@@ -196,7 +198,8 @@ export function createRenderer({ canvas, state }) {
         // Recess base
         ctx.fillStyle = floorBase;
         ctx.fillRect(px, py, tile, tile);
-
+ctx.fillRect(px + tile - 1, py, 2, tile);
+ctx.fillRect(px, py + tile - 1, tile, 2);
         // Optional trench noise (very subtle)
         if (trenchPattern) {
           ctx.save();
@@ -232,65 +235,28 @@ export function createRenderer({ canvas, state }) {
           Math.max(2, z * 0.16),
           tile - inset * 2
         ); // right
-
-        // Tile seam lines (subtle)
-        ctx.strokeStyle = grout;
-        ctx.lineWidth = 1;
-        ctx.strokeRect(px + 0.5, py + 0.5, tile - 1, tile - 1);
       }
     }
 
-    // ─────────────────────────────
-    // PASS 1: Painted (visited) tiles as “crystal” fill, not glow
-    // ─────────────────────────────
-    for (let y = 0; y < state.rows; y++) {
-      for (let x = 0; x < state.cols; x++) {
-        if (!state.isPainted(x, y)) continue;
+// ─────────────────────────────
+// PASS 1: CONTINUOUS TRENCH SHAPE (NO TILES)
+// ─────────────────────────────
+ctx.fillStyle = trenchPattern || "#050c18";
 
-        const px = ox + x * tile;
-        const py = oy + y * tile;
+ctx.beginPath();
 
-        // Crystal gradient fill inside inset
-        const grad = ctx.createLinearGradient(px, py, px, py + tile);
-        grad.addColorStop(0, paintTop);
-        grad.addColorStop(0.55, paintMid);
-        grad.addColorStop(1, paintBot);
+for (let y = 0; y < state.rows; y++) {
+  for (let x = 0; x < state.cols; x++) {
+    if (state.grid[y][x] === 1) continue;
 
-        ctx.fillStyle = grad;
-        fillRoundRect(
-          px + inset,
-          py + inset,
-          tile - inset * 2,
-          tile - inset * 2,
-          r
-        );
+    const px = ox + x * tile - cameraTilt;
+    const py = oy + y * tile - cameraTilt;
 
-        // Optional liquid noise (refraction, subtle)
-        if (liquidPattern) {
-          ctx.save();
-          ctx.globalAlpha = 0.14; // keep LOW (no glow)
-          ctx.translate(Math.sin(time + x * 0.6) * 4, Math.cos(time + y * 0.6) * 4);
-          ctx.fillStyle = liquidPattern;
-          fillRoundRect(
-            px + inset,
-            py + inset,
-            tile - inset * 2,
-            tile - inset * 2,
-            r
-          );
-          ctx.restore();
-        }
+    ctx.rect(px, py, tile, tile);
+  }
+}
 
-        // Specular line (very subtle)
-        ctx.fillStyle = "rgba(255,255,255,0.10)";
-        ctx.fillRect(
-          px + inset + (tile - inset * 2) * 0.10,
-          py + inset + (tile - inset * 2) * 0.12,
-          (tile - inset * 2) * 0.70,
-          Math.max(1, z * 0.10)
-        );
-      }
-    }
+ctx.fill();
 
     // ─────────────────────────────
     // PASS 2: Raised wall blocks (grid == 1) like your screenshot
@@ -360,7 +326,33 @@ export function createRenderer({ canvas, state }) {
       }
     }
   }
+  
+   // ─────────────────────────────
+  // SPOT LIGHT
+  // ─────────────────────────────
+  
+function drawSpotLight() {
+  const b = getBoardBounds(); // you already have this helper
 
+  const light = ctx.createRadialGradient(
+    b.x - b.w * 0.2,        // light source X (bottom-left, outside board)
+    b.y + b.h * 1.2,        // light source Y
+    b.w * 0.15,             // inner radius
+    b.x + b.w * 0.5,        // spread center X
+    b.y + b.h * 0.5,        // spread center Y
+    b.w * 0.9               // outer radius
+  );
+
+  light.addColorStop(0, "rgba(255,255,255,0.35)");
+  light.addColorStop(0.4, "rgba(255,255,255,0.15)");
+  light.addColorStop(1, "rgba(0,0,0,0.55)");
+
+  ctx.save();
+  ctx.globalCompositeOperation = "overlay";
+  ctx.fillStyle = light;
+  ctx.fillRect(b.x, b.y, b.w, b.h);
+  ctx.restore();
+}
   // ─────────────────────────────
   // GOLD BALL (3D)
   // ─────────────────────────────
@@ -401,7 +393,6 @@ export function createRenderer({ canvas, state }) {
     ctx.save();
     ctx.globalAlpha = 0.08;
     ctx.strokeStyle = "#ffffff";
-    ctx.lineWidth = 1;
     for (let i = 0; i < 6; i++) {
       const a = (t * 2 + i) % (Math.PI * 2);
       ctx.beginPath();
@@ -441,18 +432,15 @@ export function createRenderer({ canvas, state }) {
   // RENDER
   // ─────────────────────────────
   function render(playerFloat) {
-    // clear everything once
-    ctx.clearRect(0, 0, w, h);
+  ctx.clearRect(0, 0, w, h);
 
-    drawBackground();
+  drawBackground();
+  drawMaze();
 
-    // big 3D slab first
-    drawBoardSlab();
+  drawSpotLight(); 
 
-    // then maze + ball
-    drawMaze();
-    drawBall(playerFloat);
-  }
+  drawBall(playerFloat);
+}
 
   return { resize, render };
 }
