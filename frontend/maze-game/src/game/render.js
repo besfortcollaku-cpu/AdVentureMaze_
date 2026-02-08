@@ -89,69 +89,42 @@ export function createRenderer({ canvas, state }) {
 
 
   function drawBackground() {
-
-    // subtle bg so we always see something
-
-   ctx.fillStyle = "rgba(255,255,255,0.04)";
-
-// clear canvas completely (transparent)
-ctx.clearRect(0, 0, w, h);
-  }
+  // canvas must stay fully transparent
+  ctx.clearRect(0, 0, w, h);
+}
 
 
 
   function drawMaze() {
+  for (let y = 0; y < state.rows; y++) {
+    for (let x = 0; x < state.cols; x++) {
+      const px = ox + x * tile;
+      const py = oy + y * tile;
 
-    for (let y = 0; y < state.rows; y++) {
+      if (state.grid[y][x] === 1) {
+        // WALL — slightly darker than background
+        ctx.fillStyle = "#0b1624";
+        ctx.fillRect(px, py, tile, tile);
 
-      for (let x = 0; x < state.cols; x++) {
+      } else {
+        // WALKABLE BASE — same tone as app background
+        ctx.fillStyle = "#0e1b2c";
+        ctx.fillRect(px, py, tile, tile);
 
-        const px = ox + x * tile;
+        // ENGRAVED EDGES (top + left)
+        ctx.fillStyle = "rgba(0,0,0,0.35)";
+        ctx.fillRect(px, py, tile, 2);
+        ctx.fillRect(px, py, 2, tile);
 
-        const py = oy + y * tile;
-
-
-
-        if (state.grid[y][x] === 1) {
-
-          // wall
-
-          ctx.fillStyle = "#0e1b2c"; // same as app background
-
-          ctx.fillRect(px, py, tile, tile);
-
-        } else {
-
-          // walkable base
-
-          // engraved base
-// base (same as app background)
-ctx.fillStyle = "#0e1b2c"; // EXACT app background color
-ctx.fillRect(px, py, tile, tile);
-
-// engraved edge
-ctx.fillStyle = "rgba(0,0,0,0.45)";
-ctx.fillRect(px, py, tile, 2);
-ctx.fillRect(px, py, 2, tile);
-
-
-          // painted overlay
-
-          if (state.isPainted(x, y)) {
-
-            ctx.fillStyle = "#25d7ff";
-ctx.fillRect(px + 3, py + 3, tile - 6, tile - 6);
-
-          }
-
+        // PAINTED PATH (after ball passes)
+        if (state.isPainted(x, y)) {
+          ctx.fillStyle = "#25d7ff";
+          ctx.fillRect(px + 3, py + 3, tile - 6, tile - 6);
         }
-
       }
-
     }
-
   }
-
+}
 
 
   function drawBall(playerFloat) {
