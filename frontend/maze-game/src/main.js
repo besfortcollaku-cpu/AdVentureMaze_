@@ -1,4 +1,4 @@
-import "./style.css";
+
 import "./css/ui.css";
 import { mountLevelsUI } from "./ui/uiLevels.js";
 import { mountUI } from "./ui/ui.js";
@@ -285,7 +285,7 @@ levelsUI.onSelect((levelNumber) => {
   
   ui.showWelcome();
   
-  document.addEventListener("click", (e) => {
+document.addEventListener("click", (e) => {
   const hintBtn = e.target.closest("#hintBtn");
   const skipBtn = e.target.closest("#skipBtn");
 
