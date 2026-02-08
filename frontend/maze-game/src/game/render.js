@@ -101,39 +101,36 @@ export function createRenderer({ canvas, state }) {
       const px = ox + x * tile;
       const py = oy + y * tile;
 
+      // ─────────────────────────────
+      // WALLS → FULLY TRANSPARENT
+      // ─────────────────────────────
       if (state.grid[y][x] === 1) {
-        // ─── WALL (semi-transparent engraved) ───
+        // draw NOTHING for walls
+        continue;
+      }
 
-        // base wall (transparent)
-        ctx.fillStyle = "rgba(14,27,44,0.65)"; // app bg but transparent
-        ctx.fillRect(px, py, tile, tile);
+      // ─────────────────────────────
+      // PATH / WALKABLE AREA
+      // ─────────────────────────────
 
-        // inner shadow (engraved depth)
-        ctx.fillStyle = "rgba(0,0,0,0.35)";
-        ctx.fillRect(px, py, tile, 2); // top
-        ctx.fillRect(px, py, 2, tile); // left
+      // dark base path (engraved surface)
+      ctx.fillStyle = "rgba(6, 14, 26, 0.9)"; // darker than app bg
+      ctx.fillRect(px, py, tile, tile);
 
-        // highlight edge (subtle bevel)
-        ctx.fillStyle = "rgba(255,255,255,0.04)";
-        ctx.fillRect(px, py + tile - 2, tile, 2); // bottom
-        ctx.fillRect(px + tile - 2, py, 2, tile); // right
-      } else {
-        // ─── WALKABLE TILE (engraved path) ───
+      // engraved shadow (top + left)
+      ctx.fillStyle = "rgba(0,0,0,0.6)";
+      ctx.fillRect(px, py, tile, 2);
+      ctx.fillRect(px, py, 2, tile);
 
-        // base (fully transparent but keeps grid logic)
-        ctx.fillStyle = "rgba(14,27,44,0.25)";
-        ctx.fillRect(px, py, tile, tile);
+      // subtle highlight (bottom + right)
+      ctx.fillStyle = "rgba(255,255,255,0.04)";
+      ctx.fillRect(px, py + tile - 2, tile, 2);
+      ctx.fillRect(px + tile - 2, py, 2, tile);
 
-        // engraved edges
-        ctx.fillStyle = "rgba(0,0,0,0.35)";
-        ctx.fillRect(px, py, tile, 1);
-        ctx.fillRect(px, py, 1, tile);
-
-        // painted / visited path
-        if (state.isPainted(x, y)) {
-          ctx.fillStyle = "rgba(37,215,255,0.85)";
-          ctx.fillRect(px + 3, py + 3, tile - 6, tile - 6);
-        }
+      // painted / visited path
+      if (state.isPainted(x, y)) {
+        ctx.fillStyle = "rgba(37,215,255,0.85)";
+        ctx.fillRect(px + 3, py + 3, tile - 6, tile - 6);
       }
     }
   }
