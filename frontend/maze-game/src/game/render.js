@@ -97,26 +97,27 @@ export function createRenderer({ canvas, state }) {
 
   function drawMaze() {
   // ─────────────────────────────
-  // PASS 0: CLEAR CANVAS (FULLY TRANSPARENT)
+  // PASS 0: CLEAR (TRANSPARENT)
   // ─────────────────────────────
   ctx.clearRect(0, 0, w, h);
 
+  const depth = Math.max(6, tile * 0.28); // 👈 matches ball height
+
   // ─────────────────────────────
-  // PASS 1: ENGRAVED PATH BASE (CUT INTO SURFACE)
+  // PASS 1: DEEP TRENCH BASE
   // ─────────────────────────────
-  ctx.fillStyle = "#081321"; // darker than app bg → engraved feel
+  ctx.fillStyle = "#06101d"; // very deep trench
 
   for (let y = 0; y < state.rows; y++) {
     for (let x = 0; x < state.cols; x++) {
-      if (state.grid[y][x] === 1) continue; // WALLS = TRANSPARENT
+      if (state.grid[y][x] === 1) continue;
 
       const px = ox + x * tile;
       const py = oy + y * tile;
 
-      // base tile
       ctx.fillRect(px, py, tile, tile);
 
-      // merge neighbors (remove seams)
+      // merge neighbors (no seams)
       if (x < state.cols - 1 && state.grid[y][x + 1] === 0) {
         ctx.fillRect(px + tile - 1, py, 2, tile);
       }
@@ -127,7 +128,7 @@ export function createRenderer({ canvas, state }) {
   }
 
   // ─────────────────────────────
-  // PASS 2: ENGRAVED DEPTH (INNER SHADOW)
+  // PASS 2: INNER WALL SHADOWS (DEPTH)
   // ─────────────────────────────
   for (let y = 0; y < state.rows; y++) {
     for (let x = 0; x < state.cols; x++) {
@@ -136,20 +137,24 @@ export function createRenderer({ canvas, state }) {
       const px = ox + x * tile;
       const py = oy + y * tile;
 
-      // top + left shadow (engraving)
-      ctx.fillStyle = "rgba(0,0,0,0.55)";
-      ctx.fillRect(px, py, tile, 2);
-      ctx.fillRect(px, py, 2, tile);
+      // TOP shadow (deep)
+      ctx.fillStyle = "rgba(0,0,0,0.65)";
+      ctx.fillRect(px, py, tile, depth * 0.35);
 
-      // bottom + right highlight
-      ctx.fillStyle = "rgba(255,255,255,0.05)";
-      ctx.fillRect(px, py + tile - 2, tile, 2);
-      ctx.fillRect(px + tile - 2, py, 2, tile);
+      // LEFT shadow
+      ctx.fillRect(px, py, depth * 0.35, tile);
+
+      // BOTTOM highlight
+      ctx.fillStyle = "rgba(255,255,255,0.07)";
+      ctx.fillRect(px, py + tile - depth * 0.25, tile, depth * 0.25);
+
+      // RIGHT highlight
+      ctx.fillRect(px + tile - depth * 0.25, py, depth * 0.25, tile);
     }
   }
 
   // ─────────────────────────────
-  // PASS 3: LIQUID VISITED PATH (GLOSSY)
+  // PASS 3: LIQUID PAINTED PATH (DEEP CORE)
   // ─────────────────────────────
   for (let y = 0; y < state.rows; y++) {
     for (let x = 0; x < state.cols; x++) {
@@ -158,26 +163,52 @@ export function createRenderer({ canvas, state }) {
       const px = ox + x * tile;
       const py = oy + y * tile;
 
-      // liquid gradient
-      const grad = ctx.createLinearGradient(px, py, px, py + tile);
-      grad.addColorStop(0, "#4ff1ff");
+      // vertical liquid gradient
+      const grad = ctx.createLinearGradient(
+        px,
+        py,
+        px,
+        py + tile
+      );
+
+      grad.addColorStop(0, "#1aa8cc");
       grad.addColorStop(0.5, "#25d7ff");
-      grad.addColorStop(1, "#0bb7e6");
+      grad.addColorStop(1, "#0b6f99");
 
       ctx.fillStyle = grad;
-      ctx.fillRect(px, py, tile, tile);
+      ctx.fillRect(
+        px + depth * 0.2,
+        py + depth * 0.2,
+        tile - depth * 0.4,
+        tile - depth * 0.4
+      );
 
-      // merge liquid neighbors
+      // merge neighbors
       if (x < state.cols - 1 && state.isPainted(x + 1, y)) {
-        ctx.fillRect(px + tile - 1, py, 2, tile);
+        ctx.fillRect(
+          px + tile - depth * 0.2,
+          py + depth * 0.2,
+          depth * 0.4,
+          tile - depth * 0.4
+        );
       }
       if (y < state.rows - 1 && state.isPainted(x, y + 1)) {
-        ctx.fillRect(px, py + tile - 1, tile, 2);
+        ctx.fillRect(
+          px + depth * 0.2,
+          py + tile - depth * 0.2,
+          tile - depth * 0.4,
+          depth * 0.4
+        );
       }
 
-      // liquid shine
-      ctx.fillStyle = "rgba(255,255,255,0.25)";
-      ctx.fillRect(px + 3, py + 3, tile - 6, tile * 0.25);
+      // liquid gloss line
+      ctx.fillStyle = "rgba(255,255,255,0.35)";
+      ctx.fillRect(
+        px + depth * 0.35,
+        py + depth * 0.35,
+        tile - depth * 0.7,
+        depth * 0.2
+      );
     }
   }
 }
