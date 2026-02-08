@@ -1,509 +1,458 @@
 // src/game/render.js
 
-
-
 export function createRenderer({ canvas, state }) {
-
   const ctx = canvas.getContext("2d");
+
   // ─────────────────────────────
-// TEXTURES (SAFE, OPTIONAL)
-// ─────────────────────────────
-const trenchTex = new Image();
-trenchTex.src = "/textures/trench_noise.png";
+  // OPTIONAL TEXTURES
+  // ─────────────────────────────
+  const trenchTex = new Image();
+  trenchTex.src = "/textures/trench_noise.png";
 
-const liquidTex = new Image();
-liquidTex.src = "/textures/liquid_noise.png";
+  const liquidTex = new Image();
+  liquidTex.src = "/textures/liquid_noise.png";
 
-let trenchPattern = null;
-let liquidPattern = null;
+  let trenchPattern = null;
+  let liquidPattern = null;
 
-function ensurePatterns() {
-  if (!trenchPattern && trenchTex.complete) {
-    trenchPattern = ctx.createPattern(trenchTex, "repeat");
+  function ensurePatterns() {
+    if (!trenchPattern && trenchTex.complete && trenchTex.naturalWidth) {
+      trenchPattern = ctx.createPattern(trenchTex, "repeat");
+    }
+    if (!liquidPattern && liquidTex.complete && liquidTex.naturalWidth) {
+      liquidPattern = ctx.createPattern(liquidTex, "repeat");
+    }
   }
-  if (!liquidPattern && liquidTex.complete) {
-    liquidPattern = ctx.createPattern(liquidTex, "repeat");
-  }
-}
-
-
 
   let w = 0;
-
   let h = 0;
 
-
-
   let tile = 40;
-
   let ox = 0;
-
   let oy = 0;
 
-
-
   function resize() {
-
     const rect = canvas.getBoundingClientRect();
-
     const dpr = Math.min(2, window.devicePixelRatio || 1);
 
-
-
     w = rect.width;
-
     h = rect.height;
 
-
-
     canvas.width = Math.floor(w * dpr);
-
     canvas.height = Math.floor(h * dpr);
-
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-
-
-    // base tile fits grid
-
     const base = Math.min(w / state.cols, h / state.rows);
-
-    const zoom = typeof state.level.zoom === "number" ? state.level.zoom : 1.0;
-
-
-
-    // requested tile size
+    const zoom = typeof state.level?.zoom === "number" ? state.level.zoom : 1.0;
 
     let t = Math.floor(base * zoom);
-
-
-
-    // cap so it always fits (important if zoom > 1)
-
     t = Math.min(t, Math.floor(w / state.cols), Math.floor(h / state.rows));
-
     tile = Math.max(10, t);
 
-
-
     ox = Math.floor((w - state.cols * tile) / 2);
-
     oy = Math.floor((h - state.rows * tile) / 2);
-
   }
-
-
 
   function cellCenter(x, y) {
-
     return {
-
       cx: ox + x * tile + tile / 2,
-
       cy: oy + y * tile + tile / 2,
-
     };
-
   }
-
-
 
   function drawBackground() {
-  // canvas must stay fully transparent
-  ctx.clearRect(0, 0, w, h);
-}
-
-
-
-function getBoardBounds() {
-  return {
-    x: ox,
-    y: oy,
-    w: state.cols * tile,
-    h: state.rows * tile
-  };
-}
-
-function drawBoardShadow() {
-  const b = getBoardBounds();
-  const shadowY = b.y + b.h + tile * 0.3;
-
-  ctx.fillStyle = "rgba(0,0,0,0.45)";
-  ctx.beginPath();
-  ctx.ellipse(
-    b.x + b.w / 2,
-    shadowY,
-    b.w * 0.55,
-    tile * 0.5,
-    0,
-    0,
-    Math.PI * 2
-  );
-  ctx.fill();
-}
-
-function drawBoardFrontFace() {
-  const b = getBoardBounds();
-  const slabDepth = Math.round(tile * 0.65);
-
-  const grad = ctx.createLinearGradient(
-    0,
-    b.y + b.h,
-    0,
-    b.y + b.h + slabDepth
-  );
-
-  grad.addColorStop(0, "#0f2540");
-  grad.addColorStop(1, "#09192e");
-
-  ctx.fillStyle = grad;
-  ctx.fillRect(
-    b.x,
-    b.y + b.h,
-    b.w,
-    slabDepth
-  );
-}
-
-
-
-  function drawMaze() {
-  ensurePatterns();
-
-  const time = performance.now() * 0.001;
-
-  const depth =
-    Math.max(6, tile * 0.28) +
-    Math.sin(performance.now() * 0.002) * 1.5;
-
-  const cameraTilt = Math.round(tile * 0.22);
-  const slabDepth = Math.round(depth * 1.2);
-
-  // ─────────────────────────────
-  // PASS 0: FRONT SLAB FACE (BOARD DEPTH)
-  // ─────────────────────────────
-  ctx.fillStyle = "rgba(0,0,0,0.35)";
-
-  for (let x = 0; x < state.cols; x++) {
-    const px = ox + x * tile - cameraTilt;
-    const py = oy + state.rows * tile - cameraTilt;
-
-    ctx.fillRect(px, py, tile, slabDepth);
+    // Keep the canvas transparent always
+    ctx.clearRect(0, 0, w, h);
   }
 
-  // ─────────────────────────────
-  // PASS 1: DEEP TRENCH BASE
-  // ─────────────────────────────
-  ctx.fillStyle = trenchPattern || "#050c18";
-
-  for (let y = 0; y < state.rows; y++) {
-    for (let x = 0; x < state.cols; x++) {
-      if (state.grid[y][x] === 1) continue;
-
-      const px = ox + x * tile - cameraTilt;
-      const py = oy + y * tile - cameraTilt;
-
-      ctx.fillRect(px, py, tile, tile);
-
-      if (x < state.cols - 1 && state.grid[y][x + 1] === 0)
-        ctx.fillRect(px + tile - 1, py, 2, tile);
-
-      if (y < state.rows - 1 && state.grid[y + 1][x] === 0)
-        ctx.fillRect(px, py + tile - 1, tile, 2);
-    }
+  function getBoardBounds() {
+    return {
+      x: ox,
+      y: oy,
+      w: state.cols * tile,
+      h: state.rows * tile,
+    };
   }
 
-  // ─────────────────────────────
-  // PASS 2: INNER DEPTH / CRYSTAL LIP
-  // ─────────────────────────────
-  for (let y = 0; y < state.rows; y++) {
-    for (let x = 0; x < state.cols; x++) {
-      if (state.grid[y][x] === 1) continue;
-
-      const px = ox + x * tile - cameraTilt;
-      const py = oy + y * tile - cameraTilt;
-
-      // deep inner shadow
-      ctx.fillStyle = "rgba(0,0,0,0.75)";
-      ctx.fillRect(px, py, tile, depth * 0.4);
-      ctx.fillRect(px, py, depth * 0.4, tile);
-
-      // ambient occlusion core
-      ctx.fillStyle = "rgba(0,0,0,0.15)";
-      ctx.fillRect(
-        px + depth * 0.4,
-        py + depth * 0.4,
-        tile - depth * 0.8,
-        tile - depth * 0.8
-      );
-
-      // soft bottom/right highlight
-      ctx.fillStyle = "rgba(255,255,255,0.06)";
-      ctx.fillRect(px, py + tile - depth * 0.3, tile, depth * 0.3);
-      ctx.fillRect(px + tile - depth * 0.3, py, depth * 0.3, tile);
-
-      // crystal bevel edge
-      ctx.strokeStyle = "rgba(255,255,255,0.12)";
-      ctx.lineWidth = 1;
-      ctx.strokeRect(
-        px + depth * 0.25,
-        py + depth * 0.25,
-        tile - depth * 0.5,
-        tile - depth * 0.5
-      );
-    }
-  }
-
-  // ─────────────────────────────
-  // PASS 3: LIQUID / CRYSTAL PATH
-  // ─────────────────────────────
-  for (let y = 0; y < state.rows; y++) {
-    for (let x = 0; x < state.cols; x++) {
-      if (!state.isPainted(x, y)) continue;
-
-      const px = ox + x * tile - cameraTilt;
-      const py = oy + y * tile - cameraTilt;
-
-      const grad = ctx.createLinearGradient(px, py, px, py + tile);
-      grad.addColorStop(0, "#bdf4ff");
-      grad.addColorStop(0.5, "#6fdfff");
-      grad.addColorStop(1, "#1a8fb8");
-
-      // base crystal fill
-      ctx.fillStyle = grad;
-      ctx.fillRect(
-        px + depth * 0.35,
-        py + depth * 0.35,
-        tile - depth * 0.7,
-        tile - depth * 0.7
-      );
-
-      // subtle moving refraction (NOT glow)
-      if (liquidPattern) {
-        ctx.save();
-        ctx.globalAlpha = 0.18;
-        ctx.translate(
-          Math.sin(time + x * 0.6) * 4,
-          Math.cos(time + y * 0.6) * 4
-        );
-        ctx.fillStyle = liquidPattern;
-        ctx.fillRect(
-          px + depth * 0.35,
-          py + depth * 0.35,
-          tile - depth * 0.7,
-          tile - depth * 0.7
-        );
-        ctx.restore();
-      }
-
-      // depth shading (crystal thickness)
-      const trenchShade = ctx.createRadialGradient(
-        px + tile / 2,
-        py + tile / 2,
-        tile * 0.15,
-        px + tile / 2,
-        py + tile / 2,
-        tile * 0.55
-      );
-
-      trenchShade.addColorStop(0, "rgba(255,255,255,0.05)");
-      trenchShade.addColorStop(0.6, "rgba(0,0,0,0.15)");
-      trenchShade.addColorStop(1, "rgba(0,0,0,0.35)");
-
-      ctx.fillStyle = trenchShade;
-      ctx.fillRect(
-        px + depth * 0.25,
-        py + depth * 0.25,
-        tile - depth * 0.5,
-        tile - depth * 0.5
-      );
-    }
-  }
-
-  ctx.globalAlpha = 1;
-}
-function drawCrystalEdge() {
-  const b = getBoardBounds();
-
-  ctx.strokeStyle = "rgba(255,255,255,0.12)";
-  ctx.lineWidth = 2;
-  ctx.strokeRect(
-    b.x + 1,
-    b.y + 1,
-    b.w - 2,
-    b.h - 2
-  );
-}
-  function drawBall(playerFloat) {
-  const r = Math.max(10, tile * 0.24);
-  const c = cellCenter(playerFloat.x, playerFloat.y);
-  const t = performance.now() * 0.001;
-
-  // movement direction (safe fallback)
-  const dx = playerFloat.vx || 0;
-  const dy = playerFloat.vy || 0;
-
-  // normalize movement for rolling light
-  const len = Math.hypot(dx, dy) || 1;
-  const mx = dx / len;
-  const my = dy / len;
-
-  // ─────────────────────────
-  // CONTACT SHADOW (DEPTH)
-  // ─────────────────────────
-  ctx.fillStyle = "rgba(0,0,0,0.45)";
-  ctx.beginPath();
-  ctx.ellipse(
-    c.cx + r * 0.25,
-    c.cy + r * 0.7,
-    r * 1.2,
-    r * 0.55,
-    0,
-    0,
-    Math.PI * 2
-  );
-  ctx.fill();
-
-  // ─────────────────────────
-  // METAL BODY (GOLD, DYNAMIC)
-  // rolling highlight follows movement
-  // ─────────────────────────
-  const lx = c.cx - r * (0.6 + mx * 0.35);
-  const ly = c.cy - r * (0.6 + my * 0.35);
-
-  const metal = ctx.createRadialGradient(
-    lx, ly, r * 0.12,
-    c.cx, c.cy, r
-  );
-
-  metal.addColorStop(0.0, "#fffbe6");
-  metal.addColorStop(0.18, "#ffe27a");
-  metal.addColorStop(0.45, "#e6b200");
-  metal.addColorStop(0.72, "#9b6a00");
-  metal.addColorStop(1.0, "#2f2000");
-
-  ctx.fillStyle = metal;
-  ctx.beginPath();
-  ctx.arc(c.cx, c.cy, r, 0, Math.PI * 2);
-  ctx.fill();
-
-  // ─────────────────────────
-  // BRUSHED METAL MICRO SCRATCHES
-  // subtle + cheap
-  // ─────────────────────────
-  ctx.save();
-  ctx.globalAlpha = 0.08;
-  ctx.strokeStyle = "#ffffff";
-  ctx.lineWidth = 1;
-
-  for (let i = 0; i < 6; i++) {
-    const a = (t * 2 + i) % (Math.PI * 2);
+  // Small helpers
+  function roundRectPath(x, y, w, h, r) {
+    const rr = Math.max(0, Math.min(r, Math.min(w, h) / 2));
     ctx.beginPath();
-    ctx.arc(
-      c.cx,
-      c.cy,
-      r * 0.9,
-      a,
-      a + Math.PI * 0.12
+    ctx.moveTo(x + rr, y);
+    ctx.arcTo(x + w, y, x + w, y + h, rr);
+    ctx.arcTo(x + w, y + h, x, y + h, rr);
+    ctx.arcTo(x, y + h, x, y, rr);
+    ctx.arcTo(x, y, x + w, y, rr);
+    ctx.closePath();
+  }
+
+  function fillRoundRect(x, y, w, h, r) {
+    roundRectPath(x, y, w, h, r);
+    ctx.fill();
+  }
+
+  function strokeRoundRect(x, y, w, h, r) {
+    roundRectPath(x, y, w, h, r);
+    ctx.stroke();
+  }
+
+  // ─────────────────────────────
+  // 3D BOARD (SLAB + FRONT FACE)
+  // ─────────────────────────────
+  function drawBoardSlab() {
+    const b = getBoardBounds();
+
+    const pad = Math.max(6, tile * 0.16);
+    const bx = b.x - pad;
+    const by = b.y - pad;
+    const bw = b.w + pad * 2;
+    const bh = b.h + pad * 2;
+
+    const slabDepth = Math.round(tile * 0.55);
+    const radius = Math.round(tile * 0.25);
+
+    // Drop shadow under the board
+    ctx.fillStyle = "rgba(0,0,0,0.45)";
+    ctx.beginPath();
+    ctx.ellipse(
+      bx + bw / 2,
+      by + bh + slabDepth * 1.15,
+      bw * 0.55,
+      slabDepth * 0.65,
+      0,
+      0,
+      Math.PI * 2
     );
-    ctx.stroke();
-  }
-  ctx.restore();
+    ctx.fill();
 
-  // ─────────────────────────
-  // INNER SHADE (EDGE DEPTH)
-  // ─────────────────────────
-  ctx.strokeStyle = "rgba(0,0,0,0.35)";
-  ctx.lineWidth = r * 0.22;
-  ctx.beginPath();
-  ctx.arc(c.cx, c.cy, r - ctx.lineWidth / 2, 0, Math.PI * 2);
-  ctx.stroke();
+    // Front face (vertical)
+    const faceGrad = ctx.createLinearGradient(0, by + bh, 0, by + bh + slabDepth);
+    faceGrad.addColorStop(0, "rgba(10,20,35,0.95)");
+    faceGrad.addColorStop(1, "rgba(5,10,20,0.95)");
+    ctx.fillStyle = faceGrad;
+    fillRoundRect(bx, by + bh, bw, slabDepth, radius);
 
-  // ─────────────────────────
-  // SPECULAR HOTSPOT (SHARP)
-  // ─────────────────────────
-  ctx.fillStyle = "rgba(255,255,255,0.9)";
-  ctx.beginPath();
-  ctx.ellipse(
-    c.cx - r * 0.45,
-    c.cy - r * 0.5,
-    r * 0.22,
-    r * 0.18,
-    -0.4,
-    0,
-    Math.PI * 2
-  );
-  ctx.fill();
+    // Top slab
+    const topGrad = ctx.createLinearGradient(0, by, 0, by + bh);
+    topGrad.addColorStop(0, "rgba(22,40,70,0.70)");
+    topGrad.addColorStop(1, "rgba(8,18,32,0.70)");
+    ctx.fillStyle = topGrad;
+    fillRoundRect(bx, by, bw, bh, radius);
 
-  // ─────────────────────────
-  // SECONDARY REFLECTION
-  // ─────────────────────────
-  ctx.fillStyle = "rgba(255,255,255,0.18)";
-  ctx.beginPath();
-  ctx.ellipse(
-    c.cx + r * 0.3,
-    c.cy + r * 0.15,
-    r * 0.5,
-    r * 0.32,
-    0.25,
-    0,
-    Math.PI * 2
-  );
-  ctx.fill();
-
-  // ─────────────────────────
-  // IMPACT FLASH (OPTIONAL)
-  // trigger by setting playerFloat.hit = true
-  // ─────────────────────────
-  if (playerFloat.hit) {
-    ctx.strokeStyle = "rgba(255,220,120,0.9)";
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.arc(c.cx, c.cy, r + 3, 0, Math.PI * 2);
-    ctx.stroke();
-    playerFloat.hit = false;
-  }
-
-  // ─────────────────────────
-  // WIN SHINE BURST (OPTIONAL)
-  // trigger by setting playerFloat.win = true
-  // ─────────────────────────
-  if (playerFloat.win) {
-    ctx.strokeStyle = "rgba(255,240,180,0.85)";
+    // Subtle rim highlight
+    ctx.strokeStyle = "rgba(255,255,255,0.10)";
     ctx.lineWidth = 2;
-    for (let i = 0; i < 8; i++) {
-      const a = (i / 8) * Math.PI * 2 + t;
+    strokeRoundRect(bx + 1, by + 1, bw - 2, bh - 2, radius);
+
+    // Inner vignette (makes “camera” feel less flat)
+    const vignette = ctx.createRadialGradient(
+      bx + bw * 0.5,
+      by + bh * 0.45,
+      bw * 0.15,
+      bx + bw * 0.5,
+      by + bh * 0.55,
+      bw * 0.75
+    );
+    vignette.addColorStop(0, "rgba(0,0,0,0)");
+    vignette.addColorStop(1, "rgba(0,0,0,0.35)");
+    ctx.fillStyle = vignette;
+    fillRoundRect(bx, by, bw, bh, radius);
+  }
+
+  // ─────────────────────────────
+  // 3D MAZE DRAW
+  // - floor (walkable) is recessed tiles
+  // - walls are raised blocks (like your screenshot)
+  // ─────────────────────────────
+  function drawMaze() {
+    ensurePatterns();
+
+    const time = performance.now() * 0.001;
+
+    // “Height” of raised wall blocks + trench lip depth
+    const z = Math.round(Math.max(6, tile * 0.28)); // block height
+    const inset = Math.round(Math.max(3, tile * 0.10)); // trench inner inset
+    const r = Math.round(tile * 0.18);
+
+    // Colors (crystal theme)
+    const floorBase = "#091425"; // deep trench floor
+    const grout = "rgba(0,0,0,0.28)";
+
+    // Paint (visited) should be less “glow”, more “crystal fill”
+    const paintTop = "#bff3ff";
+    const paintMid = "#63d7ff";
+    const paintBot = "#1a86b0";
+
+    // ─────────────────────────────
+    // PASS 0: Recessed floor tiles (for grid == 0)
+    // ─────────────────────────────
+    for (let y = 0; y < state.rows; y++) {
+      for (let x = 0; x < state.cols; x++) {
+        if (state.grid[y][x] !== 0) continue;
+
+        const px = ox + x * tile;
+        const py = oy + y * tile;
+
+        // Recess base
+        ctx.fillStyle = floorBase;
+        ctx.fillRect(px, py, tile, tile);
+
+        // Optional trench noise (very subtle)
+        if (trenchPattern) {
+          ctx.save();
+          ctx.globalAlpha = 0.18;
+          ctx.translate(Math.sin(time + x * 0.2) * 2, Math.cos(time + y * 0.2) * 2);
+          ctx.fillStyle = trenchPattern;
+          ctx.fillRect(px, py, tile, tile);
+          ctx.restore();
+        }
+
+        // Inner trench (inset) to feel deeper
+        const innerGrad = ctx.createLinearGradient(px, py, px, py + tile);
+        innerGrad.addColorStop(0, "rgba(0,0,0,0.35)");
+        innerGrad.addColorStop(1, "rgba(255,255,255,0.04)");
+        ctx.fillStyle = innerGrad;
+        fillRoundRect(px + inset, py + inset, tile - inset * 2, tile - inset * 2, r);
+
+        // Engraved lip: strong top-left shadow, soft bottom-right highlight
+        ctx.fillStyle = "rgba(0,0,0,0.55)";
+        ctx.fillRect(px + inset, py + inset, tile - inset * 2, Math.max(2, z * 0.20)); // top
+        ctx.fillRect(px + inset, py + inset, Math.max(2, z * 0.20), tile - inset * 2); // left
+
+        ctx.fillStyle = "rgba(255,255,255,0.06)";
+        ctx.fillRect(
+          px + inset,
+          py + tile - inset - Math.max(2, z * 0.16),
+          tile - inset * 2,
+          Math.max(2, z * 0.16)
+        ); // bottom
+        ctx.fillRect(
+          px + tile - inset - Math.max(2, z * 0.16),
+          py + inset,
+          Math.max(2, z * 0.16),
+          tile - inset * 2
+        ); // right
+
+        // Tile seam lines (subtle)
+        ctx.strokeStyle = grout;
+        ctx.lineWidth = 1;
+        ctx.strokeRect(px + 0.5, py + 0.5, tile - 1, tile - 1);
+      }
+    }
+
+    // ─────────────────────────────
+    // PASS 1: Painted (visited) tiles as “crystal” fill, not glow
+    // ─────────────────────────────
+    for (let y = 0; y < state.rows; y++) {
+      for (let x = 0; x < state.cols; x++) {
+        if (!state.isPainted(x, y)) continue;
+
+        const px = ox + x * tile;
+        const py = oy + y * tile;
+
+        // Crystal gradient fill inside inset
+        const grad = ctx.createLinearGradient(px, py, px, py + tile);
+        grad.addColorStop(0, paintTop);
+        grad.addColorStop(0.55, paintMid);
+        grad.addColorStop(1, paintBot);
+
+        ctx.fillStyle = grad;
+        fillRoundRect(
+          px + inset,
+          py + inset,
+          tile - inset * 2,
+          tile - inset * 2,
+          r
+        );
+
+        // Optional liquid noise (refraction, subtle)
+        if (liquidPattern) {
+          ctx.save();
+          ctx.globalAlpha = 0.14; // keep LOW (no glow)
+          ctx.translate(Math.sin(time + x * 0.6) * 4, Math.cos(time + y * 0.6) * 4);
+          ctx.fillStyle = liquidPattern;
+          fillRoundRect(
+            px + inset,
+            py + inset,
+            tile - inset * 2,
+            tile - inset * 2,
+            r
+          );
+          ctx.restore();
+        }
+
+        // Specular line (very subtle)
+        ctx.fillStyle = "rgba(255,255,255,0.10)";
+        ctx.fillRect(
+          px + inset + (tile - inset * 2) * 0.10,
+          py + inset + (tile - inset * 2) * 0.12,
+          (tile - inset * 2) * 0.70,
+          Math.max(1, z * 0.10)
+        );
+      }
+    }
+
+    // ─────────────────────────────
+    // PASS 2: Raised wall blocks (grid == 1) like your screenshot
+    // Each wall draws:
+    // - side faces (bottom + right)
+    // - top face
+    // - top highlight
+    // ─────────────────────────────
+    for (let y = 0; y < state.rows; y++) {
+      for (let x = 0; x < state.cols; x++) {
+        if (state.grid[y][x] !== 1) continue;
+
+        const px = ox + x * tile;
+        const py = oy + y * tile;
+
+        // Side faces (only show where adjacent is floor to avoid double-drawing)
+        const isFloorRight = x < state.cols - 1 && state.grid[y][x + 1] === 0;
+        const isFloorDown = y < state.rows - 1 && state.grid[y + 1][x] === 0;
+
+        // Right side face
+        if (isFloorRight) {
+          const g = ctx.createLinearGradient(px + tile, py, px + tile + z, py);
+          g.addColorStop(0, "rgba(10,20,35,0.80)");
+          g.addColorStop(1, "rgba(5,10,20,0.90)");
+          ctx.fillStyle = g;
+          ctx.fillRect(px + tile, py + z * 0.10, z, tile - z * 0.10);
+        }
+
+        // Bottom side face
+        if (isFloorDown) {
+          const g = ctx.createLinearGradient(0, py + tile, 0, py + tile + z);
+          g.addColorStop(0, "rgba(12,24,42,0.78)");
+          g.addColorStop(1, "rgba(5,10,20,0.92)");
+          ctx.fillStyle = g;
+          ctx.fillRect(px + z * 0.10, py + tile, tile - z * 0.10, z);
+        }
+
+        // Top face (raised block)
+        const topGrad = ctx.createLinearGradient(px, py, px, py + tile);
+        topGrad.addColorStop(0, "rgba(25,55,95,0.75)");
+        topGrad.addColorStop(1, "rgba(10,20,35,0.78)");
+
+        ctx.fillStyle = topGrad;
+        fillRoundRect(px, py, tile, tile, r);
+
+        // Optional stone/crystal noise on block tops (very subtle)
+        if (trenchPattern) {
+          ctx.save();
+          ctx.globalAlpha = 0.08;
+          ctx.fillStyle = trenchPattern;
+          fillRoundRect(px, py, tile, tile, r);
+          ctx.restore();
+        }
+
+        // Bevel highlight (top edge)
+        ctx.strokeStyle = "rgba(255,255,255,0.10)";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(px + r, py + 1);
+        ctx.lineTo(px + tile - r, py + 1);
+        ctx.stroke();
+
+        // Inner shade for volume
+        ctx.strokeStyle = "rgba(0,0,0,0.28)";
+        ctx.lineWidth = 2;
+        strokeRoundRect(px + 1, py + 1, tile - 2, tile - 2, r);
+      }
+    }
+  }
+
+  // ─────────────────────────────
+  // GOLD BALL (3D)
+  // ─────────────────────────────
+  function drawBall(playerFloat) {
+    const r = Math.max(10, tile * 0.24);
+    const c = cellCenter(playerFloat.x, playerFloat.y);
+    const t = performance.now() * 0.001;
+
+    const dx = playerFloat.vx || 0;
+    const dy = playerFloat.vy || 0;
+    const len = Math.hypot(dx, dy) || 1;
+    const mx = dx / len;
+    const my = dy / len;
+
+    // Shadow
+    ctx.fillStyle = "rgba(0,0,0,0.45)";
+    ctx.beginPath();
+    ctx.ellipse(c.cx + r * 0.25, c.cy + r * 0.72, r * 1.2, r * 0.55, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Gold body
+    const lx = c.cx - r * (0.6 + mx * 0.35);
+    const ly = c.cy - r * (0.6 + my * 0.35);
+
+    const metal = ctx.createRadialGradient(lx, ly, r * 0.12, c.cx, c.cy, r);
+    metal.addColorStop(0.0, "#fffbe6");
+    metal.addColorStop(0.18, "#ffe27a");
+    metal.addColorStop(0.45, "#e6b200");
+    metal.addColorStop(0.72, "#9b6a00");
+    metal.addColorStop(1.0, "#2f2000");
+
+    ctx.fillStyle = metal;
+    ctx.beginPath();
+    ctx.arc(c.cx, c.cy, r, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Micro scratches (subtle)
+    ctx.save();
+    ctx.globalAlpha = 0.08;
+    ctx.strokeStyle = "#ffffff";
+    ctx.lineWidth = 1;
+    for (let i = 0; i < 6; i++) {
+      const a = (t * 2 + i) % (Math.PI * 2);
       ctx.beginPath();
-      ctx.moveTo(c.cx, c.cy);
-      ctx.lineTo(
-        c.cx + Math.cos(a) * r * 1.8,
-        c.cy + Math.sin(a) * r * 1.8
-      );
+      ctx.arc(c.cx, c.cy, r * 0.9, a, a + Math.PI * 0.12);
       ctx.stroke();
     }
+    ctx.restore();
+
+    // Inner rim shade
+    ctx.strokeStyle = "rgba(0,0,0,0.35)";
+    ctx.lineWidth = r * 0.22;
+    ctx.beginPath();
+    ctx.arc(c.cx, c.cy, r - ctx.lineWidth / 2, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // Specular hotspot
+    ctx.fillStyle = "rgba(255,255,255,0.9)";
+    ctx.beginPath();
+    ctx.ellipse(c.cx - r * 0.45, c.cy - r * 0.5, r * 0.22, r * 0.18, -0.4, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Secondary reflection
+    ctx.fillStyle = "rgba(255,255,255,0.18)";
+    ctx.beginPath();
+    ctx.ellipse(c.cx + r * 0.3, c.cy + r * 0.15, r * 0.5, r * 0.32, 0.25, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Subtle aura
+    ctx.strokeStyle = "rgba(255,190,80,0.18)";
+    ctx.lineWidth = 1.2 + Math.sin(t * 2) * 0.4;
+    ctx.beginPath();
+    ctx.arc(c.cx, c.cy, r + 1.5, 0, Math.PI * 2);
+    ctx.stroke();
   }
 
-  // ─────────────────────────
-  // SUBTLE GOLD AURA (NOT NEON)
-  // ─────────────────────────
-  ctx.strokeStyle = "rgba(255,190,80,0.25)";
-  ctx.lineWidth = 1.5 + Math.sin(t * 2) * 0.5;
-  ctx.beginPath();
-  ctx.arc(c.cx, c.cy, r + 1.5, 0, Math.PI * 2);
-  ctx.stroke();
-}
+  // ─────────────────────────────
+  // RENDER
+  // ─────────────────────────────
   function render(playerFloat) {
-  ctx.clearRect(0, 0, w, h);
+    // clear everything once
+    ctx.clearRect(0, 0, w, h);
 
-  drawBoardShadow();
-  drawBoardFrontFace();
-  drawMaze();
-  drawCrystalEdge();
-  drawBall(playerFloat);
-}
+    drawBackground();
 
+    // big 3D slab first
+    drawBoardSlab();
 
+    // then maze + ball
+    drawMaze();
+    drawBall(playerFloat);
+  }
 
   return { resize, render };
-
 }
