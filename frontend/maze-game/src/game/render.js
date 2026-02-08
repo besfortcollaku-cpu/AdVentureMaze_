@@ -117,7 +117,6 @@ function ensurePatterns() {
 
   function drawMaze() {
   ensurePatterns();
-  ctx.clearRect(0, 0, w, h);
 
   const depth =
   Math.max(6, tile * 0.28) +
