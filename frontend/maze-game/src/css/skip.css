@@ -1,129 +1,122 @@
-/* ===== Popup Backdrop ===== */
-.popup {
+/* =========================
+   SKIP POPUP OVERLAY
+   ========================= */
+
+.skipOverlay {
   position: fixed;
   inset: 0;
-  background: rgba(5, 10, 25, 0.75);
-  backdrop-filter: blur(6px);
+  z-index: 30;
+
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+
+  background: rgba(6, 10, 25, 0.7);
+  backdrop-filter: blur(10px);
 }
 
-.popup.hidden {
+.skipOverlay.hidden {
   display: none;
 }
 
-/* ===== Popup Card ===== */
-.popup-card {
-  width: min(92%, 360px);
-  background: linear-gradient(180deg, #0e2440, #08192e);
+/* =========================
+   SKIP MODAL
+   ========================= */
+
+.skipModal {
+  width: min(92%, 420px);
+  padding: 26px 24px 22px;
   border-radius: 22px;
-  padding: 22px;
-  color: #fff;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+
+  background: linear-gradient(
+    180deg,
+    rgba(28, 60, 95, 0.95),
+    rgba(12, 22, 40, 0.96)
+  );
+
+  box-shadow:
+    0 25px 60px rgba(0, 0, 0, 0.65),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+
   text-align: center;
+  color: #f0f6ff;
+
+  animation: popupIn 0.38s cubic-bezier(0.22, 1.4, 0.36, 1);
 }
 
-/* ===== Title ===== */
-.popup-card h3 {
-  margin: 0 0 16px;
-  font-size: 22px;
-  font-weight: 700;
+/* =========================
+   TITLE
+   ========================= */
+
+.skipModal h2 {
+  font-size: 26px;
+  font-weight: 900;
+  margin-bottom: 8px;
 }
 
-/* ===== Buttons ===== */
-.popup-card button {
-  width: 100%;
-  border: none;
-  border-radius: 16px;
-  padding: 14px 16px;
-  margin-top: 12px;
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: transform 0.08s ease, opacity 0.08s ease;
-}
-
-.popup-card button:active {
-  transform: scale(0.97);
-}
-
-/* Primary */
-#freeSkipBtn {
-  background: linear-gradient(180deg, #2fd4ff, #16a3ff);
-  color: #00121f;
-}
-
-/* Secondary */
-#buySkipBtn,
-#watchAdSkipBtn {
-  background: rgba(255, 255, 255, 0.08);
-  color: #fff;
-}
-
-/* Close */
-#closeSkipBtn {
-  background: transparent;
-  color: #9fb3c8;
+.skipModal .subtitle {
   font-size: 14px;
+  opacity: 0.8;
+  margin-bottom: 18px;
 }
-/* ===== Entrance Animations ===== */
-@keyframes popupFadeIn {
+
+/* =========================
+   BUTTONS
+   ========================= */
+
+.skipModal button {
+  width: 100%;
+  height: 48px;
+  border-radius: 16px;
+  border: none;
+
+  font-size: 15px;
+  font-weight: 900;
+  cursor: pointer;
+
+  margin-top: 12px;
+}
+
+/* Free skip */
+.skipModal .btn-free {
+  background: linear-gradient(180deg, #2dd4ff, #1fa2ff);
+  color: #061320;
+}
+
+/* Buy skip */
+.skipModal .btn-coins {
+  background: rgba(255, 255, 255, 0.08);
+  color: #eef5ff;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+/* Watch ad */
+.skipModal .btn-ad {
+  background: linear-gradient(135deg, #ffcc33, #ff9f1a);
+  color: #2a1a00;
+  animation: glowPulse 2.8s ease-in-out infinite;
+}
+
+/* =========================
+   ANIMATIONS
+   ========================= */
+
+@keyframes popupIn {
   from {
     opacity: 0;
+    transform: translateY(22px) scale(0.96);
   }
   to {
     opacity: 1;
-  }
-}
-
-@keyframes popupSlideUp {
-  from {
-    transform: translateY(20px) scale(0.96);
-    opacity: 0;
-  }
-  to {
     transform: translateY(0) scale(1);
-    opacity: 1;
   }
 }
 
-/* Backdrop animation */
-.popup {
-  animation: popupFadeIn 0.18s ease-out;
-}
-
-/* Card animation */
-.popup-card {
-  animation: popupSlideUp 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
-}
-
-
-/* ===== Button stagger animation ===== */
-.popup-card button {
-  opacity: 0;
-  transform: translateY(12px);
-  animation: buttonIn 0.25s ease-out forwards;
-}
-
-/* Stagger order */
-.popup-card button:nth-child(1) {
-  animation-delay: 0.08s;
-}
-.popup-card button:nth-child(2) {
-  animation-delay: 0.14s;
-}
-.popup-card button:nth-child(3) {
-  animation-delay: 0.20s;
-}
-.popup-card button:nth-child(4) {
-  animation-delay: 0.26s;
-}
-
-@keyframes buttonIn {
-  to {
-    opacity: 1;
-    transform: translateY(0);
+@keyframes glowPulse {
+  0%, 100% {
+    box-shadow: 0 0 0 rgba(255, 204, 51, 0);
+  }
+  50% {
+    box-shadow: 0 0 18px rgba(255, 204, 51, 0.6);
   }
 }
