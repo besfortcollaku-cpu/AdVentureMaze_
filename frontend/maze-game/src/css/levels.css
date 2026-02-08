@@ -1,217 +1,78 @@
-/* =========================
-   OVERLAY
-========================= */
-.popupOverlay {
+/* ===== LEVELS POPUP LAYOUT ===== */
+
+.levelsOverlay {
   position: fixed;
   inset: 0;
-  z-index: 1200;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
   background: rgba(0, 0, 0, 0.55);
-  backdrop-filter: blur(8px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
 }
 
-.popupOverlay.hidden {
-  display: none;
-}
-
-/* =========================
-   CARD
-========================= */
 .popupCard {
-  width: min(94vw, 460px);
-  max-height: 86vh;
-
-  padding: 22px;
-  border-radius: 28px;
-
-  background: linear-gradient(
-    180deg,
-    rgba(20, 40, 55, 0.96),
-    rgba(10, 20, 30, 0.96)
-  );
-
-  box-shadow:
-    0 20px 60px rgba(0, 0, 0, 0.6),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.05);
-
-  color: #fff;
+  width: 92%;
+  max-width: 420px;
+  max-height: 80vh;              /* 🔥 REQUIRED FOR SCROLL */
+  background: linear-gradient(180deg, #0f2a3a, #081a26);
+  border-radius: 22px;
+  padding: 18px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
   display: flex;
   flex-direction: column;
+  overflow: hidden;              /* keep rounded corners */
 }
 
-/* =========================
-   HEADER
-========================= */
-.popupHeader {
-  text-align: center;
-  margin-bottom: 14px;
-}
+/* ===== GRID ===== */
 
-.popupBadge {
-  display: inline-block;
-  padding: 6px 16px;
-  border-radius: 999px;
-  font-weight: 800;
-  font-size: 13px;
-  background: linear-gradient(180deg, #ff6a4d, #ff3d2e);
-  margin-bottom: 6px;
-}
-
-.popupHeader h2 {
-  font-size: 26px;
-  font-weight: 900;
-}
-
-/* =========================
-   LEVEL GRID (5 PER ROW + SCROLL)
-========================= */
 .levelsGrid {
   display: grid;
-  grid-template-columns: repeat(5, 1fr); /* ✅ 5 per row */
+  grid-template-columns: repeat(5, 1fr);  /* ✅ 5 per row */
   gap: 10px;
+  margin-top: 16px;
 
-  max-height: 48vh; /* ✅ scroll area */
-  overflow-y: auto;
+  flex: 1;                       /* 🔥 TAKE AVAILABLE SPACE */
+  overflow-y: auto;              /* 🔥 ENABLE SCROLL */
   padding-right: 6px;
-  padding-bottom: 4px;
-
-  -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
-
-  margin-bottom: 18px;
 }
 
-/* =========================
-   LEVEL BUTTON
-========================= */
+/* ===== LEVEL BUTTONS ===== */
+
 .levelItem {
-  height: 56px;              /* ✅ smaller */
-  border-radius: 16px;
-  border: none;
-
-  cursor: pointer;
-  pointer-events: auto;
-
-  background: rgba(255, 255, 255, 0.08);
-  color: rgba(255, 255, 255, 0.85);
-
-  font-weight: 800;
+  height: 56px;                  /* ✅ SMALLER */
+  border-radius: 14px;
   font-size: 13px;
+  font-weight: 600;
+  color: #cfe9ff;
 
   display: flex;
   align-items: center;
   justify-content: center;
 
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04);
-  transition: transform 0.12s ease, box-shadow 0.12s ease;
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
-/* prevent text blocking clicks */
-.levelItem * {
-  pointer-events: none;
+/* ===== STATES ===== */
+
+.levelItem.unlocked {
+  background: linear-gradient(180deg, #3b82f6, #2563eb);
+  color: #ffffff;
+  cursor: pointer;
 }
 
-/* COMPLETED */
 .levelItem.completed {
-  background: linear-gradient(180deg, #4ddc97, #2aa96b);
-  color: #fff;
+  background: linear-gradient(180deg, #34d399, #10b981);
+  color: #052e1b;
 }
 
-/* UNLOCKED */
-.levelItem.unlocked {
-  background: linear-gradient(
-    180deg,
-    rgba(70, 130, 180, 0.95),
-    rgba(40, 90, 130, 0.95)
-  );
-  color: #fff;
-}
-
-/* LOCKED */
 .levelItem.locked {
-  background: rgba(255, 255, 255, 0.05);
-  color: rgba(255, 255, 255, 0.35);
-  cursor: default;
+  opacity: 0.35;
 }
 
-/* PRESS FEEDBACK */
-.levelItem:active {
-  transform: scale(0.95);
-}
-
-/* =========================
-   UNLOCK ANIMATION
-========================= */
-@keyframes unlockPulse {
-  0% {
-    transform: scale(0.85);
-    box-shadow: 0 0 0 rgba(77,220,151,0);
-  }
-  60% {
-    transform: scale(1.1);
-    box-shadow: 0 0 22px rgba(77,220,151,0.9);
-  }
-  100% {
-    transform: scale(1);
-    box-shadow: 0 0 0 rgba(77,220,151,0);
-  }
-}
-
-.levelItem.justUnlocked {
-  animation: unlockPulse 0.45s ease-out;
-}
-
-/* LOCK SHAKE */
-@keyframes lockShake {
-  0%   { transform: translateX(0); }
-  25%  { transform: translateX(-4px); }
-  50%  { transform: translateX(4px); }
-  75%  { transform: translateX(-4px); }
-  100% { transform: translateX(0); }
-}
-
-.levelItem.shake {
-  animation: lockShake 0.35s ease;
-}
-
-/* =========================
-   CLOSE BUTTON
-========================= */
-.popupBtn {
-  height: 52px;
-  border-radius: 18px;
-  border: none;
-
-  font-size: 16px;
-  font-weight: 800;
-  color: #fff;
-
-  cursor: pointer;
-}
-
-.popupBtn.secondary {
-  background: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.14),
-    rgba(255, 255, 255, 0.08)
-  );
-}
-
-.popupCard {
-  overflow: hidden; /* keep rounded corners */
-}
-
-.levelsGrid {
-  overscroll-behavior: contain;
-  scrollbar-width: thin;
-}
-
-.levelItem.unlocked {
-  cursor: pointer;
-}
+/* ===== INTERACTION ===== */
 
 .levelItem.unlocked:active {
   transform: scale(0.94);
@@ -219,4 +80,190 @@
 
 .levelItem.locked:active {
   animation: lockShake 0.35s ease;
+}
+
+/* ===== UNLOCK ANIMATION ===== */
+
+.levelItem.justUnlocked {
+  animation: unlockPulse 0.6s ease-out;
+}
+
+@keyframes unlockPulse {
+  0% {
+    transform: scale(0.85);
+    box-shadow: 0 0 0 rgba(52, 211, 153, 0);
+  }
+  60% {
+    transform: scale(1.05);
+    box-shadow: 0 0 18px rgba(52, 211, 153, 0.8);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 rgba(52, 211, 153, 0);
+  }
+}
+
+@keyframes lockShake {
+  0% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  50% { transform: translateX(4px); }
+  75% { transform: translateX(-4px); }
+  100% { transform: translateX(0); }
+}/* ===============================
+   LEVELS POPUP
+================================ */
+
+.popupCard {
+  width: 92%;
+  max-width: 420px;
+  max-height: 80vh;
+  background: linear-gradient(180deg, #0e2230, #08141f);
+  border-radius: 22px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+}
+
+/* ===============================
+   HEADER
+================================ */
+
+.popupHeader {
+  text-align: center;
+  margin-bottom: 12px;
+}
+
+.popupBadge {
+  display: inline-block;
+  background: linear-gradient(135deg, #ff5b3c, #ff2e63);
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: white;
+  margin-bottom: 8px;
+}
+
+.popupHeader h2 {
+  color: white;
+  font-size: 22px;
+  margin: 6px 0 0;
+}
+
+/* ===============================
+   GRID (🔥 THIS FIXES SCROLL + 5/ROW)
+================================ */
+
+.levelsGrid {
+  flex: 1;
+  overflow-y: auto;              /* ✅ SCROLL */
+  display: grid;
+  grid-template-columns: repeat(5, 1fr); /* ✅ 5 PER ROW */
+  gap: 10px;
+  padding: 8px 4px 14px;
+  margin-top: 10px;
+
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,0.2) transparent;
+}
+
+/* Chrome */
+.levelsGrid::-webkit-scrollbar {
+  width: 6px;
+}
+.levelsGrid::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.25);
+  border-radius: 10px;
+}
+
+/* ===============================
+   LEVEL BUTTONS
+================================ */
+
+.levelItem {
+  aspect-ratio: 1 / 1;
+  border-radius: 16px;
+  border: none;
+  font-size: 12px;
+  font-weight: 700;
+  color: white;
+  background: rgba(255,255,255,0.06);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Hover */
+.levelItem:hover {
+  transform: scale(1.05);
+}
+
+/* ===============================
+   STATES
+================================ */
+
+.levelItem.completed {
+  background: linear-gradient(135deg, #4fdc8c, #2bb673);
+  box-shadow: 0 0 14px rgba(79, 220, 140, 0.6);
+}
+
+.levelItem.unlocked {
+  background: linear-gradient(135deg, #3aa0ff, #2476c7);
+  box-shadow: 0 0 14px rgba(58, 160, 255, 0.5);
+}
+
+.levelItem.locked {
+  background: rgba(255,255,255,0.04);
+  color: rgba(255,255,255,0.45);
+  cursor: not-allowed;
+}
+
+/* Lock icon */
+.levelItem .icon {
+  font-size: 16px;
+  opacity: 0.9;
+}
+
+/* ===============================
+   UNLOCK ANIMATION
+================================ */
+
+.levelItem.justUnlocked {
+  animation: unlockPulse 1.1s ease-out;
+}
+
+@keyframes unlockPulse {
+  0% {
+    transform: scale(0.7);
+    box-shadow: 0 0 0 rgba(79, 220, 140, 0);
+  }
+  60% {
+    transform: scale(1.15);
+    box-shadow: 0 0 22px rgba(79, 220, 140, 0.9);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 14px rgba(79, 220, 140, 0.6);
+  }
+}
+
+/* ===============================
+   CLOSE BUTTON
+================================ */
+
+.popupBtn.closeBtn {
+  margin-top: 10px;
+  padding: 14px;
+  border-radius: 999px;
+  border: none;
+  background: linear-gradient(180deg, #2a3a46, #1b2832);
+  color: white;
+  font-size: 15px;
+  font-weight: 600;
 }
