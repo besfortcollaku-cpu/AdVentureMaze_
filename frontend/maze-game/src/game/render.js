@@ -118,14 +118,15 @@ function ensurePatterns() {
   function drawMaze() {
   ensurePatterns();
 
+  const time = performance.now() * 0.001; // ✅ FIX 1
   const depth =
-  Math.max(6, tile * 0.28) +
-  Math.sin(performance.now() * 0.002) * 1.5; // slightly deeper
+    Math.max(6, tile * 0.28) +
+    Math.sin(performance.now() * 0.002) * 1.5;
 
   // ─────────────────────────────
   // PASS 1: DEEP TRENCH BASE
   // ─────────────────────────────
-  ctx.fillStyle = trenchPattern || "#050c18"; // deeper than before
+  ctx.fillStyle = trenchPattern || "#050c18";
 
   for (let y = 0; y < state.rows; y++) {
     for (let x = 0; x < state.cols; x++) {
@@ -136,17 +137,16 @@ function ensurePatterns() {
 
       ctx.fillRect(px, py, tile, tile);
 
-      if (x < state.cols - 1 && state.grid[y][x + 1] === 0) {
+      if (x < state.cols - 1 && state.grid[y][x + 1] === 0)
         ctx.fillRect(px + tile - 1, py, 2, tile);
-      }
-      if (y < state.rows - 1 && state.grid[y + 1][x] === 0) {
+
+      if (y < state.rows - 1 && state.grid[y + 1][x] === 0)
         ctx.fillRect(px, py + tile - 1, tile, 2);
-      }
     }
   }
 
   // ─────────────────────────────
-  // PASS 2: INNER WALL DEPTH (STRONGER)
+  // PASS 2: INNER DEPTH
   // ─────────────────────────────
   for (let y = 0; y < state.rows; y++) {
     for (let x = 0; x < state.cols; x++) {
@@ -155,20 +155,18 @@ function ensurePatterns() {
       const px = ox + x * tile;
       const py = oy + y * tile;
 
-      // top + left deep shadow
-      
       ctx.fillStyle = "rgba(0,0,0,0.75)";
       ctx.fillRect(px, py, tile, depth * 0.4);
       ctx.fillRect(px, py, depth * 0.4, tile);
-// subtle ambient occlusion
-ctx.fillStyle = "rgba(0,0,0,0.15)";
-ctx.fillRect(
-  px + depth * 0.4,
-  py + depth * 0.4,
-  tile - depth * 0.8,
-  tile - depth * 0.8
-);
-      // bottom + right soft highlight
+
+      ctx.fillStyle = "rgba(0,0,0,0.15)";
+      ctx.fillRect(
+        px + depth * 0.4,
+        py + depth * 0.4,
+        tile - depth * 0.8,
+        tile - depth * 0.8
+      );
+
       ctx.fillStyle = "rgba(255,255,255,0.06)";
       ctx.fillRect(px, py + tile - depth * 0.3, tile, depth * 0.3);
       ctx.fillRect(px + tile - depth * 0.3, py, depth * 0.3, tile);
@@ -176,27 +174,7 @@ ctx.fillRect(
   }
 
   // ─────────────────────────────
-  // PASS 3: CENTER DARKENING (DEPTH CORE)
-  // ─────────────────────────────
-  ctx.fillStyle = "rgba(0,0,0,0.25)";
-  for (let y = 0; y < state.rows; y++) {
-    for (let x = 0; x < state.cols; x++) {
-      if (state.grid[y][x] === 1) continue;
-
-      const px = ox + x * tile + depth * 0.35;
-      const py = oy + y * tile + depth * 0.35;
-
-      ctx.fillRect(
-        px,
-        py,
-        tile - depth * 0.7,
-        tile - depth * 0.7
-      );
-    }
-  }
-
-  // ─────────────────────────────
-  // PASS 4: LIQUID PAINTED PATH (DEEP + ROUND)
+  // PASS 3: LIQUID PATH
   // ─────────────────────────────
   for (let y = 0; y < state.rows; y++) {
     for (let x = 0; x < state.cols; x++) {
@@ -210,41 +188,9 @@ ctx.fillRect(
       grad.addColorStop(0.5, "#25d7ff");
       grad.addColorStop(1, "#0a6a8f");
 
+      // base liquid
+      ctx.globalAlpha = 1;
       ctx.fillStyle = grad;
-      if (liquidPattern) {
-  ctx.globalAlpha = 0.18;
-// base liquid gradient
-ctx.fillStyle = grad;
-ctx.fillRect(
-  px + depth * 0.35,
-  py + depth * 0.35,
-  tile - depth * 0.7,
-  tile - depth * 0.7
-);
-
-// animated liquid noise overlay
-if (liquidPattern) {
-  ctx.save();
-  ctx.globalAlpha = 0.22;
-
-  // animate texture slowly
-  ctx.translate(
-    Math.sin(time + x * 0.7) * 6,
-    Math.cos(time + y * 0.7) * 6
-  );
-
-  ctx.fillStyle = liquidPattern;
-  ctx.fillRect(
-    px + depth * 0.35 - 20,
-    py + depth * 0.35 - 20,
-    tile - depth * 0.7 + 40,
-    tile - depth * 0.7 + 40
-  );
-
-  ctx.restore();
-}
-  ctx.globalAlpha = 1;
-}
       ctx.fillRect(
         px + depth * 0.35,
         py + depth * 0.35,
@@ -252,54 +198,48 @@ if (liquidPattern) {
         tile - depth * 0.7
       );
 
-      // merge neighbors
-      if (x < state.cols - 1 && state.isPainted(x + 1, y)) {
-        ctx.fillRect(
-          px + tile - depth * 0.35,
-          py + depth * 0.35,
-          depth * 0.7,
-          tile - depth * 0.7
+      // liquid noise overlay
+      if (liquidPattern) {
+        ctx.save();
+        ctx.globalAlpha = 0.22;
+        ctx.translate(
+          Math.sin(time + x * 0.7) * 6,
+          Math.cos(time + y * 0.7) * 6
         );
-      }
-      if (y < state.rows - 1 && state.isPainted(x, y + 1)) {
+
+        ctx.fillStyle = liquidPattern;
         ctx.fillRect(
-          px + depth * 0.35,
-          py + tile - depth * 0.35,
-          tile - depth * 0.7,
-          depth * 0.7
+          px + depth * 0.35 - 20,
+          py + depth * 0.35 - 20,
+          tile - depth * 0.7 + 40,
+          tile - depth * 0.7 + 40
         );
+        ctx.restore();
       }
 
-      // curved gloss (less uniform)
-      ctx.fillStyle = "rgba(255,255,255,0.25)";
+      // inner glow ✅ FIXED SCOPE
+      const glow = ctx.createRadialGradient(
+        px + tile / 2,
+        py + tile / 2,
+        tile * 0.1,
+        px + tile / 2,
+        py + tile / 2,
+        tile * 0.45
+      );
+      glow.addColorStop(0, "rgba(80,220,255,0.35)");
+      glow.addColorStop(1, "rgba(80,220,255,0)");
+
+      ctx.fillStyle = glow;
       ctx.fillRect(
-        px + depth * 0.55,
-        py + depth * 0.5,
-        tile - depth * 1.1,
-        depth * 0.18
+        px + depth * 0.2,
+        py + depth * 0.2,
+        tile - depth * 0.4,
+        tile - depth * 0.4
       );
     }
-    // inner liquid glow (depth aura)
-const glow = ctx.createRadialGradient(
-px + tile / 2,
-py + tile / 2,
-tile * 0.1,
-px + tile / 2,
-py + tile / 2,
-tile * 0.45
-);
-
-glow.addColorStop(0, "rgba(80,220,255,0.35)");
-glow.addColorStop(1, "rgba(80,220,255,0)");
-
-ctx.fillStyle = glow;
-ctx.fillRect(
-px + depth * 0.2,
-py + depth * 0.2,
-tile - depth * 0.4,
-tile - depth * 0.4
-);
   }
+
+  ctx.globalAlpha = 1;
 }
   function drawBall(playerFloat) {
   const r = Math.max(10, tile * 0.24);
