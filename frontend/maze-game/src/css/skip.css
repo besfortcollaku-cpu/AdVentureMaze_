@@ -68,3 +68,33 @@
   color: #9fb3c8;
   font-size: 14px;
 }
+/* ===== Entrance Animations ===== */
+@keyframes popupFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes popupSlideUp {
+  from {
+    transform: translateY(20px) scale(0.96);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+/* Backdrop animation */
+.popup {
+  animation: popupFadeIn 0.18s ease-out;
+}
+
+/* Card animation */
+.popup-card {
+  animation: popupSlideUp 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
