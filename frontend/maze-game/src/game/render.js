@@ -1,215 +1,104 @@
 // src/game/render.js
 
-
-
-export function createRenderer({ canvas, state }) {
-
-  const ctx = canvas.getContext("2d");
-
-
-
-  let w = 0;
-
-  let h = 0;
-
-
-
-  let tile = 40;
-
-  let ox = 0;
-
-  let oy = 0;
-
-
-
-  function resize() {
-
-    const rect = canvas.getBoundingClientRect();
-
-    const dpr = Math.min(2, window.devicePixelRatio || 1);
-
-
-
-    w = rect.width;
-
-    h = rect.height;
-
-
-
-    canvas.width = Math.floor(w * dpr);
-
-    canvas.height = Math.floor(h * dpr);
-
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-
-
-
-    // base tile fits grid
-
-    const base = Math.min(w / state.cols, h / state.rows);
-
-    const zoom = typeof state.level.zoom === "number" ? state.level.zoom : 1.0;
-
-
-
-    // requested tile size
-
-    let t = Math.floor(base * zoom);
-
-
-
-    // cap so it always fits (important if zoom > 1)
-
-    t = Math.min(t, Math.floor(w / state.cols), Math.floor(h / state.rows));
-
-    tile = Math.max(10, t);
-
-
-
-    ox = Math.floor((w - state.cols * tile) / 2);
-
-    oy = Math.floor((h - state.rows * tile) / 2);
-
-  }
-
-
-
-  function cellCenter(x, y) {
-
-    return {
-
-      cx: ox + x * tile + tile / 2,
-
-      cy: oy + y * tile + tile / 2,
-
-    };
-
-  }
-
-
-
-  function drawBackground() {
-
-    // subtle bg so we always see something
-
-    ctx.fillStyle = "rgba(255,255,255,0.04)";
-
-    ctx.fillRect(0, 0, w, h);
-
-  }
-
-
-
-  function drawMaze() {
-
-    for (let y = 0; y < state.rows; y++) {
-
-      for (let x = 0; x < state.cols; x++) {
-
-        const px = ox + x * tile;
-
-        const py = oy + y * tile;
-
-
-
-        if (state.grid[y][x] === 1) {
-
-          // wall
-
-          ctx.fillStyle = "rgba(0,0,0,0.40)";
-
-          ctx.fillRect(px, py, tile, tile);
-
-        } else {
-
-          // walkable base
-
-          ctx.fillStyle = "rgba(255,255,255,0.06)";
-
-          ctx.fillRect(px, py, tile, tile);
-
-
-
-          // painted overlay
-
-          if (state.isPainted(x, y)) {
-
-            ctx.fillStyle = "rgba(37,215,255,0.18)";
-
-            ctx.fillRect(px + 2, py + 2, tile - 4, tile - 4);
-
-          }
-
-        }
-
+const WALL_COLOR = "#0e1b2c";        // same as app background
+const PATH_BASE = "#16273f";        // carved channel
+const PATH_FILLED = "#1f3b5f";      // painted path
+const BALL_COLOR = "#4fd1ff";
+const GLOW_COLOR = "rgba(80,160,255,0.35)";
+
+let paintedPath = new Set(); // remembers where the ball passed
+
+function key(x, y) {
+  return `${x},${y}`;
+}
+
+export function render(ctx, state) {
+  const { grid, ball, tileSize } = state;
+
+  // 🔥 CLEAR CANVAS COMPLETELY (transparent)
+  ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+
+  // 🧱 DRAW WALLS
+  for (let y = 0; y < grid.length; y++) {
+    for (let x = 0; x < grid[y].length; x++) {
+      if (grid[y][x] === 1) {
+        const px = x * tileSize;
+        const py = y * tileSize;
+
+        ctx.fillStyle = WALL_COLOR;
+        ctx.fillRect(px, py, tileSize, tileSize);
       }
-
     }
-
   }
 
+  // 🛣️ DRAW BASE PATH (engraved channel)
+  ctx.save();
+  ctx.fillStyle = PATH_BASE;
+  ctx.shadowColor = "rgba(0,0,0,0.35)";
+  ctx.shadowBlur = tileSize * 0.25;
 
-
-  function drawBall(playerFloat) {
-
-    const r = Math.max(10, tile * 0.24);
-
-    const c = cellCenter(playerFloat.x, playerFloat.y);
-
-
-
-    // shadow
-
-    ctx.fillStyle = "rgba(0,0,0,0.25)";
-
-    ctx.beginPath();
-
-    ctx.ellipse(c.cx + 2, c.cy + 5, r * 1.05, r * 0.85, 0, 0, Math.PI * 2);
-
-    ctx.fill();
-
-
-
-    // ball
-
-    ctx.fillStyle = "#25d7ff";
-
-    ctx.beginPath();
-
-    ctx.arc(c.cx, c.cy, r, 0, Math.PI * 2);
-
-    ctx.fill();
-
-
-
-    // highlight
-
-    ctx.fillStyle = "rgba(255,255,255,0.55)";
-
-    ctx.beginPath();
-
-    ctx.arc(c.cx - r * 0.3, c.cy - r * 0.35, r * 0.38, 0, Math.PI * 2);
-
-    ctx.fill();
-
+  for (let y = 0; y < grid.length; y++) {
+    for (let x = 0; x < grid[y].length; x++) {
+      if (grid[y][x] === 0) {
+        ctx.fillRect(
+          x * tileSize,
+          y * tileSize,
+          tileSize,
+          tileSize
+        );
+      }
+    }
   }
+  ctx.restore();
 
+  // 🧩 MARK BALL POSITION AS PAINTED
+  const bx = Math.floor(ball.x / tileSize);
+  const by = Math.floor(ball.y / tileSize);
+  paintedPath.add(key(bx, by));
 
+  // 🎨 DRAW PAINTED PATH (smooth, no tiles)
+  ctx.save();
+  ctx.fillStyle = PATH_FILLED;
 
-  function render(playerFloat) {
+  paintedPath.forEach((k) => {
+    const [x, y] = k.split(",").map(Number);
+    ctx.fillRect(
+      x * tileSize,
+      y * tileSize,
+      tileSize,
+      tileSize
+    );
+  });
+  ctx.restore();
 
-    ctx.clearRect(0, 0, w, h);
+  // ✨ ACTIVE GLOW AROUND BALL
+  ctx.save();
+  const glowRadius = tileSize * 0.9;
+  const gradient = ctx.createRadialGradient(
+    ball.x,
+    ball.y,
+    0,
+    ball.x,
+    ball.y,
+    glowRadius
+  );
+  gradient.addColorStop(0, GLOW_COLOR);
+  gradient.addColorStop(1, "rgba(0,0,0,0)");
 
-    drawBackground();
+  ctx.fillStyle = gradient;
+  ctx.beginPath();
+  ctx.arc(ball.x, ball.y, glowRadius, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
 
-    drawMaze();
+  // ⚪ DRAW BALL
+  ctx.save();
+  ctx.fillStyle = BALL_COLOR;
+  ctx.shadowColor = "rgba(0,0,0,0.4)";
+  ctx.shadowBlur = tileSize * 0.3;
 
-    drawBall(playerFloat);
-
-  }
-
-
-
-  return { resize, render };
-
+  ctx.beginPath();
+  ctx.arc(ball.x, ball.y, tileSize * 0.35, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
 }
