@@ -119,7 +119,9 @@ function ensurePatterns() {
   ensurePatterns();
   ctx.clearRect(0, 0, w, h);
 
-  const depth = Math.max(6, tile * 0.3); // slightly deeper
+  const depth =
+  Math.max(6, tile * 0.28) +
+  Math.sin(performance.now() * 0.002) * 1.5; // slightly deeper
 
   // ─────────────────────────────
   // PASS 1: DEEP TRENCH BASE
@@ -212,13 +214,36 @@ ctx.fillRect(
       ctx.fillStyle = grad;
       if (liquidPattern) {
   ctx.globalAlpha = 0.18;
+// base liquid gradient
+ctx.fillStyle = grad;
+ctx.fillRect(
+  px + depth * 0.35,
+  py + depth * 0.35,
+  tile - depth * 0.7,
+  tile - depth * 0.7
+);
+
+// animated liquid noise overlay
+if (liquidPattern) {
+  ctx.save();
+  ctx.globalAlpha = 0.22;
+
+  // animate texture slowly
+  ctx.translate(
+    Math.sin(time + x * 0.7) * 6,
+    Math.cos(time + y * 0.7) * 6
+  );
+
   ctx.fillStyle = liquidPattern;
   ctx.fillRect(
-    px + depth * 0.35,
-    py + depth * 0.35,
-    tile - depth * 0.7,
-    tile - depth * 0.7
+    px + depth * 0.35 - 20,
+    py + depth * 0.35 - 20,
+    tile - depth * 0.7 + 40,
+    tile - depth * 0.7 + 40
   );
+
+  ctx.restore();
+}
   ctx.globalAlpha = 1;
 }
       ctx.fillRect(
@@ -255,6 +280,26 @@ ctx.fillRect(
         depth * 0.18
       );
     }
+    // inner liquid glow (depth aura)
+const glow = ctx.createRadialGradient(
+px + tile / 2,
+py + tile / 2,
+tile * 0.1,
+px + tile / 2,
+py + tile / 2,
+tile * 0.45
+);
+
+glow.addColorStop(0, "rgba(80,220,255,0.35)");
+glow.addColorStop(1, "rgba(80,220,255,0)");
+
+ctx.fillStyle = glow;
+ctx.fillRect(
+px + depth * 0.2,
+py + depth * 0.2,
+tile - depth * 0.4,
+tile - depth * 0.4
+);
   }
 }
   function drawBall(playerFloat) {
@@ -416,6 +461,7 @@ ctx.fillRect(
   ctx.stroke();
 }
   function render(playerFloat) {
+      const time = performance.now() * 0.0006;
 
     ctx.clearRect(0, 0, w, h);
 
