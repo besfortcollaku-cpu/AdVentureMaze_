@@ -1,4 +1,3 @@
-// uiLevels.js
 import "../css/levels.css";
 
 export function mountLevelsUI(root) {
@@ -29,32 +28,50 @@ export function mountLevelsUI(root) {
   const closeBtn = card.querySelector(".closeBtn");
 
   let unlockedLevel = 1;
+  let lastUnlockedLevel = 1;
   let onSelectCb = () => {};
 
   // =========================
   // BUILD LEVEL BUTTONS
   // =========================
-  function render() {
+  function render({ animateUnlock = false } = {}) {
     grid.innerHTML = "";
 
     for (let i = 1; i <= 50; i++) {
       const btn = document.createElement("button");
       btn.className = "levelItem";
-      btn.textContent = `Level ${i}`;
+      btn.dataset.level = String(i);
 
+      // -------- STATES --------
       if (i < unlockedLevel) {
         btn.classList.add("completed");
-        btn.innerHTML = `✔<span>Level ${i}</span>`;
-      } else if (i === unlockedLevel) {
+        btn.innerHTML = `<span class="icon">✔</span><span>Level ${i}</span>`;
+      } 
+      else if (i === unlockedLevel) {
         btn.classList.add("unlocked");
-      } else {
+        btn.innerHTML = `<span>Level ${i}</span>`;
+
+        // 🔥 UNLOCK ANIMATION (only when advancing)
+        if (animateUnlock && unlockedLevel > lastUnlockedLevel) {
+          btn.classList.add("unlock-animate");
+
+          // auto scroll into view
+          setTimeout(() => {
+            btn.scrollIntoView({
+              behavior: "smooth",
+              block: "center",
+            });
+          }, 100);
+        }
+      } 
+      else {
         btn.classList.add("locked");
-        btn.innerHTML = `🔒<span>Level ${i}</span>`;
+        btn.innerHTML = `<span class="icon">🔒</span><span>Level ${i}</span>`;
       }
 
+      // -------- CLICK --------
       btn.addEventListener("click", () => {
         if (i > unlockedLevel) {
-          // guest lock / login required
           window.__maze?.showLoginRequired?.();
           return;
         }
@@ -64,6 +81,8 @@ export function mountLevelsUI(root) {
 
       grid.appendChild(btn);
     }
+
+    lastUnlockedLevel = unlockedLevel;
   }
 
   // =========================
@@ -95,9 +114,19 @@ export function mountLevelsUI(root) {
   return {
     open,
     close: hide,
+
+    /**
+     * Call this when progress changes
+     * Example: setUnlocked(6)
+     */
     setUnlocked(n) {
-      unlockedLevel = Math.max(1, Number(n) || 1);
+      const next = Math.max(1, Number(n) || 1);
+      const animate = next > unlockedLevel;
+      unlockedLevel = next;
+
+      render({ animateUnlock: animate });
     },
+
     onSelect(cb) {
       onSelectCb = cb;
     },

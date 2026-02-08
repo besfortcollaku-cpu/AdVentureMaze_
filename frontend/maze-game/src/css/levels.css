@@ -175,3 +175,46 @@
     rgba(255, 255, 255, 0.08)
   );
 }
+
+@keyframes unlockPulse {
+  0%   { transform: scale(0.85); box-shadow: 0 0 0 rgba(77,220,151,0); }
+  60%  { transform: scale(1.1);  box-shadow: 0 0 24px rgba(77,220,151,0.8); }
+  100% { transform: scale(1);    box-shadow: 0 0 0 rgba(77,220,151,0); }
+}
+
+.levelItem.justUnlocked {
+  animation: unlockPulse 0.45s ease-out;
+}
+
+@keyframes lockShake {
+  0%   { transform: translateX(0); }
+  25%  { transform: translateX(-4px); }
+  50%  { transform: translateX(4px); }
+  75%  { transform: translateX(-4px); }
+  100% { transform: translateX(0); }
+}
+
+.levelItem.shake {
+  animation: lockShake 0.35s ease;
+}
+
+.confetti {
+  position: fixed;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 3000;
+  animation: confettiFall 900ms ease-out forwards;
+}
+
+@keyframes confettiFall {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(160px) scale(0.4);
+    opacity: 0;
+  }
+}
