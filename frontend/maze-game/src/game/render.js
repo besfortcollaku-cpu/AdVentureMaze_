@@ -173,17 +173,26 @@ export function createRenderer({ canvas, state }) {
   function drawBall(playerFloat) {
   const r = Math.max(10, tile * 0.24);
   const c = cellCenter(playerFloat.x, playerFloat.y);
-  const t = performance.now() * 0.0015;
+  const t = performance.now() * 0.001;
+
+  // movement direction (safe fallback)
+  const dx = playerFloat.vx || 0;
+  const dy = playerFloat.vy || 0;
+
+  // normalize movement for rolling light
+  const len = Math.hypot(dx, dy) || 1;
+  const mx = dx / len;
+  const my = dy / len;
 
   // ─────────────────────────
-  // CONTACT SHADOW (REALISTIC)
+  // CONTACT SHADOW (DEPTH)
   // ─────────────────────────
   ctx.fillStyle = "rgba(0,0,0,0.45)";
   ctx.beginPath();
   ctx.ellipse(
-    c.cx + r * 0.2,
-    c.cy + r * 0.65,
-    r * 1.15,
+    c.cx + r * 0.25,
+    c.cy + r * 0.7,
+    r * 1.2,
     r * 0.55,
     0,
     0,
@@ -192,22 +201,22 @@ export function createRenderer({ canvas, state }) {
   ctx.fill();
 
   // ─────────────────────────
-  // MAIN METAL BODY (GOLD)
-  // Light source: top-left
+  // METAL BODY (GOLD, DYNAMIC)
+  // rolling highlight follows movement
   // ─────────────────────────
-  const lx = c.cx - r * 0.6;
-  const ly = c.cy - r * 0.7;
+  const lx = c.cx - r * (0.6 + mx * 0.35);
+  const ly = c.cy - r * (0.6 + my * 0.35);
 
   const metal = ctx.createRadialGradient(
-    lx, ly, r * 0.15,
+    lx, ly, r * 0.12,
     c.cx, c.cy, r
   );
 
-  metal.addColorStop(0.0, "#fff9dc");
-  metal.addColorStop(0.18, "#ffe066");
+  metal.addColorStop(0.0, "#fffbe6");
+  metal.addColorStop(0.18, "#ffe27a");
   metal.addColorStop(0.45, "#e6b200");
-  metal.addColorStop(0.75, "#9c6b00");
-  metal.addColorStop(1.0, "#3e2a00");
+  metal.addColorStop(0.72, "#9b6a00");
+  metal.addColorStop(1.0, "#2f2000");
 
   ctx.fillStyle = metal;
   ctx.beginPath();
@@ -215,7 +224,30 @@ export function createRenderer({ canvas, state }) {
   ctx.fill();
 
   // ─────────────────────────
-  // INNER SHADE (DEPTH RIM)
+  // BRUSHED METAL MICRO SCRATCHES
+  // subtle + cheap
+  // ─────────────────────────
+  ctx.save();
+  ctx.globalAlpha = 0.08;
+  ctx.strokeStyle = "#ffffff";
+  ctx.lineWidth = 1;
+
+  for (let i = 0; i < 6; i++) {
+    const a = (t * 2 + i) % (Math.PI * 2);
+    ctx.beginPath();
+    ctx.arc(
+      c.cx,
+      c.cy,
+      r * 0.9,
+      a,
+      a + Math.PI * 0.12
+    );
+    ctx.stroke();
+  }
+  ctx.restore();
+
+  // ─────────────────────────
+  // INNER SHADE (EDGE DEPTH)
   // ─────────────────────────
   ctx.strokeStyle = "rgba(0,0,0,0.35)";
   ctx.lineWidth = r * 0.22;
@@ -224,13 +256,13 @@ export function createRenderer({ canvas, state }) {
   ctx.stroke();
 
   // ─────────────────────────
-  // SPECULAR HIGHLIGHT (SHARP)
+  // SPECULAR HOTSPOT (SHARP)
   // ─────────────────────────
-  ctx.fillStyle = "rgba(255,255,255,0.85)";
+  ctx.fillStyle = "rgba(255,255,255,0.9)";
   ctx.beginPath();
   ctx.ellipse(
-    c.cx - r * 0.42,
-    c.cy - r * 0.48,
+    c.cx - r * 0.45,
+    c.cy - r * 0.5,
     r * 0.22,
     r * 0.18,
     -0.4,
@@ -240,26 +272,58 @@ export function createRenderer({ canvas, state }) {
   ctx.fill();
 
   // ─────────────────────────
-  // SECONDARY REFLECTION (SOFT METAL)
+  // SECONDARY REFLECTION
   // ─────────────────────────
   ctx.fillStyle = "rgba(255,255,255,0.18)";
   ctx.beginPath();
   ctx.ellipse(
-    c.cx + r * 0.25,
+    c.cx + r * 0.3,
     c.cy + r * 0.15,
-    r * 0.45,
+    r * 0.5,
     r * 0.32,
-    0.3,
+    0.25,
     0,
     Math.PI * 2
   );
   ctx.fill();
 
   // ─────────────────────────
-  // SUBTLE GOLD GLOW (NOT NEON)
+  // IMPACT FLASH (OPTIONAL)
+  // trigger by setting playerFloat.hit = true
   // ─────────────────────────
-  ctx.strokeStyle = "rgba(255,200,80,0.25)";
-  ctx.lineWidth = 1.5 + Math.sin(t * 2) * 0.6;
+  if (playerFloat.hit) {
+    ctx.strokeStyle = "rgba(255,220,120,0.9)";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(c.cx, c.cy, r + 3, 0, Math.PI * 2);
+    ctx.stroke();
+    playerFloat.hit = false;
+  }
+
+  // ─────────────────────────
+  // WIN SHINE BURST (OPTIONAL)
+  // trigger by setting playerFloat.win = true
+  // ─────────────────────────
+  if (playerFloat.win) {
+    ctx.strokeStyle = "rgba(255,240,180,0.85)";
+    ctx.lineWidth = 2;
+    for (let i = 0; i < 8; i++) {
+      const a = (i / 8) * Math.PI * 2 + t;
+      ctx.beginPath();
+      ctx.moveTo(c.cx, c.cy);
+      ctx.lineTo(
+        c.cx + Math.cos(a) * r * 1.8,
+        c.cy + Math.sin(a) * r * 1.8
+      );
+      ctx.stroke();
+    }
+  }
+
+  // ─────────────────────────
+  // SUBTLE GOLD AURA (NOT NEON)
+  // ─────────────────────────
+  ctx.strokeStyle = "rgba(255,190,80,0.25)";
+  ctx.lineWidth = 1.5 + Math.sin(t * 2) * 0.5;
   ctx.beginPath();
   ctx.arc(c.cx, c.cy, r + 1.5, 0, Math.PI * 2);
   ctx.stroke();
