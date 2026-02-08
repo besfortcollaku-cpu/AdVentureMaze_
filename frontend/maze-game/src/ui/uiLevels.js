@@ -2,117 +2,104 @@
 import "../css/levels.css";
 
 export function mountLevelsUI(root) {
-  // ----- DOM -----
+  // =========================
+  // CREATE DOM
+  // =========================
   const overlay = document.createElement("div");
-  overlay.id = "levelsOverlay";
-  overlay.className = "levelsOverlay";
+  overlay.className = "popupOverlay hidden";
 
-  overlay.innerHTML = `
-    <div class="levelsCard">
-      <div class="levelsHeader">
-        <span class="badge">LEVELS</span>
-        <h2>Select Level</h2>
-      </div>
+  const card = document.createElement("div");
+  card.className = "popupCard popup-animate";
 
-      <div class="levelsGrid" id="levelsGrid"></div>
-
-      <button class="closeBtn" id="levelsClose">Close</button>
-    </div>
-    <div class="levelsProgressWrap">
-  <div class="levelsProgressBar">
-    <div class="levelsProgressFill"></div>
-  </div>
-</div>
-  `;
-
+  overlay.appendChild(card);
   root.appendChild(overlay);
 
-  const grid = overlay.querySelector("#levelsGrid");
-  const closeBtn = overlay.querySelector("#levelsClose");
+  card.innerHTML = `
+    <div class="popupHeader">
+      <span class="popupBadge">LEVELS</span>
+      <h2>Select Level</h2>
+    </div>
 
-  // ----- STATE -----
-  let maxUnlocked = 1;
-  let selectHandler = null;
-  const TOTAL_LEVELS = 20;
+    <div class="levelsGrid"></div>
 
-  // ----- BUILD GRID ONCE -----
-  const levelButtons = [];
+    <button class="popupBtn secondary closeBtn">Close</button>
+  `;
 
-  for (let i = 1; i <= TOTAL_LEVELS; i++) {
-    const btn = document.createElement("button");
-    btn.className = "levelBtn";
-    btn.dataset.level = i;
+  const grid = card.querySelector(".levelsGrid");
+  const closeBtn = card.querySelector(".closeBtn");
 
-    btn.innerHTML = `
-      <span class="icon"></span>
-      <span class="label">Level ${i}</span>
-    `;
+  let unlockedLevel = 1;
+  let onSelectCb = () => {};
 
-    btn.addEventListener("click", () => {
-      if (btn.classList.contains("locked")) {
-        // If guest taps a locked level above the guest limit, show login-required.
-        const maze = window.__maze;
-        const guestMax = Number(maze?.guestMaxLevel || 0);
-        const isLoggedIn = maze?.isLoggedIn?.() === true;
-        if (!isLoggedIn && guestMax > 0 && i > guestMax) {
-          maze?.showLoginRequired?.();
-        }
-        return;
-      }
-      selectHandler?.(i);
-      close();
-    });
-
-    grid.appendChild(btn);
-    levelButtons.push(btn);
-  }
-
-  // ----- RENDER STATES -----
+  // =========================
+  // BUILD LEVEL BUTTONS
+  // =========================
   function render() {
-    levelButtons.forEach((btn) => {
-      const level = Number(btn.dataset.level);
-      btn.classList.remove("locked", "completed", "unlocked");
+    grid.innerHTML = "";
 
-      const icon = btn.querySelector(".icon");
+    for (let i = 1; i <= 50; i++) {
+      const btn = document.createElement("button");
+      btn.className = "levelItem";
+      btn.textContent = `Level ${i}`;
 
-      if (level < maxUnlocked) {
+      if (i < unlockedLevel) {
         btn.classList.add("completed");
-        icon.textContent = "✔️";
-      } else if (level === maxUnlocked) {
+        btn.innerHTML = `✔<span>Level ${i}</span>`;
+      } else if (i === unlockedLevel) {
         btn.classList.add("unlocked");
-        icon.textContent = "";
       } else {
         btn.classList.add("locked");
-        icon.textContent = "🔒";
+        btn.innerHTML = `🔒<span>Level ${i}</span>`;
       }
+
+      btn.addEventListener("click", () => {
+        if (i > unlockedLevel) {
+          // guest lock / login required
+          window.__maze?.showLoginRequired?.();
+          return;
+        }
+        hide();
+        onSelectCb(i);
+      });
+
+      grid.appendChild(btn);
+    }
+  }
+
+  // =========================
+  // OPEN / CLOSE
+  // =========================
+  function open() {
+    render();
+    overlay.classList.remove("hidden");
+    requestAnimationFrame(() => {
+      card.classList.add("show");
     });
   }
 
-  // ----- OPEN / CLOSE -----
-  function open() {
-    document.body.classList.add("overlay-open");
-    overlay.style.display = "flex";
+  function hide() {
+    card.classList.remove("show");
+    setTimeout(() => {
+      overlay.classList.add("hidden");
+    }, 200);
   }
 
-  function close() {
-    document.body.classList.remove("overlay-open");
-    overlay.style.display = "none";
-  }
+  closeBtn.addEventListener("click", hide);
+  overlay.addEventListener("click", (e) => {
+    if (e.target === overlay) hide();
+  });
 
-  closeBtn.addEventListener("click", close);
-
-  // ----- PUBLIC API -----
+  // =========================
+  // PUBLIC API
+  // =========================
   return {
     open,
-    close,
-
-    setUnlocked(level) {
-      maxUnlocked = Math.max(1, level || 1);
-      render();
+    close: hide,
+    setUnlocked(n) {
+      unlockedLevel = Math.max(1, Number(n) || 1);
     },
-
     onSelect(cb) {
-      selectHandler = cb;
+      onSelectCb = cb;
     },
   };
 }
