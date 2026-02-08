@@ -4,7 +4,7 @@
 .levelsOverlay {
   position: fixed;
   inset: 0;
-  z-index: 1000;
+  z-index: 1100;
   display: none;
   align-items: center;
   justify-content: center;
@@ -12,22 +12,18 @@
   background: rgba(0, 0, 0, 0.45);
 }
 
-body.overlay-open {
-  overflow: hidden;
-}
-
 /* =========================
    CARD
 ========================= */
 .levelsCard {
-  width: min(92vw, 420px);
-  max-height: 80vh;
+  width: min(94vw, 420px);
+  max-height: 82vh;
   padding: 22px;
-  border-radius: 26px;
+  border-radius: 28px;
   background: linear-gradient(
     180deg,
-    rgba(20, 40, 55, 0.95),
-    rgba(10, 20, 30, 0.95)
+    rgba(20, 40, 55, 0.96),
+    rgba(10, 20, 30, 0.96)
   );
   box-shadow:
     0 20px 60px rgba(0, 0, 0, 0.6),
@@ -35,147 +31,121 @@ body.overlay-open {
   color: #fff;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  animation: popupIn 0.25s ease-out;
 }
 
 /* =========================
    HEADER
 ========================= */
-.levelsHeader {
-  text-align: center;
-  margin-bottom: 12px;
-  flex-shrink: 0;
-}
-
-.levelsHeader .badge {
-  display: inline-block;
-  background: linear-gradient(135deg, #ff5a3c, #ff2d1a);
-  color: #fff;
-  padding: 6px 14px;
-  border-radius: 14px;
-  font-size: 12px;
-  font-weight: 700;
-  margin-bottom: 8px;
-}
-
-.levelsHeader h2 {
-  margin: 6px 0 0;
-  font-size: 26px;
+.levelsBadge {
+  align-self: center;
+  padding: 6px 16px;
+  border-radius: 999px;
   font-weight: 800;
+  font-size: 13px;
+  background: linear-gradient(180deg, #ff6a4d, #ff3d2e);
+  margin-bottom: 10px;
+}
+
+.levelsTitle {
+  text-align: center;
+  font-size: 26px;
+  font-weight: 900;
+  margin-bottom: 18px;
 }
 
 /* =========================
-   GRID WRAPPER (SCROLL)
+   GRID
 ========================= */
 .levelsGrid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 12px;
-  margin: 10px 0 16px;
   overflow-y: auto;
-  flex: 1;
-  padding-right: 4px;
-  scroll-behavior: smooth;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
-}
-
-/* iOS/Android style smooth scroll */
-.levelsGrid::-webkit-scrollbar {
-  width: 5px;
-}
-
-.levelsGrid::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 5px;
+  padding-right: 6px;
+  margin-bottom: 18px;
 }
 
 /* =========================
-   LEVEL BUTTONS
+   LEVEL BUTTON
 ========================= */
 .levelBtn {
-  position: relative;
-  height: 68px;
+  height: 64px;
   border-radius: 18px;
+  border: none;
   background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  color: #dbe7ef;
+  color: rgba(255, 255, 255, 0.6);
   font-weight: 700;
+  font-size: 14px;
+  position: relative;
   cursor: pointer;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  transition: transform 0.15s ease, background 0.15s ease;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04);
 }
 
-.levelBtn:active {
-  transform: scale(0.96);
-}
-
-.levelBtn .label {
-  font-size: 13px;
-  opacity: 0.9;
-}
-
-.levelBtn .icon {
-  font-size: 18px;
-}
-
-/* =========================
-   STATES
-========================= */
-.levelBtn.locked {
-  opacity: 0.35;
-  cursor: default;
-}
-.levelBtn.locked .icon {
-  filter: grayscale(1);
-}
-
+/* UNLOCKED */
 .levelBtn.unlocked {
   background: linear-gradient(
     180deg,
-    rgba(60, 180, 200, 0.25),
-    rgba(40, 120, 140, 0.25)
+    rgba(70, 130, 180, 0.6),
+    rgba(40, 90, 130, 0.6)
   );
-  box-shadow: inset 0 0 0 1px rgba(100, 220, 255, 0.35);
+  color: #fff;
 }
 
-.levelBtn.completed {
+/* CURRENT */
+.levelBtn.current {
   background: linear-gradient(
     180deg,
-    rgba(80, 200, 140, 0.35),
-    rgba(40, 140, 90, 0.35)
+    #4ddc97,
+    #2aa96b
   );
-  box-shadow: inset 0 0 0 1px rgba(120, 255, 180, 0.5);
+  box-shadow:
+    0 0 0 2px rgba(77, 220, 151, 0.4),
+    0 10px 20px rgba(0, 0, 0, 0.4);
 }
 
-.levelBtn.completed .icon {
-  color: #9dffcc;
+/* LOCKED */
+.levelBtn.locked {
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.25);
+  cursor: not-allowed;
+}
+
+.levelBtn.locked::after {
+  content: "🔒";
+  position: absolute;
+  font-size: 16px;
+  opacity: 0.5;
 }
 
 /* =========================
    CLOSE BUTTON
 ========================= */
-.closeBtn {
-  width: 100%;
+.levelsClose {
+  margin-top: auto;
   height: 52px;
   border-radius: 18px;
   border: none;
+  font-size: 16px;
+  font-weight: 800;
+  color: #fff;
   background: linear-gradient(
     180deg,
-    rgba(255, 255, 255, 0.12),
-    rgba(255, 255, 255, 0.05)
+    rgba(255, 255, 255, 0.14),
+    rgba(255, 255, 255, 0.08)
   );
-  color: #fff;
-  font-size: 16px;
-  font-weight: 700;
-  cursor: pointer;
-  flex-shrink: 0;
 }
 
-.closeBtn:active {
-  transform: scale(0.98);
+/* =========================
+   ANIMATION
+========================= */
+@keyframes popupIn {
+  from {
+    opacity: 0;
+    transform: scale(0.92) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
 }
