@@ -173,6 +173,7 @@ export function createRenderer({ canvas, state }) {
   function drawBall(playerFloat) {
   const r = Math.max(10, tile * 0.24);
   const c = cellCenter(playerFloat.x, playerFloat.y);
+  const t = performance.now() * 0.002;
 
   // ─────────────────────────
   // SHADOW (ground contact)
@@ -181,8 +182,8 @@ export function createRenderer({ canvas, state }) {
   ctx.beginPath();
   ctx.ellipse(
     c.cx + r * 0.15,
-    c.cy + r * 0.55,
-    r * 1.05,
+    c.cy + r * 0.6,
+    r * 1.1,
     r * 0.55,
     0,
     0,
@@ -191,22 +192,17 @@ export function createRenderer({ canvas, state }) {
   ctx.fill();
 
   // ─────────────────────────
-  // GOLD GRADIENT BALL
+  // GOLD GRADIENT (3D CORE)
   // ─────────────────────────
-  const grad = ctx.createRadialGradient(
-    c.cx - r * 0.4,
-    c.cy - r * 0.5,
-    r * 0.2,
-    c.cx,
-    c.cy,
-    r
-  );
+  const gx = c.cx - r * 0.45 + Math.sin(t) * r * 0.15;
+  const gy = c.cy - r * 0.5 + Math.cos(t * 0.8) * r * 0.15;
 
-  grad.addColorStop(0.0, "#fff4b0"); // bright highlight
-  grad.addColorStop(0.25, "#ffd24a"); // gold shine
-  grad.addColorStop(0.55, "#f5b700"); // main gold
-  grad.addColorStop(0.8, "#c98a00"); // shadow gold
-  grad.addColorStop(1.0, "#8a5a00"); // deep edge
+  const grad = ctx.createRadialGradient(gx, gy, r * 0.15, c.cx, c.cy, r);
+  grad.addColorStop(0.0, "#fff6c4");
+  grad.addColorStop(0.25, "#ffd54a");
+  grad.addColorStop(0.55, "#f1b400");
+  grad.addColorStop(0.8, "#b97a00");
+  grad.addColorStop(1.0, "#6f4a00");
 
   ctx.fillStyle = grad;
   ctx.beginPath();
@@ -214,24 +210,24 @@ export function createRenderer({ canvas, state }) {
   ctx.fill();
 
   // ─────────────────────────
-  // INNER SHADOW (depth)
+  // INNER SHADOW (DEPTH)
   // ─────────────────────────
-  ctx.strokeStyle = "rgba(0,0,0,0.25)";
-  ctx.lineWidth = r * 0.15;
+  ctx.strokeStyle = "rgba(0,0,0,0.28)";
+  ctx.lineWidth = r * 0.18;
   ctx.beginPath();
   ctx.arc(c.cx, c.cy, r - ctx.lineWidth / 2, 0, Math.PI * 2);
   ctx.stroke();
 
   // ─────────────────────────
-  // SPECULAR GLOSS
+  // ROLLING SHINE (ANIMATED)
   // ─────────────────────────
   ctx.fillStyle = "rgba(255,255,255,0.55)";
   ctx.beginPath();
   ctx.ellipse(
-    c.cx - r * 0.35,
-    c.cy - r * 0.4,
+    c.cx - r * 0.35 + Math.sin(t * 1.2) * r * 0.12,
+    c.cy - r * 0.4 + Math.cos(t) * r * 0.1,
     r * 0.35,
-    r * 0.25,
+    r * 0.22,
     -0.4,
     0,
     Math.PI * 2
@@ -239,15 +235,32 @@ export function createRenderer({ canvas, state }) {
   ctx.fill();
 
   // ─────────────────────────
-  // SOFT GLOW (premium feel)
+  // IMPACT GLOW (SOFT)
   // ─────────────────────────
-  ctx.strokeStyle = "rgba(255,215,90,0.35)";
-  ctx.lineWidth = 2;
+  ctx.strokeStyle = "rgba(255,210,90,0.35)";
+  ctx.lineWidth = 2 + Math.sin(t * 2) * 0.8;
   ctx.beginPath();
-  ctx.arc(c.cx, c.cy, r + 1, 0, Math.PI * 2);
+  ctx.arc(c.cx, c.cy, r + 1.5, 0, Math.PI * 2);
   ctx.stroke();
-}
 
+  // ─────────────────────────
+  // MICRO SPARK SHIMMER
+  // ─────────────────────────
+  ctx.fillStyle = "rgba(255,255,255,0.6)";
+  for (let i = 0; i < 3; i++) {
+    const a = Math.random() * Math.PI * 2;
+    const d = r * (0.6 + Math.random() * 0.3);
+    ctx.beginPath();
+    ctx.arc(
+      c.cx + Math.cos(a) * d,
+      c.cy + Math.sin(a) * d,
+      0.8,
+      0,
+      Math.PI * 2
+    );
+    ctx.fill();
+  }
+}
 
   function render(playerFloat) {
 
