@@ -1,3 +1,5 @@
+import "../css/hints.css";
+
 export function createHintPopup() {
   const el = document.createElement("div");
   el.className = "popup hidden";

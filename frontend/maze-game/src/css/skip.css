@@ -1,62 +1,70 @@
-.skipOverlay {
+/* ===== Popup Backdrop ===== */
+.popup {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.6);
+  background: rgba(5, 10, 25, 0.75);
   backdrop-filter: blur(6px);
-  display: none;
+  display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
 }
 
-.skipCard {
-  background: #121826;
+.popup.hidden {
+  display: none;
+}
+
+/* ===== Popup Card ===== */
+.popup-card {
+  width: min(92%, 360px);
+  background: linear-gradient(180deg, #0e2440, #08192e);
+  border-radius: 22px;
+  padding: 22px;
   color: #fff;
-  padding: 20px;
-  border-radius: 16px;
-  width: 90%;
-  max-width: 320px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
   text-align: center;
 }
 
-.skipCard h2 {
-  margin-bottom: 16px;
+/* ===== Title ===== */
+.popup-card h3 {
+  margin: 0 0 16px;
+  font-size: 22px;
+  font-weight: 700;
 }
 
-.skipOption {
+/* ===== Buttons ===== */
+.popup-card button {
   width: 100%;
-  padding: 12px;
-  margin-bottom: 10px;
-  border-radius: 10px;
+  border: none;
+  border-radius: 16px;
+  padding: 14px 16px;
+  margin-top: 12px;
   font-size: 16px;
-  border: none;
+  font-weight: 600;
   cursor: pointer;
+  transition: transform 0.08s ease, opacity 0.08s ease;
 }
 
-.skipOption.primary {
-  background: #25d7ff;
-  color: #000;
+.popup-card button:active {
+  transform: scale(0.97);
 }
 
-.skipOption.secondary {
-  background: #1e293b;
+/* Primary */
+#freeSkipBtn {
+  background: linear-gradient(180deg, #2fd4ff, #16a3ff);
+  color: #00121f;
+}
+
+/* Secondary */
+#buySkipBtn,
+#watchAdSkipBtn {
+  background: rgba(255, 255, 255, 0.08);
   color: #fff;
 }
 
-.skipOption.ad {
-  background: #16a34a;
-  color: #fff;
-}
-
-.skipOption:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-.closeBtn {
-  margin-top: 10px;
+/* Close */
+#closeSkipBtn {
   background: transparent;
-  border: none;
-  color: #aaa;
-  cursor: pointer;
+  color: #9fb3c8;
+  font-size: 14px;
 }
