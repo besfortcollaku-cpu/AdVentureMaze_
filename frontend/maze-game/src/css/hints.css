@@ -1,11 +1,8 @@
-/* =========================
-   HINT POPUP OVERLAY
-   ========================= */
-
+/* ===== Overlay ===== */
 .hintOverlay {
   position: fixed;
   inset: 0;
-  z-index: 30;
+  z-index: 40;
 
   display: flex;
   align-items: center;
@@ -19,102 +16,88 @@
   display: none;
 }
 
-/* =========================
-   HINT MODAL
-   ========================= */
-
-.hintModal {
+/* ===== Modal ===== */
+.hintOverlay > div {
   width: min(92%, 420px);
-  padding: 26px 24px 22px;
+  padding: 26px 22px;
   border-radius: 22px;
 
   background: linear-gradient(
     180deg,
-    rgba(28, 60, 95, 0.95),
-    rgba(12, 22, 40, 0.96)
+    rgba(28, 60, 95, 0.96),
+    rgba(12, 22, 40, 0.97)
   );
 
   box-shadow:
     0 25px 60px rgba(0, 0, 0, 0.65),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
 
+  color: #eef5ff;
   text-align: center;
-  color: #f0f6ff;
 
-  animation: popupIn 0.38s cubic-bezier(0.22, 1.4, 0.36, 1);
+  animation: popupIn 0.35s cubic-bezier(0.22, 1.4, 0.36, 1);
 }
 
-/* =========================
-   TITLE
-   ========================= */
-
-.hintModal h2 {
+/* ===== Title ===== */
+.hintOverlay h2,
+.hintOverlay h3 {
   font-size: 26px;
   font-weight: 900;
-  margin-bottom: 8px;
-}
-
-.hintModal .subtitle {
-  font-size: 14px;
-  opacity: 0.8;
   margin-bottom: 18px;
 }
 
-/* =========================
-   BUTTONS
-   ========================= */
-
-.hintModal button {
+/* ===== Buttons ===== */
+.hintOverlay button {
   width: 100%;
   height: 48px;
+  margin-top: 12px;
+
   border-radius: 16px;
   border: none;
 
   font-size: 15px;
   font-weight: 900;
   cursor: pointer;
-
-  margin-top: 12px;
 }
 
-/* Free hint */
-.hintModal .btn-free {
+/* Free Hint */
+.hintOverlay button:nth-of-type(1) {
   background: linear-gradient(180deg, #2dd4ff, #1fa2ff);
   color: #061320;
 }
 
-/* Buy with coins */
-.hintModal .btn-coins {
+/* Buy Hint */
+.hintOverlay button:nth-of-type(2) {
   background: rgba(255, 255, 255, 0.08);
   color: #eef5ff;
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.15);
 }
 
-/* Watch ad */
-.hintModal .btn-ad {
+/* Watch Ad */
+.hintOverlay button:nth-of-type(3) {
   background: linear-gradient(135deg, #ffcc33, #ff9f1a);
   color: #2a1a00;
-  animation: glowPulse 2.8s ease-in-out infinite;
+  animation: glowPulse 2.5s ease-in-out infinite;
 }
 
-/* =========================
-   ENTRANCE ANIMATION
-   ========================= */
+/* Close */
+.hintOverlay button:last-of-type {
+  background: transparent;
+  color: #9fb4d8;
+  height: 40px;
+}
 
+/* ===== Animations ===== */
 @keyframes popupIn {
   from {
     opacity: 0;
-    transform: translateY(22px) scale(0.96);
+    transform: translateY(20px) scale(0.96);
   }
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
   }
 }
-
-/* =========================
-   GLOW
-   ========================= */
 
 @keyframes glowPulse {
   0%, 100% {
