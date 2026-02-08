@@ -1,3 +1,5 @@
+import "../css/skip.css";
+
 export function createSkipPopup() {
   let onFree = null;
   let onBuy = null;
