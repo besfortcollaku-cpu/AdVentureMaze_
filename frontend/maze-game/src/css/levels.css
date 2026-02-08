@@ -8,6 +8,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+
   background: rgba(0, 0, 0, 0.55);
   backdrop-filter: blur(8px);
 }
@@ -20,9 +21,10 @@
    CARD
 ========================= */
 .popupCard {
-  pointer-events: auto;
+  pointer-events: auto; /* ✅ IMPORTANT */
   width: min(94vw, 420px);
   max-height: 82vh;
+
   padding: 22px;
   border-radius: 28px;
 
@@ -40,7 +42,7 @@
   display: flex;
   flex-direction: column;
 
-  transform: scale(0.92) translateY(12px);
+  transform: scale(0.92) translateY(14px);
   opacity: 0;
   transition: transform 0.25s ease, opacity 0.25s ease;
 }
@@ -64,6 +66,7 @@
   border-radius: 999px;
   font-weight: 800;
   font-size: 13px;
+
   background: linear-gradient(180deg, #ff6a4d, #ff3d2e);
   margin-bottom: 8px;
 }
@@ -74,13 +77,20 @@
 }
 
 /* =========================
-   GRID
+   LEVEL GRID (SCROLLABLE)
 ========================= */
 .levelsGrid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 12px;
+
+  max-height: 46vh;
   overflow-y: auto;
+  padding-right: 4px;
+
+  -webkit-overflow-scrolling: touch; /* ✅ mobile swipe */
+  overscroll-behavior: contain;
+
   margin-bottom: 18px;
 }
 
@@ -91,10 +101,12 @@
   height: 64px;
   border-radius: 18px;
   border: none;
+
   cursor: pointer;
+  pointer-events: auto; /* ✅ REQUIRED */
 
   background: rgba(255, 255, 255, 0.08);
-  color: rgba(255, 255, 255, 0.8);
+  color: rgba(255, 255, 255, 0.85);
 
   font-weight: 800;
   font-size: 14px;
@@ -102,13 +114,14 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
 
   box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04);
   transition: transform 0.12s ease, box-shadow 0.12s ease;
 }
 
-.levelItem span {
+/* prevent text blocking clicks */
+.levelItem span,
+.levelItem i {
   pointer-events: none;
 }
 
@@ -118,12 +131,12 @@
   color: #fff;
 }
 
-/* CURRENT */
+/* UNLOCKED */
 .levelItem.unlocked {
   background: linear-gradient(
     180deg,
-    rgba(70, 130, 180, 0.8),
-    rgba(40, 90, 130, 0.8)
+    rgba(70, 130, 180, 0.9),
+    rgba(40, 90, 130, 0.9)
   );
   color: #fff;
 }
@@ -132,11 +145,10 @@
 .levelItem.locked {
   background: rgba(255, 255, 255, 0.05);
   color: rgba(255, 255, 255, 0.35);
+  cursor: default;
 }
 
-/* =========================
-   BUTTON FEEDBACK
-========================= */
+/* PRESS FEEDBACK */
 .levelItem:active {
   transform: scale(0.96);
 }
@@ -148,9 +160,11 @@
   height: 52px;
   border-radius: 18px;
   border: none;
+
   font-size: 16px;
   font-weight: 800;
   color: #fff;
+
   cursor: pointer;
 }
 
