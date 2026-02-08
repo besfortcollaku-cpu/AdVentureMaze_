@@ -21,9 +21,8 @@
    CARD
 ========================= */
 .popupCard {
-  pointer-events: auto; /* ✅ IMPORTANT */
-  width: min(94vw, 420px);
-  max-height: 82vh;
+  width: min(94vw, 460px);
+  max-height: 86vh;
 
   padding: 22px;
   border-radius: 28px;
@@ -41,15 +40,6 @@
   color: #fff;
   display: flex;
   flex-direction: column;
-
-  transform: scale(0.92) translateY(14px);
-  opacity: 0;
-  transition: transform 0.25s ease, opacity 0.25s ease;
-}
-
-.popupCard.show {
-  transform: scale(1) translateY(0);
-  opacity: 1;
 }
 
 /* =========================
@@ -57,7 +47,7 @@
 ========================= */
 .popupHeader {
   text-align: center;
-  margin-bottom: 16px;
+  margin-bottom: 14px;
 }
 
 .popupBadge {
@@ -66,9 +56,8 @@
   border-radius: 999px;
   font-weight: 800;
   font-size: 13px;
-
   background: linear-gradient(180deg, #ff6a4d, #ff3d2e);
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .popupHeader h2 {
@@ -77,18 +66,19 @@
 }
 
 /* =========================
-   LEVEL GRID (SCROLLABLE)
+   LEVEL GRID (5 PER ROW + SCROLL)
 ========================= */
 .levelsGrid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
+  grid-template-columns: repeat(5, 1fr); /* ✅ 5 per row */
+  gap: 10px;
 
-  max-height: 46vh;
+  max-height: 48vh; /* ✅ scroll area */
   overflow-y: auto;
-  padding-right: 4px;
+  padding-right: 6px;
+  padding-bottom: 4px;
 
-  -webkit-overflow-scrolling: touch; /* ✅ mobile swipe */
+  -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
 
   margin-bottom: 18px;
@@ -98,18 +88,18 @@
    LEVEL BUTTON
 ========================= */
 .levelItem {
-  height: 64px;
-  border-radius: 18px;
+  height: 56px;              /* ✅ smaller */
+  border-radius: 16px;
   border: none;
 
   cursor: pointer;
-  pointer-events: auto; /* ✅ REQUIRED */
+  pointer-events: auto;
 
   background: rgba(255, 255, 255, 0.08);
   color: rgba(255, 255, 255, 0.85);
 
   font-weight: 800;
-  font-size: 14px;
+  font-size: 13px;
 
   display: flex;
   align-items: center;
@@ -120,8 +110,7 @@
 }
 
 /* prevent text blocking clicks */
-.levelItem span,
-.levelItem i {
+.levelItem * {
   pointer-events: none;
 }
 
@@ -135,8 +124,8 @@
 .levelItem.unlocked {
   background: linear-gradient(
     180deg,
-    rgba(70, 130, 180, 0.9),
-    rgba(40, 90, 130, 0.9)
+    rgba(70, 130, 180, 0.95),
+    rgba(40, 90, 130, 0.95)
   );
   color: #fff;
 }
@@ -150,7 +139,42 @@
 
 /* PRESS FEEDBACK */
 .levelItem:active {
-  transform: scale(0.96);
+  transform: scale(0.95);
+}
+
+/* =========================
+   UNLOCK ANIMATION
+========================= */
+@keyframes unlockPulse {
+  0% {
+    transform: scale(0.85);
+    box-shadow: 0 0 0 rgba(77,220,151,0);
+  }
+  60% {
+    transform: scale(1.1);
+    box-shadow: 0 0 22px rgba(77,220,151,0.9);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 rgba(77,220,151,0);
+  }
+}
+
+.levelItem.justUnlocked {
+  animation: unlockPulse 0.45s ease-out;
+}
+
+/* LOCK SHAKE */
+@keyframes lockShake {
+  0%   { transform: translateX(0); }
+  25%  { transform: translateX(-4px); }
+  50%  { transform: translateX(4px); }
+  75%  { transform: translateX(-4px); }
+  100% { transform: translateX(0); }
+}
+
+.levelItem.shake {
+  animation: lockShake 0.35s ease;
 }
 
 /* =========================
@@ -176,45 +200,23 @@
   );
 }
 
-@keyframes unlockPulse {
-  0%   { transform: scale(0.85); box-shadow: 0 0 0 rgba(77,220,151,0); }
-  60%  { transform: scale(1.1);  box-shadow: 0 0 24px rgba(77,220,151,0.8); }
-  100% { transform: scale(1);    box-shadow: 0 0 0 rgba(77,220,151,0); }
+.popupCard {
+  overflow: hidden; /* keep rounded corners */
 }
 
-.levelItem.justUnlocked {
-  animation: unlockPulse 0.45s ease-out;
+.levelsGrid {
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
 }
 
-@keyframes lockShake {
-  0%   { transform: translateX(0); }
-  25%  { transform: translateX(-4px); }
-  50%  { transform: translateX(4px); }
-  75%  { transform: translateX(-4px); }
-  100% { transform: translateX(0); }
+.levelItem.unlocked {
+  cursor: pointer;
 }
 
-.levelItem.shake {
+.levelItem.unlocked:active {
+  transform: scale(0.94);
+}
+
+.levelItem.locked:active {
   animation: lockShake 0.35s ease;
-}
-
-.confetti {
-  position: fixed;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  pointer-events: none;
-  z-index: 3000;
-  animation: confettiFall 900ms ease-out forwards;
-}
-
-@keyframes confettiFall {
-  0% {
-    transform: translateY(0) scale(1);
-    opacity: 1;
-  }
-  100% {
-    transform: translateY(160px) scale(0.4);
-    opacity: 0;
-  }
 }

@@ -53,7 +53,7 @@ export function mountLevelsUI(root) {
 
         // 🔥 UNLOCK ANIMATION (only when advancing)
         if (animateUnlock && unlockedLevel > lastUnlockedLevel) {
-          btn.classList.add("unlock-animate");
+          btn.classList.add("justUnlocked");;
 
           // auto scroll into view
           setTimeout(() => {
