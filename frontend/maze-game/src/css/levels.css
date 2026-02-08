@@ -1,61 +1,76 @@
 /* =========================
-   LEVELS OVERLAY
+   OVERLAY
 ========================= */
-.levelsOverlay {
+.popupOverlay {
   position: fixed;
   inset: 0;
-  z-index: 1100;
-  display: none;
+  z-index: 1200;
+  display: flex;
   align-items: center;
   justify-content: center;
-  backdrop-filter: blur(10px);
-  background: rgba(0, 0, 0, 0.45);
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(8px);
 }
 
-/* =========================
-   CARD
-========================= */
-.levelsCard {
-    pointer-events: auto;
-  width: min(94vw, 420px);
-  max-height: 82vh;
-  padding: 22px;
-  border-radius: 28px;
-  background: linear-gradient(
-    180deg,
-    rgba(20, 40, 55, 0.96),
-    rgba(10, 20, 30, 0.96)
-  );
-  box-shadow:
-    0 20px 60px rgba(0, 0, 0, 0.6),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.05);
-  color: #fff;
-  display: flex;
-  flex-direction: column;
-  animation: popupIn 0.25s ease-out;
-}
 .popupOverlay.hidden {
   display: none;
 }
 
 /* =========================
+   CARD
+========================= */
+.popupCard {
+  pointer-events: auto;
+  width: min(94vw, 420px);
+  max-height: 82vh;
+  padding: 22px;
+  border-radius: 28px;
+
+  background: linear-gradient(
+    180deg,
+    rgba(20, 40, 55, 0.96),
+    rgba(10, 20, 30, 0.96)
+  );
+
+  box-shadow:
+    0 20px 60px rgba(0, 0, 0, 0.6),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+
+  transform: scale(0.92) translateY(12px);
+  opacity: 0;
+  transition: transform 0.25s ease, opacity 0.25s ease;
+}
+
+.popupCard.show {
+  transform: scale(1) translateY(0);
+  opacity: 1;
+}
+
+/* =========================
    HEADER
 ========================= */
-.levelsBadge {
-  align-self: center;
+.popupHeader {
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+.popupBadge {
+  display: inline-block;
   padding: 6px 16px;
   border-radius: 999px;
   font-weight: 800;
   font-size: 13px;
   background: linear-gradient(180deg, #ff6a4d, #ff3d2e);
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 
-.levelsTitle {
-  text-align: center;
+.popupHeader h2 {
   font-size: 26px;
   font-weight: 900;
-  margin-bottom: 18px;
 }
 
 /* =========================
@@ -66,158 +81,83 @@
   grid-template-columns: repeat(4, 1fr);
   gap: 12px;
   overflow-y: auto;
-  padding-right: 6px;
   margin-bottom: 18px;
 }
 
 /* =========================
    LEVEL BUTTON
 ========================= */
-.levelBtn {
+.levelItem {
   height: 64px;
   border-radius: 18px;
   border: none;
-  background: rgba(255, 255, 255, 0.06);
-  color: rgba(255, 255, 255, 0.6);
-  font-weight: 700;
-  font-size: 14px;
-  position: relative;
   cursor: pointer;
+
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.8);
+
+  font-weight: 800;
+  font-size: 14px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+
   box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04);
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
 }
 
-/* UNLOCKED */
-.levelBtn.unlocked {
-  background: linear-gradient(
-    180deg,
-    rgba(70, 130, 180, 0.6),
-    rgba(40, 90, 130, 0.6)
-  );
+.levelItem span {
+  pointer-events: none;
+}
+
+/* COMPLETED */
+.levelItem.completed {
+  background: linear-gradient(180deg, #4ddc97, #2aa96b);
   color: #fff;
 }
 
 /* CURRENT */
-.levelBtn.current {
+.levelItem.unlocked {
   background: linear-gradient(
     180deg,
-    #4ddc97,
-    #2aa96b
+    rgba(70, 130, 180, 0.8),
+    rgba(40, 90, 130, 0.8)
   );
-  box-shadow:
-    0 0 0 2px rgba(77, 220, 151, 0.4),
-    0 10px 20px rgba(0, 0, 0, 0.4);
+  color: #fff;
 }
 
 /* LOCKED */
-.levelBtn.locked {
-  background: rgba(255, 255, 255, 0.04);
-  color: rgba(255, 255, 255, 0.25);
-  cursor: not-allowed;
+.levelItem.locked {
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.35);
 }
 
-.levelBtn.locked::after {
-  content: "🔒";
-  position: absolute;
-  font-size: 16px;
-  opacity: 0.5;
+/* =========================
+   BUTTON FEEDBACK
+========================= */
+.levelItem:active {
+  transform: scale(0.96);
 }
 
 /* =========================
    CLOSE BUTTON
 ========================= */
-.levelsClose {
-  margin-top: auto;
+.popupBtn {
   height: 52px;
   border-radius: 18px;
   border: none;
   font-size: 16px;
   font-weight: 800;
   color: #fff;
+  cursor: pointer;
+}
+
+.popupBtn.secondary {
   background: linear-gradient(
     180deg,
     rgba(255, 255, 255, 0.14),
     rgba(255, 255, 255, 0.08)
   );
-}
-
-/* =========================
-   ANIMATION
-========================= */
-@keyframes popupIn {
-  from {
-    opacity: 0;
-    transform: scale(0.92) translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-  }
-}
-
-
-
-/* =========================
-   PROGRESS BAR
-========================= */
-.levelsProgressWrap {
-  margin: 6px 0 14px;
-}
-
-.levelsProgressBar {
-  height: 10px;
-  border-radius: 999px;
-  background: rgba(255,255,255,0.08);
-  overflow: hidden;
-}
-
-.levelsProgressFill {
-  height: 100%;
-  width: 0%;
-  background: linear-gradient(90deg, #4ddc97, #2aa96b);
-  transition: width 0.35s ease;
-}
-
-/* =========================
-   LOCKED SHAKE
-========================= */
-.levelBtn.locked.shake {
-  animation: shake 0.35s ease;
-  box-shadow: 0 0 0 2px rgba(255,80,80,0.4);
-}
-
-@keyframes shake {
-  0% { transform: translateX(0); }
-  20% { transform: translateX(-4px); }
-  40% { transform: translateX(4px); }
-  60% { transform: translateX(-3px); }
-  80% { transform: translateX(3px); }
-  100% { transform: translateX(0); }
-}
-
-/* =========================
-   UNLOCK COIN BURST
-========================= */
-.levelBtn.unlock {
-  animation: unlockPulse 0.6s ease;
-}
-
-@keyframes unlockPulse {
-  0% {
-    transform: scale(0.9);
-    box-shadow: 0 0 0 0 rgba(255,215,0,0.7);
-  }
-  60% {
-    transform: scale(1.05);
-    box-shadow: 0 0 0 14px rgba(255,215,0,0);
-  }
-  100% {
-    transform: scale(1);
-  }
-}
-
-/* =========================
-   SOFT TAP FEEDBACK
-========================= */
-.levelBtn:active {
-  transform: scale(0.96);
 }
