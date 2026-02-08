@@ -17,40 +17,21 @@ export function createRenderer({ canvas, state }) {
   }
 
   function render(player) {
-    const { grid, tileSize } = state;
+  if (!player) return;
 
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.clearRect(0, 0, w, h);
+  drawBackground();
+  drawMaze();
 
-    // background (transparent = app background shows through)
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  // ✅ SAFE BALL DRAW (matches old engine contract)
+  const px = player.x * tileSize + tileSize / 2;
+  const py = player.y * tileSize + tileSize / 2;
 
-    // draw walls
-    for (let y = 0; y < grid.length; y++) {
-      for (let x = 0; x < grid[y].length; x++) {
-        if (grid[y][x] === 1) {
-          ctx.fillStyle = "#1c2638"; // app background wall color
-          ctx.fillRect(
-            x * tileSize,
-            y * tileSize,
-            tileSize,
-            tileSize
-          );
-        }
-      }
-    }
-
-    // draw ball
-    ctx.fillStyle = "#4dd2ff";
-    ctx.beginPath();
-    ctx.arc(
-      player.x * tileSize + tileSize / 2,
-      player.y * tileSize + tileSize / 2,
-      tileSize * 0.35,
-      0,
-      Math.PI * 2
-    );
-    ctx.fill();
-  }
+  ctx.fillStyle = BALL_COLOR;
+  ctx.beginPath();
+  ctx.arc(px, py, tileSize * 0.35, 0, Math.PI * 2);
+  ctx.fill();
+}
   resize();
   return {
     resize,
