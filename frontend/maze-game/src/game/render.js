@@ -96,46 +96,66 @@ export function createRenderer({ canvas, state }) {
 
 
   function drawMaze() {
+  // ─────────────────────────────
+  // PASS 1: DRAW CONTINUOUS PATH BASE
+  // ─────────────────────────────
+  ctx.fillStyle = "rgba(6, 14, 26, 0.95)"; // dark engraved base
+
   for (let y = 0; y < state.rows; y++) {
     for (let x = 0; x < state.cols; x++) {
+      if (state.grid[y][x] === 1) continue; // walls invisible
+
       const px = ox + x * tile;
       const py = oy + y * tile;
 
-      // ─────────────────────────────
-      // WALLS → FULLY TRANSPARENT
-      // ─────────────────────────────
-      if (state.grid[y][x] === 1) {
-        // draw NOTHING for walls
-        continue;
-      }
-
-      // ─────────────────────────────
-      // PATH / WALKABLE AREA
-      // ─────────────────────────────
-
-      // dark base path (engraved surface)
-      ctx.fillStyle = "rgba(6, 14, 26, 0.9)"; // darker than app bg
       ctx.fillRect(px, py, tile, tile);
 
-      // engraved shadow (top + left)
-      ctx.fillStyle = "rgba(0,0,0,0.6)";
-      ctx.fillRect(px, py, tile, 2);
-      ctx.fillRect(px, py, 2, tile);
+      // connect right
+      if (x < state.cols - 1 && state.grid[y][x + 1] === 0) {
+        ctx.fillRect(px + tile - 1, py, 2, tile);
+      }
 
-      // subtle highlight (bottom + right)
-      ctx.fillStyle = "rgba(255,255,255,0.04)";
-      ctx.fillRect(px, py + tile - 2, tile, 2);
-      ctx.fillRect(px + tile - 2, py, 2, tile);
-
-      // painted / visited path
-      if (state.isPainted(x, y)) {
-        ctx.fillStyle = "rgba(37,215,255,0.85)";
-        ctx.fillRect(px + 3, py + 3, tile - 6, tile - 6);
+      // connect down
+      if (y < state.rows - 1 && state.grid[y + 1][x] === 0) {
+        ctx.fillRect(px, py + tile - 1, tile, 2);
       }
     }
   }
-}
 
+  // ─────────────────────────────
+  // PASS 2: ENGRAVED SHADOW
+  // ─────────────────────────────
+  ctx.fillStyle = "rgba(0,0,0,0.55)";
+
+  for (let y = 0; y < state.rows; y++) {
+    for (let x = 0; x < state.cols; x++) {
+      if (state.grid[y][x] === 1) continue;
+
+      const px = ox + x * tile;
+      const py = oy + y * tile;
+
+      // top shadow
+      ctx.fillRect(px, py, tile, 2);
+      // left shadow
+      ctx.fillRect(px, py, 2, tile);
+    }
+  }
+
+  // ─────────────────────────────
+  // PASS 3: PAINTED / VISITED PATH
+  // ─────────────────────────────
+  for (let y = 0; y < state.rows; y++) {
+    for (let x = 0; x < state.cols; x++) {
+      if (!state.isPainted(x, y)) continue;
+
+      const px = ox + x * tile;
+      const py = oy + y * tile;
+
+      ctx.fillStyle = "rgba(37,215,255,0.85)";
+      ctx.fillRect(px + 4, py + 4, tile - 8, tile - 8);
+    }
+  }
+}
 
   function drawBall(playerFloat) {
 
