@@ -82,17 +82,9 @@ wallImg.src = "/textures/sprites/crystal/corner-bl.png";
           ctx.fillStyle = "rgba(255,255,255,0.08)";
           ctx.fillRect(px, py, tile, tile);
         }
-        
-        // WALL VISUAL
-if (grid[y][x] === 1 && wallReady) {
-  ctx.drawImage(
-    wallImg,
-    px,
-    py - tile * 0.5,   // makes wall taller upward
-    tile,
-    tile * 1.5         // wall height (2:3 feel)
-  );
-}
+
+        // WALLS ARE LOGIC ONLY (NO DRAW)
+        // grid[y][x] === 1 → collision only
       }
     }
   }
