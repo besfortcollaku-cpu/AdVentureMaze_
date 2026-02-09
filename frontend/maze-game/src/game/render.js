@@ -95,7 +95,7 @@ const py =
 
 ctx.drawImage(floorImg, px, py, drawSize, drawSize);
         }
-      }
+      
     }
   }
 
