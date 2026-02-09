@@ -103,9 +103,10 @@ crystalWall.src = "/textures/sprites/crystal/crystal_side.png";
 
 
   function drawMaze() {
+  const grid = state.grid; // <-- THIS was missing
+
   for (let y = 0; y < grid.length; y++) {
     for (let x = 0; x < grid[y].length; x++) {
-
       const px = ox + x * tile;
       const py = oy + y * tile;
 
@@ -113,12 +114,12 @@ crystalWall.src = "/textures/sprites/crystal/crystal_side.png";
       if (grid[y][x] === 1) {
         if (crystalReady) {
           ctx.drawImage(crystalWall, px, py, tile, tile);
+        } else {
+          // fallback so walls still show while image loads
+          ctx.fillStyle = "rgba(0,0,0,0.25)";
+          ctx.fillRect(px, py, tile, tile);
         }
       }
-
-      // FLOOR (optional, if you have it)
-      // if (grid[y][x] === 0) { ... }
-
     }
   }
 }
