@@ -2,7 +2,11 @@
 // createRenderer EXPORT
 // ==============================
 export function createRenderer(canvas, state) {
-    console.log("Renderer started", state);
+  if (!(canvas instanceof HTMLCanvasElement)) {
+    console.error("❌ createRenderer expected <canvas>, got:", canvas);
+    return () => {};
+  }
+
   const ctx = canvas.getContext("2d");
   const tile = 64;
 
