@@ -81,15 +81,19 @@ export function createRenderer({ canvas, state }) {
 
     for (let y = 0; y < grid.length; y++) {
       for (let x = 0; x < grid[y].length; x++) {
-        const px = ox + x * tile;
-        const py = oy + y * tile;
+        const depth = y / (state.rows - 1); // 0 top → 1 bottom
 
-        // FLOOR everywhere (walls are logic-only)
-        if (floorReady) {
-          ctx.drawImage(floorImg, px, py, tile, tile);
-        } else {
-          ctx.fillStyle = "rgba(255,255,255,0.08)";
-          ctx.fillRect(px, py, tile, tile);
+const scale = 0.8 + depth * 0.2; // perspective strength
+const drawSize = tile * scale;
+
+// keep centered per cell
+const px = ox + x * tile + (tile - drawSize) / 2;
+const py =
+  oy +
+  y * tile -
+  (1 - depth) * tile * 0.4; // push top rows upward
+
+ctx.drawImage(floorImg, px, py, drawSize, drawSize);
         }
       }
     }
