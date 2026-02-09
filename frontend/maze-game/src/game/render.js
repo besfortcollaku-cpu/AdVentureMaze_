@@ -34,131 +34,84 @@ export function createRenderer(canvas, state) {
   }
 
   // ==============================
-  // CAMERA OFFSET
+  // CAMERA CENTERING
   // ==============================
   function computeOffsets() {
     const boardW = state.cols * tile;
     const boardH = state.rows * tile;
-
     ox = (canvas.width - boardW) / 2;
     oy = (canvas.height - boardH) / 2;
   }
 
   // ==============================
-  // DRAWING
+  // DRAW FUNCTIONS
   // ==============================
   function drawFloor() {
-    ctx.drawImage(
-      sprites.floor,
-      ox,
-      oy,
-      state.cols * tile,
-      state.rows * tile
-    );
+    for (let y = 0; y < state.rows; y++) {
+      for (let x = 0; x < state.cols; x++) {
+        if (state.grid[y][x] === 0) {
+          ctx.drawImage(
+            sprites.floor,
+            ox + x * tile,
+            oy + y * tile,
+            tile,
+            tile
+          );
+        }
+      }
+    }
   }
 
   function drawWalls() {
     for (let y = 0; y < state.rows; y++) {
       for (let x = 0; x < state.cols; x++) {
-        if (state.grid[y][x] !== 1) continue;
-
-        const px = ox + x * tile;
-        const py = oy + y * tile;
-
-        ctx.drawImage(sprites.wall, px, py, tile, tile);
+        if (state.grid[y][x] === 1) {
+          ctx.drawImage(
+            sprites.wall,
+            ox + x * tile,
+            oy + y * tile,
+            tile,
+            tile
+          );
+        }
       }
     }
   }
 
   function drawBall() {
-    const px = ox + state.ball.x * tile;
-    const py = oy + state.ball.y * tile;
+    const b = state.ball;
+    if (!b) return;
 
-    ctx.drawImage(sprites.ball, px, py, tile, tile);
+    ctx.drawImage(
+      sprites.ball,
+      ox + b.x * tile,
+      oy + b.y * tile,
+      tile,
+      tile
+    );
   }
 
-  function draw() {
+  // ==============================
+  // MAIN LOOP
+  // ==============================
+  function render() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     computeOffsets();
     drawFloor();
     drawWalls();
     drawBall();
+    requestAnimationFrame(render);
   }
 
   // ==============================
-  // PUBLIC API
+  // START
   // ==============================
   loadSprites(() => {
-    requestAnimationFrame(loop);
+    requestAnimationFrame(render);
   });
 
-  function loop() {
-    draw();
-    requestAnimationFrame(loop);
-  }
-
-  // optional return if needed later
+  // optional API
   return {
-    redraw: draw
+    redraw: render
   };
-  // ===============================
-  // START RENDERING AFTER LOAD
-  // ===============================
-  loadSprites(() => {
-    requestAnimationFrame(render);
-  });
-
-  function render() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    drawFloor();
-    drawWalls();
-    drawBall();
-
-    requestAnimationFrame(render);
-  }
-  function drawFloor() {
-  for (let y = 0; y < state.rows; y++) {
-    for (let x = 0; x < state.cols; x++) {
-      if (state.grid[y][x] === 0) {
-        ctx.drawImage(
-          sprites.floor,
-          ox + x * tile,
-          oy + y * tile,
-          tile,
-          tile
-        );
-      }
-    }
-  }
-}
-
-function drawWalls() {
-  for (let y = 0; y < state.rows; y++) {
-    for (let x = 0; x < state.cols; x++) {
-      if (state.grid[y][x] === 1) {
-        ctx.drawImage(
-          sprites.wall,
-          ox + x * tile,
-          oy + y * tile,
-          tile,
-          tile
-        );
-      }
-    }
-  }
-}
-
-function drawBall() {
-  const b = state.ball;
-  if (!b) return;
-
-  ctx.drawImage(
-    sprites.ball,
-    ox + b.x * tile,
-    oy + b.y * tile,
-    tile,
-    tile
-  );
-}
 }
