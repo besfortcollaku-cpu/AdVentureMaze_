@@ -2,6 +2,7 @@
 // createRenderer EXPORT
 // ==============================
 export function createRenderer(canvas, state) {
+    console.log("Renderer started", state);
   const ctx = canvas.getContext("2d");
   const tile = 64;
 
@@ -47,36 +48,40 @@ export function createRenderer(canvas, state) {
   // DRAW FUNCTIONS
   // ==============================
   function drawFloor() {
-    for (let y = 0; y < state.rows; y++) {
-      for (let x = 0; x < state.cols; x++) {
-        if (state.grid[y][x] === 0) {
-          ctx.drawImage(
-            sprites.floor,
-            ox + x * tile,
-            oy + y * tile,
-            tile,
-            tile
-          );
-        }
+  if (!state.grid) return;
+
+  for (let y = 0; y < state.grid.length; y++) {
+    for (let x = 0; x < state.grid[y].length; x++) {
+      if (state.grid[y][x] === 0) {
+        ctx.drawImage(
+          sprites.floor,
+          ox + x * tile,
+          oy + y * tile,
+          tile,
+          tile
+        );
       }
     }
   }
+}
 
   function drawWalls() {
-    for (let y = 0; y < state.rows; y++) {
-      for (let x = 0; x < state.cols; x++) {
-        if (state.grid[y][x] === 1) {
-          ctx.drawImage(
-            sprites.wall,
-            ox + x * tile,
-            oy + y * tile,
-            tile,
-            tile
-          );
-        }
+  if (!state.grid) return;
+
+  for (let y = 0; y < state.grid.length; y++) {
+    for (let x = 0; x < state.grid[y].length; x++) {
+      if (state.grid[y][x] === 1) {
+        ctx.drawImage(
+          sprites.wall,
+          ox + x * tile,
+          oy + y * tile,
+          tile,
+          tile
+        );
       }
     }
   }
+}
 
   function drawBall() {
     const b = state.ball;
