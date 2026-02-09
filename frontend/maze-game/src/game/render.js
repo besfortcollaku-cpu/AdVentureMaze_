@@ -105,6 +105,7 @@ export function createRenderer(arg1, arg2) {
 }
 
 function drawWalls() {
+    console.log("drawWalls CALLED");
   for (let y = 0; y < state.rows; y++) {
     for (let x = 0; x < state.cols; x++) {
       if (state.grid[y][x] !== 1) continue;
