@@ -102,7 +102,7 @@ oy + y * tile - (RENDER_TILE - tile) / 2,
       }
     }
   }
-}
+
   function drawWalls() {
   for (let y = 0; y < state.rows; y++) {
     for (let x = 0; x < state.cols; x++) {
@@ -177,3 +177,4 @@ oy + y * tile - (RENDER_TILE - tile) / 2,
   return {
     redraw: render
   };
+}
