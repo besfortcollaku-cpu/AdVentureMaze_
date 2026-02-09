@@ -1,6 +1,7 @@
 // src/game/render.js
 
 export function createRenderer(arg1, arg2) {
+    const WALL_HEIGHT = 18;   // visual wall depth
   let canvas, state;
 
   // game.js calls: createRenderer({ canvas, state })
@@ -108,14 +109,23 @@ function drawWalls() {
     for (let x = 0; x < state.cols; x++) {
       if (state.grid[y][x] !== 1) continue;
 
-      const drawX = ox + x * tile;
-      const drawY = oy + y * tile;
+      const baseX = ox + x * tile;
+      const baseY = oy + y * tile;
 
-      // draw wall base (on floor)
+      // 1️⃣ wall side (depth)
+      ctx.drawImage(
+        sprites.floor_edge,   // reuse floor edge as wall side
+        baseX,
+        baseY + tile - WALL_HEIGHT,
+        tile,
+        WALL_HEIGHT
+      );
+
+      // 2️⃣ wall top (main block)
       ctx.drawImage(
         sprites.wall,
-        drawX,
-        drawY,
+        baseX,
+        baseY - WALL_HEIGHT,
         tile,
         tile
       );
