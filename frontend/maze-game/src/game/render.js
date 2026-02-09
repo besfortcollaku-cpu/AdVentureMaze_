@@ -5,7 +5,8 @@
 export function createRenderer({ canvas, state }) {
 
   const ctx = canvas.getContext("2d");
-
+const crystalImg = new Image();
+  crystalImg.src = "/textures/sprites/crystal/crystal_tile.png";
 
 
   let w = 0;
@@ -88,16 +89,7 @@ export function createRenderer({ canvas, state }) {
 
 
 
-  function drawBackground() {
-
-    // subtle bg so we always see something
-
-    ctx.fillStyle = "rgba(255,255,255,0.04)";
-
-    ctx.fillRect(0, 0, w, h);
-
-  }
-
+  
 
 
   function drawMaze() {
