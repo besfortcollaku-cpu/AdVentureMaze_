@@ -2,6 +2,7 @@
 // createRenderer EXPORT
 // ==============================
 export function createRenderer(arg1, arg2) {
+    const RENDER_TILE = 96; // visual size of sprites
   let canvas, state;
 
   // game.js calls: createRenderer({ canvas, state })
@@ -86,10 +87,10 @@ const BALL_LIFT   = 10;   // how much the ball floats
 
       ctx.drawImage(
         sprite,
-        ox + x * tile,
-        oy + y * tile,
-        tile,
-        tile
+        ox + x * tile - (RENDER_TILE - tile) / 2,
+oy + y * tile - (RENDER_TILE - tile) / 2,
+        RENDER_TILE,
+        RENDER_TILE
       );
     }
   }
@@ -115,39 +116,53 @@ const BALL_LIFT   = 10;   // how much the ball floats
         ? sprites.wall_corner
         : sprites.wall;
 
-      // wall vertical depth (side)
-ctx.drawImage(
-  sprites.floor_edge,
-  ox + x * tile,
-  oy + y * tile + tile - WALL_HEIGHT,
-  tile,
-  WALL_HEIGHT
-);
+      // center big sprite on logical tile
+      const px = ox + x * tile - (RENDER_TILE - tile) / 2;
+      const py = oy + y * tile - (RENDER_TILE - tile) / 2;
 
-// wall top
-ctx.drawImage(
-  sprite,
-  ox + x * tile,
-  oy + y * tile - WALL_HEIGHT,
-  tile,
-  tile
-);
+      // wall vertical depth (side)
+      ctx.drawImage(
+        sprites.floor_edge,
+        px,
+        py + RENDER_TILE - WALL_HEIGHT,
+        RENDER_TILE,
+        WALL_HEIGHT
+      );
+
+      // wall top
+      ctx.drawImage(
+        sprite,
+        px,
+        py - WALL_HEIGHT,
+        RENDER_TILE,
+        RENDER_TILE
+      );
     }
   }
 }
 
   function drawBall() {
-    const b = state.ball;
-    if (!b) return;
+  const bx = ox + state.player.x * tile - (RENDER_TILE - tile) / 2;
+  const by = oy + state.player.y * tile - (RENDER_TILE - tile) / 2;
 
-    ctx.drawImage(
-  sprites.ball,
-  ox + px * tile,
-  oy + py * tile - WALL_HEIGHT - BALL_LIFT,
-  tile,
-  tile
-);
-  }
+  // shadow
+  ctx.drawImage(
+    sprites.crystal_shadow,
+    bx,
+    by + RENDER_TILE - 10,
+    RENDER_TILE,
+    20
+  );
+
+  // ball
+  ctx.drawImage(
+    sprites.ball,
+    bx,
+    by - WALL_HEIGHT - BALL_LIFT,
+    RENDER_TILE,
+    RENDER_TILE
+  );
+}
 
   // ==============================
   // MAIN LOOP
