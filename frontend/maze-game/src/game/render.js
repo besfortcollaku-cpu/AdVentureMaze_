@@ -103,55 +103,25 @@ export function createRenderer(arg1, arg2) {
   }
 }
 
-  function drawWalls() {
-    const wallImg = sprites.wall;
-    const cornerImg = sprites.wall_corner;
-    const sideImg = sprites.floor_edge;
+function drawWalls() {
+  for (let y = 0; y < state.rows; y++) {
+    for (let x = 0; x < state.cols; x++) {
+      if (state.grid[y][x] !== 1) continue;
 
-    if (!wallImg && !cornerImg) return;
+      const drawX = ox + x * tile;
+      const drawY = oy + y * tile;
 
-    // wall depth based on tile size
-    const WALL_HEIGHT = Math.max(10, Math.round(tile * 0.28));
-
-    for (let y = 0; y < state.rows; y++) {
-      for (let x = 0; x < state.cols; x++) {
-        if (state.grid[y][x] !== 1) continue;
-
-        const up = y === 0 || state.grid[y - 1][x] === 0;
-        const down = y === state.rows - 1 || state.grid[y + 1][x] === 0;
-        const left = x === 0 || state.grid[y][x - 1] === 0;
-        const right = x === state.cols - 1 || state.grid[y][x + 1] === 0;
-
-        const isCorner =
-          (up && left) || (up && right) || (down && left) || (down && right);
-
-        const topSprite = (isCorner ? cornerImg : wallImg) || wallImg || cornerImg;
-
-        // 1) draw the vertical side (fake 3D depth)
-        if (sideImg) {
-          ctx.drawImage(
-            sideImg,
-            px(x),
-            py(y) + tile - WALL_HEIGHT,
-            tile,
-            WALL_HEIGHT
-          );
-        }
-
-        // 2) draw the top wall sprite slightly lifted upward
-        if (topSprite) {
-          ctx.drawImage(
-            topSprite,
-            px(x),
-            py(y) - WALL_HEIGHT,
-            tile,
-            tile
-          );
-        }
-      }
+      // draw wall base (on floor)
+      ctx.drawImage(
+        sprites.wall,
+        drawX,
+        drawY,
+        tile,
+        tile
+      );
     }
   }
-
+}
   function drawBall() {
     const ballImg = sprites.ball;
     if (!ballImg) return;
