@@ -15,35 +15,34 @@ export function createRenderer({ canvas, state }) {
   let ox = 0;
   let oy = 0;
 
-  // ======================
   // FLOOR TILE
-  // ======================
   const floorImg = new Image();
   let floorReady = false;
   floorImg.onload = () => (floorReady = true);
   floorImg.src = "/textures/sprites/crystal/crystal_floor.png";
 
   // ======================
-  // RESIZE (CENTERED – SAFE)
+  // RESIZE
   // ======================
   function resize() {
-    const rect = canvas.getBoundingClientRect();
-    const dpr = Math.min(2, window.devicePixelRatio || 1);
+  const rect = canvas.getBoundingClientRect();
+  const dpr = Math.min(2, window.devicePixelRatio || 1);
 
-    w = rect.width;
-    h = rect.height;
+  w = rect.width;
+  h = rect.height;
 
-    canvas.width = Math.floor(w * dpr);
-    canvas.height = Math.floor(h * dpr);
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  canvas.width  = Math.floor(w * dpr);
+  canvas.height = Math.floor(h * dpr);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-    tile = Math.floor(
-      Math.min(w / state.cols, h / state.rows)
-    );
+  // 🔥 STRETCH MODE: tiles fill available space
+  tileW = w / state.cols;
+  tileH = h / state.rows;
 
-    ox = Math.floor((w - state.cols * tile) / 2);
-    oy = Math.floor((h - state.rows * tile) / 2);
-  }
+  // no centering offsets in stretch mode
+  ox = 0;
+  oy = 0;
+}
 
   // ======================
   // HELPERS
@@ -68,36 +67,19 @@ export function createRenderer({ canvas, state }) {
 
     for (let y = 0; y < grid.length; y++) {
       for (let x = 0; x < grid[y].length; x++) {
+        const px = ox + x * tile;
+        const py = oy + y * tile;
 
-        // ---------- FAKE 3D PERSPECTIVE ----------
-        const depth = y / (state.rows - 1); // 0 top → 1 bottom
-        const scale = 0.82 + depth * 0.18;  // subtle perspective
-        const drawSize = tile * scale;
-
-        const px =
-          ox + x * tile + (tile - drawSize) / 2;
-
-        const py =
-          oy +
-          y * tile -
-          (1 - depth) * tile * 0.35; // pull top upward
-        // ----------------------------------------
-
+        // FLOOR EVERYWHERE (including under walls)
         if (floorReady) {
-          ctx.drawImage(
-            floorImg,
-            px,
-            py,
-            drawSize,
-            drawSize
-          );
+          ctx.drawImage(floorImg, px, py, tile, tile);
         } else {
           ctx.fillStyle = "rgba(255,255,255,0.08)";
-          ctx.fillRect(px, py, drawSize, drawSize);
+          ctx.fillRect(px, py, tile, tile);
         }
 
-        // WALLS = LOGIC ONLY
-        // grid[y][x] === 1 → collision
+        // WALLS ARE LOGIC ONLY (NO DRAW)
+        // grid[y][x] === 1 → collision only
       }
     }
   }
@@ -109,15 +91,7 @@ export function createRenderer({ canvas, state }) {
     // shadow
     ctx.fillStyle = "rgba(0,0,0,0.25)";
     ctx.beginPath();
-    ctx.ellipse(
-      c.cx + 2,
-      c.cy + 5,
-      r * 1.1,
-      r * 0.8,
-      0,
-      0,
-      Math.PI * 2
-    );
+    ctx.ellipse(c.cx + 2, c.cy + 5, r * 1.1, r * 0.8, 0, 0, Math.PI * 2);
     ctx.fill();
 
     // ball
@@ -129,13 +103,7 @@ export function createRenderer({ canvas, state }) {
     // highlight
     ctx.fillStyle = "rgba(255,255,255,0.5)";
     ctx.beginPath();
-    ctx.arc(
-      c.cx - r * 0.35,
-      c.cy - r * 0.35,
-      r * 0.35,
-      0,
-      Math.PI * 2
-    );
+    ctx.arc(c.cx - r * 0.35, c.cy - r * 0.35, r * 0.35, 0, Math.PI * 2);
     ctx.fill();
   }
 
