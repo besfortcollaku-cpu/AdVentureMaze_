@@ -117,4 +117,48 @@ export function createRenderer(canvas, state) {
 
     requestAnimationFrame(render);
   }
+  function drawFloor() {
+  for (let y = 0; y < state.rows; y++) {
+    for (let x = 0; x < state.cols; x++) {
+      if (state.grid[y][x] === 0) {
+        ctx.drawImage(
+          sprites.floor,
+          ox + x * tile,
+          oy + y * tile,
+          tile,
+          tile
+        );
+      }
+    }
+  }
+}
+
+function drawWalls() {
+  for (let y = 0; y < state.rows; y++) {
+    for (let x = 0; x < state.cols; x++) {
+      if (state.grid[y][x] === 1) {
+        ctx.drawImage(
+          sprites.wall,
+          ox + x * tile,
+          oy + y * tile,
+          tile,
+          tile
+        );
+      }
+    }
+  }
+}
+
+function drawBall() {
+  const b = state.ball;
+  if (!b) return;
+
+  ctx.drawImage(
+    sprites.ball,
+    ox + b.x * tile,
+    oy + b.y * tile,
+    tile,
+    tile
+  );
+}
 }
