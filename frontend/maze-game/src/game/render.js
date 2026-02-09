@@ -109,21 +109,21 @@ export function createRenderer({ canvas, state }) {
       const px = ox + x * tile;
       const py = oy + y * tile;
 
-      // WALL
-      if (grid[y][x] === 1) {
-        if (crystalReady) {
-          ctx.drawImage(crystalWall, px, py, tile, tile);
-        } else {
-          // fallback so walls still show while image loads
-          ctx.fillStyle = "rgba(0,0,0,0.25)";
-          ctx.fillRect(px, py, tile, tile);
-        }
-      }
+
     }
   }
 }
 
+function drawFloor() {
+  for (let y = 0; y < rows; y++) {
+    for (let x = 0; x < cols; x++) {
+      const px = ox + x * tile;
+      const py = oy + y * tile;
 
+      ctx.drawImage(floorTile, px, py, tile, tile);
+    }
+  }
+}
   function drawBall(playerFloat) {
 
     const r = Math.max(10, tile * 0.24);
