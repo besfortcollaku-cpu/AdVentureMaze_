@@ -81,6 +81,10 @@ wallImg.src = "/textures/sprites/crystal/corner-bl.png";
           ctx.fillStyle = "rgba(255,255,255,0.08)";
           ctx.fillRect(px, py, tile, tile);
         }
+        if (grid[y][x] === 1) {
+  ctx.fillStyle = "red";
+  ctx.fillRect(px, py, tile, tile);
+}
 
 // WALL VISUAL
 if (grid[y][x] === 1 && wallReady) {
