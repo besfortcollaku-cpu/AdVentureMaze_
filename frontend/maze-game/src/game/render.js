@@ -177,4 +177,3 @@ oy + y * tile - (RENDER_TILE - tile) / 2,
   return {
     redraw: render
   };
-}
