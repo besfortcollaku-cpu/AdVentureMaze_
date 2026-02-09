@@ -53,7 +53,13 @@ const BALL_LIFT   = 10;   // how much the ball floats
         if (loaded === keys.length) cb();
       };
     });
-  }
+ function renderX(x) {
+  return ox + x * tile - (RENDER_TILE - tile) / 2;
+}
+
+function renderY(y) {
+  return oy + y * tile - (RENDER_TILE - tile) / 2;
+}
 
   // ==============================
   // CAMERA CENTERING
@@ -92,10 +98,6 @@ oy + y * tile - (RENDER_TILE - tile) / 2,
         RENDER_TILE,
         RENDER_TILE
       );
-    }
-  }
-}
-
   function drawWalls() {
   for (let y = 0; y < state.rows; y++) {
     for (let x = 0; x < state.cols; x++) {
@@ -112,58 +114,41 @@ oy + y * tile - (RENDER_TILE - tile) / 2,
         (down && left) ||
         (down && right);
 
-      const sprite = isCorner
+      const topSprite = isCorner
         ? sprites.wall_corner
-        : sprites.wall;
+        : sprites.wall_center;
 
-      // center big sprite on logical tile
-      const px = ox + x * tile - (RENDER_TILE - tile) / 2;
-      const py = oy + y * tile - (RENDER_TILE - tile) / 2;
-
-      // wall vertical depth (side)
+      // wall side (depth)
       ctx.drawImage(
         sprites.floor_edge,
-        px,
-        py + RENDER_TILE - WALL_HEIGHT,
+        renderX(x),
+        oy + y * tile + tile - WALL_HEIGHT,
         RENDER_TILE,
         WALL_HEIGHT
       );
 
       // wall top
       ctx.drawImage(
-        sprite,
-        px,
-        py - WALL_HEIGHT,
+        topSprite,
+        renderX(x),
+        renderY(y) - WALL_HEIGHT,
         RENDER_TILE,
         RENDER_TILE
       );
     }
   }
 }
-
   function drawBall() {
-  const bx = ox + state.player.x * tile - (RENDER_TILE - tile) / 2;
-  const by = oy + state.player.y * tile - (RENDER_TILE - tile) / 2;
+  const { x, y } = state.player;
 
-  // shadow
-  ctx.drawImage(
-    sprites.crystal_shadow,
-    bx,
-    by + RENDER_TILE - 10,
-    RENDER_TILE,
-    20
-  );
-
-  // ball
   ctx.drawImage(
     sprites.ball,
-    bx,
-    by - WALL_HEIGHT - BALL_LIFT,
+    renderX(x),
+    renderY(y) - BALL_LIFT,
     RENDER_TILE,
     RENDER_TILE
   );
 }
-
   // ==============================
   // MAIN LOOP
   // ==============================
