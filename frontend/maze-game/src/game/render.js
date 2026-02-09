@@ -14,7 +14,7 @@ export function createRenderer({ canvas, state }) {
   let crystalReady = false;
   const crystalWall = new Image();
   crystalWall.onload = () => (crystalReady = true);
-  crystalWall.src = "/textures/sprites/crystal/crystal_side.png";
+  crystalWall.src = "/textures/sprites/crystal/crystal_floor.png";
 
   let w = 0;
   let h = 0;
