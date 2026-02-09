@@ -101,17 +101,20 @@ export function createRenderer(canvas, state) {
   return {
     redraw: draw
   };
-}export function createRenderer(canvas, state) {
-  const ctx = canvas.getContext("2d");
+  // ===============================
+  // START RENDERING AFTER LOAD
+  // ===============================
+  loadSprites(() => {
+    requestAnimationFrame(render);
+  });
 
   function render() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    drawMaze(ctx, state);
-    drawBall(ctx, state);
+    drawFloor();
+    drawWalls();
+    drawBall();
 
     requestAnimationFrame(render);
   }
-
-  render();
 }
