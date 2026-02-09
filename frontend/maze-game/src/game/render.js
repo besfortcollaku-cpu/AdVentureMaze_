@@ -31,6 +31,7 @@ export function createRenderer(arg1, arg2) {
   const sprites = {};
   const spriteList = {
     floor: "crystal_inner.png",
+    floor_edge: "floor_edge.png",
     wall: "crystal_tile.png",
     ball: "ball.png"
   };
@@ -64,19 +65,29 @@ export function createRenderer(arg1, arg2) {
   // DRAW FUNCTIONS
   // ==============================
   function drawFloor() {
-  if (!state.grid) return;
+  for (let y = 0; y < state.rows; y++) {
+    for (let x = 0; x < state.cols; x++) {
+      if (state.grid[y][x] !== 0) continue;
 
-  for (let y = 0; y < state.grid.length; y++) {
-    for (let x = 0; x < state.grid[y].length; x++) {
-      if (state.grid[y][x] === 0) {
-        ctx.drawImage(
-          sprites.floor,
-          ox + x * tile,
-          oy + y * tile,
-          tile,
-          tile
-        );
-      }
+      // check neighbors
+      const up    = y === 0 || state.grid[y - 1][x] === 1;
+      const down  = y === state.rows - 1 || state.grid[y + 1][x] === 1;
+      const left  = x === 0 || state.grid[y][x - 1] === 1;
+      const right = x === state.cols - 1 || state.grid[y][x + 1] === 1;
+
+      const isEdge = up || down || left || right;
+
+      const sprite = isEdge
+        ? sprites.floor_edge
+        : sprites.floor;
+
+      ctx.drawImage(
+        sprite,
+        ox + x * tile,
+        oy + y * tile,
+        tile,
+        tile
+      );
     }
   }
 }
