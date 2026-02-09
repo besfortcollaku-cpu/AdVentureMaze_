@@ -34,21 +34,17 @@ function resize() {
   const rect = canvas.getBoundingClientRect();
   const dpr = Math.min(2, window.devicePixelRatio || 1);
 
-  // logical size
-  w = rect.width;
-  h = rect.height;
+  const w = rect.width;
+  const h = rect.height;
 
-  // real canvas size
-  canvas.width = Math.floor(w * dpr);
+  canvas.width  = Math.floor(w * dpr);
   canvas.height = Math.floor(h * dpr);
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-  // base tile size (tiles TOUCH, no gaps)
   tile = Math.floor(
     Math.min(w / state.cols, h / state.rows)
   );
 
-  // center board
   ox = Math.floor((w - state.cols * tile) / 2);
   oy = Math.floor((h - state.rows * tile) / 2);
 }
