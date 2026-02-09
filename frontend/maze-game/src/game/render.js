@@ -35,7 +35,7 @@ const BALL_LIFT   = 10;   // how much the ball floats
   const spriteList = {
   floor: "crystal_inner.png",
   floor_edge: "floor_edge.png",
-  wall: "wall_center.png",
+  wall_center: "wall_center.png",
   wall_corner: "wall_corner.png",
   ball: "ball.png"
   };
@@ -53,6 +53,7 @@ const BALL_LIFT   = 10;   // how much the ball floats
         if (loaded === keys.length) cb();
       };
     });
+  }
  function renderX(x) {
   return ox + x * tile - (RENDER_TILE - tile) / 2;
 }
