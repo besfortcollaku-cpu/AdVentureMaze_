@@ -4,7 +4,7 @@
 
 export function createRenderer({ canvas, state }) {
   const ctx = canvas.getContext("2d");
-
+canvas.style.zIndex = "0";
   let tile = 64;
   let ox = 0;
   let oy = 0;
