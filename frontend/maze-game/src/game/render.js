@@ -90,19 +90,18 @@ export function createRenderer(arg1, arg2) {
   }
 
   function drawFloor() {
-    // draw ONLY walkable cells (grid == 0)
-    const img = sprites.floor;
-    if (!img) return;
-
-    ctx.imageSmoothingEnabled = true;
-
-    for (let y = 0; y < state.rows; y++) {
-      for (let x = 0; x < state.cols; x++) {
-        if (state.grid[y][x] !== 0) continue;
-        ctx.drawImage(img, px(x), py(y), tile, tile);
-      }
+  for (let y = 0; y < state.rows; y++) {
+    for (let x = 0; x < state.cols; x++) {
+      ctx.drawImage(
+        sprites.floor,
+        ox + x * tile,
+        oy + y * tile,
+        tile,
+        tile
+      );
     }
   }
+}
 
   function drawWalls() {
     const wallImg = sprites.wall;
