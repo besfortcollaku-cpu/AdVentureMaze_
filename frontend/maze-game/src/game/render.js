@@ -35,13 +35,13 @@ export function createRenderer({ canvas, state }) {
   canvas.height = Math.floor(h * dpr);
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-  // 🔥 STRETCH MODE: tiles fill available space
-  tileW = w / state.cols;
-  tileH = h / state.rows;
+  // stretch but KEEP tile
+  tile = Math.floor(
+    Math.min(w / state.cols, h / state.rows)
+  );
 
-  // no centering offsets in stretch mode
-  ox = 0;
-  oy = 0;
+  ox = Math.floor((w - state.cols * tile) / 2);
+  oy = Math.floor((h - state.rows * tile) / 2);
 }
 
   // ======================
