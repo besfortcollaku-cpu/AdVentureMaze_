@@ -14,7 +14,8 @@ export function createRenderer({ canvas, state }) {
   let tile = 64;
   let ox = 0;
   let oy = 0;
-
+let tileW = 0;
+let tileH = 0;
   // ----------------
   // IMAGES
   // ----------------
@@ -27,25 +28,33 @@ export function createRenderer({ canvas, state }) {
   // ----------------
   // RESIZE
   // ----------------
-  function resize() {
-    const rect = canvas.getBoundingClientRect();
-    const dpr = Math.min(2, window.devicePixelRatio || 1);
+function resize() {
+  if (!state || !state.cols || !state.rows) return;
 
-    canvas.width = Math.floor(rect.width * dpr);
-    canvas.height = Math.floor(rect.height * dpr);
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const rect = canvas.getBoundingClientRect();
+  const dpr = Math.min(2, window.devicePixelRatio || 1);
 
-    // base tile size
-    tile = Math.floor(
-      Math.min(rect.width / state.cols, rect.height / state.rows)
-    );
+  // logical size
+  w = rect.width;
+  h = rect.height;
 
-    ox = Math.floor((rect.width - state.cols * tile) / 2);
-    oy = Math.floor((rect.height - state.rows * tile) / 2);
-  }
+  // real canvas size
+  canvas.width = Math.floor(w * dpr);
+  canvas.height = Math.floor(h * dpr);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-  window.addEventListener("resize", resize);
-  resize();
+  // base tile size (tiles TOUCH, no gaps)
+  tile = Math.floor(
+    Math.min(w / state.cols, h / state.rows)
+  );
+
+  // center board
+  ox = Math.floor((w - state.cols * tile) / 2);
+  oy = Math.floor((h - state.rows * tile) / 2);
+}
+
+window.addEventListener("resize", resize);
+resize();
 
   // ----------------
   // PERSPECTIVE (TOP SMALL → BOTTOM BIG)
