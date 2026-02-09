@@ -21,6 +21,8 @@ export function createRenderer(arg1, arg2) {
 
   const ctx = canvas.getContext("2d");
   const tile = 64;
+  const WALL_HEIGHT = 18;   // visual height of walls
+const BALL_LIFT   = 10;   // how much the ball floats
 
   let ox = 0;
   let oy = 0;
@@ -30,10 +32,11 @@ export function createRenderer(arg1, arg2) {
   // ==============================
   const sprites = {};
   const spriteList = {
-    floor: "crystal_inner.png",
-    floor_edge: "floor_edge.png",
-    wall: "crystal_tile.png",
-    ball: "ball.png"
+  floor: "crystal_inner.png",
+  floor_edge: "floor_edge.png",
+  wall: "wall_center.png",
+  wall_corner: "wall_corner.png",
+  ball: "ball.png"
   };
 
   function loadSprites(cb) {
@@ -93,19 +96,42 @@ export function createRenderer(arg1, arg2) {
 }
 
   function drawWalls() {
-  if (!state.grid) return;
+  for (let y = 0; y < state.rows; y++) {
+    for (let x = 0; x < state.cols; x++) {
+      if (state.grid[y][x] !== 1) continue;
 
-  for (let y = 0; y < state.grid.length; y++) {
-    for (let x = 0; x < state.grid[y].length; x++) {
-      if (state.grid[y][x] === 1) {
-        ctx.drawImage(
-          sprites.wall,
-          ox + x * tile,
-          oy + y * tile,
-          tile,
-          tile
-        );
-      }
+      const up    = y === 0 || state.grid[y - 1][x] === 0;
+      const down  = y === state.rows - 1 || state.grid[y + 1][x] === 0;
+      const left  = x === 0 || state.grid[y][x - 1] === 0;
+      const right = x === state.cols - 1 || state.grid[y][x + 1] === 0;
+
+      const isCorner =
+        (up && left) ||
+        (up && right) ||
+        (down && left) ||
+        (down && right);
+
+      const sprite = isCorner
+        ? sprites.wall_corner
+        : sprites.wall;
+
+      // wall vertical depth (side)
+ctx.drawImage(
+  sprites.floor_edge,
+  ox + x * tile,
+  oy + y * tile + tile - WALL_HEIGHT,
+  tile,
+  WALL_HEIGHT
+);
+
+// wall top
+ctx.drawImage(
+  sprite,
+  ox + x * tile,
+  oy + y * tile - WALL_HEIGHT,
+  tile,
+  tile
+);
     }
   }
 }
@@ -115,12 +141,12 @@ export function createRenderer(arg1, arg2) {
     if (!b) return;
 
     ctx.drawImage(
-      sprites.ball,
-      ox + b.x * tile,
-      oy + b.y * tile,
-      tile,
-      tile
-    );
+  sprites.ball,
+  ox + px * tile,
+  oy + py * tile - WALL_HEIGHT - BALL_LIFT,
+  tile,
+  tile
+);
   }
 
   // ==============================
