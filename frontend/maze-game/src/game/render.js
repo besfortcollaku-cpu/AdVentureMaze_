@@ -2,7 +2,7 @@
 // createRenderer EXPORT
 // ==============================
 export function createRenderer(arg1, arg2) {
-    const RENDER_TILE = 96; // visual size of sprites
+    
   let canvas, state;
 
   // game.js calls: createRenderer({ canvas, state })
@@ -21,7 +21,9 @@ export function createRenderer(arg1, arg2) {
   }
 
   const ctx = canvas.getContext("2d");
-  const tile = 64;
+  const tile = 64;            // grid logic size
+const RENDER_TILE = 96;     // visual sprite size
+const VISUAL_OFFSET = (RENDER_TILE - tile) / 2; // = 16
   const WALL_HEIGHT = 18;   // visual height of walls
 const BALL_LIFT   = 10;   // how much the ball floats
 
@@ -80,28 +82,16 @@ function renderY(y) {
     for (let x = 0; x < state.cols; x++) {
       if (state.grid[y][x] !== 0) continue;
 
-      // check neighbors
-      const up    = y === 0 || state.grid[y - 1][x] === 1;
-      const down  = y === state.rows - 1 || state.grid[y + 1][x] === 1;
-      const left  = x === 0 || state.grid[y][x - 1] === 1;
-      const right = x === state.cols - 1 || state.grid[y][x + 1] === 1;
-
-      const isEdge = up || down || left || right;
-
-      const sprite = isEdge
-        ? sprites.floor_edge
-        : sprites.floor;
-
       ctx.drawImage(
-        sprite,
-        ox + x * tile - (RENDER_TILE - tile) / 2,
-oy + y * tile - (RENDER_TILE - tile) / 2,
+        sprites.floor,
+        ox + x * tile - VISUAL_OFFSET,
+        oy + y * tile - VISUAL_OFFSET,
         RENDER_TILE,
         RENDER_TILE
-);
-      }
+      );
     }
   }
+}
 
   function drawWalls() {
   for (let y = 0; y < state.rows; y++) {
@@ -114,19 +104,17 @@ oy + y * tile - (RENDER_TILE - tile) / 2,
       const right = x === state.cols - 1 || state.grid[y][x + 1] === 0;
 
       const isCorner =
-        (up && left) ||
-        (up && right) ||
-        (down && left) ||
-        (down && right);
+        (up && left) || (up && right) ||
+        (down && left) || (down && right);
 
-      const topSprite = isCorner
+      const sprite = isCorner
         ? sprites.wall_corner
-        : sprites.wall_center;
+        : sprites.wall;
 
-      // wall side (depth)
+      // wall depth (side)
       ctx.drawImage(
         sprites.floor_edge,
-        renderX(x),
+        ox + x * tile - VISUAL_OFFSET,
         oy + y * tile + tile - WALL_HEIGHT,
         RENDER_TILE,
         WALL_HEIGHT
@@ -134,9 +122,9 @@ oy + y * tile - (RENDER_TILE - tile) / 2,
 
       // wall top
       ctx.drawImage(
-        topSprite,
-        renderX(x),
-        renderY(y) - WALL_HEIGHT,
+        sprite,
+        ox + x * tile - VISUAL_OFFSET,
+        oy + y * tile - VISUAL_OFFSET - WALL_HEIGHT,
         RENDER_TILE,
         RENDER_TILE
       );
@@ -148,8 +136,8 @@ oy + y * tile - (RENDER_TILE - tile) / 2,
 
   ctx.drawImage(
     sprites.ball,
-    renderX(x),
-    renderY(y) - BALL_LIFT,
+    ox + x * tile - VISUAL_OFFSET,
+    oy + y * tile - VISUAL_OFFSET - BALL_LIFT,
     RENDER_TILE,
     RENDER_TILE
   );
