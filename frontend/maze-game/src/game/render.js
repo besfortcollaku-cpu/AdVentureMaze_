@@ -18,7 +18,7 @@ export function createRenderer({ canvas, state }) {
 
   let w = 0;
   let h = 0;
-  let tile = 40;
+  let tile = 48;
   let ox = 0;
   let oy = 0;
 
