@@ -89,7 +89,16 @@ const crystalImg = new Image();
 
 
 
-  
+  function drawBackground() {
+
+    // subtle bg so we always see something
+
+    ctx.fillStyle = "rgba(255,255,255,0.04)";
+
+    ctx.fillRect(0, 0, w, h);
+
+  }
+
 
 
   function drawMaze() {
