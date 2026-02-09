@@ -82,8 +82,8 @@ function renderY(y) {
     for (let x = 0; x < state.cols; x++) {
       ctx.drawImage(
         sprites.floor,
-        ox + x * tile - VISUAL_OFFSET,
-        oy + y * tile - VISUAL_OFFSET,
+        renderX(x),
+        renderY(y),
         RENDER_TILE,
         RENDER_TILE
       );
@@ -109,32 +109,33 @@ function renderY(y) {
         : sprites.wall_center;
 
       // wall depth (side)
-      ctx.drawImage(
+    // wall side (depth)
+ctx.drawImage(
   sprites.floor_edge,
-  ox + x * tile - VISUAL_OFFSET,
-  oy + y * tile + tile - WALL_HEIGHT - VISUAL_OFFSET,
+  renderX(x),
+  renderY(y) + tile - WALL_HEIGHT,
   RENDER_TILE,
   WALL_HEIGHT
 );
 
-      // wall top
-      ctx.drawImage(
-        sprite,
-        ox + x * tile - VISUAL_OFFSET,
-        oy + y * tile - VISUAL_OFFSET - WALL_HEIGHT,
-        RENDER_TILE,
-        RENDER_TILE
-      );
+// wall top
+ctx.drawImage(
+  sprite,
+  renderX(x),
+  renderY(y) - WALL_HEIGHT,
+  RENDER_TILE,
+  RENDER_TILE
+);
     }
   }
 }
   function drawBall() {
   const { x, y } = state.player;
-const BALL_LIFT = 6;
+
   ctx.drawImage(
     sprites.ball,
-    ox + x * tile - VISUAL_OFFSET,
-    oy + y * tile - VISUAL_OFFSET - BALL_LIFT,
+    renderX(x),
+    renderY(y) - BALL_LIFT,
     RENDER_TILE,
     RENDER_TILE
   );
