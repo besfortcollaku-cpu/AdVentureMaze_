@@ -20,6 +20,11 @@ export function createRenderer({ canvas, state }) {
   let floorReady = false;
   floorImg.onload = () => (floorReady = true);
   floorImg.src = "/textures/sprites/crystal/crystal_floor.png";
+  // WALL TILE (visual only)
+const wallImg = new Image();
+let wallReady = false;
+wallImg.onload = () => (wallReady = true);
+wallImg.src = "/textures/sprites/crystal/corner-bl.png";
 
   // ======================
   // RESIZE
@@ -77,9 +82,17 @@ export function createRenderer({ canvas, state }) {
           ctx.fillStyle = "rgba(255,255,255,0.08)";
           ctx.fillRect(px, py, tile, tile);
         }
-
-        // WALLS ARE LOGIC ONLY (NO DRAW)
-        // grid[y][x] === 1 → collision only
+        
+        // WALL VISUAL
+if (grid[y][x] === 1 && wallReady) {
+  ctx.drawImage(
+    wallImg,
+    px,
+    py - tile * 0.5,   // makes wall taller upward
+    tile,
+    tile * 1.5         // wall height (2:3 feel)
+  );
+}
       }
     }
   }
