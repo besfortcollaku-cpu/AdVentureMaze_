@@ -101,4 +101,17 @@ export function createRenderer(canvas, state) {
   return {
     redraw: draw
   };
+}export function createRenderer(canvas, state) {
+  const ctx = canvas.getContext("2d");
+
+  function render() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    drawMaze(ctx, state);
+    drawBall(ctx, state);
+
+    requestAnimationFrame(render);
+  }
+
+  render();
 }
