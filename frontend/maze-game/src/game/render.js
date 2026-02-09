@@ -1,130 +1,145 @@
-// ================================
-// RENDERER
-// ================================
-
 export function createRenderer({ canvas, state }) {
   if (!(canvas instanceof HTMLCanvasElement)) {
     console.error("Renderer: canvas missing");
     return;
   }
 
-  canvas.style.pointerEvents = "none"; // ✅ FIX
-  canvas.style.zIndex = "0";           // optional safety
+  // 🔒 Canvas must NEVER block UI
+  canvas.style.pointerEvents = "none";
+  canvas.style.position = "absolute";
+  canvas.style.inset = "0";
+  canvas.style.zIndex = "0";
+
   const ctx = canvas.getContext("2d");
-  let tile = 64;
+
+  // ======================
+  // CONFIG
+  // ======================
+  let w = 0;
+  let h = 0;
+  let tile = 48;
   let ox = 0;
   let oy = 0;
-let tileW = 0;
-let tileH = 0;
-  // ----------------
-  // IMAGES
-  // ----------------
+
+  // ======================
+  // FLOOR TILE
+  // ======================
   const floorImg = new Image();
-  floorImg.src = "/textures/sprites/crystal/crystal_side.png";
+  let floorReady = false;
+  floorImg.onload = () => (floorReady = true);
+  floorImg.src = "/textures/sprites/crystal/crystal_floor.png";
 
-  const ballImg = new Image();
-  ballImg.src = "/textures/sprites/ball.png";
+  // ======================
+  // RESIZE (SAFE)
+  // ======================
+  function resize() {
+    if (!state || !state.cols || !state.rows) return;
 
-  // ----------------
-  // RESIZE
-  // ----------------
-function resize() {
-  if (!state || !state.cols || !state.rows) return;
+    const rect = canvas.getBoundingClientRect();
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
 
-  const rect = canvas.getBoundingClientRect();
-  const dpr = Math.min(2, window.devicePixelRatio || 1);
+    w = rect.width;
+    h = rect.height;
 
-  const w = rect.width;
-  const h = rect.height;
+    canvas.width = Math.floor(w * dpr);
+    canvas.height = Math.floor(h * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-  canvas.width  = Math.floor(w * dpr);
-  canvas.height = Math.floor(h * dpr);
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    // tiles fit board (NO stretch)
+    tile = Math.floor(
+      Math.min(w / state.cols, h / state.rows)
+    );
 
-  tile = Math.floor(
-    Math.min(w / state.cols, h / state.rows)
-  );
-
-  ox = Math.floor((w - state.cols * tile) / 2);
-  oy = Math.floor((h - state.rows * tile) / 2);
-}
-
-window.addEventListener("resize", resize);
-resize();
-
-  // ----------------
-  // PERSPECTIVE (TOP SMALL → BOTTOM BIG)
-  // ----------------
-  function rowScale(y) {
-    const t = y / (state.rows - 1);
-    return 0.85 + t * 0.3; // tweak values here
+    ox = Math.floor((w - state.cols * tile) / 2);
+    oy = Math.floor((h - state.rows * tile) / 2);
   }
 
-  function renderY(y) {
-    let py = oy;
-    for (let i = 0; i < y; i++) {
-      py += tile * rowScale(i);
-    }
-    return py;
+  window.addEventListener("resize", resize);
+  resize();
+
+  // ======================
+  // HELPERS
+  // ======================
+  function cellCenter(x, y) {
+    return {
+      cx: ox + x * tile + tile / 2,
+      cy: oy + y * tile + tile / 2,
+    };
   }
 
-  // ----------------
-  // DRAW FLOOR (ALL TILES)
-  // ----------------
-  function drawFloor() {
-    for (let y = 0; y < state.rows; y++) {
-      const scale = rowScale(y);
-      const py = renderY(y);
+  // ======================
+  // DRAW
+  // ======================
+  function drawBackground() {
+    ctx.fillStyle = "#0e1430";
+    ctx.fillRect(0, 0, w, h);
+  }
 
-      for (let x = 0; x < state.cols; x++) {
+  function drawMaze() {
+    const grid = state.grid;
+    if (!grid) return;
+
+    for (let y = 0; y < grid.length; y++) {
+      for (let x = 0; x < grid[y].length; x++) {
         const px = ox + x * tile;
+        const py = oy + y * tile;
 
-        ctx.drawImage(
-          floorImg,
-          px,
-          py,
-          tile,
-          tile * scale
-        );
+        // FLOOR everywhere (walls are logic-only)
+        if (floorReady) {
+          ctx.drawImage(floorImg, px, py, tile, tile);
+        } else {
+          ctx.fillStyle = "rgba(255,255,255,0.08)";
+          ctx.fillRect(px, py, tile, tile);
+        }
       }
     }
   }
 
-  // ----------------
-  // DRAW BALL
-  // ----------------
-  function drawBall() {
-    const { x, y } = state.ball;
-    const scale = rowScale(y);
+  function drawBall(playerFloat) {
+    if (!playerFloat) return;
 
-    const px = ox + x * tile;
-    const py = renderY(y);
+    const r = tile * 0.28;
+    const c = cellCenter(playerFloat.x, playerFloat.y);
 
-    ctx.drawImage(
-      ballImg,
-      px,
-      py - tile * 0.25 * scale,
-      tile,
-      tile * scale
+    // shadow
+    ctx.fillStyle = "rgba(0,0,0,0.25)";
+    ctx.beginPath();
+    ctx.ellipse(
+      c.cx + 2,
+      c.cy + 5,
+      r * 1.1,
+      r * 0.8,
+      0,
+      0,
+      Math.PI * 2
     );
+    ctx.fill();
+
+    // ball
+    ctx.fillStyle = "#2fe6ff";
+    ctx.beginPath();
+    ctx.arc(c.cx, c.cy, r, 0, Math.PI * 2);
+    ctx.fill();
+
+    // highlight
+    ctx.fillStyle = "rgba(255,255,255,0.5)";
+    ctx.beginPath();
+    ctx.arc(
+      c.cx - r * 0.35,
+      c.cy - r * 0.35,
+      r * 0.35,
+      0,
+      Math.PI * 2
+    );
+    ctx.fill();
   }
 
-  // ----------------
-  // MAIN DRAW
-  // ----------------
-  function draw() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    drawFloor();
-    drawBall();
+  function render(playerFloat) {
+    ctx.clearRect(0, 0, w, h);
+    drawBackground();
+    drawMaze();
+    drawBall(playerFloat);
   }
 
-  // ----------------
-  // LOOP
-  // ----------------
-  function loop() {
-    draw();
-    requestAnimationFrame(loop);
-  }
-
-  loop();
+  return { resize, render };
 }
