@@ -3,9 +3,14 @@
 // ================================
 
 export function createRenderer({ canvas, state }) {
+  if (!(canvas instanceof HTMLCanvasElement)) {
+    console.error("Renderer: canvas missing");
+    return;
+  }
+
+  canvas.style.pointerEvents = "none"; // ✅ FIX
+  canvas.style.zIndex = "0";           // optional safety
   const ctx = canvas.getContext("2d");
-canvas.style.zIndex = "0";
-canvas.style.pointerEvents = "none";
   let tile = 64;
   let ox = 0;
   let oy = 0;
