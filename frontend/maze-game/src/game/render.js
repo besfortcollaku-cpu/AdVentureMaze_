@@ -25,24 +25,24 @@ export function createRenderer({ canvas, state }) {
   // RESIZE
   // ======================
   function resize() {
-    const rect = canvas.getBoundingClientRect();
-    const dpr = Math.min(2, window.devicePixelRatio || 1);
+  const rect = canvas.getBoundingClientRect();
+  const dpr = Math.min(2, window.devicePixelRatio || 1);
 
-    w = rect.width;
-    h = rect.height;
+  w = rect.width;
+  h = rect.height;
 
-    canvas.width = Math.floor(w * dpr);
-    canvas.height = Math.floor(h * dpr);
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  canvas.width  = Math.floor(w * dpr);
+  canvas.height = Math.floor(h * dpr);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-    // tile size so tiles TOUCH
-    tile = Math.floor(
-      Math.min(w / state.cols, h / state.rows)
-    );
+  // 🔥 STRETCH MODE: tiles fill available space
+  tileW = w / state.cols;
+  tileH = h / state.rows;
 
-    ox = Math.floor((w - state.cols * tile) / 2);
-    oy = Math.floor((h - state.rows * tile) / 2);
-  }
+  // no centering offsets in stretch mode
+  ox = 0;
+  oy = 0;
+}
 
   // ======================
   // HELPERS
