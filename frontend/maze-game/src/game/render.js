@@ -174,6 +174,7 @@ function drawFloor() {
 
     ctx.clearRect(0, 0, w, h);
 
+    drawBackground();
 drawFloor();
     drawMaze();
 
