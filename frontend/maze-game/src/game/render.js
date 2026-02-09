@@ -325,6 +325,30 @@ ctx.fill();
         strokeRoundRect(px + 1, py + 1, tile - 2, tile - 2, r);
       }
     }
+    // ─────────────────────────────
+// PASS 5: FRONT FACE (BOARD THICKNESS)
+// ─────────────────────────────
+const board = getBoardBounds();
+const faceDepth = Math.round(tile * 0.35);
+
+// front face shadow
+const faceGrad = ctx.createLinearGradient(
+  board.x,
+  board.y + board.h,
+  board.x,
+  board.y + board.h + faceDepth
+);
+
+faceGrad.addColorStop(0, "rgba(0,0,0,0.55)");
+faceGrad.addColorStop(1, "rgba(0,0,0,0.9)");
+
+ctx.fillStyle = faceGrad;
+ctx.fillRect(
+  board.x,
+  board.y + board.h,
+  board.w,
+  faceDepth
+);
   }
   
    // ─────────────────────────────
