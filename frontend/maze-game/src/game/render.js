@@ -24,7 +24,7 @@ export function createRenderer(arg1, arg2) {
   const tile = 64;            // grid logic size
 const RENDER_TILE = 70;     // visual sprite size
 const VISUAL_OFFSET = (RENDER_TILE - tile) / 8; // = 16
-  const WALL_HEIGHT = 18;   // visual height of walls
+  const WALL_HEIGHT = 14;   // visual height of walls
 const BALL_LIFT   = 10;   // how much the ball floats
 
   let ox = 0;
