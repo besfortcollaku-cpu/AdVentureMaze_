@@ -103,51 +103,25 @@ crystalWall.src = "/textures/sprites/crystal/crystal_side.png";
 
 
   function drawMaze() {
+  for (let y = 0; y < grid.length; y++) {
+    for (let x = 0; x < grid[y].length; x++) {
 
-    for (let y = 0; y < state.rows; y++) {
+      const px = ox + x * tile;
+      const py = oy + y * tile;
 
-      for (let x = 0; x < state.cols; x++) {
-
-        const px = ox + x * tile;
-
-        const py = oy + y * tile;
-
-
-
-        if (state.grid[y][x] === 1) {
-
-          // wall
-
-          ctx.fillStyle = "rgba(0,0,0,0.40)";
-
-          if (grid[y][x] === 1) {
-  if (crystalWall.naturalWidth > 0) {
-    ctx.drawImage(crystalWall, px, py, tile, tile);
-  } else {
-    ctx.fillStyle = "rgba(0,0,0,0.4)";
-    ctx.fillRect(px, py, tile, tile);
-  }
-}
-
-
-          // painted overlay
-
-          if (state.isPainted(x, y)) {
-
-            ctx.fillStyle = "rgba(37,215,255,0.18)";
-
-            ctx.fillRect(px + 2, py + 2, tile - 4, tile - 4);
-
-          }
-
+      // WALL
+      if (grid[y][x] === 1) {
+        if (crystalReady) {
+          ctx.drawImage(crystalWall, px, py, tile, tile);
         }
-
       }
 
+      // FLOOR (optional, if you have it)
+      // if (grid[y][x] === 0) { ... }
+
     }
-
   }
-
+}
 
 
   function drawBall(playerFloat) {
