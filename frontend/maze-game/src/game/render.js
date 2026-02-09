@@ -4,7 +4,6 @@
 
 export function createRenderer({ canvas, state }) {
   const ctx = canvas.getContext("2d");
-  canvas.style.pointerEvents = "none";
 
   let tile = 64;
   let ox = 0;
@@ -30,7 +29,7 @@ export function createRenderer({ canvas, state }) {
     canvas.height = Math.floor(rect.height * dpr);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-    // base tile size (NO gaps)
+    // base tile size
     tile = Math.floor(
       Math.min(rect.width / state.cols, rect.height / state.rows)
     );
@@ -43,11 +42,11 @@ export function createRenderer({ canvas, state }) {
   resize();
 
   // ----------------
-  // PERSPECTIVE
+  // PERSPECTIVE (TOP SMALL → BOTTOM BIG)
   // ----------------
   function rowScale(y) {
     const t = y / (state.rows - 1);
-    return 0.85 + t * 0.3; // top smaller, bottom larger
+    return 0.85 + t * 0.3; // tweak values here
   }
 
   function renderY(y) {
@@ -59,7 +58,7 @@ export function createRenderer({ canvas, state }) {
   }
 
   // ----------------
-  // DRAW FLOOR (EVERY TILE)
+  // DRAW FLOOR (ALL TILES)
   // ----------------
   function drawFloor() {
     for (let y = 0; y < state.rows; y++) {
@@ -93,7 +92,7 @@ export function createRenderer({ canvas, state }) {
     ctx.drawImage(
       ballImg,
       px,
-      py - tile * 0.2 * scale,
+      py - tile * 0.25 * scale,
       tile,
       tile * scale
     );
@@ -104,7 +103,6 @@ export function createRenderer({ canvas, state }) {
   // ----------------
   function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-
     drawFloor();
     drawBall();
   }
