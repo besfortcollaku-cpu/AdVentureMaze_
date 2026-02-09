@@ -102,8 +102,8 @@ export function createRenderer({ canvas, state }) {
   function drawBoardSlab() {
     const b = getBoardBounds();
 
-    const pad = Math.max(6, tile * 0.16);
-    const bx = b.x - pad;
+const logicalDepth = 1; // 1 tile thick slab
+const depth = tile * logicalDepth;    const bx = b.x - pad;
     const by = b.y - pad;
     const bw = b.w + pad * 2;
     const bh = b.h + pad * 2;
@@ -291,7 +291,10 @@ ctx.fill();
           g.addColorStop(0, "rgba(12,24,42,0.78)");
           g.addColorStop(1, "rgba(5,10,20,0.92)");
           ctx.fillStyle = g;
-          ctx.fillRect(px + z * 0.10, py + tile, tile - z * 0.10, z);
+          // light from top-left
+ctx.fillStyle = "rgba(0,0,0,0.55)";
+ctx.fillRect(px, py, tile, depth * 0.5); // top wall
+ctx.fillRect(px, py, depth * 0.5, tile); // left wall
         }
 
         // Top face (raised block)
@@ -382,8 +385,13 @@ function drawSpotLight() {
   // ─────────────────────────────
   function drawBall(playerFloat) {
     const r = Math.max(10, tile * 0.24);
-    const c = cellCenter(playerFloat.x, playerFloat.y);
-    const t = performance.now() * 0.001;
+const cameraTilt = Math.round(tile * 0.22);
+
+const c0 = cellCenter(playerFloat.x, playerFloat.y);
+const c = {
+  cx: c0.cx - cameraTilt,
+  cy: c0.cy - cameraTilt
+};    const t = performance.now() * 0.001;
 
     const dx = playerFloat.vx || 0;
     const dy = playerFloat.vy || 0;
