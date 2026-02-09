@@ -1,10 +1,22 @@
 // ==============================
 // createRenderer EXPORT
 // ==============================
-export function createRenderer(canvas, state) {
+export function createRenderer(arg1, arg2) {
+  let canvas, state;
+
+  // game.js calls: createRenderer({ canvas, state })
+  if (arg1 && arg1.canvas && arg1.state) {
+    canvas = arg1.canvas;
+    state = arg1.state;
+  } else {
+    // fallback (old style): createRenderer(canvas, state)
+    canvas = arg1;
+    state = arg2;
+  }
+
   if (!(canvas instanceof HTMLCanvasElement)) {
-    console.error("❌ createRenderer expected <canvas>, got:", canvas);
-    return () => {};
+    console.error("createRenderer expected <canvas>, got:", canvas);
+    return;
   }
 
   const ctx = canvas.getContext("2d");
