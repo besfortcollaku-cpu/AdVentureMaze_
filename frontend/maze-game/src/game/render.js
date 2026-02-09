@@ -80,8 +80,6 @@ function renderY(y) {
   function drawFloor() {
   for (let y = 0; y < state.rows; y++) {
     for (let x = 0; x < state.cols; x++) {
-      if (state.grid[y][x] !== 0) continue;
-
       ctx.drawImage(
         sprites.floor,
         ox + x * tile - VISUAL_OFFSET,
@@ -92,7 +90,6 @@ function renderY(y) {
     }
   }
 }
-
   function drawWalls() {
   for (let y = 0; y < state.rows; y++) {
     for (let x = 0; x < state.cols; x++) {
@@ -109,16 +106,16 @@ function renderY(y) {
 
       const sprite = isCorner
         ? sprites.wall_corner
-        : sprites.wall;
+        : sprites.wall_center;
 
       // wall depth (side)
       ctx.drawImage(
-        sprites.floor_edge,
-        ox + x * tile - VISUAL_OFFSET,
-        oy + y * tile + tile - WALL_HEIGHT,
-        RENDER_TILE,
-        WALL_HEIGHT
-      );
+  sprites.floor_edge,
+  ox + x * tile - VISUAL_OFFSET,
+  oy + y * tile + tile - WALL_HEIGHT - VISUAL_OFFSET,
+  RENDER_TILE,
+  WALL_HEIGHT
+);
 
       // wall top
       ctx.drawImage(
@@ -133,7 +130,7 @@ function renderY(y) {
 }
   function drawBall() {
   const { x, y } = state.player;
-
+const BALL_LIFT = 6;
   ctx.drawImage(
     sprites.ball,
     ox + x * tile - VISUAL_OFFSET,
