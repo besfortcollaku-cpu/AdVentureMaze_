@@ -4,12 +4,6 @@ export function createRenderer({ canvas, state }) {
     return;
   }
 
-  // 🔒 Canvas must NEVER block UI
-  canvas.style.pointerEvents = "none";
-  canvas.style.position = "absolute";
-  canvas.style.inset = "0";
-  canvas.style.zIndex = "0";
-
   const ctx = canvas.getContext("2d");
 
   // ======================
@@ -30,11 +24,9 @@ export function createRenderer({ canvas, state }) {
   floorImg.src = "/textures/sprites/crystal/crystal_floor.png";
 
   // ======================
-  // RESIZE (SAFE)
+  // RESIZE (CENTERED – SAFE)
   // ======================
   function resize() {
-    if (!state || !state.cols || !state.rows) return;
-
     const rect = canvas.getBoundingClientRect();
     const dpr = Math.min(2, window.devicePixelRatio || 1);
 
@@ -45,7 +37,6 @@ export function createRenderer({ canvas, state }) {
     canvas.height = Math.floor(h * dpr);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-    // tiles fit board (NO stretch)
     tile = Math.floor(
       Math.min(w / state.cols, h / state.rows)
     );
@@ -53,9 +44,6 @@ export function createRenderer({ canvas, state }) {
     ox = Math.floor((w - state.cols * tile) / 2);
     oy = Math.floor((h - state.rows * tile) / 2);
   }
-
-  window.addEventListener("resize", resize);
-  resize();
 
   // ======================
   // HELPERS
@@ -77,31 +65,44 @@ export function createRenderer({ canvas, state }) {
 
   function drawMaze() {
     const grid = state.grid;
-    if (!grid) return;
 
     for (let y = 0; y < grid.length; y++) {
       for (let x = 0; x < grid[y].length; x++) {
+
+        // ---------- FAKE 3D PERSPECTIVE ----------
         const depth = y / (state.rows - 1); // 0 top → 1 bottom
+        const scale = 0.82 + depth * 0.18;  // subtle perspective
+        const drawSize = tile * scale;
 
-const scale = 0.8 + depth * 0.2; // perspective strength
-const drawSize = tile * scale;
+        const px =
+          ox + x * tile + (tile - drawSize) / 2;
 
-// keep centered per cell
-const px = ox + x * tile + (tile - drawSize) / 2;
-const py =
-  oy +
-  y * tile -
-  (1 - depth) * tile * 0.4; // push top rows upward
+        const py =
+          oy +
+          y * tile -
+          (1 - depth) * tile * 0.35; // pull top upward
+        // ----------------------------------------
 
-ctx.drawImage(floorImg, px, py, drawSize, drawSize);
+        if (floorReady) {
+          ctx.drawImage(
+            floorImg,
+            px,
+            py,
+            drawSize,
+            drawSize
+          );
+        } else {
+          ctx.fillStyle = "rgba(255,255,255,0.08)";
+          ctx.fillRect(px, py, drawSize, drawSize);
         }
-      
+
+        // WALLS = LOGIC ONLY
+        // grid[y][x] === 1 → collision
+      }
     }
   }
 
   function drawBall(playerFloat) {
-    if (!playerFloat) return;
-
     const r = tile * 0.28;
     const c = cellCenter(playerFloat.x, playerFloat.y);
 
