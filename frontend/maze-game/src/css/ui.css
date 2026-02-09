@@ -97,6 +97,7 @@ body {
 }
 
 canvas#game {
+    pointer-events: none;
   width: 90vw;
   max-width: 360px;
   aspect-ratio: 1 / 1;
