@@ -97,7 +97,11 @@ function renderY(y) {
 oy + y * tile - (RENDER_TILE - tile) / 2,
         RENDER_TILE,
         RENDER_TILE
-      );
+);
+      }
+    }
+  }
+}
   function drawWalls() {
   for (let y = 0; y < state.rows; y++) {
     for (let x = 0; x < state.cols; x++) {
