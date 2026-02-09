@@ -4,24 +4,23 @@
 
 export function createRenderer({ canvas, state }) {
 
-  let crystalReady = false;
-const crystalWall = new Image();
-crystalWall.onload = () => crystalReady = true;
-crystalWall.src = "/textures/sprites/crystal/crystal_side.png";
+  if (!(canvas instanceof HTMLCanvasElement)) {
+    console.error("Renderer: canvas missing");
+    return;
+  }
 
+  const ctx = canvas.getContext("2d"); // ✅ THIS WAS MISSING
+
+  let crystalReady = false;
+  const crystalWall = new Image();
+  crystalWall.onload = () => (crystalReady = true);
+  crystalWall.src = "/textures/sprites/crystal/crystal_side.png";
 
   let w = 0;
-
   let h = 0;
-
-
-
   let tile = 40;
-
   let ox = 0;
-
   let oy = 0;
-
 
 
   function resize() {
