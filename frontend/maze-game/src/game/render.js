@@ -4,7 +4,7 @@ export function createRenderer({ canvas, state }) {
   const ctx = canvas.getContext("2d");
 
   // ─────────────────────────────
-  // OPTIONAL TEXTURES
+  // TEXTURES (OPTIONAL)
   // ─────────────────────────────
   const trenchTex = new Image();
   trenchTex.src = "/textures/trench_noise.png";
@@ -16,10 +16,10 @@ export function createRenderer({ canvas, state }) {
   let liquidPattern = null;
 
   function ensurePatterns() {
-    if (!trenchPattern && trenchTex.complete && trenchTex.naturalWidth) {
+    if (!trenchPattern && trenchTex.complete && trenchTex.naturalWidth > 0) {
       trenchPattern = ctx.createPattern(trenchTex, "repeat");
     }
-    if (!liquidPattern && liquidTex.complete && liquidTex.naturalWidth) {
+    if (!liquidPattern && liquidTex.complete && liquidTex.naturalWidth > 0) {
       liquidPattern = ctx.createPattern(liquidTex, "repeat");
     }
   }
@@ -61,8 +61,22 @@ export function createRenderer({ canvas, state }) {
   }
 
   function drawBackground() {
-    // Keep the canvas transparent always
+    // keep fully transparent so app background shows through
     ctx.clearRect(0, 0, w, h);
+  }
+
+  // ─────────────────────────────
+  // HELPERS
+  // ─────────────────────────────
+  function rr(x, y, w, h, r) {
+    const radius = Math.max(0, Math.min(r, w / 2, h / 2));
+    ctx.beginPath();
+    ctx.moveTo(x + radius, y);
+    ctx.arcTo(x + w, y, x + w, y + h, radius);
+    ctx.arcTo(x + w, y + h, x, y + h, radius);
+    ctx.arcTo(x, y + h, x, y, radius);
+    ctx.arcTo(x, y, x + w, y, radius);
+    ctx.closePath();
   }
 
   function getBoardBounds() {
@@ -74,196 +88,206 @@ export function createRenderer({ canvas, state }) {
     };
   }
 
-  // Small helpers
-  function roundRectPath(x, y, w, h, r) {
-    const rr = Math.max(0, Math.min(r, Math.min(w, h) / 2));
-    ctx.beginPath();
-    ctx.moveTo(x + rr, y);
-    ctx.arcTo(x + w, y, x + w, y + h, rr);
-    ctx.arcTo(x + w, y + h, x, y + h, rr);
-    ctx.arcTo(x, y + h, x, y, rr);
-    ctx.arcTo(x, y, x + w, y, rr);
-    ctx.closePath();
-  }
-
-  function fillRoundRect(x, y, w, h, r) {
-    roundRectPath(x, y, w, h, r);
-    ctx.fill();
-  }
-
-  function strokeRoundRect(x, y, w, h, r) {
-    roundRectPath(x, y, w, h, r);
-    ctx.stroke();
-  }
-
-  // ─────────────────────────────
-  // 3D BOARD (SLAB + FRONT FACE)
-  // ─────────────────────────────
-  function drawBoardSlab() {
+  function drawBoardBase() {
     const b = getBoardBounds();
 
-const logicalDepth = 1; // 1 tile thick slab
-const depth = tile * logicalDepth;    const bx = b.x - pad;
-    const by = b.y - pad;
-    const bw = b.w + pad * 2;
-    const bh = b.h + pad * 2;
-
-    const slabDepth = Math.round(tile * 0.55);
-    const radius = Math.round(tile * 0.25);
-
-    // Drop shadow under the board
-    ctx.fillStyle = "rgba(0,0,0,0.45)";
+    // soft shadow under board (makes it feel like a slab)
+    ctx.save();
+    ctx.fillStyle = "rgba(0,0,0,0.35)";
     ctx.beginPath();
     ctx.ellipse(
-      bx + bw / 2,
-      by + bh + slabDepth * 1.15,
-      bw * 0.55,
-      slabDepth * 0.65,
+      b.x + b.w / 2,
+      b.y + b.h + tile * 0.35,
+      b.w * 0.55,
+      tile * 0.45,
       0,
       0,
       Math.PI * 2
     );
     ctx.fill();
+    ctx.restore();
 
-    // Front face (vertical)
-    const faceGrad = ctx.createLinearGradient(0, by + bh, 0, by + bh + slabDepth);
-    faceGrad.addColorStop(0, "rgba(10,20,35,0.95)");
-    faceGrad.addColorStop(1, "rgba(5,10,20,0.95)");
-    ctx.fillStyle = faceGrad;
-    fillRoundRect(bx, by + bh, bw, slabDepth, radius);
+    // main wood plate
+    ctx.save();
+    rr(b.x - tile * 0.25, b.y - tile * 0.25, b.w + tile * 0.5, b.h + tile * 0.5, tile * 0.25);
 
-    // Top slab
-    const topGrad = ctx.createLinearGradient(0, by, 0, by + bh);
-    topGrad.addColorStop(0, "rgba(22,40,70,0.70)");
-    topGrad.addColorStop(1, "rgba(8,18,32,0.70)");
-    ctx.fillStyle = topGrad;
-    fillRoundRect(bx, by, bw, bh, radius);
-
-    // Subtle rim highlight
-    ctx.strokeStyle = "rgba(255,255,255,0.10)";
-    ctx.lineWidth = 2;
-    strokeRoundRect(bx + 1, by + 1, bw - 2, bh - 2, radius);
-
-    // Inner vignette (makes “camera” feel less flat)
-    const vignette = ctx.createRadialGradient(
-      bx + bw * 0.5,
-      by + bh * 0.45,
-      bw * 0.15,
-      bx + bw * 0.5,
-      by + bh * 0.55,
-      bw * 0.75
+    // “spotlight from bottom-left”
+    const spot = ctx.createRadialGradient(
+      b.x - tile * 0.2,          // bottom-left-ish
+      b.y + b.h + tile * 0.5,
+      tile * 0.5,
+      b.x + b.w * 0.6,
+      b.y + b.h * 0.3,
+      b.w * 1.2
     );
-    vignette.addColorStop(0, "rgba(0,0,0,0)");
-    vignette.addColorStop(1, "rgba(0,0,0,0.35)");
-    ctx.fillStyle = vignette;
-    fillRoundRect(bx, by, bw, bh, radius);
+    spot.addColorStop(0, "rgba(255,255,255,0.25)");
+    spot.addColorStop(0.35, "rgba(255,255,255,0.10)");
+    spot.addColorStop(1, "rgba(0,0,0,0.35)");
+
+    // base wood tint (neutral so it works with your app bg)
+    const wood = ctx.createLinearGradient(b.x, b.y, b.x, b.y + b.h);
+    wood.addColorStop(0, "rgba(30,55,90,0.55)");
+    wood.addColorStop(1, "rgba(10,25,45,0.55)");
+
+    ctx.fillStyle = wood;
+    ctx.fill();
+    ctx.clip();
+
+    // spotlight overlay
+    ctx.fillStyle = spot;
+    ctx.fillRect(b.x - tile, b.y - tile, b.w + tile * 2, b.h + tile * 2);
+
+    // thin rim highlight
+    ctx.strokeStyle = "rgba(255,255,255,0.08)";
+    ctx.lineWidth = 2;
+    rr(b.x - tile * 0.25, b.y - tile * 0.25, b.w + tile * 0.5, b.h + tile * 0.5, tile * 0.25);
+    ctx.stroke();
+
+    ctx.restore();
   }
 
-  // ─────────────────────────────
-  // 3D MAZE DRAW
-  // - floor (walkable) is recessed tiles
-  // - walls are raised blocks (like your screenshot)
-  // ─────────────────────────────
+  // Draw a raised wooden block (wall) with extrusion (3D look)
+  function drawRaisedBlock(px, py, size, extrude) {
+    const r = Math.max(4, size * 0.14);
+
+    // shadow below block (casts to top-right a bit)
+    ctx.save();
+    ctx.fillStyle = "rgba(0,0,0,0.35)";
+    rr(px + extrude * 0.25, py + extrude * 0.55, size, size, r);
+    ctx.fill();
+    ctx.restore();
+
+    // side faces (right + bottom)
+    ctx.save();
+    // right face
+    ctx.fillStyle = "rgba(0,0,0,0.28)";
+    ctx.beginPath();
+    ctx.moveTo(px + size, py);
+    ctx.lineTo(px + size + extrude, py + extrude * 0.55);
+    ctx.lineTo(px + size + extrude, py + size + extrude * 0.55);
+    ctx.lineTo(px + size, py + size);
+    ctx.closePath();
+    ctx.fill();
+
+    // bottom face
+    ctx.fillStyle = "rgba(0,0,0,0.22)";
+    ctx.beginPath();
+    ctx.moveTo(px, py + size);
+    ctx.lineTo(px + extrude, py + size + extrude * 0.55);
+    ctx.lineTo(px + size + extrude, py + size + extrude * 0.55);
+    ctx.lineTo(px + size, py + size);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+
+    // top face (light wood)
+    ctx.save();
+    const top = ctx.createLinearGradient(px, py, px + size, py + size);
+    top.addColorStop(0, "rgba(255,255,255,0.20)"); // light from bottom-left
+    top.addColorStop(0.4, "rgba(255,255,255,0.08)");
+    top.addColorStop(1, "rgba(0,0,0,0.18)");
+
+    rr(px, py, size, size, r);
+    ctx.fillStyle = "rgba(20,40,70,0.55)";
+    ctx.fill();
+
+    ctx.fillStyle = top;
+    ctx.fill();
+
+    // bevel line
+    ctx.strokeStyle = "rgba(255,255,255,0.07)";
+    ctx.lineWidth = 1;
+    rr(px + 1, py + 1, size - 2, size - 2, r);
+    ctx.stroke();
+
+    ctx.restore();
+  }
+
+  // Engraved trench floor (walkable)
+  function drawTrenchFloor(px, py, size, inset) {
+    // base dark trench
+    ctx.save();
+
+    // slight vertical shading
+    const g = ctx.createLinearGradient(px, py, px, py + size);
+    g.addColorStop(0, "rgba(0,0,0,0.32)");
+    g.addColorStop(1, "rgba(0,0,0,0.55)");
+
+    // use texture if available, but keep subtle
+    ctx.fillStyle = trenchPattern || "rgba(0,0,0,0.45)";
+    ctx.globalAlpha = trenchPattern ? 0.35 : 1;
+    ctx.fillRect(px, py, size, size);
+
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = g;
+    ctx.fillRect(px, py, size, size);
+
+    // inner lip highlight + shadow (engraved)
+    ctx.fillStyle = "rgba(255,255,255,0.05)";
+    ctx.fillRect(px + inset, py + inset, size - inset * 2, 2);
+
+    ctx.fillStyle = "rgba(0,0,0,0.40)";
+    ctx.fillRect(px + inset, py + size - inset - 2, size - inset * 2, 2);
+
+    ctx.restore();
+  }
+
+  function drawPaintedPath(px, py, size, inset, time) {
+    // clean liquid (no glow spam)
+    const grad = ctx.createLinearGradient(px, py, px, py + size);
+    grad.addColorStop(0, "#5fe6ff");
+    grad.addColorStop(0.5, "#25d7ff");
+    grad.addColorStop(1, "#0a6a8f");
+
+    ctx.save();
+    rr(px + inset, py + inset, size - inset * 2, size - inset * 2, Math.max(4, size * 0.12));
+    ctx.fillStyle = grad;
+    ctx.fill();
+
+    // subtle moving noise (very low)
+    if (liquidPattern) {
+      ctx.globalAlpha = 0.10;
+      ctx.translate(Math.sin(time + px * 0.02) * 4, Math.cos(time + py * 0.02) * 4);
+      ctx.fillStyle = liquidPattern;
+      ctx.fillRect(px + inset - 30, py + inset - 30, size - inset * 2 + 60, size - inset * 2 + 60);
+    }
+
+    // small spec line
+    ctx.globalAlpha = 0.18;
+    ctx.fillStyle = "rgba(255,255,255,1)";
+    ctx.fillRect(px + inset * 1.2, py + inset * 1.2, size - inset * 2.4, 2);
+
+    ctx.restore();
+  }
+
   function drawMaze() {
-      
-      const wall = Math.round(tile * 0.22); // constant wall thickness
     ensurePatterns();
 
     const time = performance.now() * 0.001;
 
-    // “Height” of raised wall blocks + trench lip depth
-    const z = Math.round(Math.max(6, tile * 0.28)); // block height
-    const inset = Math.round(Math.max(3, tile * 0.10)); // trench inner inset
-    const r = Math.round(tile * 0.18);
+    // draw board base first (solid piece)
+    drawBoardBase();
 
-    // Colors (crystal theme)
-    const floorBase = "#091425"; // deep trench floor
-    const grout = "rgba(0,0,0,0.28)";
-
-    // Paint (visited) should be less “glow”, more “crystal fill”
-    const paintTop = "#bff3ff";
-    const paintMid = "#63d7ff";
-    const paintBot = "#1a86b0";
+    const inset = Math.max(2, Math.floor(tile * 0.10));
+    const extrude = Math.max(6, Math.floor(tile * 0.22));
 
     // ─────────────────────────────
-    // PASS 0: Recessed floor tiles (for grid == 0)
+    // PASS 1: TRENCH FLOOR (WALKABLE) — no seams (overlap)
     // ─────────────────────────────
     for (let y = 0; y < state.rows; y++) {
       for (let x = 0; x < state.cols; x++) {
-        if (state.grid[y][x] !== 0) continue;
+        if (state.grid[y][x] === 1) continue;
 
         const px = ox + x * tile;
         const py = oy + y * tile;
 
-        // Recess base
-        ctx.fillStyle = floorBase;
-        ctx.fillRect(px, py, tile, tile);
-ctx.fillRect(px + tile - 1, py, 2, tile);
-ctx.fillRect(px, py + tile - 1, tile, 2);
-        // Optional trench noise (very subtle)
-        if (trenchPattern) {
-          ctx.save();
-          ctx.globalAlpha = 0.18;
-          ctx.translate(Math.sin(time + x * 0.2) * 2, Math.cos(time + y * 0.2) * 2);
-          ctx.fillStyle = trenchPattern;
-          ctx.fillRect(px, py, tile, tile);
-          ctx.restore();
-        }
-
-        // Inner trench (inset) to feel deeper
-        const innerGrad = ctx.createLinearGradient(px, py, px, py + tile);
-        innerGrad.addColorStop(0, "rgba(0,0,0,0.35)");
-        innerGrad.addColorStop(1, "rgba(255,255,255,0.04)");
-        ctx.fillStyle = innerGrad;
-        fillRoundRect(px + inset, py + inset, tile - inset * 2, tile - inset * 2, r);
-
-        // Engraved lip: strong top-left shadow, soft bottom-right highlight
-        ctx.fillStyle = "rgba(0,0,0,0.55)";
-        ctx.fillRect(px + inset, py + inset, tile - inset * 2, Math.max(2, z * 0.20)); // top
-        ctx.fillRect(px + inset, py + inset, Math.max(2, z * 0.20), tile - inset * 2); // left
-
-        ctx.fillStyle = "rgba(255,255,255,0.06)";
-        ctx.fillRect(
-          px + inset,
-          py + tile - inset - Math.max(2, z * 0.16),
-          tile - inset * 2,
-          Math.max(2, z * 0.16)
-        ); // bottom
-        ctx.fillRect(
-          px + tile - inset - Math.max(2, z * 0.16),
-          py + inset,
-          Math.max(2, z * 0.16),
-          tile - inset * 2
-        ); // right
+        // overlap by 1px to kill seams
+        drawTrenchFloor(px - 1, py - 1, tile + 2, inset);
       }
     }
 
-// ─────────────────────────────
-// PASS 1: CONTINUOUS TRENCH SHAPE (NO TILES)
-// ─────────────────────────────
-ctx.fillStyle = trenchPattern || "#050c18";
-
-ctx.beginPath();
-
-for (let y = 0; y < state.rows; y++) {
-  for (let x = 0; x < state.cols; x++) {
-    if (state.grid[y][x] === 1) continue;
-
-    const px = ox + x * tile - cameraTilt;
-    const py = oy + y * tile - cameraTilt;
-
-    ctx.rect(px, py, tile, tile);
-  }
-}
-
-ctx.fill();
-
     // ─────────────────────────────
-    // PASS 2: Raised wall blocks (grid == 1) like your screenshot
-    // Each wall draws:
-    // - side faces (bottom + right)
-    // - top face
-    // - top highlight
+    // PASS 2: RAISED WALLS (BLOCKS) — also no seams
     // ─────────────────────────────
     for (let y = 0; y < state.rows; y++) {
       for (let x = 0; x < state.cols; x++) {
@@ -272,126 +296,71 @@ ctx.fill();
         const px = ox + x * tile;
         const py = oy + y * tile;
 
-        // Side faces (only show where adjacent is floor to avoid double-drawing)
-        const isFloorRight = x < state.cols - 1 && state.grid[y][x + 1] === 0;
-        const isFloorDown = y < state.rows - 1 && state.grid[y + 1][x] === 0;
-
-        // Right side face
-        if (isFloorRight) {
-          const g = ctx.createLinearGradient(px + tile, py, px + tile + z, py);
-          g.addColorStop(0, "rgba(10,20,35,0.80)");
-          g.addColorStop(1, "rgba(5,10,20,0.90)");
-          ctx.fillStyle = g;
-          ctx.fillRect(px + tile, py + z * 0.10, z, tile - z * 0.10);
-        }
-
-        // Bottom side face
-        if (isFloorDown) {
-          const g = ctx.createLinearGradient(0, py + tile, 0, py + tile + z);
-          g.addColorStop(0, "rgba(12,24,42,0.78)");
-          g.addColorStop(1, "rgba(5,10,20,0.92)");
-          ctx.fillStyle = g;
-          // light from top-left
-ctx.fillStyle = "rgba(0,0,0,0.55)";
-ctx.fillRect(px, py, tile, depth * 0.5); // top wall
-ctx.fillRect(px, py, depth * 0.5, tile); // left wall
-        }
-
-        // Top face (raised block)
-        const topGrad = ctx.createLinearGradient(px, py, px, py + tile);
-        topGrad.addColorStop(0, "rgba(25,55,95,0.75)");
-        topGrad.addColorStop(1, "rgba(10,20,35,0.78)");
-
-        ctx.fillStyle = topGrad;
-        fillRoundRect(px, py, tile, tile, r);
-
-        // Optional stone/crystal noise on block tops (very subtle)
-        if (trenchPattern) {
-          ctx.save();
-          ctx.globalAlpha = 0.08;
-          ctx.fillStyle = trenchPattern;
-          fillRoundRect(px, py, tile, tile, r);
-          ctx.restore();
-        }
-
-        // Bevel highlight (top edge)
-        ctx.strokeStyle = "rgba(255,255,255,0.10)";
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(px + r, py + 1);
-        ctx.lineTo(px + tile - r, py + 1);
-        ctx.stroke();
-
-        // Inner shade for volume
-        ctx.strokeStyle = "rgba(0,0,0,0.28)";
-        ctx.lineWidth = 2;
-        strokeRoundRect(px + 1, py + 1, tile - 2, tile - 2, r);
+        // slightly overlap into neighbors so no grid lines
+        drawRaisedBlock(px - 1, py - 1, tile + 2, extrude);
       }
     }
+
     // ─────────────────────────────
-// PASS 5: FRONT FACE (BOARD THICKNESS)
-// ─────────────────────────────
-const board = getBoardBounds();
-const faceDepth = Math.round(tile * 0.35);
+    // PASS 3: PAINTED PATH (VISITED)
+    // ─────────────────────────────
+    for (let y = 0; y < state.rows; y++) {
+      for (let x = 0; x < state.cols; x++) {
+        if (!state.isPainted(x, y)) continue;
+        if (state.grid[y][x] === 1) continue;
 
-// front face shadow
-const faceGrad = ctx.createLinearGradient(
-  board.x,
-  board.y + board.h,
-  board.x,
-  board.y + board.h + faceDepth
-);
+        const px = ox + x * tile;
+        const py = oy + y * tile;
 
-faceGrad.addColorStop(0, "rgba(0,0,0,0.55)");
-faceGrad.addColorStop(1, "rgba(0,0,0,0.9)");
+        drawPaintedPath(px - 1, py - 1, tile + 2, inset + 1, time);
+      }
+    }
 
-ctx.fillStyle = faceGrad;
-ctx.fillRect(
-  board.x,
-  board.y + board.h,
-  board.w,
-  faceDepth
-);
+    // ─────────────────────────────
+    // PASS 4: EDGE SHADOWS between trench and walls (depth)
+    // light from bottom-left => shadows go top-right
+    // ─────────────────────────────
+    ctx.save();
+    ctx.globalAlpha = 0.55;
+
+    for (let y = 0; y < state.rows; y++) {
+      for (let x = 0; x < state.cols; x++) {
+        if (state.grid[y][x] === 1) continue;
+
+        const px = ox + x * tile;
+        const py = oy + y * tile;
+
+        // if neighbor is wall, draw inner shadow on that edge
+        // top neighbor wall => shadow at top edge of trench
+        if (y > 0 && state.grid[y - 1][x] === 1) {
+          ctx.fillStyle = "rgba(0,0,0,0.45)";
+          ctx.fillRect(px, py, tile, inset + 2);
+        }
+        // left neighbor wall
+        if (x > 0 && state.grid[y][x - 1] === 1) {
+          ctx.fillStyle = "rgba(0,0,0,0.38)";
+          ctx.fillRect(px, py, inset + 2, tile);
+        }
+        // bottom neighbor wall => a tiny highlight (light from bottom-left)
+        if (y < state.rows - 1 && state.grid[y + 1][x] === 1) {
+          ctx.fillStyle = "rgba(255,255,255,0.06)";
+          ctx.fillRect(px, py + tile - (inset + 2), tile, inset + 2);
+        }
+        // right neighbor wall => tiny highlight
+        if (x < state.cols - 1 && state.grid[y][x + 1] === 1) {
+          ctx.fillStyle = "rgba(255,255,255,0.05)";
+          ctx.fillRect(px + tile - (inset + 2), py, inset + 2, tile);
+        }
+      }
+    }
+
+    ctx.restore();
   }
-  
-   // ─────────────────────────────
-  // SPOT LIGHT
-  // ─────────────────────────────
-  
-function drawSpotLight() {
-  const b = getBoardBounds(); // you already have this helper
 
-  const light = ctx.createRadialGradient(
-    b.x - b.w * 0.2,        // light source X (bottom-left, outside board)
-    b.y + b.h * 1.2,        // light source Y
-    b.w * 0.15,             // inner radius
-    b.x + b.w * 0.5,        // spread center X
-    b.y + b.h * 0.5,        // spread center Y
-    b.w * 0.9               // outer radius
-  );
-
-  light.addColorStop(0, "rgba(255,255,255,0.35)");
-  light.addColorStop(0.4, "rgba(255,255,255,0.15)");
-  light.addColorStop(1, "rgba(0,0,0,0.55)");
-
-  ctx.save();
-  ctx.globalCompositeOperation = "overlay";
-  ctx.fillStyle = light;
-  ctx.fillRect(b.x, b.y, b.w, b.h);
-  ctx.restore();
-}
-  // ─────────────────────────────
-  // GOLD BALL (3D)
-  // ─────────────────────────────
   function drawBall(playerFloat) {
     const r = Math.max(10, tile * 0.24);
-const cameraTilt = Math.round(tile * 0.22);
-
-const c0 = cellCenter(playerFloat.x, playerFloat.y);
-const c = {
-  cx: c0.cx - cameraTilt,
-  cy: c0.cy - cameraTilt
-};    const t = performance.now() * 0.001;
+    const c = cellCenter(playerFloat.x, playerFloat.y);
+    const t = performance.now() * 0.001;
 
     const dx = playerFloat.vx || 0;
     const dy = playerFloat.vy || 0;
@@ -399,15 +368,15 @@ const c = {
     const mx = dx / len;
     const my = dy / len;
 
-    // Shadow
+    // contact shadow
     ctx.fillStyle = "rgba(0,0,0,0.45)";
     ctx.beginPath();
-    ctx.ellipse(c.cx + r * 0.25, c.cy + r * 0.72, r * 1.2, r * 0.55, 0, 0, Math.PI * 2);
+    ctx.ellipse(c.cx + r * 0.25, c.cy + r * 0.75, r * 1.15, r * 0.55, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    // Gold body
-    const lx = c.cx - r * (0.6 + mx * 0.35);
-    const ly = c.cy - r * (0.6 + my * 0.35);
+    // gold metal gradient (FIXED: was red in your pasted block)
+    const lx = c.cx - r * (0.65 + mx * 0.35);
+    const ly = c.cy - r * (0.65 + my * 0.35);
 
     const metal = ctx.createRadialGradient(lx, ly, r * 0.12, c.cx, c.cy, r);
     metal.addColorStop(0.0, "#fffbe6");
@@ -421,10 +390,11 @@ const c = {
     ctx.arc(c.cx, c.cy, r, 0, Math.PI * 2);
     ctx.fill();
 
-    // Micro scratches (subtle)
+    // brushed arcs
     ctx.save();
     ctx.globalAlpha = 0.08;
     ctx.strokeStyle = "#ffffff";
+    ctx.lineWidth = 1;
     for (let i = 0; i < 6; i++) {
       const a = (t * 2 + i) % (Math.PI * 2);
       ctx.beginPath();
@@ -433,46 +403,34 @@ const c = {
     }
     ctx.restore();
 
-    // Inner rim shade
+    // rim shade
     ctx.strokeStyle = "rgba(0,0,0,0.35)";
     ctx.lineWidth = r * 0.22;
     ctx.beginPath();
     ctx.arc(c.cx, c.cy, r - ctx.lineWidth / 2, 0, Math.PI * 2);
     ctx.stroke();
 
-    // Specular hotspot
-    ctx.fillStyle = "rgba(255,255,255,0.9)";
+    // specular hotspot
+    ctx.fillStyle = "rgba(255,255,255,0.92)";
     ctx.beginPath();
     ctx.ellipse(c.cx - r * 0.45, c.cy - r * 0.5, r * 0.22, r * 0.18, -0.4, 0, Math.PI * 2);
     ctx.fill();
 
-    // Secondary reflection
+    // secondary reflection
     ctx.fillStyle = "rgba(255,255,255,0.18)";
     ctx.beginPath();
-    ctx.ellipse(c.cx + r * 0.3, c.cy + r * 0.15, r * 0.5, r * 0.32, 0.25, 0, Math.PI * 2);
+    ctx.ellipse(c.cx + r * 0.28, c.cy + r * 0.12, r * 0.5, r * 0.32, 0.25, 0, Math.PI * 2);
     ctx.fill();
-
-    // Subtle aura
-    ctx.strokeStyle = "rgba(255,190,80,0.18)";
-    ctx.lineWidth = 1.2 + Math.sin(t * 2) * 0.4;
-    ctx.beginPath();
-    ctx.arc(c.cx, c.cy, r + 1.5, 0, Math.PI * 2);
-    ctx.stroke();
   }
 
-  // ─────────────────────────────
-  // RENDER
-  // ─────────────────────────────
   function render(playerFloat) {
-  ctx.clearRect(0, 0, w, h);
+    // IMPORTANT: do not double-clear in ways that erase board+ball
+    ctx.clearRect(0, 0, w, h);
 
-  drawBackground();
-  drawMaze();
-
-  drawSpotLight(); 
-
-  drawBall(playerFloat);
-}
+    drawBackground();
+    drawMaze();
+    drawBall(playerFloat);
+  }
 
   return { resize, render };
 }
