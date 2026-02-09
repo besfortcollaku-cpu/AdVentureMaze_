@@ -15,10 +15,10 @@ export function createRenderer(arg1, arg2) {
     state = arg2;
   }
 
-  if (!(canvas instanceof HTMLCanvasElement)) {
-    console.error("createRenderer expected <canvas>, got:", canvas);
-    return;
-  }
+  if (!canvas || typeof canvas.getContext !== "function") {
+  console.error("createRenderer expected <canvas>, got:", canvas);
+  return;
+}
 
   const ctx = canvas.getContext("2d");
   const tile = 64;            // grid logic size
