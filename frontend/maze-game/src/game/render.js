@@ -119,8 +119,12 @@ const crystalImg = new Image();
 
           ctx.fillStyle = "rgba(0,0,0,0.40)";
 
-          ctx.fillRect(px, py, tile, tile);
-
+          if (crystalWall.complete) {
+  ctx.drawImage(crystalWall, px, py, tile, tile);
+} else {
+  ctx.fillStyle = "rgba(0,0,0,0.4)";
+  ctx.fillRect(px, py, tile, tile);
+}
         } else {
 
           // walkable base
