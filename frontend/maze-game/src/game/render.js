@@ -4,9 +4,10 @@
 
 export function createRenderer({ canvas, state }) {
 
-  const ctx = canvas.getContext("2d");
-const crystalImg = new Image();
-  crystalImg.src = "/textures/sprites/crystal/crystal_tile.png";
+  let crystalReady = false;
+const crystalWall = new Image();
+crystalWall.onload = () => crystalReady = true;
+crystalWall.src = "/textures/sprites/crystal/crystal_side.png";
 
 
   let w = 0;
@@ -119,20 +120,14 @@ const crystalImg = new Image();
 
           ctx.fillStyle = "rgba(0,0,0,0.40)";
 
-          if (crystalWall.complete) {
-  ctx.drawImage(crystalWall, px, py, tile, tile);
-} else {
-  ctx.fillStyle = "rgba(0,0,0,0.4)";
-  ctx.fillRect(px, py, tile, tile);
+          if (grid[y][x] === 1) {
+  if (crystalWall.naturalWidth > 0) {
+    ctx.drawImage(crystalWall, px, py, tile, tile);
+  } else {
+    ctx.fillStyle = "rgba(0,0,0,0.4)";
+    ctx.fillRect(px, py, tile, tile);
+  }
 }
-        } else {
-
-          // walkable base
-
-          ctx.fillStyle = "rgba(255,255,255,0.06)";
-
-          ctx.fillRect(px, py, tile, tile);
-
 
 
           // painted overlay
