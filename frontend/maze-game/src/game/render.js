@@ -1,118 +1,120 @@
-export function createRenderer({ canvas, state }) {
-  if (!(canvas instanceof HTMLCanvasElement)) {
-    console.error("Renderer: canvas missing");
-    return;
-  }
+// ================================
+// RENDERER
+// ================================
 
+export function createRenderer({ canvas, state }) {
   const ctx = canvas.getContext("2d");
 
-  // ======================
-  // CONFIG
-  // ======================
-  let w = 0;
-  let h = 0;
-  let tile = 48;
+  let tile = 64;
   let ox = 0;
   let oy = 0;
 
-  // FLOOR TILE
+  // ----------------
+  // IMAGES
+  // ----------------
   const floorImg = new Image();
-  let floorReady = false;
-  floorImg.onload = () => (floorReady = true);
-  floorImg.src = "/textures/sprites/crystal/crystal_floor.png";
+  floorImg.src = "/textures/sprites/crystal/crystal_side.png";
 
-  // ======================
+  const ballImg = new Image();
+  ballImg.src = "/textures/sprites/ball.png";
+
+  // ----------------
   // RESIZE
-  // ======================
+  // ----------------
   function resize() {
-  const rect = canvas.getBoundingClientRect();
-  const dpr = Math.min(2, window.devicePixelRatio || 1);
+    const rect = canvas.getBoundingClientRect();
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
 
-  w = rect.width;
-  h = rect.height;
+    canvas.width = Math.floor(rect.width * dpr);
+    canvas.height = Math.floor(rect.height * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-  canvas.width  = Math.floor(w * dpr);
-  canvas.height = Math.floor(h * dpr);
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    // base tile size (NO gaps)
+    tile = Math.floor(
+      Math.min(rect.width / state.cols, rect.height / state.rows)
+    );
 
-  // stretch but KEEP tile
-  tile = Math.floor(
-    Math.min(w / state.cols, h / state.rows)
-  );
-
-  ox = Math.floor((w - state.cols * tile) / 2);
-  oy = Math.floor((h - state.rows * tile) / 2);
-}
-
-  // ======================
-  // HELPERS
-  // ======================
-  function cellCenter(x, y) {
-    return {
-      cx: ox + x * tile + tile / 2,
-      cy: oy + y * tile + tile / 2,
-    };
+    ox = Math.floor((rect.width - state.cols * tile) / 2);
+    oy = Math.floor((rect.height - state.rows * tile) / 2);
   }
 
-  // ======================
-  // DRAW
-  // ======================
-  function drawBackground() {
-    ctx.fillStyle = "#0e1430";
-    ctx.fillRect(0, 0, w, h);
+  window.addEventListener("resize", resize);
+  resize();
+
+  // ----------------
+  // PERSPECTIVE
+  // ----------------
+  function rowScale(y) {
+    const t = y / (state.rows - 1);
+    return 0.85 + t * 0.3; // top smaller, bottom larger
   }
 
-  function drawMaze() {
-    const grid = state.grid;
+  function renderY(y) {
+    let py = oy;
+    for (let i = 0; i < y; i++) {
+      py += tile * rowScale(i);
+    }
+    return py;
+  }
 
-    for (let y = 0; y < grid.length; y++) {
-      for (let x = 0; x < grid[y].length; x++) {
+  // ----------------
+  // DRAW FLOOR (EVERY TILE)
+  // ----------------
+  function drawFloor() {
+    for (let y = 0; y < state.rows; y++) {
+      const scale = rowScale(y);
+      const py = renderY(y);
+
+      for (let x = 0; x < state.cols; x++) {
         const px = ox + x * tile;
-        const py = oy + y * tile;
 
-        // FLOOR EVERYWHERE (including under walls)
-        if (floorReady) {
-          ctx.drawImage(floorImg, px, py, tile, tile);
-        } else {
-          ctx.fillStyle = "rgba(255,255,255,0.08)";
-          ctx.fillRect(px, py, tile, tile);
-        }
-
-        // WALLS ARE LOGIC ONLY (NO DRAW)
-        // grid[y][x] === 1 → collision only
+        ctx.drawImage(
+          floorImg,
+          px,
+          py,
+          tile,
+          tile * scale
+        );
       }
     }
   }
 
-  function drawBall(playerFloat) {
-    const r = tile * 0.28;
-    const c = cellCenter(playerFloat.x, playerFloat.y);
+  // ----------------
+  // DRAW BALL
+  // ----------------
+  function drawBall() {
+    const { x, y } = state.ball;
+    const scale = rowScale(y);
 
-    // shadow
-    ctx.fillStyle = "rgba(0,0,0,0.25)";
-    ctx.beginPath();
-    ctx.ellipse(c.cx + 2, c.cy + 5, r * 1.1, r * 0.8, 0, 0, Math.PI * 2);
-    ctx.fill();
+    const px = ox + x * tile;
+    const py = renderY(y);
 
-    // ball
-    ctx.fillStyle = "#2fe6ff";
-    ctx.beginPath();
-    ctx.arc(c.cx, c.cy, r, 0, Math.PI * 2);
-    ctx.fill();
-
-    // highlight
-    ctx.fillStyle = "rgba(255,255,255,0.5)";
-    ctx.beginPath();
-    ctx.arc(c.cx - r * 0.35, c.cy - r * 0.35, r * 0.35, 0, Math.PI * 2);
-    ctx.fill();
+    ctx.drawImage(
+      ballImg,
+      px,
+      py - tile * 0.2 * scale,
+      tile,
+      tile * scale
+    );
   }
 
-  function render(playerFloat) {
-    ctx.clearRect(0, 0, w, h);
-    drawBackground();
-    drawMaze();
-    drawBall(playerFloat);
+  // ----------------
+  // MAIN DRAW
+  // ----------------
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    drawFloor();
+    drawBall();
   }
 
-  return { resize, render };
+  // ----------------
+  // LOOP
+  // ----------------
+  function loop() {
+    draw();
+    requestAnimationFrame(loop);
+  }
+
+  loop();
 }
