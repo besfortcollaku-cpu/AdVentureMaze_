@@ -1,4 +1,6 @@
 export function createRenderer({ canvas, state }) {
+    let lastBallX = null;
+    let lastBallY = null;
   if (!(canvas instanceof HTMLCanvasElement)) {
     console.error("Renderer: canvas missing");
     return;
@@ -96,11 +98,21 @@ function drawFloor() {
   const r = size / 2;
   const c = cellCenter(playerFloat.x, playerFloat.y);
 
-  const vx = playerFloat.vx || 0;
-  const vy = playerFloat.vy || 0;
-  const speed = Math.hypot(vx, vy);
+  // ─────────────────────────
+  // DERIVE VELOCITY (FIX)
+  // ─────────────────────────
+  let vx = 0;
+  let vy = 0;
 
-  // normalize direction
+  if (lastBallX !== null && lastBallY !== null) {
+    vx = c.cx - lastBallX;
+    vy = c.cy - lastBallY;
+  }
+
+  lastBallX = c.cx;
+  lastBallY = c.cy;
+
+  const speed = Math.hypot(vx, vy);
   const len = speed || 1;
   const nx = vx / len;
   const ny = vy / len;
