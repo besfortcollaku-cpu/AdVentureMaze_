@@ -36,6 +36,11 @@ const MAX_TRAIL = 30;
   let floorReady = false;
   floorImg.onload = () => (floorReady = true);
   floorImg.src = "/textures/sprites/crystal/crystal_floor.png";
+  // FLOOR TILE (PAINTED / DONE)
+const floorDoneImg = new Image();
+let floorDoneReady = false;
+floorDoneImg.onload = () => (floorDoneReady = true);
+floorDoneImg.src = "/textures/sprites/crystal/crystal_floor_done.png";
 // WALL TILE
 const wallImg = new Image();
 let wallReady = false;
@@ -92,51 +97,29 @@ ballImg.src = "/textures/sprites/crystal/gold_ball.png";
   
 function drawFloor() {
   const grid = state.grid;
-  const t = performance.now() * 0.001;
 
   for (let y = 0; y < grid.length; y++) {
     for (let x = 0; x < grid[y].length; x++) {
       const px = ox + x * tile;
       const py = oy + y * tile;
 
-      // 1️⃣ Base dark floor
+      // base fallback
       ctx.fillStyle = "#0f1c33";
       ctx.fillRect(px, py, tile, tile);
 
-      // 2️⃣ Floor texture
-      if (floorReady) {
-        ctx.drawImage(floorImg, px, py, tile, tile);
-      }
-
-      // 3️⃣ Painted path overlay (ON TOP)
+      // choose image based on path state
       if (state.isPainted(x, y)) {
-        const pulse =
-          0.35 +
-          Math.sin(t * 3 + x * 0.8 + y * 0.8) * 0.15;
-
-        const glow = ctx.createRadialGradient(
-          px + tile / 2,
-          py + tile / 2,
-          tile * 0.15,
-          px + tile / 2,
-          py + tile / 2,
-          tile * 0.9
-        );
-
-        glow.addColorStop(0, `rgba(140,220,255,${pulse})`);
-        glow.addColorStop(1, "rgba(40,120,200,0.25)");
-
-        ctx.fillStyle = glow;
-        ctx.fillRect(px, py, tile, tile);
-
-        // inner crystal sheen
-        ctx.fillStyle = "rgba(255,255,255,0.08)";
-        ctx.fillRect(
-          px + tile * 0.12,
-          py + tile * 0.12,
-          tile * 0.76,
-          tile * 0.76
-        );
+        // 🔹 PATH COMPLETED TILE
+        if (floorDoneReady) {
+          ctx.drawImage(floorDoneImg, px, py, tile, tile);
+        } else if (floorReady) {
+          ctx.drawImage(floorImg, px, py, tile, tile);
+        }
+      } else {
+        // 🔹 NORMAL TILE
+        if (floorReady) {
+          ctx.drawImage(floorImg, px, py, tile, tile);
+        }
       }
     }
   }
