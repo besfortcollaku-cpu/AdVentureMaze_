@@ -96,11 +96,11 @@ ballImg.src = "/textures/sprites/crystal/gold_ball.png";
 function drawWallShadows() {
   const grid = state.grid;
 
-  const shadowHeight = tile * 0.4;   // how long shadow is
-  const shadowBlur = tile * 0.15;
+  const shadowHeight = tile * 0.6;   // how long shadow is
+  const shadowBlur = tile * 0.1;
 
   ctx.save();
-  ctx.globalAlpha = 0.35;
+  ctx.globalAlpha = 0.50;
   ctx.fillStyle = "rgba(0, 0, 0, 0.6)";
   ctx.filter = `blur(${shadowBlur}px)`;
 
