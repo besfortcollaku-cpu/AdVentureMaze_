@@ -85,15 +85,20 @@ wallImg.src = "/textures/sprites/crystal/corner_bl.png";
 function drawFloor() {
   const grid = state.grid;
 
-  
-ctx.fillStyle = "#1b2b44";
-ctx.fillRect(px, py, tile, tile);
+  for (let y = 0; y < grid.length; y++) {
+    for (let x = 0; x < grid[y].length; x++) {
+      const px = ox + x * tile;
+      const py = oy + y * tile;
 
-if (floorReady) {
-  ctx.drawImage(floorImg, px, py, tile, tile);
-}
+      ctx.fillStyle = "#1b2b44";
+      ctx.fillRect(px, py, tile, tile);
+
+      if (floorReady) {
+        ctx.drawImage(floorImg, px, py, tile, tile);
+      }
     }
- 
+  }
+}
   function drawBall(playerFloat) {
     const r = tile * 0.28;
     const c = cellCenter(playerFloat.x, playerFloat.y);
@@ -121,8 +126,6 @@ if (floorReady) {
   function drawWalls() {
   const grid = state.grid;
 
-  if (!wallReady) return;
-
   for (let y = 0; y < grid.length; y++) {
     for (let x = 0; x < grid[y].length; x++) {
       if (grid[y][x] !== 1) continue;
@@ -130,17 +133,12 @@ if (floorReady) {
       const px = ox + x * tile;
       const py = oy + y * tile;
 
-      ctx.drawImage(
-        wallImg,
-        px,
-        py - tile * 0.5,   // wall rises upward
-        tile,
-        tile * 1.5
-      );
+      // TEMP visual wall
+      ctx.fillStyle = "rgba(0,255,255,0.35)";
+      ctx.fillRect(px, py - tile * 0.5, tile, tile * 1.5);
     }
   }
 }
-      
   
 
   function render(playerFloat) {
