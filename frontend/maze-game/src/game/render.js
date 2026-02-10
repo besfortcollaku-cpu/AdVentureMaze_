@@ -150,7 +150,7 @@ function drawCrystalShard(x, y, angle, size, alpha, hueShift = 0) {
   // ─────────────────────────
   // STORE TRAIL POINTS
   // ─────────────────────────
-  if (speed > 0.1) {
+  if (speed > 0.5) {
     trail.push({
       x: c.cx,
       y: c.cy,
