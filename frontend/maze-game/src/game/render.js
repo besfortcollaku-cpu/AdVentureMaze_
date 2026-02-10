@@ -95,6 +95,28 @@ function drawFloor() {
     }
   }
 }
+
+function drawCrystalShard(x, y, angle, size, alpha, hueShift = 0) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(angle);
+
+  ctx.globalAlpha = alpha;
+
+  ctx.fillStyle = `hsl(${195 + hueShift}, 85%, 70%)`;
+
+  ctx.beginPath();
+  ctx.moveTo(0, -size);
+  ctx.lineTo(size * 0.6, 0);
+  ctx.lineTo(0, size);
+  ctx.lineTo(-size * 0.6, 0);
+  ctx.closePath();
+
+  ctx.fill();
+  ctx.restore();
+}
+
+
   function drawBall(playerFloat) {
   const size = tile * 0.9;
   const r = size / 2;
@@ -139,25 +161,27 @@ function drawFloor() {
   // ─────────────────────────
   // DRAW TRAIL (BEHIND BALL)
   // ─────────────────────────
-  for (let i = 0; i < trail.length; i++) {
-    const t = trail[i];
-    const fade = i / trail.length;
+  // ─────────────────────────
+// CRYSTAL SHARD TRAIL
+// ─────────────────────────
+for (let i = 0; i < trail.length; i++) {
+  const t = trail[i];
+  const fade = i / trail.length;
 
-    ctx.globalAlpha = 0.4 * fade;
-    ctx.fillStyle = `rgba(120,200,255,${0.35 * fade})`;
+  const angle = Math.atan2(t.vy, t.vx);
+  const size = r * (0.18 + fade * 0.12);
 
-    ctx.beginPath();
-    ctx.arc(
-      t.x - t.vx * 0.25,
-      t.y - t.vy * 0.25,
-      r * 0.35 * fade,
-      0,
-      Math.PI * 2
-    );
-    ctx.fill();
-  }
+  drawCrystalShard(
+    t.x - t.vx * 0.25,
+    t.y - t.vy * 0.25,
+    angle,
+    size,
+    0.35 * fade,
+    i * 4 // subtle color shift
+  );
+}
 
-  ctx.globalAlpha = 1;
+ctx.globalAlpha = 1;
 
   // ─────────────────────────
   // MOTION BLUR
