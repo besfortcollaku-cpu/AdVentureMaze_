@@ -87,27 +87,43 @@ function drawFloor() {
   }
 }
   function drawBall(playerFloat) {
-    const r = tile * 0.28;
-    const c = cellCenter(playerFloat.x, playerFloat.y);
+  const r = tile * 0.28;
+  const c = cellCenter(playerFloat.x, playerFloat.y);
 
-    // shadow
-    ctx.fillStyle = "rgba(0,0,0,0.25)";
-    ctx.beginPath();
-    ctx.ellipse(c.cx + 2, c.cy + 5, r * 1.1, r * 0.8, 0, 0, Math.PI * 2);
-    ctx.fill();
+  // --- shadow on floor ---
+  ctx.fillStyle = "rgba(0,0,0,0.25)";
+  ctx.beginPath();
+  ctx.ellipse(
+    c.cx,
+    c.cy + r * 0.6,
+    r * 1.1,
+    r * 0.6,
+    0,
+    0,
+    Math.PI * 2
+  );
+  ctx.fill();
 
-    // ball
-    ctx.fillStyle = "#2fe6ff";
-    ctx.beginPath();
-    ctx.arc(c.cx, c.cy, r, 0, Math.PI * 2);
-    ctx.fill();
+  // --- ball body (lifted) ---
+  const lift = tile * 0.25;
 
-    // highlight
-    ctx.fillStyle = "rgba(255,255,255,0.5)";
-    ctx.beginPath();
-    ctx.arc(c.cx - r * 0.35, c.cy - r * 0.35, r * 0.35, 0, Math.PI * 2);
-    ctx.fill();
-  }
+  ctx.fillStyle = "#2fe6ff";
+  ctx.beginPath();
+  ctx.arc(c.cx, c.cy - lift, r, 0, Math.PI * 2);
+  ctx.fill();
+
+  // --- highlight ---
+  ctx.fillStyle = "rgba(255,255,255,0.5)";
+  ctx.beginPath();
+  ctx.arc(
+    c.cx - r * 0.35,
+    c.cy - lift - r * 0.35,
+    r * 0.35,
+    0,
+    Math.PI * 2
+  );
+  ctx.fill();
+}
   
   
   function drawWalls() {
@@ -136,10 +152,11 @@ function drawFloor() {
 }
   function render(playerFloat) {
   ctx.clearRect(0, 0, w, h);
+
   drawBackground();
-  drawFloor();
-    drawBall(playerFloat);
-  drawWalls();
+  drawFloor();     // or floor inside drawMaze if you kept it
+  drawWalls();     // tall objects
+  drawBall(playerFloat); // last = depth illusion
 }
 
   return { resize, render };
