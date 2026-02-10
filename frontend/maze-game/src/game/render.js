@@ -305,8 +305,8 @@ ctx.globalAlpha = 1;
   function drawWalls() {
   const grid = state.grid;
 
-  const WALL_W = tile;        // 64
-  const WALL_H = tile * 1.5;  // 96
+  const WALL_W = tile;
+  const WALL_H = tile * 1.5;
 
   for (let y = 0; y < grid.length; y++) {
     for (let x = 0; x < grid[y].length; x++) {
@@ -315,19 +315,19 @@ ctx.globalAlpha = 1;
       const px = ox + x * tile;
       const py = oy + y * tile;
 
-      // draw wall so bottom sits on floor tile
+      // 🔹 SHADOW FIRST (cheap, single rect)
+      ctx.fillStyle = "rgba(0,0,0,0.22)";
+      ctx.fillRect(
+        px + tile * 0.08,
+        py + tile * 0.12,
+        tile,
+        tile
+      );
+
+      // 🔹 WALL SPRITE
       if (wallReady) {
         ctx.drawImage(
           wallImg,
-          px,
-          py + tile - WALL_H, // ⬅️ extend upward
-          WALL_W,
-          WALL_H
-        );
-      } else {
-        // fallback block
-        ctx.fillStyle = "rgba(100,160,255,0.9)";
-        ctx.fillRect(
           px,
           py + tile - WALL_H,
           WALL_W,
@@ -337,7 +337,6 @@ ctx.globalAlpha = 1;
     }
   }
 }
-
 window.addEventListener("resize", resize);
 resize();
 
