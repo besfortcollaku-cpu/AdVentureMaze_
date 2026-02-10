@@ -29,25 +29,27 @@ wallImg.src = "/textures/sprites/crystal/corner_bl.png";
   // RESIZE
   // ======================
   function resize() {
-    const rect = canvas.getBoundingClientRect();
-    const dpr = Math.min(2, window.devicePixelRatio || 1);
+  const rect = canvas.getBoundingClientRect();
+  const dpr = Math.min(2, window.devicePixelRatio || 1);
 
-    w = rect.width;
-    h = rect.height;
+  w = rect.width;
+  h = rect.height;
 
-    canvas.width = Math.floor(w * dpr);
-    canvas.height = Math.floor(h * dpr);
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  canvas.width = Math.floor(w * dpr);
+  canvas.height = Math.floor(h * dpr);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-    // tile size so tiles TOUCH
-    tile = Math.floor(
-      Math.min(w / state.cols, h / state.rows)
-    );
+  // ✅ SINGLE source of truth
+  tile = Math.floor(
+    Math.min(
+      w / state.cols,
+      h / state.rows
+    )
+  );
 
-    ox = Math.floor((w - state.cols * tile) / 2);
-    oy = Math.floor((h - state.rows * tile) / 2);
-  }
-
+  ox = Math.floor((w - state.cols * tile) / 2);
+  oy = Math.floor((h - state.rows * tile) / 2);
+}
   // ======================
   // HELPERS
   // ======================
@@ -116,6 +118,8 @@ function drawFloor() {
     ctx.arc(c.cx - r * 0.35, c.cy - r * 0.35, r * 0.35, 0, Math.PI * 2);
     ctx.fill();
   }
+  
+  
   function drawWalls() {
   const grid = state.grid;
 
