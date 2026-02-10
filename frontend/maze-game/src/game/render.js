@@ -69,15 +69,19 @@ wallImg.src = "/textures/sprites/crystal/corner_bl.png";
   }
 
   function drawMaze() {
-    const grid = state.grid;
+  const grid = state.grid;
 
-    for (let y = 0; y < grid.length; y++) {
-      for (let x = 0; x < grid[y].length; x++) {
-        const px = ox + x * tile;
-        const py = oy + y * tile;
-      }
+  ctx.fillStyle = "red";
+
+  for (let y = 0; y < grid.length; y++) {
+    for (let x = 0; x < grid[y].length; x++) {
+      const px = ox + x * tile;
+      const py = oy + y * tile;
+
+      ctx.fillRect(px, py, tile, tile);
     }
   }
+}
 function drawFloor() {
   const grid = state.grid;
 
