@@ -91,6 +91,7 @@ ballImg.src = "/textures/sprites/crystal/gold_ball.png";
 
   
 function drawFloor() {
+    const t = performance.now() * 0.001;
   const grid = state.grid;
 
   for (let y = 0; y < grid.length; y++) {
@@ -112,22 +113,35 @@ function drawFloor() {
       // PAINTED PATH (ball crossed)
       // ─────────────────────────
       if (state.isPainted(x, y)) {
-        // soft crystal glow overlay
-        const glow = ctx.createRadialGradient(
-          px + tile / 2,
-          py + tile / 2,
-          tile * 0.15,
-          px + tile / 2,
-          py + tile / 2,
-          tile * 0.7
-        );
+  // subtle animated crystal shimmer
+  const pulse =
+    0.18 +
+    Math.sin(t * 2 + x * 0.6 + y * 0.6) * 0.07;
 
-        glow.addColorStop(0, "rgba(160,230,255,0.35)");
-        glow.addColorStop(1, "rgba(80,150,255,0.15)");
+  const glow = ctx.createRadialGradient(
+    px + tile / 2,
+    py + tile / 2,
+    tile * 0.18,
+    px + tile / 2,
+    py + tile / 2,
+    tile * 0.75
+  );
 
-        ctx.fillStyle = glow;
-        ctx.fillRect(px, py, tile, tile);
-      }
+  glow.addColorStop(0, `rgba(170,235,255,${pulse})`);
+  glow.addColorStop(1, "rgba(90,160,255,0.12)");
+
+  ctx.fillStyle = glow;
+  ctx.fillRect(px, py, tile, tile);
+
+  // faint inner highlight (depth)
+  ctx.fillStyle = "rgba(255,255,255,0.04)";
+  ctx.fillRect(
+    px + tile * 0.08,
+    py + tile * 0.08,
+    tile * 0.84,
+    tile * 0.84
+  );
+}
     }
   }
 }
