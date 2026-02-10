@@ -71,7 +71,7 @@ wallImg.src = "/textures/sprites/crystal/corner_bl.png";
   function drawMaze() {
   const grid = state.grid;
 
-  ctx.fillStyle = "red";
+
 
   for (let y = 0; y < grid.length; y++) {
     for (let x = 0; x < grid[y].length; x++) {
@@ -80,7 +80,7 @@ wallImg.src = "/textures/sprites/crystal/corner_bl.png";
 
       ctx.fillRect(px, py, tile, tile);
     }
-  }
+  
 }
 function drawFloor() {
   const grid = state.grid;
@@ -155,7 +155,7 @@ function drawFloor() {
     drawBall(playerFloat);
     drawMWalls();
 
-  }
+  }}
 
   return { resize, render };
 }
