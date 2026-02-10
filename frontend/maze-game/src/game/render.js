@@ -93,9 +93,7 @@ if (floorReady) {
   ctx.drawImage(floorImg, px, py, tile, tile);
 }
     }
-  }
-}
-
+ 
   function drawBall(playerFloat) {
     const r = tile * 0.28;
     const c = cellCenter(playerFloat.x, playerFloat.y);
