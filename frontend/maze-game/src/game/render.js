@@ -85,17 +85,13 @@ wallImg.src = "/textures/sprites/crystal/corner_bl.png";
 function drawFloor() {
   const grid = state.grid;
 
-  for (let y = 0; y < grid.length; y++) {
-    for (let x = 0; x < grid[y].length; x++) {
-      const px = ox + x * tile;
-      const py = oy + y * tile;
+  
+ctx.fillStyle = "#1b2b44";
+ctx.fillRect(px, py, tile, tile);
 
-      if (floorReady) {
-        ctx.drawImage(floorImg, px, py, tile, tile);
-      } else {
-        ctx.fillStyle = "rgba(255,255,255,0.08)";
-        ctx.fillRect(px, py, tile, tile);
-      }
+if (floorReady) {
+  ctx.drawImage(floorImg, px, py, tile, tile);
+}
     }
   }
 }
