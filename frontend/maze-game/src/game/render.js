@@ -92,66 +92,98 @@ function drawFloor() {
   }
 }
   function drawBall(playerFloat) {
-  // 🔹 BIGGER BALL
-  const size = tile * 0.85;   // ← increase size here (0.75–0.9 is safe)
+  const size = tile * 0.9;
   const r = size / 2;
-
   const c = cellCenter(playerFloat.x, playerFloat.y);
 
-  // time for animation
-  const t = performance.now() * 0.004;
-
-  // movement-based roll
   const vx = playerFloat.vx || 0;
   const vy = playerFloat.vy || 0;
   const speed = Math.hypot(vx, vy);
 
-  // rolling angle (faster when moving)
-  const roll = t * speed * 2;
-
-  // subtle vertical bob
-  const bob = Math.sin(t * 2) * 2;
-
-  // ─────────────────────────
-  // SHADOW (always below ball)
-  // ─────────────────────────
-  ctx.fillStyle = "rgba(0,0,0,0.25)";
-  ctx.beginPath();
-  ctx.ellipse(
-    c.cx,
-    c.cy + r * 0.65,
-    r * 0.65,
-    r * 0.28,
-    0,
-    0,
-    Math.PI * 2
-  );
-  ctx.fill();
+  // normalize direction
+  const len = speed || 1;
+  const nx = vx / len;
+  const ny = vy / len;
 
   // ─────────────────────────
-  // BALL SPRITE (ROLLING)
+  // MOTION BLUR (behind ball)
   // ─────────────────────────
-  if (ballReady) {
+  if (speed > 0.02) {
     ctx.save();
-
-    ctx.translate(c.cx, c.cy + bob);
-    ctx.rotate(roll);
+    ctx.globalAlpha = Math.min(0.35, speed * 0.8);
 
     ctx.drawImage(
       ballImg,
-      -r,
-      -r,
+      c.cx - r - nx * r * 0.8,
+      c.cy - r - ny * r * 0.8,
       size,
       size
     );
 
     ctx.restore();
+  }
+
+  // ─────────────────────────
+  // MAIN BALL
+  // ─────────────────────────
+  if (ballReady) {
+    ctx.drawImage(
+      ballImg,
+      c.cx - r,
+      c.cy - r,
+      size,
+      size
+    );
   } else {
-    // fallback
-    ctx.fillStyle = "#ffd54a";
+    // fallback circle
+    ctx.fillStyle = "#ffd34d";
     ctx.beginPath();
     ctx.arc(c.cx, c.cy, r, 0, Math.PI * 2);
     ctx.fill();
+  }
+
+  // ─────────────────────────
+  // ROLLING LIGHT REFLECTION
+  // ─────────────────────────
+  const lx = c.cx - nx * r * 0.6;
+  const ly = c.cy - ny * r * 0.6;
+
+  const shine = ctx.createRadialGradient(
+    lx, ly, r * 0.1,
+    lx, ly, r * 0.9
+  );
+
+  shine.addColorStop(0, "rgba(255,255,255,0.85)");
+  shine.addColorStop(0.4, "rgba(255,255,255,0.25)");
+  shine.addColorStop(1, "rgba(255,255,255,0)");
+
+  ctx.fillStyle = shine;
+  ctx.beginPath();
+  ctx.arc(c.cx, c.cy, r, 0, Math.PI * 2);
+  ctx.fill();
+
+  // ─────────────────────────
+  // CRYSTAL PARTICLE TRAIL
+  // (behind movement direction)
+  // ─────────────────────────
+  if (speed > 0.03) {
+    ctx.save();
+    ctx.globalCompositeOperation = "lighter";
+
+    for (let i = 0; i < 4; i++) {
+      const t = Math.random();
+      const px = c.cx - nx * r * (1.2 + t) + (Math.random() - 0.5) * r * 0.6;
+      const py = c.cy - ny * r * (1.2 + t) + (Math.random() - 0.5) * r * 0.6;
+
+      const pr = r * (0.08 + Math.random() * 0.12);
+
+      ctx.fillStyle = `rgba(120,220,255,${0.15 + Math.random() * 0.35})`;
+      ctx.beginPath();
+      ctx.arc(px, py, pr, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    ctx.restore();
   }
 }
   
