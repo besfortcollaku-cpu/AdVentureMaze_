@@ -12,9 +12,9 @@ const MAX_TRAIL = 30;
 
   const ctx = canvas.getContext("2d");
   
-let shakeX = 0;
-let shakeY = 0;
-let shakeTime = 0;
+shakeTime = 10;      // more frames
+shakeX = (Math.random() - 0.5) * 8;
+shakeY = (Math.random() - 0.5) * 8;
 
   // ======================
   // CONFIG
@@ -150,7 +150,7 @@ function drawCrystalShard(x, y, angle, size, alpha, hueShift = 0) {
   // ─────────────────────────
   // STORE TRAIL POINTS
   // ─────────────────────────
-  if (speed > 0.5) {
+  if (speed > 0.1) {
     trail.push({
       x: c.cx,
       y: c.cy,
