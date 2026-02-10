@@ -93,7 +93,36 @@ ballImg.src = "/textures/sprites/crystal/gold_ball.png";
     ctx.fillStyle = "#0e1430";
     ctx.fillRect(0, 0, w, h);
   }
+function drawWallShadows() {
+  const grid = state.grid;
 
+  const shadowHeight = tile * 0.4;   // how long shadow is
+  const shadowBlur = tile * 0.15;
+
+  ctx.save();
+  ctx.globalAlpha = 0.35;
+  ctx.fillStyle = "rgba(0, 0, 0, 0.6)";
+  ctx.filter = `blur(${shadowBlur}px)`;
+
+  for (let y = 0; y < grid.length; y++) {
+    for (let x = 0; x < grid[y].length; x++) {
+      if (grid[y][x] !== 1) continue; // wall only
+
+      const px = ox + x * tile;
+      const py = oy + y * tile;
+
+      // shadow falls DOWN from wall base
+      ctx.fillRect(
+        px + tile * 0.1,
+        py + tile * 0.9,
+        tile * 0.8,
+        shadowHeight
+      );
+    }
+  }
+
+  ctx.restore();
+}
   
 function drawFloor() {
   const grid = state.grid;
@@ -352,6 +381,7 @@ resize();
   // ─────────────────────────
   drawBackground();
   drawFloor();           // floor first
+  drawWallShadows();
   drawBall(playerFloat); // ball between floor & walls
   drawWalls();           // walls last (in front)
 
