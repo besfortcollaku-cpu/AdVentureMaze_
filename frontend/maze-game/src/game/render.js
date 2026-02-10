@@ -381,7 +381,6 @@ resize();
   // ─────────────────────────
   drawBackground();
   drawFloor();           // floor first
-  drawWallShadows();
   drawBall(playerFloat); // ball between floor & walls
   drawWalls();           // walls last (in front)
 
