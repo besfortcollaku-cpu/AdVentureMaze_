@@ -1,6 +1,8 @@
 export function createRenderer({ canvas, state }) {
     let lastBallX = null;
     let lastBallY = null;
+    const trail = [];
+const MAX_TRAIL = 14;
   if (!(canvas instanceof HTMLCanvasElement)) {
     console.error("Renderer: canvas missing");
     return;
@@ -113,6 +115,22 @@ function drawFloor() {
   lastBallY = c.cy;
 
   const speed = Math.hypot(vx, vy);
+  // ─────────────────────────
+// STORE TRAIL POINTS
+// ─────────────────────────
+if (speed > 0.5) {
+  trail.push({
+    x: c.cx,
+    y: c.cy,
+    vx: dx,
+    vy: dy,
+    life: 1
+  });
+}
+
+while (trail.length > MAX_TRAIL) {
+  trail.shift();
+}
   const len = speed || 1;
   const nx = vx / len;
   const ny = vy / len;
@@ -148,6 +166,29 @@ function drawFloor() {
     );
   } else {
     // fallback circle
+    // ─────────────────────────
+// CRYSTAL TRAIL (BEHIND BALL)
+// ─────────────────────────
+for (let i = 0; i < trail.length; i++) {
+  const t = trail[i];
+  const fade = i / trail.length;
+
+  ctx.globalAlpha = 0.35 * fade;
+  ctx.fillStyle = `rgba(120,200,255,${0.4 * fade})`;
+
+  ctx.beginPath();
+  ctx.arc(
+    t.x - t.vx * 0.3,
+    t.y - t.vy * 0.3,
+    r * 0.35 * fade,
+    0,
+    Math.PI * 2
+  );
+  ctx.fill();
+}
+
+ctx.globalAlpha = 1;
+
     ctx.fillStyle = "#ffd34d";
     ctx.beginPath();
     ctx.arc(c.cx, c.cy, r, 0, Math.PI * 2);
