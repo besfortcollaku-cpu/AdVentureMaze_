@@ -25,6 +25,11 @@ const wallImg = new Image();
 let wallReady = false;
 wallImg.onload = () => (wallReady = true);
 wallImg.src = "/textures/sprites/crystal/corner_bl.png";
+// BALL SPRITE
+const ballImg = new Image();
+let ballReady = false;
+ballImg.onload = () => (ballReady = true);
+ballImg.src = "/textures/sprites/crystal/gold_ball.png";
   // ======================
   // RESIZE
   // ======================
@@ -87,42 +92,38 @@ function drawFloor() {
   }
 }
   function drawBall(playerFloat) {
-  const r = tile * 0.28;
+  const r = tile * 0.6; // visual size of ball
   const c = cellCenter(playerFloat.x, playerFloat.y);
 
-  // --- shadow on floor ---
+  // shadow (keep this, gives depth)
   ctx.fillStyle = "rgba(0,0,0,0.25)";
   ctx.beginPath();
   ctx.ellipse(
     c.cx,
-    c.cy + r * 0.6,
-    r * 1.1,
-    r * 0.6,
+    c.cy + r * 0.45,
+    r * 0.55,
+    r * 0.25,
     0,
     0,
     Math.PI * 2
   );
   ctx.fill();
 
-  // --- ball body (lifted) ---
-  const lift = tile * 0.25;
-
-  ctx.fillStyle = "#2fe6ff";
-  ctx.beginPath();
-  ctx.arc(c.cx, c.cy - lift, r, 0, Math.PI * 2);
-  ctx.fill();
-
-  // --- highlight ---
-  ctx.fillStyle = "rgba(255,255,255,0.5)";
-  ctx.beginPath();
-  ctx.arc(
-    c.cx - r * 0.35,
-    c.cy - lift - r * 0.35,
-    r * 0.35,
-    0,
-    Math.PI * 2
-  );
-  ctx.fill();
+  if (ballReady) {
+    ctx.drawImage(
+      ballImg,
+      c.cx - r / 2,
+      c.cy - r / 2,
+      r,
+      r
+    );
+  } else {
+    // fallback circle (in case image not loaded yet)
+    ctx.fillStyle = "#ffd54a";
+    ctx.beginPath();
+    ctx.arc(c.cx, c.cy, r / 2, 0, Math.PI * 2);
+    ctx.fill();
+  }
 }
   
   
