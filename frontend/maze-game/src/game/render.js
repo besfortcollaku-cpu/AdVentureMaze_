@@ -68,20 +68,7 @@ wallImg.src = "/textures/sprites/crystal/corner_bl.png";
     ctx.fillRect(0, 0, w, h);
   }
 
-  function drawMaze() {
-  const grid = state.grid;
-
-
-
-  for (let y = 0; y < grid.length; y++) {
-    for (let x = 0; x < grid[y].length; x++) {
-      const px = ox + x * tile;
-      const py = oy + y * tile;
-
-      ctx.fillRect(px, py, tile, tile);
-    }
-  }
-}
+  
 function drawFloor() {
   const grid = state.grid;
 
@@ -123,23 +110,32 @@ function drawFloor() {
   }
   
   
-  function drawWalls() {
+  function drawMaze() {
   const grid = state.grid;
 
   for (let y = 0; y < grid.length; y++) {
     for (let x = 0; x < grid[y].length; x++) {
-      if (grid[y][x] !== 1) continue;
-
       const px = ox + x * tile;
       const py = oy + y * tile;
 
-      // TEMP visual wall
-      ctx.fillStyle = "rgba(0,255,255,0.35)";
-      ctx.fillRect(px, py - tile * 0.5, tile, tile * 1.5);
+      // ───────── FLOOR (always)
+      if (floorReady) {
+        ctx.drawImage(floorImg, px, py, tile, tile);
+      } else {
+        ctx.fillStyle = "rgba(255,255,255,0.08)";
+        ctx.fillRect(px, py, tile, tile);
+      }
+
+      // ───────── WALL (sprite, no logic change)
+      if (grid[y][x] === 1) {
+        if (wallReady) {
+          ctx.drawImage(wallImg, px, py - tile * 0.5, tile, tile * 1.5);
+        }
+        // ⚠️ NO ELSE, NO FILL — wall is visual only
+      }
     }
   }
 }
-  
 
   function render(playerFloat) {
   ctx.clearRect(0, 0, w, h);
