@@ -98,16 +98,39 @@ function drawFloor() {
       const px = ox + x * tile;
       const py = oy + y * tile;
 
-      ctx.fillStyle = "#1b2b44";
-      ctx.fillRect(px, py, tile, tile);
-
+      // ─────────────────────────
+      // BASE FLOOR (always)
+      // ─────────────────────────
       if (floorReady) {
         ctx.drawImage(floorImg, px, py, tile, tile);
+      } else {
+        ctx.fillStyle = "#1b2b44";
+        ctx.fillRect(px, py, tile, tile);
+      }
+
+      // ─────────────────────────
+      // PAINTED PATH (ball crossed)
+      // ─────────────────────────
+      if (state.isPainted(x, y)) {
+        // soft crystal glow overlay
+        const glow = ctx.createRadialGradient(
+          px + tile / 2,
+          py + tile / 2,
+          tile * 0.15,
+          px + tile / 2,
+          py + tile / 2,
+          tile * 0.7
+        );
+
+        glow.addColorStop(0, "rgba(160,230,255,0.35)");
+        glow.addColorStop(1, "rgba(80,150,255,0.15)");
+
+        ctx.fillStyle = glow;
+        ctx.fillRect(px, py, tile, tile);
       }
     }
   }
 }
-
 function drawCrystalShard(x, y, angle, size, alpha, hueShift = 0) {
   ctx.save();
   ctx.translate(x, y);
