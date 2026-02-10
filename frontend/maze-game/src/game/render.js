@@ -127,24 +127,38 @@ function drawFloor() {
   
   
   function drawWalls() {
-  const grid = state.grid;
+  const shadowOffsetX = tile * 0.12;
+  const shadowOffsetY = tile * 0.28;
+  const shadowHeight  = tile * 0.35;
 
-  for (let y = 0; y < grid.length; y++) {
-    for (let x = 0; x < grid[y].length; x++) {
-      if (grid[y][x] !== 1) continue;
+  for (let y = 0; y < state.rows; y++) {
+    for (let x = 0; x < state.cols; x++) {
+      if (state.grid[y][x] !== 1) continue;
 
       const px = ox + x * tile;
       const py = oy + y * tile;
 
-      // draw wall sprite taller than floor
-      // so it looks vertical / 3D
+      // ─────────────────────────
+      // WALL SHADOW (ON FLOOR)
+      // ─────────────────────────
+      ctx.fillStyle = "rgba(0,0,0,0.35)";
+      ctx.fillRect(
+        px + shadowOffsetX,
+        py + tile,
+        tile,
+        shadowHeight
+      );
+
+      // ─────────────────────────
+      // WALL BODY (sprite)
+      // ─────────────────────────
       if (wallReady) {
         ctx.drawImage(
           wallImg,
           px,
-          py - tile * 0.5,   // lift wall up
+          py - WALL_HEIGHT,
           tile,
-          tile * 1.5         // taller than floor
+          tile + WALL_HEIGHT
         );
       }
     }
@@ -155,8 +169,8 @@ function drawFloor() {
 
   drawBackground();
   drawFloor();     // or floor inside drawMaze if you kept it
+    drawBall(playerFloat); // last = depth illusion
   drawWalls();     // tall objects
-  drawBall(playerFloat); // last = depth illusion
 }
 
   return { resize, render };
