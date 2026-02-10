@@ -92,36 +92,65 @@ function drawFloor() {
   }
 }
   function drawBall(playerFloat) {
-  const r = tile * 0.6; // visual size of ball
+  // 🔹 BIGGER BALL
+  const size = tile * 0.85;   // ← increase size here (0.75–0.9 is safe)
+  const r = size / 2;
+
   const c = cellCenter(playerFloat.x, playerFloat.y);
 
-  // shadow (keep this, gives depth)
+  // time for animation
+  const t = performance.now() * 0.004;
+
+  // movement-based roll
+  const vx = playerFloat.vx || 0;
+  const vy = playerFloat.vy || 0;
+  const speed = Math.hypot(vx, vy);
+
+  // rolling angle (faster when moving)
+  const roll = t * speed * 2;
+
+  // subtle vertical bob
+  const bob = Math.sin(t * 2) * 2;
+
+  // ─────────────────────────
+  // SHADOW (always below ball)
+  // ─────────────────────────
   ctx.fillStyle = "rgba(0,0,0,0.25)";
   ctx.beginPath();
   ctx.ellipse(
     c.cx,
-    c.cy + r * 0.45,
-    r * 0.55,
-    r * 0.25,
+    c.cy + r * 0.65,
+    r * 0.65,
+    r * 0.28,
     0,
     0,
     Math.PI * 2
   );
   ctx.fill();
 
+  // ─────────────────────────
+  // BALL SPRITE (ROLLING)
+  // ─────────────────────────
   if (ballReady) {
+    ctx.save();
+
+    ctx.translate(c.cx, c.cy + bob);
+    ctx.rotate(roll);
+
     ctx.drawImage(
       ballImg,
-      c.cx - r / 2,
-      c.cy - r / 2,
-      r,
-      r
+      -r,
+      -r,
+      size,
+      size
     );
+
+    ctx.restore();
   } else {
-    // fallback circle (in case image not loaded yet)
+    // fallback
     ctx.fillStyle = "#ffd54a";
     ctx.beginPath();
-    ctx.arc(c.cx, c.cy, r / 2, 0, Math.PI * 2);
+    ctx.arc(c.cx, c.cy, r, 0, Math.PI * 2);
     ctx.fill();
   }
 }
