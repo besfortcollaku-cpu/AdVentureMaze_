@@ -101,7 +101,7 @@ function drawFloor() {
   const c = cellCenter(playerFloat.x, playerFloat.y);
 
   // ─────────────────────────
-  // DERIVE VELOCITY (FIX)
+  // DERIVE VELOCITY
   // ─────────────────────────
   let vx = 0;
   let vy = 0;
@@ -115,30 +115,54 @@ function drawFloor() {
   lastBallY = c.cy;
 
   const speed = Math.hypot(vx, vy);
-  // ─────────────────────────
-// STORE TRAIL POINTS
-// ─────────────────────────
-if (speed > 0.5) {
-  trail.push({
-    x: c.cx,
-    y: c.cy,
-    vx: dx,
-    vy: dy,
-    life: 1
-  });
-}
-
-while (trail.length > MAX_TRAIL) {
-  trail.shift();
-}
   const len = speed || 1;
   const nx = vx / len;
   const ny = vy / len;
 
   // ─────────────────────────
-  // MOTION BLUR (behind ball)
+  // STORE TRAIL POINTS
   // ─────────────────────────
-  if (speed > 0.02) {
+  if (speed > 0.5) {
+    trail.push({
+      x: c.cx,
+      y: c.cy,
+      vx,
+      vy,
+      life: 1
+    });
+  }
+
+  while (trail.length > MAX_TRAIL) {
+    trail.shift();
+  }
+
+  // ─────────────────────────
+  // DRAW TRAIL (BEHIND BALL)
+  // ─────────────────────────
+  for (let i = 0; i < trail.length; i++) {
+    const t = trail[i];
+    const fade = i / trail.length;
+
+    ctx.globalAlpha = 0.4 * fade;
+    ctx.fillStyle = `rgba(120,200,255,${0.35 * fade})`;
+
+    ctx.beginPath();
+    ctx.arc(
+      t.x - t.vx * 0.25,
+      t.y - t.vy * 0.25,
+      r * 0.35 * fade,
+      0,
+      Math.PI * 2
+    );
+    ctx.fill();
+  }
+
+  ctx.globalAlpha = 1;
+
+  // ─────────────────────────
+  // MOTION BLUR
+  // ─────────────────────────
+  if (speed > 0.02 && ballReady) {
     ctx.save();
     ctx.globalAlpha = Math.min(0.35, speed * 0.8);
 
@@ -165,30 +189,6 @@ while (trail.length > MAX_TRAIL) {
       size
     );
   } else {
-    // fallback circle
-    // ─────────────────────────
-// CRYSTAL TRAIL (BEHIND BALL)
-// ─────────────────────────
-for (let i = 0; i < trail.length; i++) {
-  const t = trail[i];
-  const fade = i / trail.length;
-
-  ctx.globalAlpha = 0.35 * fade;
-  ctx.fillStyle = `rgba(120,200,255,${0.4 * fade})`;
-
-  ctx.beginPath();
-  ctx.arc(
-    t.x - t.vx * 0.3,
-    t.y - t.vy * 0.3,
-    r * 0.35 * fade,
-    0,
-    Math.PI * 2
-  );
-  ctx.fill();
-}
-
-ctx.globalAlpha = 1;
-
     ctx.fillStyle = "#ffd34d";
     ctx.beginPath();
     ctx.arc(c.cx, c.cy, r, 0, Math.PI * 2);
@@ -216,21 +216,19 @@ ctx.globalAlpha = 1;
   ctx.fill();
 
   // ─────────────────────────
-  // CRYSTAL PARTICLE TRAIL
-  // (behind movement direction)
+  // CRYSTAL SPARKS
   // ─────────────────────────
   if (speed > 0.03) {
     ctx.save();
     ctx.globalCompositeOperation = "lighter";
 
     for (let i = 0; i < 4; i++) {
-      const t = Math.random();
-      const px = c.cx - nx * r * (1.2 + t) + (Math.random() - 0.5) * r * 0.6;
-      const py = c.cy - ny * r * (1.2 + t) + (Math.random() - 0.5) * r * 0.6;
+      const px = c.cx - nx * r * (1.2 + Math.random());
+      const py = c.cy - ny * r * (1.2 + Math.random());
 
       const pr = r * (0.08 + Math.random() * 0.12);
 
-      ctx.fillStyle = `rgba(120,220,255,${0.15 + Math.random() * 0.35})`;
+      ctx.fillStyle = `rgba(120,220,255,${0.2 + Math.random() * 0.4})`;
       ctx.beginPath();
       ctx.arc(px, py, pr, 0, Math.PI * 2);
       ctx.fill();
