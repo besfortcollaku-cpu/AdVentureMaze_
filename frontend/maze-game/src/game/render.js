@@ -12,9 +12,9 @@ const MAX_TRAIL = 30;
 
   const ctx = canvas.getContext("2d");
   
-shakeTime = 10;      // more frames
-shakeX = (Math.random() - 0.5) * 8;
-shakeY = (Math.random() - 0.5) * 8;
+shakeTime = 0;      // more frames
+shakeX = 0;
+shakeY = 0;
 
   // ======================
   // CONFIG
@@ -167,9 +167,9 @@ function drawCrystalShard(x, y, angle, size, alpha, hueShift = 0) {
 // CAMERA SHAKE TRIGGER
 // ─────────────────────────
 if (playerFloat.hit) {
-  shakeTime = 4; // frames
-  shakeX = (Math.random() - 0.5) * 4;
-  shakeY = (Math.random() - 0.5) * 4;
+  shakeTime = 10; // frames
+  shakeX = (Math.random() - 0.5) * 8;
+  shakeY = (Math.random() - 0.5) * 8;
   playerFloat.hit = false;
 }
 
