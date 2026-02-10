@@ -1,14 +1,20 @@
+
+
 export function createRenderer({ canvas, state }) {
     let lastBallX = null;
     let lastBallY = null;
     const trail = [];
-const MAX_TRAIL = 14;
+const MAX_TRAIL = 30;
   if (!(canvas instanceof HTMLCanvasElement)) {
     console.error("Renderer: canvas missing");
     return;
   }
 
   const ctx = canvas.getContext("2d");
+  
+let shakeX = 0;
+let shakeY = 0;
+let shakeTime = 0;
 
   // ======================
   // CONFIG
@@ -157,6 +163,15 @@ function drawCrystalShard(x, y, angle, size, alpha, hueShift = 0) {
   while (trail.length > MAX_TRAIL) {
     trail.shift();
   }
+  // ─────────────────────────
+// CAMERA SHAKE TRIGGER
+// ─────────────────────────
+if (playerFloat.hit) {
+  shakeTime = 4; // frames
+  shakeX = (Math.random() - 0.5) * 4;
+  shakeY = (Math.random() - 0.5) * 4;
+  playerFloat.hit = false;
+}
 
   // ─────────────────────────
   // DRAW TRAIL (BEHIND BALL)
@@ -301,11 +316,26 @@ ctx.globalAlpha = 1;
   function render(playerFloat) {
   ctx.clearRect(0, 0, w, h);
 
-  drawBackground();
+// apply camera shake
+if (shakeTime > 0) {
+  ctx.save();
+  ctx.translate(shakeX, shakeY);
+  shakeTime--;
+} else {
+  shakeX = 0;
+  shakeY = 0;
+}
+
+drawBackground();
   drawFloor();     // or floor inside drawMaze if you kept it
     drawBall(playerFloat); // last = depth illusion
 
   drawWalls();     // tall objects
+
+if (shakeTime >= 0) {
+  ctx.restore();
+}
+  
 }
 
   return { resize, render };
