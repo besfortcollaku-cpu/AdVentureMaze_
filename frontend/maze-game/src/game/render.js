@@ -313,6 +313,10 @@ ctx.globalAlpha = 1;
     }
   }
 }
+
+window.addEventListener("resize", resize);
+resize();
+
   function render(playerFloat) {
   ctx.clearRect(0, 0, w, h);
 
