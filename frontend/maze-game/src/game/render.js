@@ -131,6 +131,7 @@ function drawFloor() {
   const shadowOffsetY = tile * 0.28;
   const shadowHeight  = tile * 0.35;
   const grid = state.grid;
+  const WALL_HEIGHT = Math.floor(tile * 0.35); // visual height
 
   for (let y = 0; y < grid.length; y++) {
     for (let x = 0; x < grid[y].length; x++) {
@@ -139,14 +140,48 @@ function drawFloor() {
       const px = ox + x * tile;
       const py = oy + y * tile;
 
-      // draw wall only if sprite ready
+      // ─────────────
+      // WALL SIDE (vertical depth)
+      // ─────────────
+      ctx.fillStyle = "rgba(20,40,80,0.85)";
+      ctx.fillRect(
+        px,
+        py + tile - WALL_HEIGHT,
+        tile,
+        WALL_HEIGHT
+      );
+
+      // ─────────────
+      // WALL TOP (flat face)
+      // ─────────────
       if (wallReady) {
-        ctx.drawImage(wallImg, px, py, tile, tile);
+        ctx.drawImage(
+          wallImg,
+          px,
+          py - WALL_HEIGHT,
+          tile,
+          tile
+        );
       } else {
-        // fallback so render never breaks
-        ctx.fillStyle = "rgba(120,180,255,0.35)";
-        ctx.fillRect(px, py, tile, tile);
+        ctx.fillStyle = "rgba(120,180,255,0.9)";
+        ctx.fillRect(
+          px,
+          py - WALL_HEIGHT,
+          tile,
+          tile
+        );
       }
+
+      // ─────────────
+      // TOP EDGE HIGHLIGHT
+      // ─────────────
+      ctx.fillStyle = "rgba(255,255,255,0.18)";
+      ctx.fillRect(
+        px,
+        py - WALL_HEIGHT,
+        tile,
+        2
+      );
     }
   }
 }
