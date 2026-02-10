@@ -16,6 +16,7 @@ const MAX_TRAIL = 30;
  let shakeStrength = 0;
  let shakeX = 0;
  let shakeY = 0;
+
  state.onMoveFinished = () => {
        console.log("SHAKE TRIGGERED");
   shakeTime = 12;       // duration in frames
@@ -93,14 +94,40 @@ ballImg.src = "/textures/sprites/crystal/gold_ball.png";
     ctx.fillStyle = "#0e1430";
     ctx.fillRect(0, 0, w, h);
   }
-function drawWallShadow(px, py) {
-  ctx.fillStyle = "rgba(0,0,0,0.25)";
-  ctx.fillRect(
-    px + tile * 0.08,
-    py + tile * 0.12,
-    tile,
-    tile
-  );
+function drawWalls() {
+  const grid = state.grid;
+
+  const WALL_W = tile;
+  const WALL_H = tile * 1.5;
+
+  for (let y = 0; y < grid.length; y++) {
+    for (let x = 0; x < grid[y].length; x++) {
+      if (grid[y][x] !== 1) continue;
+
+      const px = ox + x * tile;
+      const py = oy + y * tile;
+
+      // ── SHADOW (FAST & SAFE)
+      ctx.fillStyle = "rgba(0,0,0,0.22)";
+      ctx.fillRect(
+        px + tile * 0.08,
+        py + tile * 0.12,
+        tile,
+        tile
+      );
+
+      // ── WALL SPRITE
+      if (wallReady) {
+        ctx.drawImage(
+          wallImg,
+          px,
+          py + tile - WALL_H,
+          WALL_W,
+          WALL_H
+        );
+      }
+    }
+  }
 }
 function drawFloor() {
   const grid = state.grid;
@@ -343,19 +370,16 @@ resize();
   function render(playerFloat) {
   ctx.clearRect(0, 0, w, h);
 
-  // 🎥 camera shake (visual only)
+  // ── CAMERA SHAKE APPLY
   if (shakeTime > 0) {
     const sx = (Math.random() - 0.5) * shakeStrength;
     const sy = (Math.random() - 0.5) * shakeStrength;
-
     ctx.save();
     ctx.translate(sx, sy);
     shakeTime--;
   }
 
-  // ─────────────────────────
-  // DRAW ORDER (DEPTH)
-  // ─────────────────────────
+ 
   drawBackground();
   drawFloor();           // floor first
   drawWallShadow();
