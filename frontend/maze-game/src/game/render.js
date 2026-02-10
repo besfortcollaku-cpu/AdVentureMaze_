@@ -20,10 +20,9 @@ export function createRenderer({ canvas, state }) {
   let floorReady = false;
   floorImg.onload = () => (floorReady = true);
   floorImg.src = "/textures/sprites/crystal/crystal_floor.png";
-// WALL TILE (visual only)
+// WALL TILE
 const wallImg = new Image();
-let wallReady = true;
-const WALL_HEIGHT = 16;
+let wallReady = false;
 wallImg.onload = () => (wallReady = true);
 wallImg.src = "/textures/sprites/crystal/corner_bl.png";
   // ======================
@@ -131,22 +130,23 @@ function drawFloor() {
   const shadowOffsetX = tile * 0.12;
   const shadowOffsetY = tile * 0.28;
   const shadowHeight  = tile * 0.35;
+  const grid = state.grid;
 
-  for (let y = 0; y < state.rows; y++) {
-    for (let x = 0; x < state.cols; x++) {
-      if (state.grid[y][x] !== 1) continue;
+  for (let y = 0; y < grid.length; y++) {
+    for (let x = 0; x < grid[y].length; x++) {
+      if (grid[y][x] !== 1) continue;
 
       const px = ox + x * tile;
       const py = oy + y * tile;
 
-      // wall shadow on floor
-      ctx.fillStyle = "rgba(0,0,0,0.35)";
-      ctx.fillRect(
-        px + shadowOffsetX,
-        py + tile,
-        tile,
-        shadowHeight
-      );
+      // draw wall only if sprite ready
+      if (wallReady) {
+        ctx.drawImage(wallImg, px, py, tile, tile);
+      } else {
+        // fallback so render never breaks
+        ctx.fillStyle = "rgba(120,180,255,0.35)";
+        ctx.fillRect(px, py, tile, tile);
+      }
     }
   }
 }
