@@ -131,7 +131,7 @@ function drawFloor() {
   const shadowOffsetY = tile * 0.28;
   const shadowHeight  = tile * 0.35;
   const grid = state.grid;
-  const WALL_HEIGHT = Math.floor(tile * 0.35); // visual height
+  const WALL_HEIGHT = Math.floor(tile * 0.00); // visual height
 
   for (let y = 0; y < grid.length; y++) {
     for (let x = 0; x < grid[y].length; x++) {
