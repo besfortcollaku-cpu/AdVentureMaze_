@@ -73,28 +73,26 @@ wallImg.src = "/textures/sprites/crystal/corner_bl.png";
       for (let x = 0; x < grid[y].length; x++) {
         const px = ox + x * tile;
         const py = oy + y * tile;
-
-        // FLOOR EVERYWHERE (including under walls)
-        if (floorReady) {
-          ctx.drawImage(floorImg, px, py, tile, tile);
-        } else {
-          ctx.fillStyle = "rgba(255,255,255,0.08)";
-          ctx.fillRect(px, py, tile, tile);
-        }
-    
-// WALL VISUAL
-if (grid[y][x] === 1 && wallReady) {
-  ctx.drawImage(
-    wallImg,
-    px,
-    py - tile * 0.5,   // makes wall taller upward
-    tile,
-    tile * 1.5         // wall height (2:3 feel)
-  );
-}
       }
     }
   }
+function drawFloor() {
+  const grid = state.grid;
+
+  for (let y = 0; y < grid.length; y++) {
+    for (let x = 0; x < grid[y].length; x++) {
+      const px = ox + x * tile;
+      const py = oy + y * tile;
+
+      if (floorReady) {
+        ctx.drawImage(floorImg, px, py, tile, tile);
+      } else {
+        ctx.fillStyle = "rgba(255,255,255,0.08)";
+        ctx.fillRect(px, py, tile, tile);
+      }
+    }
+  }
+}
 
   function drawBall(playerFloat) {
     const r = tile * 0.28;
@@ -118,12 +116,37 @@ if (grid[y][x] === 1 && wallReady) {
     ctx.arc(c.cx - r * 0.35, c.cy - r * 0.35, r * 0.35, 0, Math.PI * 2);
     ctx.fill();
   }
+  function drawWalls() {
+  const grid = state.grid;
+
+  if (!wallReady) return;
+
+  for (let y = 0; y < grid.length; y++) {
+    for (let x = 0; x < grid[y].length; x++) {
+      if (grid[y][x] !== 1) continue;
+
+      const px = ox + x * tile;
+      const py = oy + y * tile;
+
+      ctx.drawImage(
+        wallImg,
+        px,
+        py - tile * 0.5,   // wall rises upward
+        tile,
+        tile * 1.5
+      );
+    }
+  }
+}
 
   function render(playerFloat) {
     ctx.clearRect(0, 0, w, h);
     drawBackground();
     drawMaze();
+    drawFloor();
     drawBall(playerFloat);
+    drawMWalls();
+
   }
 
   return { resize, render };
