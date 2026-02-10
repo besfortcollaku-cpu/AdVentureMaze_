@@ -166,8 +166,9 @@ function drawFloor() {
 
   drawBackground();
   drawFloor();     // or floor inside drawMaze if you kept it
+    drawBall(playerFloat); // last = depth illusion
+
   drawWalls();     // tall objects
-  drawBall(playerFloat); // last = depth illusion
 }
 
   return { resize, render };
