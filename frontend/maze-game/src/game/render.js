@@ -80,7 +80,7 @@ wallImg.src = "/textures/sprites/crystal/corner_bl.png";
 
       ctx.fillRect(px, py, tile, tile);
     }
-  
+  }
 }
 function drawFloor() {
   const grid = state.grid;
@@ -122,7 +122,7 @@ function drawFloor() {
     ctx.arc(c.cx - r * 0.35, c.cy - r * 0.35, r * 0.35, 0, Math.PI * 2);
     ctx.fill();
   }
-  }
+  
   
   function drawWalls() {
   const grid = state.grid;
