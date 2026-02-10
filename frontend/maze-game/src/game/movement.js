@@ -143,6 +143,7 @@ export function createMovement({ state, onMoveFinished }) {
     if (clamped >= 1) {
       state.player.x = anim.tx;
       state.player.y = anim.ty;
+      state.playerHit = true;
 
       // ensure final tile painted
       if (state.isWalkable(state.player.x, state.player.y)) {

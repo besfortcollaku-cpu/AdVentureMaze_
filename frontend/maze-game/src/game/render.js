@@ -13,6 +13,7 @@ const MAX_TRAIL = 30;
   const ctx = canvas.getContext("2d");
   
  let shakeTime = 0;      // more frames
+ let shakeStrength = 0;
  let shakeX = 0;
  let shakeY = 0;
 
@@ -166,12 +167,7 @@ function drawCrystalShard(x, y, angle, size, alpha, hueShift = 0) {
   // ─────────────────────────
 // CAMERA SHAKE TRIGGER
 // ─────────────────────────
-if (playerFloat.hit) {
-  shakeTime = 10; // frames
-  shakeX = (Math.random() - 0.5) * 8;
-  shakeY = (Math.random() - 0.5) * 8;
-  playerFloat.hit = false;
-}
+
 
   // ─────────────────────────
   // DRAW TRAIL (BEHIND BALL)
@@ -320,26 +316,29 @@ resize();
   function render(playerFloat) {
   ctx.clearRect(0, 0, w, h);
 
-// apply camera shake
-if (shakeTime > 0) {
+  // ─────────────────────────
+  // CAMERA SHAKE (SAFE)
+  // ─────────────────────────
   ctx.save();
-  ctx.translate(shakeX, shakeY);
-  shakeTime--;
-} else {
-  shakeX = 0;
-  shakeY = 0;
-}
 
-drawBackground();
-  drawFloor();     // or floor inside drawMaze if you kept it
-    drawBall(playerFloat); // last = depth illusion
+  if (shakeTime > 0) {
+    shakeX = (Math.random() - 0.5) * shakeStrength;
+    shakeY = (Math.random() - 0.5) * shakeStrength;
 
-  drawWalls();     // tall objects
+    ctx.translate(shakeX, shakeY);
+    shakeTime--;
+  }
 
-if (shakeTime >0) {
+  // ─────────────────────────
+  // DRAW ORDER (DEPTH)
+  // ─────────────────────────
+  drawBackground();
+  drawFloor();           // floor first
+  drawBall(playerFloat); // ball between floor & walls
+  drawWalls();           // walls last (in front)
+
   ctx.restore();
 }
-  
 }
 
   return { resize, render };
