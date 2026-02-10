@@ -16,6 +16,10 @@ const MAX_TRAIL = 30;
  let shakeStrength = 0;
  let shakeX = 0;
  let shakeY = 0;
+ state.onMoveFinished = () => {
+  shakeTime = 12;       // duration in frames
+  shakeStrength = 6;   // pixels
+};
 
   // ======================
   // CONFIG
@@ -316,18 +320,18 @@ resize();
   function render(playerFloat) {
   ctx.clearRect(0, 0, w, h);
 
-  // ─────────────────────────
-  // CAMERA SHAKE (SAFE)
-  // ─────────────────────────
-  ctx.save();
-
+  // 🎥 camera shake (visual only)
   if (shakeTime > 0) {
-    shakeX = (Math.random() - 0.5) * shakeStrength;
-    shakeY = (Math.random() - 0.5) * shakeStrength;
+    const sx = (Math.random() - 0.5) * shakeStrength;
+    const sy = (Math.random() - 0.5) * shakeStrength;
 
-    ctx.translate(shakeX, shakeY);
+    ctx.save();
+    ctx.translate(sx, sy);
     shakeTime--;
   }
+
+  
+
 
   // ─────────────────────────
   // DRAW ORDER (DEPTH)
@@ -337,8 +341,9 @@ resize();
   drawBall(playerFloat); // ball between floor & walls
   drawWalls();           // walls last (in front)
 
-  ctx.restore();
-}
+  if (shakeTime > 0) {
+    ctx.restore();
+  }
 
   return { resize, render };
 }
