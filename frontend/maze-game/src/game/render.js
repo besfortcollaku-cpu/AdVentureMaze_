@@ -17,6 +17,7 @@ const MAX_TRAIL = 30;
  let shakeX = 0;
  let shakeY = 0;
  state.onMoveFinished = () => {
+       console.log("SHAKE TRIGGERED");
   shakeTime = 12;       // duration in frames
   shakeStrength = 6;   // pixels
 };
@@ -329,9 +330,6 @@ resize();
     ctx.translate(sx, sy);
     shakeTime--;
   }
-
-  
-
 
   // ─────────────────────────
   // DRAW ORDER (DEPTH)
