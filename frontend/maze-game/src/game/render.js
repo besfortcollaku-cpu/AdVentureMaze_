@@ -344,6 +344,7 @@ resize();
   if (shakeTime > 0) {
     ctx.restore();
   }
+  }
 
   return { resize, render };
 }
