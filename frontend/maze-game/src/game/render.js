@@ -22,7 +22,8 @@ export function createRenderer({ canvas, state }) {
   floorImg.src = "/textures/sprites/crystal/crystal_floor.png";
 // WALL TILE (visual only)
 const wallImg = new Image();
-let wallReady = false;
+let wallReady = true;
+const WALL_HEIGHT = 16;
 wallImg.onload = () => (wallReady = true);
 wallImg.src = "/textures/sprites/crystal/corner_bl.png";
   // ======================
@@ -138,9 +139,7 @@ function drawFloor() {
       const px = ox + x * tile;
       const py = oy + y * tile;
 
-      // ─────────────────────────
-      // WALL SHADOW (ON FLOOR)
-      // ─────────────────────────
+      // wall shadow on floor
       ctx.fillStyle = "rgba(0,0,0,0.35)";
       ctx.fillRect(
         px + shadowOffsetX,
@@ -148,19 +147,6 @@ function drawFloor() {
         tile,
         shadowHeight
       );
-
-      // ─────────────────────────
-      // WALL BODY (sprite)
-      // ─────────────────────────
-      if (wallReady) {
-        ctx.drawImage(
-          wallImg,
-          px,
-          py - WALL_HEIGHT,
-          tile,
-          tile + WALL_HEIGHT
-        );
-      }
     }
   }
 }
