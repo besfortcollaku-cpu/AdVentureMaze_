@@ -145,8 +145,8 @@ function drawFloor() {
   ctx.clearRect(0, 0, w, h);
   drawBackground();
   drawFloor();
+    drawBall(playerFloat);
   drawWalls();
-  drawBall(playerFloat);
 }
 
   return { resize, render };
