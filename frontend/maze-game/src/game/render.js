@@ -142,14 +142,12 @@ function drawFloor() {
   
 
   function render(playerFloat) {
-    ctx.clearRect(0, 0, w, h);
-    drawBackground();
-    drawMaze();
-    drawFloor();
-    drawBall(playerFloat);
-    drawMWalls();
-
-  }
+  ctx.clearRect(0, 0, w, h);
+  drawBackground();
+  drawFloor();
+  drawWalls();
+  drawBall(playerFloat);
+}
 
   return { resize, render };
 }
