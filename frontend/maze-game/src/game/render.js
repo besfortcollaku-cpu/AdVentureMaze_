@@ -129,8 +129,8 @@ function drawFloor() {
   function drawWalls() {
   const grid = state.grid;
 
-  const BASE_HEIGHT = tile * 0.35;   // base wall height
-  const PERSPECTIVE = tile * 0.25;   // how much height changes top→bottom
+  const WALL_W = tile;        // 64
+  const WALL_H = tile * 1.5;  // 96
 
   for (let y = 0; y < grid.length; y++) {
     for (let x = 0; x < grid[y].length; x++) {
@@ -139,53 +139,25 @@ function drawFloor() {
       const px = ox + x * tile;
       const py = oy + y * tile;
 
-      // 👁️ perspective: walls lower at top, taller at bottom
-      const rowFactor = y / (grid.length - 1);
-      const wallHeight =
-        BASE_HEIGHT + rowFactor * PERSPECTIVE;
-
-      // ─────────────
-      // WALL SIDE (depth)
-      // ─────────────
-      ctx.fillStyle = "rgba(15,30,70,0.9)";
-      ctx.fillRect(
-        px,
-        py + tile - wallHeight,
-        tile,
-        wallHeight
-      );
-
-      // ─────────────
-      // WALL TOP
-      // ─────────────
+      // draw wall so bottom sits on floor tile
       if (wallReady) {
         ctx.drawImage(
           wallImg,
           px,
-          py - wallHeight,
-          tile,
-          tile
+          py + tile - WALL_H, // ⬅️ extend upward
+          WALL_W,
+          WALL_H
         );
       } else {
-        ctx.fillStyle = "rgba(130,190,255,0.95)";
+        // fallback block
+        ctx.fillStyle = "rgba(100,160,255,0.9)";
         ctx.fillRect(
           px,
-          py - wallHeight,
-          tile,
-          tile
+          py + tile - WALL_H,
+          WALL_W,
+          WALL_H
         );
       }
-
-      // ─────────────
-      // TOP EDGE LIGHT
-      // ─────────────
-      ctx.fillStyle = "rgba(255,255,255,0.2)";
-      ctx.fillRect(
-        px,
-        py - wallHeight,
-        tile,
-        2
-      );
     }
   }
 }
