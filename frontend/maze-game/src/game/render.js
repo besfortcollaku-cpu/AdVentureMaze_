@@ -110,33 +110,30 @@ function drawFloor() {
   }
   
   
-  function drawMaze() {
+  function drawWalls() {
   const grid = state.grid;
 
   for (let y = 0; y < grid.length; y++) {
     for (let x = 0; x < grid[y].length; x++) {
+      if (grid[y][x] !== 1) continue;
+
       const px = ox + x * tile;
       const py = oy + y * tile;
 
-      // ───────── FLOOR (always)
-      if (floorReady) {
-        ctx.drawImage(floorImg, px, py, tile, tile);
-      } else {
-        ctx.fillStyle = "rgba(255,255,255,0.08)";
-        ctx.fillRect(px, py, tile, tile);
-      }
-
-      // ───────── WALL (sprite, no logic change)
-      if (grid[y][x] === 1) {
-        if (wallReady) {
-          ctx.drawImage(wallImg, px, py - tile * 0.5, tile, tile * 1.5);
-        }
-        // ⚠️ NO ELSE, NO FILL — wall is visual only
+      // draw wall sprite taller than floor
+      // so it looks vertical / 3D
+      if (wallReady) {
+        ctx.drawImage(
+          wallImg,
+          px,
+          py - tile * 0.5,   // lift wall up
+          tile,
+          tile * 1.5         // taller than floor
+        );
       }
     }
   }
 }
-
   function render(playerFloat) {
   ctx.clearRect(0, 0, w, h);
   drawBackground();
