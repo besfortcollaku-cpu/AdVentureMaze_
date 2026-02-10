@@ -91,57 +91,53 @@ ballImg.src = "/textures/sprites/crystal/gold_ball.png";
 
   
 function drawFloor() {
-    const t = performance.now() * 0.001;
   const grid = state.grid;
+  const t = performance.now() * 0.001;
 
   for (let y = 0; y < grid.length; y++) {
     for (let x = 0; x < grid[y].length; x++) {
       const px = ox + x * tile;
       const py = oy + y * tile;
 
-      // ─────────────────────────
-      // BASE FLOOR (always)
-      // ─────────────────────────
+      // 1️⃣ Base dark floor
+      ctx.fillStyle = "#0f1c33";
+      ctx.fillRect(px, py, tile, tile);
+
+      // 2️⃣ Floor texture
       if (floorReady) {
         ctx.drawImage(floorImg, px, py, tile, tile);
-      } else {
-        ctx.fillStyle = "#1b2b44";
-        ctx.fillRect(px, py, tile, tile);
       }
 
-      // ─────────────────────────
-      // PAINTED PATH (ball crossed)
-      // ─────────────────────────
+      // 3️⃣ Painted path overlay (ON TOP)
       if (state.isPainted(x, y)) {
-  // subtle animated crystal shimmer
-  const pulse =
-    0.18 +
-    Math.sin(t * 2 + x * 0.6 + y * 0.6) * 0.07;
+        const pulse =
+          0.35 +
+          Math.sin(t * 3 + x * 0.8 + y * 0.8) * 0.15;
 
-  const glow = ctx.createRadialGradient(
-    px + tile / 2,
-    py + tile / 2,
-    tile * 0.18,
-    px + tile / 2,
-    py + tile / 2,
-    tile * 0.75
-  );
+        const glow = ctx.createRadialGradient(
+          px + tile / 2,
+          py + tile / 2,
+          tile * 0.15,
+          px + tile / 2,
+          py + tile / 2,
+          tile * 0.9
+        );
 
-  glow.addColorStop(0, `rgba(170,235,255,${pulse})`);
-  glow.addColorStop(1, "rgba(90,160,255,0.12)");
+        glow.addColorStop(0, `rgba(140,220,255,${pulse})`);
+        glow.addColorStop(1, "rgba(40,120,200,0.25)");
 
-  ctx.fillStyle = glow;
-  ctx.fillRect(px, py, tile, tile);
+        ctx.fillStyle = glow;
+        ctx.fillRect(px, py, tile, tile);
 
-  // faint inner highlight (depth)
-  ctx.fillStyle = "rgba(255,255,255,0.04)";
-  ctx.fillRect(
-    px + tile * 0.08,
-    py + tile * 0.08,
-    tile * 0.84,
-    tile * 0.84
-  );
-}
+        // inner crystal sheen
+        ctx.fillStyle = "rgba(255,255,255,0.08)";
+        ctx.fillRect(
+          px + tile * 0.12,
+          py + tile * 0.12,
+          tile * 0.76,
+          tile * 0.76
+        );
+      }
     }
   }
 }
