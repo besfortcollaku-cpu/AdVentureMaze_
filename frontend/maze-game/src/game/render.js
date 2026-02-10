@@ -122,7 +122,7 @@ function drawFloor() {
     ctx.arc(c.cx - r * 0.35, c.cy - r * 0.35, r * 0.35, 0, Math.PI * 2);
     ctx.fill();
   }
-  
+  }
   
   function drawWalls() {
   const grid = state.grid;
@@ -147,7 +147,7 @@ function drawFloor() {
   }
 }
       
-  }
+  
 
   function render(playerFloat) {
     ctx.clearRect(0, 0, w, h);
