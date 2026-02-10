@@ -127,11 +127,10 @@ function drawFloor() {
   
   
   function drawWalls() {
-  const shadowOffsetX = tile * 0.12;
-  const shadowOffsetY = tile * 0.28;
-  const shadowHeight  = tile * 0.35;
   const grid = state.grid;
-  const WALL_HEIGHT = Math.floor(tile * 0.00); // visual height
+
+  const BASE_HEIGHT = tile * 0.35;   // base wall height
+  const PERSPECTIVE = tile * 0.25;   // how much height changes top→bottom
 
   for (let y = 0; y < grid.length; y++) {
     for (let x = 0; x < grid[y].length; x++) {
@@ -140,45 +139,50 @@ function drawFloor() {
       const px = ox + x * tile;
       const py = oy + y * tile;
 
+      // 👁️ perspective: walls lower at top, taller at bottom
+      const rowFactor = y / (grid.length - 1);
+      const wallHeight =
+        BASE_HEIGHT + rowFactor * PERSPECTIVE;
+
       // ─────────────
-      // WALL SIDE (vertical depth)
+      // WALL SIDE (depth)
       // ─────────────
-      ctx.fillStyle = "rgba(20,40,80,0.85)";
+      ctx.fillStyle = "rgba(15,30,70,0.9)";
       ctx.fillRect(
         px,
-        py + tile - WALL_HEIGHT,
+        py + tile - wallHeight,
         tile,
-        WALL_HEIGHT
+        wallHeight
       );
 
       // ─────────────
-      // WALL TOP (flat face)
+      // WALL TOP
       // ─────────────
       if (wallReady) {
         ctx.drawImage(
           wallImg,
           px,
-          py - WALL_HEIGHT,
+          py - wallHeight,
           tile,
           tile
         );
       } else {
-        ctx.fillStyle = "rgba(120,180,255,0.9)";
+        ctx.fillStyle = "rgba(130,190,255,0.95)";
         ctx.fillRect(
           px,
-          py - WALL_HEIGHT,
+          py - wallHeight,
           tile,
           tile
         );
       }
 
       // ─────────────
-      // TOP EDGE HIGHLIGHT
+      // TOP EDGE LIGHT
       // ─────────────
-      ctx.fillStyle = "rgba(255,255,255,0.18)";
+      ctx.fillStyle = "rgba(255,255,255,0.2)";
       ctx.fillRect(
         px,
-        py - WALL_HEIGHT,
+        py - wallHeight,
         tile,
         2
       );
