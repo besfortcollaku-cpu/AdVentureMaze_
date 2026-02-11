@@ -1,6 +1,8 @@
 
 import "../css/settings.css";
+import { setSetting } from "../settings.js";
 
+setSetting("sound", checked);
 
 export function mountSettingsUI(root) {
   const el = document.createElement("div");
