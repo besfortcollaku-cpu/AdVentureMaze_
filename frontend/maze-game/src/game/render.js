@@ -95,7 +95,7 @@ ballImg.src = "/textures/sprites/crystal/gold_ball.png";
   }
 function drawWallShadow(px, py) {
   // ── WALL SHADOW (light from bottom-left → shadow top-right)
-ctx.fillStyle = "rgba(0,0,0,0.45)";
+ctx.fillStyle = "rgba(0,0,0,0.85)";
 ctx.fillRect(
   px + tile * 0.52,   // → right
   py - tile * 0.62,   // ↑ up
