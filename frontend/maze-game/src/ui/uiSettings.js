@@ -82,14 +82,7 @@ const gyroToggle = el.querySelector("#gyroToggle");
   
 
 soundToggle.addEventListener("change", (e) => {
-  const enabled = e.target.checked;
-
-  localStorage.setItem("sound", enabled ? "on" : "off");
-
-  // 🔑 MUST be sync + direct
-  if (enabled) {
-    unlockAudioContext();
-  }
+  localStorage.setItem("sound", e.target.checked ? "on" : "off");
 });
 
  

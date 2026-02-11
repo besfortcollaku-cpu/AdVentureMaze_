@@ -3,6 +3,7 @@
 import { getSettings } from "../settings.js";
 import { ensureAudioUnlocked } from "./rollSound.js";
 import { startRollSound, updateRollSound, stopRollSound } from "./rollSound.js";
+import { unlockAudioContextFromGesture } from "./rollSound.js";
 export function setGyroPreset(name) {
   if (name === "soft") {
     GYRO.deadZone = 0.35;
@@ -53,6 +54,11 @@ function tryGyroMove() {
 
 export function createMovement({ state, onMoveFinished }) {
     
+    function startMove(dx, dy) {
+  unlockAudioContextFromGesture(); // 🔑 GUARANTEED gesture
+
+  if (moving) return;
+  if (!dx && !dy) return;
   let moving = false;
   let soundActive = false;
 

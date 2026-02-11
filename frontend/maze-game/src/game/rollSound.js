@@ -12,12 +12,11 @@ let rollFilter = null;
 let audioCtx = null;
 let unlocked = false;
 
-export function unlockAudioContext() {
+export function unlockAudioContextFromGesture() {
   if (unlocked) return;
 
   audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
-  // play a real silent tick
   const buffer = audioCtx.createBuffer(1, 1, audioCtx.sampleRate);
   const src = audioCtx.createBufferSource();
   src.buffer = buffer;
@@ -25,10 +24,17 @@ export function unlockAudioContext() {
   src.start(0);
 
   unlocked = true;
+
+  console.log("🔊 Audio unlocked:", audioCtx.state);
+}
+
+export function isAudioUnlocked() {
+  return unlocked;
 }
 
 function getCtx() {
   return unlocked ? audioCtx : null;
+} unlocked ? audioCtx : null;
 }
 
 
