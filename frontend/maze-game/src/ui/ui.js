@@ -129,6 +129,10 @@ skipBtn.addEventListener("click", () => onSkipClick());
   await ensureAudioUnlocked();
     loginHandler?.();
   });
+  document.body.addEventListener("pointerdown", async () => {
+  await ensureAudioUnlocked();
+  alert("Audio unlocked");
+}, { once: true });
 
   // ----- iOS EDGE GUARDS -----
   const leftGuard = document.createElement("div");
