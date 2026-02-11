@@ -356,11 +356,11 @@ ctx.globalAlpha = 1;
       // ── SHADOW (FAST & SAFE)
       ctx.save();
 
-  ctx.filter = "blur(5px)";
-      ctx.fillStyle = "rgba(0,0,0,0.85)";
+  ctx.filter = "blur(3px)";
+      ctx.fillStyle = "rgba(0,0,0,0.45)";
       ctx.fillRect(
-        px + tile * 0.65,
-        py + tile * 0.65,
+        px + tile * 0.35,
+        py + tile * 0.35,
         tile,
         tile
       );
