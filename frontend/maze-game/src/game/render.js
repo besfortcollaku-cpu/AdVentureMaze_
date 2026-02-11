@@ -94,27 +94,19 @@ ballImg.src = "/textures/sprites/crystal/gold_ball.png";
     ctx.fillRect(0, 0, w, h);
   }
 function drawWallShadow(px, py) {
-    ctx.save();
+  ctx.save();
 
-  // blur only affects THIS draw
-  ctx.filter = "blur(22px)";
+  ctx.filter = "blur(5px)";
+  ctx.fillStyle = "rgba(0,0,0,0.55)";
 
-  // ── WALL SHADOW (light from bottom-left → shadow top-right)
-ctx.fillStyle = "rgba(0,0,0,0.85)";
-ctx.fillRect(
-  px + tile * 0.52,   // → right
-  py - tile * 0.62,   // ↑ up
-  tile,
-  tile
-);
-
-  ctx.restore(); // VERY IMPORTANT
   ctx.fillRect(
-  px + tile * 0.52,   // → right
-  py - tile * 0.62,   // ↑ up
-  tile,
-  tile
-);
+    px + tile * 0.102,  // right
+    py - tile * 0.128,  // up (light from bottom-left)
+    tile,
+    tile
+  );
+
+  ctx.restore();
 }
 function drawFloor() {
   const grid = state.grid;
