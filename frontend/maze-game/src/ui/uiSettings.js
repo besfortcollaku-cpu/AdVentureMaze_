@@ -78,9 +78,16 @@ const gyroToggle = el.querySelector("#gyroToggle");
   gyroToggle.addEventListener("change", () => {
   localStorage.setItem("gyro", gyroToggle.checked ? "on" : "off");
 });
-  soundToggle.addEventListener("change", () => {
-    localStorage.setItem("sound", soundToggle.checked ? "on" : "off");
-  });
+  soundToggle.addEventListener("change", async () => {
+  const enabled = soundToggle.checked;
+
+  localStorage.setItem("sound", enabled ? "on" : "off");
+
+  // 🔑 REQUIRED: unlock WebAudio on user gesture
+  if (enabled) {
+    await ensureAudioUnlocked();
+  }
+});
 
   vibrationToggle.addEventListener("change", () => {
     localStorage.setItem("vibration", vibrationToggle.checked ? "on" : "off");
