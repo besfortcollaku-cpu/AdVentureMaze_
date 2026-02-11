@@ -46,6 +46,7 @@ function clamp(v, a, b) {
 }
 
 export function startRollSound(intensity = 1) {
+console.log("🔊 roll sound started");
   const ctx = getCtx();
   stopRollSound();
 

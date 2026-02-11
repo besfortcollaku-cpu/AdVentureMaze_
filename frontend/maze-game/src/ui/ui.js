@@ -131,7 +131,6 @@ skipBtn.addEventListener("click", () => onSkipClick());
   });
   document.body.addEventListener("pointerdown", async () => {
   await ensureAudioUnlocked();
-  alert("Audio unlocked");
 }, { once: true });
 
   // ----- iOS EDGE GUARDS -----
