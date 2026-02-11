@@ -122,13 +122,11 @@ hintBtn.addEventListener("click", () => onHintClick());
 skipBtn.addEventListener("click", () => onSkipClick());
 
   guestBtn.addEventListener("click", () => {
-      async () => {
-  await ensureAudioUnlocked(); // 🔓 unlock WebAudio
-});
     guestHandler?.();
   });
 
-  loginBtn.addEventListener("click", () => {
+  loginBtn.addEventListener("click", async () => {
+  await ensureAudioUnlocked();
     loginHandler?.();
   });
 
