@@ -94,6 +94,11 @@ ballImg.src = "/textures/sprites/crystal/gold_ball.png";
     ctx.fillRect(0, 0, w, h);
   }
 function drawWallShadow(px, py) {
+    ctx.save();
+
+  // blur only affects THIS draw
+  ctx.filter = "blur(6px)";
+
   // ── WALL SHADOW (light from bottom-left → shadow top-right)
 ctx.fillStyle = "rgba(0,0,0,0.85)";
 ctx.fillRect(
