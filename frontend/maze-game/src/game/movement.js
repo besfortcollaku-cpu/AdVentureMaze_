@@ -165,12 +165,13 @@ function onTilt(e) {
 
     // 🔊 start rolling sound (ONLY if enabled)
     const s = getSettings();
-    if (s.sound) {
-      startRollSound(Math.min(3, 0.8 + anim.dist * 0.25));
-      soundActive = true;
-    } else {
-      soundActive = false;
-    }
+
+if (s.sound) {
+  startRollSound(Math.min(3, 0.8 + anim.dist * 0.25));
+  soundActive = true;
+} else {
+  soundActive = false;
+}
   }
 
   function easeOutCubic(t) {
@@ -182,11 +183,17 @@ function onTilt(e) {
 
     // ✅ if user turned sound OFF during rolling → stop immediately
     const s = getSettings();
-    if (!s.sound && soundActive) {
-      stopRollSound();
-      soundActive = false;
-    }
+    // 🔊 rolling sound update
+if (s.sound && soundActive) {
+  const speedFeel = 1.2 + anim.dist * 0.25 * (1 - clamped);
+  updateRollSound(Math.min(3, speedFeel));
+}
 
+// 🔇 sound turned OFF while moving
+if (!s.sound && soundActive) {
+  stopRollSound();
+  soundActive = false;
+}
     const t = (now - anim.t0) / anim.dur;
     const clamped = Math.max(0, Math.min(1, t));
     const k = easeOutCubic(clamped);
