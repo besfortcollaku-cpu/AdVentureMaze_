@@ -1,5 +1,6 @@
 import { mountAccountUI } from "./uiAccount.js";
 import { mountSettingsUI } from "./uiSettings.js";
+import { ensureAudioUnlocked } from "../game/rollSound.js";
 // NOTE: Hint/Skip popups are now controlled from src/main.js so
 // they can call the backend (free/coins/ad) and update the game.
 import { mountLevelsUI } from "./uiLevels.js"; 
@@ -121,6 +122,9 @@ hintBtn.addEventListener("click", () => onHintClick());
 skipBtn.addEventListener("click", () => onSkipClick());
 
   guestBtn.addEventListener("click", () => {
+      async () => {
+  await ensureAudioUnlocked(); // 🔓 unlock WebAudio
+});
     guestHandler?.();
   });
 
