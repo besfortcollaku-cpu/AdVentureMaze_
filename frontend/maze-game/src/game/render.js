@@ -357,7 +357,7 @@ ctx.globalAlpha = 1;
   ctx.fillStyle = "rgba(0,0,0,0.55)";
   ctx.fillRect(
     px + tile * 0.12,
-    py - tile * 0.12,
+    py - tile * 0.18,
     tile,
     tile
   );
@@ -366,21 +366,21 @@ ctx.globalAlpha = 1;
   ctx.fillStyle = "rgba(0,0,0,0.45)";
   ctx.fillRect(
     px + tile * 0.2,
-    py - tile * 0.2,
+    py - tile * 0.3,
     tile,
     tile
   );
   ctx.fillStyle = "rgba(0,0,0,0.35)";
   ctx.fillRect(
     px + tile * 0.3,
-    py - tile * 0.3,
+    py - tile * 0.4,
     tile,
     tile
   );
   ctx.fillStyle = "rgba(0,0,0,0.25)";
   ctx.fillRect(
     px + tile * 0.4,
-    py - tile * 0.4,
+    py - tile * 0.5,
     tile,
     tile
   );
@@ -388,8 +388,8 @@ ctx.globalAlpha = 1;
   // soft spread 2
   ctx.fillStyle = "rgba(0,0,0,0.20)";
   ctx.fillRect(
-    px + tile * 0.75,
-    py - tile * 0.55,
+    px + tile * 0.55,
+    py - tile * 0.65,
     tile,
     tile
       );
