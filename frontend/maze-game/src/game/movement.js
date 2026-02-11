@@ -25,6 +25,9 @@ export function setGyroPreset(name) {
   }
 }
 let gyroLock = false;
+let gyroEnabled = false;
+let lastInput = "none"; // "gyro" | "swipe"
+let gyroCooldown = 0;
 
 function tryGyroMove() {
   if (!gyroEnabled || moving || gyroLock) return;
@@ -47,6 +50,7 @@ function tryGyroMove() {
 }
 
 export function createMovement({ state, onMoveFinished }) {
+    
   let moving = false;
   let soundActive = false;
 
@@ -61,6 +65,11 @@ export function createMovement({ state, onMoveFinished }) {
     lastPaintCellX: 0,
     lastPaintCellY: 0,
   };
+  function refreshInputMode() {
+  const s = getSettings();
+  gyroEnabled = s.gyro;
+}
+refreshInputMode();
   const GYRO = {
   deadZone: 0.25,   // 0–1  (higher = less sensitive)
   maxTilt: 18,      // degrees needed for full input
@@ -122,6 +131,9 @@ function onTilt(e) {
   }
 
   function startMove(dx, dy) {
+      if (!gyroEnabled) {
+  startMove(dx, dy);
+}
     if (moving) return;
     if (!dx && !dy) return;
 
@@ -261,5 +273,6 @@ function onTilt(e) {
     isMoving() {
       return moving;
     },
+refreshInputMode();
   };
 }

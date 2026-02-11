@@ -36,6 +36,16 @@ export function mountSettingsUI(root) {
           <span class="slider"></span>
         </label>
       </div>
+      <div class="settings-item">
+  <div>
+    <strong>Gyroscope</strong>
+    <div class="desc">Tilt phone to move ball</div>
+  </div>
+  <label class="switch">
+    <input type="checkbox" id="gyroToggle">
+    <span class="slider"></span>
+  </label>
+</div>
 
       <!-- FUTURE -->
       <div class="settings-item disabled">
@@ -54,15 +64,19 @@ export function mountSettingsUI(root) {
   `;
 
   root.appendChild(el);
-
+const gyroToggle = el.querySelector("#gyroToggle");
   const soundToggle = el.querySelector("#soundToggle");
   const vibrationToggle = el.querySelector("#vibrationToggle");
 
   // ---- LOAD SAVED SETTINGS ----
+  gyroToggle.checked = localStorage.getItem("gyro") === "on";
   soundToggle.checked = localStorage.getItem("sound") !== "off";
   vibrationToggle.checked = localStorage.getItem("vibration") !== "off";
 
   // ---- SAVE ON CHANGE ----
+  gyroToggle.addEventListener("change", () => {
+  localStorage.setItem("gyro", gyroToggle.checked ? "on" : "off");
+});
   soundToggle.addEventListener("change", () => {
     localStorage.setItem("sound", soundToggle.checked ? "on" : "off");
   });
