@@ -53,8 +53,7 @@ function tryGyroMove() {
 }
 
 export function createMovement({ state, onMoveFinished }) {
-    
-    function startMove(dx, dy) {
+
   unlockAudioContextFromGesture(); // 🔑 GUARANTEED gesture
 
   if (moving) return;
