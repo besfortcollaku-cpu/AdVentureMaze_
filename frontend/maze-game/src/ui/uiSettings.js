@@ -1,6 +1,6 @@
 
 import "../src/settings.css";
-import { setSetting } from "../settings.js";
+import { setSetting } from "./src/settings.js";
 
 
 export function mountSettingsUI(root) {
