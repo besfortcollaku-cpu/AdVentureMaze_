@@ -1,6 +1,5 @@
 // src/game/movement.js
 
-import { getSettings } from "../settings.js";
 import { ensureAudioUnlocked } from "./rollSound.js";
 import { getSettings, onSettingsChange } from "../settings.js";
 import { startRollSound, updateRollSound, stopRollSound } from "./rollSound.js";
