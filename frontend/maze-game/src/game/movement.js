@@ -131,9 +131,7 @@ function onTilt(e) {
   }
 
   function startMove(dx, dy) {
-      if (!gyroEnabled) {
-  startMove(dx, dy);
-}
+        if (gyroEnabled) return; 
     if (moving) return;
     if (!dx && !dy) return;
 
@@ -273,6 +271,5 @@ function onTilt(e) {
     isMoving() {
       return moving;
     },
-refreshInputMode();
   };
 }
