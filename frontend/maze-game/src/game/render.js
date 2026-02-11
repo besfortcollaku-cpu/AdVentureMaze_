@@ -127,6 +127,17 @@ function drawFloor() {
         // 🔹 NORMAL TILE
         if (floorReady) {
           ctx.drawImage(floorImg, px, py, tile, tile);
+          // ── CRYSTAL SUBSURFACE LIGHT (cheap + elegant)
+const t = performance.now() * 0.001;
+const pulse = 0.5 + Math.sin(t + x * 0.8 + y * 0.6) * 0.5;
+
+ctx.fillStyle = `rgba(120,200,255,${0.06 + pulse * 0.04})`;
+ctx.fillRect(
+  px + tile * 0.18,
+  py + tile * 0.18,
+  tile * 0.64,
+  tile * 0.64
+);
         }
       }
     }
