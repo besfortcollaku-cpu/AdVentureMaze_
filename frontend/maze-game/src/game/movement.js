@@ -33,7 +33,6 @@ export function setGyroPreset(name) {
   }
 }
 let gyroLock = false;
-let gyroEnabled = false;
 let lastInput = "none"; // "gyro" | "swipe"
 let gyroCooldown = 0;
 let audioUnlocked = false;
