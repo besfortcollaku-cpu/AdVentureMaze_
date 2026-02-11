@@ -8,6 +8,9 @@ let audioCtx = null;
 let rollSource = null;
 let rollGain = null;
 let rollFilter = null;
+let audioCtx = null;
+let osc = null;
+let gain = null;
 
 // helpers
 function getCtx() {
@@ -46,9 +49,7 @@ function clamp(v, a, b) {
 }
 
 export function startRollSound(intensity = 1) {
-let audioCtx = null;
-let osc = null;
-let gain = null;
+
 
 function getCtx() {
   if (!audioCtx) {
