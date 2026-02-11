@@ -107,7 +107,14 @@ ctx.fillRect(
   tile,
   tile
 );
+
   ctx.restore(); // VERY IMPORTANT
+  ctx.fillRect(
+  px + tile * 0.52,   // → right
+  py - tile * 0.62,   // ↑ up
+  tile,
+  tile
+);
 }
 function drawFloor() {
   const grid = state.grid;
