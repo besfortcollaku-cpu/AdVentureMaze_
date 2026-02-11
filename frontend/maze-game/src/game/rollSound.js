@@ -9,10 +9,29 @@ let rollFilter = null;
 /* -------------------------------------------------- */
 /* Audio context helper */
 /* -------------------------------------------------- */
-function getCtx() {
-  if (!audioCtx) return null;
-  return audioCtx;
+
+let audioCtx = null;
+let unlocked = false;
+
+export function unlockAudioContext() {
+  if (unlocked) return;
+
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+  // play a real silent tick
+  const buffer = audioCtx.createBuffer(1, 1, audioCtx.sampleRate);
+  const src = audioCtx.createBufferSource();
+  src.buffer = buffer;
+  src.connect(audioCtx.destination);
+  src.start(0);
+
+  unlocked = true;
 }
+
+function getCtx() {
+  return unlocked ? audioCtx : null;
+}
+
 
 /* -------------------------------------------------- */
 /* MUST be called after first user gesture */

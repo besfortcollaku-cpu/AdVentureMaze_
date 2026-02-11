@@ -1,6 +1,8 @@
 import { mountAccountUI } from "./uiAccount.js";
 import { mountSettingsUI } from "./uiSettings.js";
 import { ensureAudioUnlocked } from "../game/rollSound.js";
+import { unlockAudioContext } from "../game/rollSound.js";
+
 // NOTE: Hint/Skip popups are now controlled from src/main.js so
 // they can call the backend (free/coins/ad) and update the game.
 import { mountLevelsUI } from "./uiLevels.js"; 
@@ -133,7 +135,13 @@ skipBtn.addEventListener("click", () => onSkipClick());
   document.body.addEventListener("pointerdown", async () => {
   await ensureAudioUnlocked();
 }, { once: true });
-
+document.body.addEventListener(
+  "pointerdown",
+  () => {
+    unlockAudioContext();
+  },
+  { once: true }
+);
   // ----- iOS EDGE GUARDS -----
   const leftGuard = document.createElement("div");
   leftGuard.className = "edge-guard left";

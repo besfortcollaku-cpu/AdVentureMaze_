@@ -1,6 +1,7 @@
 
 import "../css/settings.css";
 import { ensureAudioUnlocked } from "../game/rollSound.js";
+import { unlockAudioContext } from "../game/rollSound.js";
 
 
 export function mountSettingsUI(root) {
@@ -78,10 +79,18 @@ const gyroToggle = el.querySelector("#gyroToggle");
   gyroToggle.addEventListener("change", () => {
   localStorage.setItem("gyro", gyroToggle.checked ? "on" : "off");
 });
-  soundToggle.addEventListener("change", async () => {
-  const enabled = soundToggle.checked;
+  
+
+soundToggle.addEventListener("change", (e) => {
+  const enabled = e.target.checked;
 
   localStorage.setItem("sound", enabled ? "on" : "off");
+
+  // 🔑 MUST be sync + direct
+  if (enabled) {
+    unlockAudioContext();
+  }
+});
 
   // 🔑 REQUIRED: unlock WebAudio on user gesture
   if (enabled) {
