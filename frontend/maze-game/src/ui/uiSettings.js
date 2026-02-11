@@ -86,16 +86,7 @@ const gyroToggle = el.querySelector("#gyroToggle");
     localStorage.setItem("vibration", vibrationToggle.checked ? "on" : "off");
   });
 
-soundCheckbox.addEventListener("change", async (e) => {
-  const checked = e.target.checked;
 
-  setSettings({ sound: checked });
-
-  // 🔑 unlock / resume audio ONLY when turning sound ON
-  if (checked) {
-    await ensureAudioUnlocked();
-  }
-});
   // ---- OPEN / CLOSE ----
   el.querySelector(".close-btn").onclick = close;
   el.querySelector(".settings-backdrop").onclick = close;
