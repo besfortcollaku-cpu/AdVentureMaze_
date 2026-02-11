@@ -2,6 +2,49 @@
 
 import { getSettings } from "../settings.js";
 import { startRollSound, updateRollSound, stopRollSound } from "./rollSound.js";
+export function setGyroPreset(name) {
+  if (name === "soft") {
+    GYRO.deadZone = 0.35;
+    GYRO.maxTilt = 22;
+    GYRO.gain = 0.9;
+    GYRO.smooth = 0.08;
+  }
+
+  if (name === "normal") {
+    GYRO.deadZone = 0.25;
+    GYRO.maxTilt = 18;
+    GYRO.gain = 1.0;
+    GYRO.smooth = 0.12;
+  }
+
+  if (name === "hardcore") {
+    GYRO.deadZone = 0.15;
+    GYRO.maxTilt = 14;
+    GYRO.gain = 1.2;
+    GYRO.smooth = 0.18;
+  }
+}
+let gyroLock = false;
+
+function tryGyroMove() {
+  if (!gyroEnabled || moving || gyroLock) return;
+
+  const ax = Math.abs(tiltDX);
+  const ay = Math.abs(tiltDY);
+
+  if (ax < GYRO.deadZone && ay < GYRO.deadZone) {
+    gyroLock = false; // reset when flat
+    return;
+  }
+
+  gyroLock = true;
+
+  if (ax > ay) {
+    startSlide(tiltDX > 0 ? 1 : -1, 0);
+  } else {
+    startSlide(0, tiltDY > 0 ? 1 : -1);
+  }
+}
 
 export function createMovement({ state, onMoveFinished }) {
   let moving = false;
@@ -51,49 +94,7 @@ function onTilt(e) {
   tiltDX = Math.abs(nx) < GYRO.deadZone ? 0 : nx;
   tiltDY = Math.abs(ny) < GYRO.deadZone ? 0 : ny;
 }
-export function setGyroPreset(name) {
-  if (name === "soft") {
-    GYRO.deadZone = 0.35;
-    GYRO.maxTilt = 22;
-    GYRO.gain = 0.9;
-    GYRO.smooth = 0.08;
-  }
 
-  if (name === "normal") {
-    GYRO.deadZone = 0.25;
-    GYRO.maxTilt = 18;
-    GYRO.gain = 1.0;
-    GYRO.smooth = 0.12;
-  }
-
-  if (name === "hardcore") {
-    GYRO.deadZone = 0.15;
-    GYRO.maxTilt = 14;
-    GYRO.gain = 1.2;
-    GYRO.smooth = 0.18;
-  }
-}
-let gyroLock = false;
-
-function tryGyroMove() {
-  if (!gyroEnabled || moving || gyroLock) return;
-
-  const ax = Math.abs(tiltDX);
-  const ay = Math.abs(tiltDY);
-
-  if (ax < GYRO.deadZone && ay < GYRO.deadZone) {
-    gyroLock = false; // reset when flat
-    return;
-  }
-
-  gyroLock = true;
-
-  if (ax > ay) {
-    startSlide(tiltDX > 0 ? 1 : -1, 0);
-  } else {
-    startSlide(0, tiltDY > 0 ? 1 : -1);
-  }
-}
   function vibrate(pattern) {
     const s = getSettings();
     if (!s.vibration) return;
