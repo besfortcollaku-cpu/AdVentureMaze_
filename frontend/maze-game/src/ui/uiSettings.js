@@ -1,5 +1,5 @@
 
-import "../src/settings.css";
+import "../css/settings.css";
 import { setSetting } from "../settings.js";
 
 
