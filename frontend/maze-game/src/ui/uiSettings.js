@@ -92,11 +92,7 @@ soundToggle.addEventListener("change", (e) => {
   }
 });
 
-  // 🔑 REQUIRED: unlock WebAudio on user gesture
-  if (enabled) {
-    await ensureAudioUnlocked();
-  }
-});
+ 
 
   vibrationToggle.addEventListener("change", () => {
     localStorage.setItem("vibration", vibrationToggle.checked ? "on" : "off");
