@@ -97,12 +97,11 @@ body {
 }
 
 canvas#game {
-    pointer-events: none;
   width: 90vw;
   max-width: 360px;
   aspect-ratio: 1 / 1;
-  background: transparent;
-  border-radius: 0px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 22px;
 }
 
 /* =========================

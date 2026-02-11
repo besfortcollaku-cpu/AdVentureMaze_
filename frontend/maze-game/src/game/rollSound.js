@@ -2,12 +2,14 @@
 // Rolling noise + wall thump (synth) using WebAudio.
 // No external files needed.
 
-let audioCtx = null;
 
 // rolling
 let rollSource = null;
 let rollGain = null;
 let rollFilter = null;
+let audioCtx = null;
+let osc = null;
+let gain = null;
 
 // helpers
 function getCtx() {
@@ -46,8 +48,14 @@ function clamp(v, a, b) {
 }
 
 export function startRollSound(intensity = 1) {
-  const ctx = getCtx();
-  stopRollSound();
+
+
+function getCtx() {
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  return audioCtx;
+}
 
   // White noise buffer (1 second loop)
   const bufferSize = Math.floor(ctx.sampleRate * 1);
