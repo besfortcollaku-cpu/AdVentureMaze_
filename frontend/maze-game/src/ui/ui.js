@@ -128,7 +128,9 @@ skipBtn.addEventListener("click", () => onSkipClick());
   loginBtn.addEventListener("click", async () => {
   await ensureAudioUnlocked();
     loginHandler?.();
-  });{ once: true });
+  }, { once: true });
+  
+  
   document.body.addEventListener("pointerdown", async () => {
   await ensureAudioUnlocked();
 }, { once: true });
