@@ -1,7 +1,6 @@
 import { mountAccountUI } from "./uiAccount.js";
 import { mountSettingsUI } from "./uiSettings.js";
 import { ensureAudioUnlocked } from "../game/rollSound.js";
-import { unlockAudioContext } from "../game/rollSound.js";
 
 // NOTE: Hint/Skip popups are now controlled from src/main.js so
 // they can call the backend (free/coins/ad) and update the game.
