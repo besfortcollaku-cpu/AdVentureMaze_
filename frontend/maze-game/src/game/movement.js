@@ -190,15 +190,11 @@ function onTilt(e) {
     const fy = anim.sy + (anim.ty - anim.sy) * k;
 
     // update rolling sound pitch ONLY if enabled + active
-    if (s.sound) {
-      if (!soundActive) {
-        // turned on mid-move: resume sound smoothly
-        startRollSound(1.2);
-        soundActive = true;
-      }
-      const speedFeel = 1.2 + anim.dist * 0.25 * (1 - clamped);
-      updateRollSound(Math.min(3, speedFeel));
-    }
+    // 🔊 rolling sound (STRICT)
+if (s.sound && soundActive) {
+  const speedFeel = 1.2 + anim.dist * 0.25 * (1 - clamped);
+  updateRollSound(Math.min(3, speedFeel));
+}
 
     // Determine which cell we are "in" during slide
     const cx = Math.round(fx);
