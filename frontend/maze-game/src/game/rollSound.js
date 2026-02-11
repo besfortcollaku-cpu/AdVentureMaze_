@@ -2,7 +2,6 @@
 // Rolling noise + wall thump (synth) using WebAudio.
 // No external files needed.
 
-let audioCtx = null;
 
 // rolling
 let rollSource = null;
