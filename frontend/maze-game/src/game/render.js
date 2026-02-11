@@ -94,13 +94,14 @@ ballImg.src = "/textures/sprites/crystal/gold_ball.png";
     ctx.fillRect(0, 0, w, h);
   }
 function drawWallShadow(px, py) {
-  ctx.fillStyle = "rgba(0,0,0,0.25)";
-  ctx.fillRect(
-    px + tile * 0.08,
-    py + tile * 0.12,
-    tile,
-    tile
-  );
+  // ── WALL SHADOW (light from bottom-left → shadow top-right)
+ctx.fillStyle = "rgba(0,0,0,0.28)";
+ctx.fillRect(
+  px + tile * 0.12,   // → right
+  py - tile * 0.14,   // ↑ up
+  tile,
+  tile
+);
 }
 function drawFloor() {
   const grid = state.grid;
