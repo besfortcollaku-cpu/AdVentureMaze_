@@ -1,7 +1,6 @@
 // src/game/rollSound.js
 // Rolling crystal-like noise using WebAudio (mobile-safe)
 
-let audioCtx = null;
 let rollSource = null;
 let rollGain = null;
 let rollFilter = null;
