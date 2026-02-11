@@ -388,7 +388,7 @@ ctx.globalAlpha = 1;
   // soft spread 2
   ctx.fillStyle = "rgba(0,0,0,0.20)";
   ctx.fillRect(
-    px + tile * 0.55,
+    px + tile * 0.75,
     py - tile * 0.55,
     tile,
     tile
