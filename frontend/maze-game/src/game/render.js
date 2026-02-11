@@ -140,7 +140,7 @@ ctx.fillRect(
 );
 // ── CRYSTAL FRACTURE LINES (static, elegant)
 ctx.save();
-ctx.globalAlpha = 0.18;
+ctx.globalAlpha = 0.28;
 ctx.strokeStyle = "rgba(220,240,255,0.8)";
 ctx.lineWidth = 1;
 
