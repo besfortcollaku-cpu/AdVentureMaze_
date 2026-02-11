@@ -93,21 +93,6 @@ ballImg.src = "/textures/sprites/crystal/gold_ball.png";
     ctx.fillStyle = "#0e1430";
     ctx.fillRect(0, 0, w, h);
   }
-function drawWallShadow(px, py) {
-  ctx.save();
-
-  ctx.filter = "blur(5px)";
-  ctx.fillStyle = "rgba(0,0,0,0.55)";
-
-  ctx.fillRect(
-    px + tile * 0.102,  // right
-    py - tile * 0.128,  // up (light from bottom-left)
-    tile,
-    tile
-  );
-
-  ctx.restore();
-}
 function drawFloor() {
   const grid = state.grid;
 
@@ -354,10 +339,10 @@ ctx.globalAlpha = 1;
       const py = oy + y * tile;
 
       // ── SHADOW (FAST & SAFE)
-      ctx.fillStyle = "rgba(0,0,0,0.22)";
+      ctx.fillStyle = "rgba(0,0,0,0.85)";
       ctx.fillRect(
-        px + tile * 0.95,
-        py + tile * 0.95,
+        px + tile * 0.65,
+        py + tile * 0.65,
         tile,
         tile
       );
