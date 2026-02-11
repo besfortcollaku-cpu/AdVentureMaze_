@@ -353,22 +353,32 @@ ctx.globalAlpha = 1;
       const px = ox + x * tile;
       const py = oy + y * tile;
 
-      // ── SHADOW (FAST & SAFE)
-      ctx.save();
+     // darkest core
+  ctx.fillStyle = "rgba(0,0,0,0.55)";
+  ctx.fillRect(
+    px + tile * 0.12,
+    py - tile * 0.12,
+    tile,
+    tile
+  );
 
-  ctx.filter = "blur(2px)";
-      ctx.fillStyle = "rgba(0,0,0,0.65)";
-      ctx.fillRect(
-        px + tile * 0.55,
-        py + tile * 0.55,
-        tile,
-        tile
+  // soft spread 1
+  ctx.fillStyle = "rgba(0,0,0,0.35)";
+  ctx.fillRect(
+    px + tile * 0.25,
+    py - tile * 0.25,
+    tile,
+    tile
+  );
+
+  // soft spread 2
+  ctx.fillStyle = "rgba(0,0,0,0.20)";
+  ctx.fillRect(
+    px + tile * 0.55,
+    py - tile * 0.55,
+    tile,
+    tile
       );
-
-
-
-  
-  ctx.restore();
 
       // ── WALL SPRITE
       if (wallReady) {
