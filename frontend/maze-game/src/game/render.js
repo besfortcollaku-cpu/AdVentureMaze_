@@ -97,8 +97,8 @@ function drawWallShadow(px, py) {
   // ── WALL SHADOW (light from bottom-left → shadow top-right)
 ctx.fillStyle = "rgba(0,0,0,0.28)";
 ctx.fillRect(
-  px + tile * 0.32,   // → right
-  py - tile * 0.32,   // ↑ up
+  px + tile * 0.52,   // → right
+  py - tile * 0.62,   // ↑ up
   tile,
   tile
 );
@@ -319,8 +319,8 @@ ctx.globalAlpha = 1;
       // ── SHADOW (FAST & SAFE)
       ctx.fillStyle = "rgba(0,0,0,0.22)";
       ctx.fillRect(
-        px + tile * 0.08,
-        py + tile * 0.12,
+        px + tile * 0.2,
+        py + tile * 0.22,
         tile,
         tile
       );
