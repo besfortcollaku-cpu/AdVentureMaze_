@@ -400,8 +400,8 @@ resize();
 
   drawBackground();
   drawFloor();
-  drawWallShadow();
   drawBall(playerFloat);
+  drawWallShadow();
   drawWalls();
 
   if (shakeTime > 0) {
