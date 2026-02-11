@@ -46,9 +46,16 @@ function clamp(v, a, b) {
 }
 
 export function startRollSound(intensity = 1) {
-console.log("🔊 roll sound started");
-  const ctx = getCtx();
-  stopRollSound();
+let audioCtx = null;
+let osc = null;
+let gain = null;
+
+function getCtx() {
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  return audioCtx;
+}
 
   // White noise buffer (1 second loop)
   const bufferSize = Math.floor(ctx.sampleRate * 1);
