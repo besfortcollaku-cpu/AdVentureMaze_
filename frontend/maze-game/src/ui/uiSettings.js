@@ -1,6 +1,6 @@
 
 import "../css/settings.css";
-import { setSetting } from "../settings.js";
+import { ensureAudioUnlocked } from "../game/rollSound.js";
 
 
 export function mountSettingsUI(root) {
@@ -65,10 +65,6 @@ export function mountSettingsUI(root) {
   `;
 
   root.appendChild(el);
-  
-  
-  setSetting("sound", checked);
-
 const gyroToggle = el.querySelector("#gyroToggle");
   const soundToggle = el.querySelector("#soundToggle");
   const vibrationToggle = el.querySelector("#vibrationToggle");
@@ -90,6 +86,16 @@ const gyroToggle = el.querySelector("#gyroToggle");
     localStorage.setItem("vibration", vibrationToggle.checked ? "on" : "off");
   });
 
+soundCheckbox.addEventListener("change", async (e) => {
+  const checked = e.target.checked;
+
+  setSettings({ sound: checked });
+
+  // 🔑 unlock / resume audio ONLY when turning sound ON
+  if (checked) {
+    await ensureAudioUnlocked();
+  }
+});
   // ---- OPEN / CLOSE ----
   el.querySelector(".close-btn").onclick = close;
   el.querySelector(".settings-backdrop").onclick = close;

@@ -1,15 +1,8 @@
 // src/game/movement.js
 
+import { getSettings } from "../settings.js";
 import { ensureAudioUnlocked } from "./rollSound.js";
-import { getSettings, subscribeSettings } from "../settings.js";
 import { startRollSound, updateRollSound, stopRollSound } from "./rollSound.js";
-
-let gyroEnabled = getSettings().gyro;
-
-onSettingsChange((s) => {
-  gyroEnabled = s.gyro;
-});
-
 export function setGyroPreset(name) {
   if (name === "soft") {
     GYRO.deadZone = 0.35;
@@ -33,6 +26,7 @@ export function setGyroPreset(name) {
   }
 }
 let gyroLock = false;
+let gyroEnabled = false;
 let lastInput = "none"; // "gyro" | "swipe"
 let gyroCooldown = 0;
 let audioUnlocked = false;
@@ -171,13 +165,12 @@ function onTilt(e) {
 
     // 🔊 start rolling sound (ONLY if enabled)
     const s = getSettings();
-
-if (s.sound) {
-  startRollSound(Math.min(3, 0.8 + anim.dist * 0.25));
-  soundActive = true;
-} else {
-  soundActive = false;
-}
+    if (s.sound) {
+      startRollSound(Math.min(3, 0.8 + anim.dist * 0.25));
+      soundActive = true;
+    } else {
+      soundActive = false;
+    }
   }
 
   function easeOutCubic(t) {
@@ -189,17 +182,11 @@ if (s.sound) {
 
     // ✅ if user turned sound OFF during rolling → stop immediately
     const s = getSettings();
-    // 🔊 rolling sound update
-if (s.sound && soundActive) {
-  const speedFeel = 1.2 + anim.dist * 0.25 * (1 - clamped);
-  updateRollSound(Math.min(3, speedFeel));
-}
+    if (!s.sound && soundActive) {
+      stopRollSound();
+      soundActive = false;
+    }
 
-// 🔇 sound turned OFF while moving
-if (!s.sound && soundActive) {
-  stopRollSound();
-  soundActive = false;
-}
     const t = (now - anim.t0) / anim.dur;
     const clamped = Math.max(0, Math.min(1, t));
     const k = easeOutCubic(clamped);
