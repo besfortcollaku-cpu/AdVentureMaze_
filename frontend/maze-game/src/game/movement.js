@@ -1,6 +1,7 @@
 // src/game/movement.js
 
 import { getSettings } from "../settings.js";
+import { ensureAudioUnlocked } from "./rollSound.js";
 import { startRollSound, updateRollSound, stopRollSound } from "./rollSound.js";
 export function setGyroPreset(name) {
   if (name === "soft") {
@@ -28,6 +29,7 @@ let gyroLock = false;
 let gyroEnabled = false;
 let lastInput = "none"; // "gyro" | "swipe"
 let gyroCooldown = 0;
+let audioUnlocked = false;
 
 function tryGyroMove() {
   if (!gyroEnabled || moving || gyroLock) return;
@@ -131,6 +133,10 @@ function onTilt(e) {
   }
 
   function startMove(dx, dy) {
+      if (!audioUnlocked) {
+  ensureAudioUnlocked();
+  audioUnlocked = true;
+}
         if (gyroEnabled) return; 
     if (moving) return;
     if (!dx && !dy) return;
