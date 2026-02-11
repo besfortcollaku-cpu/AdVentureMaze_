@@ -95,7 +95,7 @@ ballImg.src = "/textures/sprites/crystal/gold_ball.png";
   }
 function drawWallShadow(px, py) {
   // ── WALL SHADOW (light from bottom-left → shadow top-right)
-ctx.fillStyle = "rgba(0,0,0,0.28)";
+ctx.fillStyle = "rgba(0,0,0,0.45)";
 ctx.fillRect(
   px + tile * 0.52,   // → right
   py - tile * 0.62,   // ↑ up
@@ -140,7 +140,7 @@ ctx.fillRect(
 );
 // ── CRYSTAL FRACTURE LINES (static, elegant)
 ctx.save();
-ctx.globalAlpha = 0.28;
+ctx.globalAlpha = 0.18;
 ctx.strokeStyle = "rgba(220,240,255,0.8)";
 ctx.lineWidth = 1;
 
