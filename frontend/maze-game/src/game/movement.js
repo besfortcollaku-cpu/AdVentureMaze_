@@ -1,7 +1,7 @@
 // src/game/movement.js
 
 import { ensureAudioUnlocked } from "./rollSound.js";
-import { getSettings, onSettingsChange } from "../settings.js";
+import { getSettings, onSettingsChange } from "./src/settings.js";
 import { startRollSound, updateRollSound, stopRollSound } from "./rollSound.js";
 
 let gyroEnabled = getSettings().gyro;
