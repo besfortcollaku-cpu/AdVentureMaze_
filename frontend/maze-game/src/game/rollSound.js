@@ -10,9 +10,7 @@ let rollFilter = null;
 /* Audio context helper */
 /* -------------------------------------------------- */
 function getCtx() {
-  if (!audioCtx) {
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  }
+  if (!audioCtx) return null;
   return audioCtx;
 }
 
@@ -20,20 +18,24 @@ function getCtx() {
 /* MUST be called after first user gesture */
 /* -------------------------------------------------- */
 export async function ensureAudioUnlocked() {
-  try {
-    const ctx = getCtx();
-    if (ctx.state !== "running") {
-      await ctx.resume();
-    }
+  if (audioCtx) return; // already unlocked
 
-    // silent tick (mobile unlock)
-    const buffer = ctx.createBuffer(1, 1, ctx.sampleRate);
-    const src = ctx.createBufferSource();
+  try {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+    // iOS / Chrome need a real sound tick
+    const buffer = audioCtx.createBuffer(1, 1, audioCtx.sampleRate);
+    const src = audioCtx.createBufferSource();
     src.buffer = buffer;
-    src.connect(ctx.destination);
-    src.start();
-    src.stop();
-  } catch {}
+    src.connect(audioCtx.destination);
+    src.start(0);
+
+    if (audioCtx.state === "suspended") {
+      await audioCtx.resume();
+    }
+  } catch (e) {
+    console.warn("Audio unlock failed", e);
+  }
 }
 
 /* -------------------------------------------------- */
@@ -41,9 +43,11 @@ export async function ensureAudioUnlocked() {
 /* -------------------------------------------------- */
 export function startRollSound(intensity = 1) {
   const ctx = getCtx();
+    if (!ctx) return;
 
   // recreate nodes every time (IMPORTANT)
   stopRollSound();
+    if (!ctx) return; // 🔒 audio not unlocked
 
   // noise buffer
   const size = ctx.sampleRate;
@@ -70,7 +74,6 @@ export function startRollSound(intensity = 1) {
   rollSource.start();
 
   updateRollSound(intensity);
-
   // fade in
   rollGain.gain.linearRampToValueAtTime(
     0.12,
@@ -85,6 +88,8 @@ export function updateRollSound(intensity = 1) {
   if (!rollFilter || !rollGain) return;
 
   const ctx = getCtx();
+       if (!ctx) return; // 🔒 audio not unlocked
+
   const s = Math.max(0, Math.min(3, intensity));
 
   const freq = 260 + s * 320; // brightness
@@ -98,9 +103,9 @@ export function updateRollSound(intensity = 1) {
 /* Stop rolling sound */
 /* -------------------------------------------------- */
 export function stopRollSound() {
-  if (!rollSource) return;
 
   const ctx = getCtx();
+    if (!ctx) return; // 🔒 audio not unlocked
 
   try {
     rollGain.gain.setTargetAtTime(0.0001, ctx.currentTime, 0.03);
@@ -124,6 +129,7 @@ export function stopRollSound() {
 /* -------------------------------------------------- */
 export function playWallThump(strength = 1) {
   const ctx = getCtx();
+    if (!ctx) return; // 🔒 audio not unlocked
   const s = Math.max(0.2, Math.min(2, strength));
   const now = ctx.currentTime;
 
