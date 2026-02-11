@@ -138,6 +138,27 @@ ctx.fillRect(
   tile * 0.64,
   tile * 0.64
 );
+// ── CRYSTAL FRACTURE LINES (static, elegant)
+ctx.save();
+ctx.globalAlpha = 0.18;
+ctx.strokeStyle = "rgba(220,240,255,0.8)";
+ctx.lineWidth = 1;
+
+ctx.beginPath();
+
+// pseudo-random but stable per tile
+const seed = (x * 928371 + y * 123457) % 1000;
+const fx = px + tile * (0.2 + (seed % 7) * 0.08);
+const fy = py + tile * (0.2 + ((seed >> 3) % 7) * 0.08);
+
+ctx.moveTo(fx, fy);
+ctx.lineTo(
+  fx + tile * (0.25 + ((seed >> 1) % 5) * 0.08),
+  fy + tile * (0.15 + ((seed >> 2) % 5) * 0.08)
+);
+
+ctx.stroke();
+ctx.restore();
         }
       }
     }
