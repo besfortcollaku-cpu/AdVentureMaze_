@@ -108,7 +108,7 @@ function drawWallShadow(px, py) {
   );
 
   ctx.restore(); // VERY IMPORTANT
-
+}
   // ── WALL SHADOW (light from bottom-left → shadow top-right)
 ctx.fillStyle = "rgba(0,0,0,0.85)";
 ctx.fillRect(
