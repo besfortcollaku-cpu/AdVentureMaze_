@@ -356,8 +356,8 @@ ctx.globalAlpha = 1;
       // ── SHADOW (FAST & SAFE)
       ctx.fillStyle = "rgba(0,0,0,0.22)";
       ctx.fillRect(
-        px + tile * 0.42,
-        py + tile * 0.52,
+        px + tile * 0.102,
+        py + tile * 0.102,
         tile,
         tile
       );
