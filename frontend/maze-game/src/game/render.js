@@ -1,4 +1,9 @@
 
+export function triggerShake(strength = 4, duration = 500) {
+  shakeStrength = strength;
+  shakeDuration = duration;
+  shakeStart = performance.now();
+}
 
 export function createRenderer({ canvas, state }) {
     
@@ -36,11 +41,7 @@ const MAX_TRAIL = 30;
 
   const ctx = canvas.getContext("2d");
   
-  export function triggerShake(strength = 4, duration = 500) {
-  shakeStrength = strength;
-  shakeDuration = duration;
-  shakeStart = performance.now();
-}
+  
 
 
   // ======================
