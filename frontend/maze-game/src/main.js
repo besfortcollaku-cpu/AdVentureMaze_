@@ -336,6 +336,10 @@ const game = createGame({
       levelNumber: completedLevel,
     });
 
+ui.onRestartClick(() => {
+  // restart ONLY the current level
+  game.setLevel(levels[levelIndex]);
+});
     // keep local max unlocked in sync (doesn't override backend, just helps UI)
     CURRENT_MAX_UNLOCKED_LEVEL = Math.max(
       CURRENT_MAX_UNLOCKED_LEVEL,
