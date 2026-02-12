@@ -2,6 +2,7 @@
 import { createGameState } from "./state.js";
 import { createMovement } from "./movement.js";
 import { createRenderer } from "./render.js";
+import { initRenderer } from "./render.js";
 
 export function createGame({ canvas, level, onLevelComplete }) {
   let state = createGameState(level);

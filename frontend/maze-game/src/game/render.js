@@ -4,11 +4,6 @@ export function initRenderer(canvas, state) {
   return renderer;
 }
 
-export function initRenderer(canvas, state) {
-  renderer = createRenderer({ canvas, state });
-  return renderer;
-}
-
 export function render(state, ctx, now) {
   if (!renderer) return;
   const playerFloat = state.getAnimatedPlayer?.(now) ?? state.player;
