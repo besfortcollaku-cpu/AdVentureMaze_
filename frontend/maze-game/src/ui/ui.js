@@ -120,7 +120,9 @@ accountBtn.addEventListener("click", () => {
 let onHintClick = () => {};
 let onSkipClick = () => {};
 
-restarBtn.addEventListener("click", () => onRestartClick());
+let onRestartClick = () => {};
+restartBtn.addEventListener("click", () => onRestartClick());
+
 hintBtn.addEventListener("click", () => onHintClick());
 skipBtn.addEventListener("click", () => onSkipClick());
 
