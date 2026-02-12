@@ -91,9 +91,9 @@ export function createMovement({ state, onMoveFinished }) {
       soundActive = false;
     }
 
-    if (s.vibration && navigator.vibrate) {
-      navigator.vibrate(20);
-    }
+   // if (s.vibration && navigator.vibrate) {
+     // navigator.vibrate(20);
+   // } vibrates On Start
   }
 
   function easeOutCubic(t) {
