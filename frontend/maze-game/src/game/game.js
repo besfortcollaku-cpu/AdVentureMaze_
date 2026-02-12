@@ -10,14 +10,30 @@ export function createGame({ canvas, level, onLevelComplete }) {
   let completed = false;
 
   let movement = createMovement({
-    state,
-    onMoveFinished: () => {
-      if (!completed && state.isComplete()) {
-        completed = true;
-        onLevelComplete?.({ level: state.level, state });
-      }
-    },
-  });
+  state,
+  onMoveFinished: ({ hitWall }) => {
+    // 💥 WALL HIT FEEDBACK
+    if (hitWall) {
+      renderer.triggerShake(6, 500); // strong + visible
+    }
+
+    // 🏁 level completion logic (unchanged)
+    if (!completed && state.isComplete()) {
+      completed = true;
+      onLevelComplete?.({ level: state.level, state });
+    }
+  },
+});
+
+movement = createMovement({
+  state,
+  onMoveFinished: () => {
+    if (!completed && state.isComplete()) {
+      completed = true;
+      onLevelComplete?.({ level: state.level, state });
+    }
+  },
+});
 
   function requestMove(dx, dy) {
     if (completed) return;
