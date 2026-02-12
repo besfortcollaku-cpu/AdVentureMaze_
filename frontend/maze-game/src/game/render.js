@@ -1,3 +1,17 @@
+let renderer = null;
+
+export function initRenderer(canvas, state) {
+  renderer = createRenderer({ canvas, state });
+  return renderer;
+}
+
+export function render(state, ctx, now) {
+  if (!renderer) return;
+  const playerFloat = state.getAnimatedPlayer?.(now) ?? state.player;
+  renderer.render(playerFloat);
+}
+
+
 export function createRenderer({ canvas, state }) {
   let shakeStrength = 0;
   let shakeDuration = 0;

@@ -5,7 +5,7 @@ import { createRenderer } from "./render.js";
 
 export function createGame({ canvas, level, onLevelComplete }) {
   let state = createGameState(level);
-  let renderer = createRenderer({ canvas, state });
+  let renderer = initRenderer({ canvas, state });
 
   let completed = false;
 
