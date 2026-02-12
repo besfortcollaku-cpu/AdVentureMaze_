@@ -2,6 +2,10 @@ let renderer = null;
 export function initRenderer(canvas, state) {
   renderer = createRenderer({ canvas, state });
   return renderer;
+}export function triggerCameraShake(strength = 4, duration = 500) {
+  if (renderer) {
+    renderer.triggerShake(strength, duration);
+  }
 }
 
 export function createRenderer({ canvas, state }) {

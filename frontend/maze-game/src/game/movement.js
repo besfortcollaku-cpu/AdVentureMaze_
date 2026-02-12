@@ -7,7 +7,7 @@ import {
   stopRollSound,
 } from "./rollSound.js";
 import { getSettings } from "../settings.js";
-
+import { triggerCameraShake } from "./render.js";
 export function createMovement({ state, onMoveFinished }) {
   let moving = false;
   let soundActive = false;
@@ -169,6 +169,7 @@ export function createMovement({ state, onMoveFinished }) {
 
       // vibration only
       vibrate([18]);
+        triggerCameraShake(4, 500);
       onMoveFinished?.({
   hitWall: true
 });
