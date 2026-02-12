@@ -25,16 +25,6 @@ export function createGame({ canvas, level, onLevelComplete }) {
   },
 });
 
-movement = createMovement({
-  state,
-  onMoveFinished: () => {
-    if (!completed && state.isComplete()) {
-      completed = true;
-      onLevelComplete?.({ level: state.level, state });
-    }
-  },
-});
-
   function requestMove(dx, dy) {
     if (completed) return;
     movement.startMove(dx, dy);
@@ -130,15 +120,18 @@ movement = createMovement({
     renderer = createRenderer({ canvas, state });
 
     movement = createMovement({
-      state,
-      onMoveFinished: () => {
-        if (!completed && state.isComplete()) {
-          completed = true;
-          onLevelComplete?.({ level: state.level, state });
-        }
-      },
-    });
+  state,
+  onMoveFinished: ({ hitWall }) => {
+    if (hitWall) {
+      renderer.triggerShake(6, 500);
+    }
 
+    if (!completed && state.isComplete()) {
+      completed = true;
+      onLevelComplete?.({ level: state.level, state });
+    }
+  },
+});
     // resize and render 1 frame immediately
     renderer.resize();
     const p = movement.getAnimatedPlayer(performance.now());
