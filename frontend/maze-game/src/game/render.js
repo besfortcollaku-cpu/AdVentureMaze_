@@ -1,6 +1,9 @@
 
 
 export function createRenderer({ canvas, state }) {
+    let shakeTime = 0;
+let shakeDuration = 0;
+let shakeStrength = 0;
     let lastBallX = null;
     let lastBallY = null;
     const trail = [];
@@ -12,15 +15,6 @@ const MAX_TRAIL = 30;
 
   const ctx = canvas.getContext("2d");
   
- let shakeTime = 0;      // more frames
- let shakeStrength = 0;
- let shakeX = 0;
- let shakeY = 0;
- state.onMoveFinished = () => {
-       console.log("SHAKE TRIGGERED");
-  shakeTime = 12;       // duration in frames
-  shakeStrength = 6;   // pixels
-};
 
   // ======================
   // CONFIG
@@ -30,6 +24,12 @@ const MAX_TRAIL = 30;
   let tile = 48;
   let ox = 0;
   let oy = 0;
+  
+  function triggerShake(px = 4, ms = 500) {
+  shakeStrength = px;
+  shakeDuration = ms;
+  shakeTime = performance.now();
+}
 
   // FLOOR TILE
   const floorImg = new Image();
@@ -413,14 +413,24 @@ resize();
   function render(playerFloat) {
   ctx.clearRect(0, 0, w, h);
 
-  // ── CAMERA SHAKE APPLY
-  if (shakeTime > 0) {
-    const sx = (Math.random() - 0.5) * shakeStrength;
-    const sy = (Math.random() - 0.5) * shakeStrength;
-    ctx.save();
-    ctx.translate(sx, sy);
-    shakeTime--;
+  let dx = 0;
+  let dy = 0;
+
+  // ── CAMERA SHAKE (time-based)
+  if (shakeStart) {
+    const elapsed = performance.now() - shakeStart;
+
+    if (elapsed < shakeDuration) {
+      const p = 1 - elapsed / shakeDuration; // decay 1 → 0
+      dx = (Math.random() - 0.5) * shakeStrength * p;
+      dy = (Math.random() - 0.5) * shakeStrength * p;
+    } else {
+      shakeStart = 0; // stop shaking
+    }
   }
+
+  ctx.save();
+  ctx.translate(dx, dy);
 
   drawBackground();
   drawFloor();
@@ -428,11 +438,6 @@ resize();
   drawWallShadow();
   drawWalls();
 
-  if (shakeTime > 0) {
-    ctx.restore();
-  }
-
-  }
-
-  return { resize, render };
+  ctx.restore();
+}
 }
