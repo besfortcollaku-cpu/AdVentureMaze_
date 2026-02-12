@@ -7,6 +7,7 @@ import {
   stopRollSound,
 } from "./rollSound.js";
 import { getSettings } from "../settings.js";
+import { triggerShake } from "./render.js";
 
 export function createMovement({ state, onMoveFinished }) {
   let moving = false;
@@ -170,9 +171,7 @@ export function createMovement({ state, onMoveFinished }) {
       // vibration only
       vibrate([18]);
 
-      onMoveFinished?.({
-  wallHit: true
-});
+      onMoveFinished?.();
     }
   }
 

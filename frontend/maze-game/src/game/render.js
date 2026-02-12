@@ -1,6 +1,26 @@
 
 
 export function createRenderer({ canvas, state }) {
+    
+    
+    let dx = 0;
+let dy = 0;
+
+if (shakeStart) {
+  const elapsed = performance.now() - shakeStart;
+  if (elapsed < shakeDuration) {
+    const p = 1 - elapsed / shakeDuration;
+    dx = (Math.random() - 0.5) * shakeStrength * p;
+    dy = (Math.random() - 0.5) * shakeStrength * p;
+  } else {
+    shakeStart = 0;
+  }
+}
+
+ctx.save();
+ctx.translate(dx, dy);
+
+
     let shakeTime = 0;
 let shakeDuration = 0;
 let shakeStrength = 0;
@@ -16,6 +36,12 @@ const MAX_TRAIL = 30;
 
   const ctx = canvas.getContext("2d");
   
+  export function triggerShake(strength = 4, duration = 500) {
+  shakeStrength = strength;
+  shakeDuration = duration;
+  shakeStart = performance.now();
+}
+
 
   // ======================
   // CONFIG
@@ -26,11 +52,6 @@ const MAX_TRAIL = 30;
   let ox = 0;
   let oy = 0;
   
-  function triggerShake(strength = 4, duration = 500) {
-  shakeStrength = strength;
-  shakeDuration = duration;
-  shakeStart = performance.now();
-}
 
   // FLOOR TILE
   const floorImg = new Image();
@@ -439,5 +460,5 @@ resize();
 
   ctx.restore();
 }
-return { resize, render };
+return { resize, render, triggerShake};
 }
