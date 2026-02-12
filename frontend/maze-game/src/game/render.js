@@ -1,4 +1,8 @@
 let renderer = null;
+export function initRenderer(canvas, state) {
+  renderer = createRenderer({ canvas, state });
+  return renderer;
+}
 
 export function initRenderer(canvas, state) {
   renderer = createRenderer({ canvas, state });
