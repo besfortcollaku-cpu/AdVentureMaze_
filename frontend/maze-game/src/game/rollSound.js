@@ -10,7 +10,7 @@ let audioUnlocked = false;
 export function unlockAudio() {
   if (audioUnlocked) return;
     audioUnlocked = true;
-  } catch {}
+ 
 }
 /* -------------------------------------------------- */
 /* Start rolling sound */
