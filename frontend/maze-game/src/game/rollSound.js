@@ -5,7 +5,21 @@ let rollSource = null;
 let rollGain = null;
 let rollFilter = null;
 
+let audioUnlocked = false;
 
+export function unlockAudio() {
+  if (audioUnlocked) return;
+
+  const ctx = getCtx();
+  if (!ctx) return;
+
+  try {
+    if (ctx.state === "suspended") {
+      ctx.resume();
+    }
+    audioUnlocked = true;
+  } catch {}
+}
 /* -------------------------------------------------- */
 /* Start rolling sound */
 /* -------------------------------------------------- */
