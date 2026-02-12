@@ -136,7 +136,12 @@ async function loadMeAndSyncUI({ BACKEND, token, ui }) {
 
   return me;
 }
+const FREE_RESTARTS = 3;
 
+function freeRestartsLeft() {
+  const used = Number(CURRENT_USER?.free_restarts_used || 0);
+  return Math.max(0, FREE_RESTARTS - used);
+}
 function freeSkipsLeft() {
   const used = Number(CURRENT_USER?.free_skips_used || 0);
   return Math.max(0, FREE_SKIPS - used);
@@ -290,7 +295,6 @@ document.addEventListener("click", (e) => {
   const skipBtn = e.target.closest("#skipBtn");
 
   if (hintBtn) {
-    console.log("HINT CLICK", CURRENT_USER);
 
     if (!CURRENT_USER?.uid) {
       ui.showLoginRequired();
@@ -301,8 +305,6 @@ document.addEventListener("click", (e) => {
   }
 
   if (skipBtn) {
-    console.log("SKIP CLICK", CURRENT_USER);
-
     if (!CURRENT_USER?.uid) {
       ui.showLoginRequired();
       return;
@@ -310,6 +312,26 @@ document.addEventListener("click", (e) => {
 
     skipPopup.open({ freeLeft: freeSkipsLeft() });
   }
+  const restartBtn = e.target.closest("#restartBtn");
+
+if (restartBtn) {
+  // 🔒 Guest → login required
+  if (!CURRENT_USER?.uid) {
+    ui.showLoginRequired();
+    return;
+  }
+
+  // 🟢 Logged-in
+  const freeLeft = freeRestartsLeft(); // we will add this next
+
+  if (freeLeft > 0) {
+    // immediate restart (no popup)
+    useRestartAndReloadLevel();
+  } else {
+    // open restart popup
+    restartPopup.open({ freeLeft: 0 });
+  }
+}
 });
 
 // Create game (DO NOT START)
@@ -336,10 +358,7 @@ const game = createGame({
       levelNumber: completedLevel,
     });
 
-ui.onRestartClick(() => {
-  // restart ONLY the current level
-  game.setLevel(levels[levelIndex]);
-});
+
     // keep local max unlocked in sync (doesn't override backend, just helps UI)
     CURRENT_MAX_UNLOCKED_LEVEL = Math.max(
       CURRENT_MAX_UNLOCKED_LEVEL,

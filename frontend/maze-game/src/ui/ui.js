@@ -13,7 +13,7 @@ export function mountUI(root) {
           <button class="icon" id="accountBtn">👤</button>
           <button class="icon" id="settingsBtn">⚙️</button>
           <button class="icon" id="levelsBtn">☰</button>
-          <<div class="btn-wrapper">
+          <div class="btn-wrapper">
   <button id="restartBtn" class="icon-btn">🔄</button>
   <span class="badge" id="restartCount">3</span>
 </div>
