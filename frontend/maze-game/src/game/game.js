@@ -2,29 +2,38 @@
 import { createGameState } from "./state.js";
 import { createMovement } from "./movement.js";
 import { createRenderer } from "./render.js";
-import { initRenderer } from "./render.js";
 
 export function createGame({ canvas, level, onLevelComplete }) {
   let state = createGameState(level);
-  let renderer = initRenderer({ canvas, state });
 
-  let completed = false;
-
+  let renderer = createRenderer({ canvas, state });
   let movement = createMovement({
-  state,
-  onMoveFinished: ({ hitWall }) => {
-    // 💥 WALL HIT FEEDBACK
-    if (hitWall) {
-      renderer.triggerShake(6, 500); // strong + visible
-    }
+    state,
+    onMoveFinished: ({ hitWall }) => {
+      if (hitWall) {
+        renderer.triggerShake(6, 500); // 💥 WALL HIT
+      }
 
-    // 🏁 level completion logic (unchanged)
-    if (!completed && state.isComplete()) {
-      completed = true;
-      onLevelComplete?.({ level: state.level, state });
+      if (state.isComplete()) {
+        onLevelComplete?.({ level: state.level, state });
+      }
     }
-  },
-});
+  });
+
+  function loop(now) {
+    movement.update(now);
+    const p = movement.getAnimatedPlayer(now);
+    renderer.render(p);
+    requestAnimationFrame(loop);
+  }
+
+  return {
+    start() {
+      renderer.resize();
+      requestAnimationFrame(loop);
+    }
+  };
+}
 
   function requestMove(dx, dy) {
     if (completed) return;
