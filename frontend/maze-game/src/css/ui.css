@@ -312,3 +312,33 @@ body.game-running .app {
   min-width: 260px;
   max-width: 90%;
 }
+.btn-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+
+  background: #c53b2f;
+  color: #fff;
+  font-size: 12px;
+  font-weight: bold;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 12px;
+  border: 2px solid #7a241e;
+}
+
+.badge.hidden {
+  display: none;
+}
