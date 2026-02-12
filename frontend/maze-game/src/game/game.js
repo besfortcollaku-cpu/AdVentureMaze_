@@ -164,4 +164,3 @@ export function createGame({ canvas, level, onLevelComplete }) {
       return state;
     },
   };
-}
