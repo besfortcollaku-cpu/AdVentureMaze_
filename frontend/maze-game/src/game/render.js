@@ -440,4 +440,5 @@ resize();
 
   ctx.restore();
 }
+return { resize, render };
 }
