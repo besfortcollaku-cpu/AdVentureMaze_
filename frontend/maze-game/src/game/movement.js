@@ -1,56 +1,8 @@
 // src/game/movement.js
 
+import { startRollSound, stopRollSound, updateRollSound } from "./rollSound.js";
 import { getSettings } from "../settings.js";
-
-import { unlockAudio, startRollSound, stopRollSound } from "./rollSound.js";
-
-export function setGyroPreset(name) {
-  if (name === "soft") {
-    GYRO.deadZone = 0.35;
-    GYRO.maxTilt = 22;
-    GYRO.gain = 0.9;
-    GYRO.smooth = 0.08;
-  }
-
-  if (name === "normal") {
-    GYRO.deadZone = 0.25;
-    GYRO.maxTilt = 18;
-    GYRO.gain = 1.0;
-    GYRO.smooth = 0.12;
-  }
-
-  if (name === "hardcore") {
-    GYRO.deadZone = 0.15;
-    GYRO.maxTilt = 14;
-    GYRO.gain = 1.2;
-    GYRO.smooth = 0.18;
-  }
-}
-let gyroLock = false;
-let gyroEnabled = false;
-let lastInput = "none"; // "gyro" | "swipe"
-let gyroCooldown = 0;
-let audioUnlocked = false;
-
-function tryGyroMove() {
-  if (!gyroEnabled || moving || gyroLock) return;
-
-  const ax = Math.abs(tiltDX);
-  const ay = Math.abs(tiltDY);
-
-  if (ax < GYRO.deadZone && ay < GYRO.deadZone) {
-    gyroLock = false; // reset when flat
-    return;
-  }
-
-  gyroLock = true;
-
-  if (ax > ay) {
-    startSlide(tiltDX > 0 ? 1 : -1, 0);
-  } else {
-    startSlide(0, tiltDY > 0 ? 1 : -1);
-  }
-}
+import { unlockAudio } from "./rollSound.js";
 
 export function createMovement({ state, onMoveFinished }) {
 
@@ -72,44 +24,7 @@ export function createMovement({ state, onMoveFinished }) {
     lastPaintCellX: 0,
     lastPaintCellY: 0,
   };
-  function refreshInputMode() {
-  const s = getSettings();
-  gyroEnabled = s.gyro;
-}
-refreshInputMode();
-  const GYRO = {
-  deadZone: 0.25,   // 0–1  (higher = less sensitive)
-  maxTilt: 18,      // degrees needed for full input
-  gain: 1.0,        // overall strength
-  smooth: 0.12      // 0–1 smoothing (lower = heavier)
-};
-let smoothX = 0;
-let smoothY = 0;
-
-function onTilt(e) {
-  const rawX = e.gamma || 0; // left/right
-  const rawY = e.beta || 0;  // forward/back
-
-  // smooth (low-pass filter)
-  smoothX += (rawX - smoothX) * GYRO.smooth;
-  smoothY += (rawY - smoothY) * GYRO.smooth;
-
-  // normalize to -1..1
-  let nx = smoothX / GYRO.maxTilt;
-  let ny = smoothY / GYRO.maxTilt;
-
-  // clamp
-  nx = Math.max(-1, Math.min(1, nx));
-  ny = Math.max(-1, Math.min(1, ny));
-
-  // apply gain
-  nx *= GYRO.gain;
-  ny *= GYRO.gain;
-
-  // dead zone
-  tiltDX = Math.abs(nx) < GYRO.deadZone ? 0 : nx;
-  tiltDY = Math.abs(ny) < GYRO.deadZone ? 0 : ny;
-}
+  
 
   function vibrate(pattern) {
     const s = getSettings();
@@ -138,11 +53,7 @@ function onTilt(e) {
   }
 
   function startMove(dx, dy) {
-      if (!audioUnlocked) {
-  ensureAudioUnlocked();
-  audioUnlocked = true;
-}
-        if (gyroEnabled) return; 
+     unlockAudio();
     if (moving) return;
     if (!dx && !dy) return;
 
@@ -170,12 +81,17 @@ function onTilt(e) {
 
     // 🔊 start rolling sound (ONLY if enabled)
     const s = getSettings();
-    if (s.sound) {
-      startRollSound(Math.min(3, 0.8 + anim.dist * 0.25));
-      soundActive = true;
-    } else {
-      soundActive = false;
-    }
+
+if (s.sound) {
+  startRollSound(Math.min(3, 0.8 + anim.dist * 0.25));
+  soundActive = true;
+} else {
+  soundActive = false;
+}
+
+if (s.vibration && navigator.vibrate) {
+  navigator.vibrate(20);
+}
   }
 
   function easeOutCubic(t) {
