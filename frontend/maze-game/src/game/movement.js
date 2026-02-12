@@ -50,7 +50,6 @@ export function createMovement({ state, onMoveFinished }) {
   // 🔑 guaranteed user gesture
   unlockAudio();
 
-  if (gyroEnabled) return;
   if (!dx && !dy) return;
   if (moving) return;
 
