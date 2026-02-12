@@ -7,10 +7,15 @@ let rollFilter = null;
 
 let audioUnlocked = false;
 
+let audioCtx = null;
+
 export function unlockAudio() {
-  if (audioUnlocked) return;
-    audioUnlocked = true;
- 
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  if (audioCtx.state === "suspended") {
+    audioCtx.resume().catch(() => {});
+  }
 }
 /* -------------------------------------------------- */
 /* Start rolling sound */
