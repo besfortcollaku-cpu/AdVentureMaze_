@@ -77,8 +77,7 @@ const gyroToggle = el.querySelector("#gyroToggle");
   gyroToggle.addEventListener("change", () => {
   localStorage.setItem("gyro", gyroToggle.checked ? "on" : "off");
 });
-  const soundToggle = el.querySelector("#soundToggle");
-const vibrationToggle = el.querySelector("#vibrationToggle");
+  
 
 // ---- LOAD (from src/settings.js) ----
 const s0 = getSettings();
