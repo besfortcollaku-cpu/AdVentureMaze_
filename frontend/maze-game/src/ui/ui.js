@@ -13,6 +13,7 @@ export function mountUI(root) {
           <button class="icon" id="accountBtn">👤</button>
           <button class="icon" id="settingsBtn">⚙️</button>
           <button class="icon" id="levelsBtn">☰</button>
+          <button class="btn" id="restartBtn">🔄 Restart</button>
         </div>
         <div class="coins">
           <span id="userName" class="userName">Guest</span>
@@ -89,6 +90,7 @@ loginReqLoginBtn.onclick = () => {
   const levelsBtn = root.querySelector("#levelsBtn");
   const accountBtn = root.querySelector("#accountBtn");
   const settingsBtn = root.querySelector("#settingsBtn");
+  const restartBtn = root.querySelector("#restartBtn");
   const hintBtn = root.querySelector("#hintBtn");
   const skipBtn = root.querySelector("#skipBtn");
 
@@ -118,6 +120,7 @@ accountBtn.addEventListener("click", () => {
 let onHintClick = () => {};
 let onSkipClick = () => {};
 
+restarBtn.addEventListener("click", () => onRestartClick());
 hintBtn.addEventListener("click", () => onHintClick());
 skipBtn.addEventListener("click", () => onSkipClick());
 
@@ -158,6 +161,9 @@ hideLoginRequired() {
     onHintClick(fn) {
     onHintClick = fn;
   },
+  onRestartClick(fn) {
+  onRestartClick = fn;
+},
 
   onSkipClick(fn) {
     onSkipClick = fn;

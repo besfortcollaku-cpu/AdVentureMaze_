@@ -5,35 +5,19 @@ import { createRenderer } from "./render.js";
 
 export function createGame({ canvas, level, onLevelComplete }) {
   let state = createGameState(level);
-
   let renderer = createRenderer({ canvas, state });
+
+  let completed = false;
+
   let movement = createMovement({
     state,
-    onMoveFinished: ({ hitWall }) => {
-      if (hitWall) {
-        renderer.triggerShake(6, 500); // 💥 WALL HIT
-      }
-
-      if (state.isComplete()) {
+    onMoveFinished: () => {
+      if (!completed && state.isComplete()) {
+        completed = true;
         onLevelComplete?.({ level: state.level, state });
       }
-    }
+    },
   });
-
-  function loop(now) {
-    movement.update(now);
-    const p = movement.getAnimatedPlayer(now);
-    renderer.render(p);
-    requestAnimationFrame(loop);
-  }
-
-  return {
-    start() {
-      renderer.resize();
-      requestAnimationFrame(loop);
-    }
-  };
-}
 
   function requestMove(dx, dy) {
     if (completed) return;
@@ -130,18 +114,15 @@ export function createGame({ canvas, level, onLevelComplete }) {
     renderer = createRenderer({ canvas, state });
 
     movement = createMovement({
-  state,
-  onMoveFinished: ({ hitWall }) => {
-    if (hitWall) {
-      renderer.triggerShake(6, 500);
-    }
+      state,
+      onMoveFinished: () => {
+        if (!completed && state.isComplete()) {
+          completed = true;
+          onLevelComplete?.({ level: state.level, state });
+        }
+      },
+    });
 
-    if (!completed && state.isComplete()) {
-      completed = true;
-      onLevelComplete?.({ level: state.level, state });
-    }
-  },
-});
     // resize and render 1 frame immediately
     renderer.resize();
     const p = movement.getAnimatedPlayer(performance.now());
@@ -164,3 +145,4 @@ export function createGame({ canvas, level, onLevelComplete }) {
       return state;
     },
   };
+}
