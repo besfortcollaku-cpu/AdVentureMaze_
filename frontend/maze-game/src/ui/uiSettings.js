@@ -1,5 +1,6 @@
 
 import "../css/settings.css";
+import { getSettings, setSetting, subscribeSettings } from "../settings.js";
 import { ensureAudioUnlocked } from "../game/rollSound.js";
 
 
@@ -72,24 +73,40 @@ const gyroToggle = el.querySelector("#gyroToggle");
 
   // ---- LOAD SAVED SETTINGS ----
   gyroToggle.checked = localStorage.getItem("gyro") === "on";
-  soundToggle.checked = localStorage.getItem("sound") !== "off";
-  vibrationToggle.checked = localStorage.getItem("vibration") !== "off";
-
   // ---- SAVE ON CHANGE ----
   gyroToggle.addEventListener("change", () => {
   localStorage.setItem("gyro", gyroToggle.checked ? "on" : "off");
 });
-  
+  const soundToggle = el.querySelector("#soundToggle");
+const vibrationToggle = el.querySelector("#vibrationToggle");
 
-soundToggle.addEventListener("change", (e) => {
-  localStorage.setItem("sound", e.target.checked ? "on" : "off");
+// ---- LOAD (from src/settings.js) ----
+const s0 = getSettings();
+soundToggle.checked = !!s0.sound;
+vibrationToggle.checked = !!s0.vibration;
+
+// keep UI in sync if settings change elsewhere
+subscribeSettings((s) => {
+  soundToggle.checked = !!s.sound;
+  vibrationToggle.checked = !!s.vibration;
 });
 
- 
+// ---- SAVE ON CHANGE (to src/settings.js) ----
+soundToggle.addEventListener("change", async () => {
+  const checked = soundToggle.checked;
 
-  vibrationToggle.addEventListener("change", () => {
-    localStorage.setItem("vibration", vibrationToggle.checked ? "on" : "off");
-  });
+  // store
+  setSetting("sound", checked);
+
+  // 🔑 IMPORTANT: only try unlock when turning sound ON
+  if (checked) {
+    await ensureAudioUnlocked();
+  }
+});
+
+vibrationToggle.addEventListener("change", () => {
+  setSetting("vibration", vibrationToggle.checked);
+});
 
 
   // ---- OPEN / CLOSE ----
