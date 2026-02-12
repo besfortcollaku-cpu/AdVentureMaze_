@@ -1,14 +1,18 @@
 // src/game/movement.js
 
-import { unlockAudio, startRollSound, stopRollSound } from "./rollSound.js";
+import {
+  unlockAudio,
+  startRollSound,
+  updateRollSound,
+  stopRollSound,
+} from "./rollSound.js";
 import { getSettings } from "../settings.js";
 
 export function createMovement({ state, onMoveFinished }) {
-
   let moving = false;
   let soundActive = false;
 
-  let anim = {
+  const anim = {
     t0: 0,
     dur: 0,
     sx: 0,
@@ -19,7 +23,6 @@ export function createMovement({ state, onMoveFinished }) {
     lastPaintCellX: 0,
     lastPaintCellY: 0,
   };
-  
 
   function vibrate(pattern) {
     const s = getSettings();
@@ -48,32 +51,51 @@ export function createMovement({ state, onMoveFinished }) {
   }
 
   function startMove(dx, dy) {
-  // 🔑 guaranteed user gesture
-  unlockAudio();
+    // 🔑 guaranteed user gesture — unlock WebAudio here
+    unlockAudio();
 
-  if (!dx && !dy) return;
-  if (moving) return;
+    if (!dx && !dy) return;
+    if (moving) return;
 
-  const target = findSlideTarget(dx, dy);
-  if (
-    target.x === state.player.x &&
-    target.y === state.player.y
-  ) return;
+    const target = findSlideTarget(dx, dy);
+    if (target.x === state.player.x && target.y === state.player.y) return;
 
-  moving = true;
+    // ---- restore animation setup (this was missing) ----
+    moving = true;
 
-  const s = getSettings();
+    anim.t0 = performance.now();
+    anim.sx = state.player.x;
+    anim.sy = state.player.y;
+    anim.tx = target.x;
+    anim.ty = target.y;
 
-  if (s.sound) {
-    startRollSound();
+    const ddx = anim.tx - anim.sx;
+    const ddy = anim.ty - anim.sy;
+    anim.dist = Math.max(1, Math.abs(ddx) + Math.abs(ddy)); // Manhattan tiles
+
+    // movement speed
+    const perTile = 45; // ms per tile
+    anim.dur = Math.max(70, anim.dist * perTile);
+
+    anim.lastPaintCellX = anim.sx;
+    anim.lastPaintCellY = anim.sy;
+
+    // ---- sound + vibration settings ----
+    const s = getSettings();
+
+    if (s.sound) {
+      // start rolling sound with intensity based on distance
+      startRollSound(Math.min(3, 0.8 + anim.dist * 0.25));
+      soundActive = true;
+    } else {
+      soundActive = false;
+    }
+
+    if (s.vibration && navigator.vibrate) {
+      navigator.vibrate(20);
+    }
   }
 
-  if (s.vibration && navigator.vibrate) {
-    navigator.vibrate(20);
-  }
-
-  // ---- existing animation logic stays BELOW ----
-}
   function easeOutCubic(t) {
     return 1 - Math.pow(1 - t, 3);
   }
@@ -81,8 +103,9 @@ export function createMovement({ state, onMoveFinished }) {
   function update(now) {
     if (!moving) return;
 
-    // ✅ if user turned sound OFF during rolling → stop immediately
     const s = getSettings();
+
+    // if user toggled sound OFF while moving -> stop immediately
     if (!s.sound && soundActive) {
       stopRollSound();
       soundActive = false;
@@ -96,12 +119,11 @@ export function createMovement({ state, onMoveFinished }) {
     const fx = anim.sx + (anim.tx - anim.sx) * k;
     const fy = anim.sy + (anim.ty - anim.sy) * k;
 
-    // update rolling sound pitch ONLY if enabled + active
-    // 🔊 rolling sound (STRICT)
-if (s.sound && soundActive) {
-  const speedFeel = 1.2 + anim.dist * 0.25 * (1 - clamped);
-  updateRollSound(Math.min(3, speedFeel));
-}
+    // update rolling sound while active
+    if (s.sound && soundActive) {
+      const speedFeel = 1.2 + anim.dist * 0.25 * (1 - clamped);
+      updateRollSound(Math.min(3, speedFeel));
+    }
 
     // Determine which cell we are "in" during slide
     const cx = Math.round(fx);
@@ -141,11 +163,11 @@ if (s.sound && soundActive) {
 
       moving = false;
 
-      // stop rolling sound (always safe)
+      // stop rolling sound
       stopRollSound();
       soundActive = false;
 
-      // 📳 vibration only (NO wall-hit sound)
+      // vibration only
       vibrate([18]);
 
       onMoveFinished?.();
@@ -154,7 +176,12 @@ if (s.sound && soundActive) {
 
   function getAnimatedPlayer(now) {
     if (!moving) {
-      return { x: state.player.x, y: state.player.y, moving: false, progress: 0 };
+      return {
+        x: state.player.x,
+        y: state.player.y,
+        moving: false,
+        progress: 0,
+      };
     }
 
     const t = (now - anim.t0) / anim.dur;
