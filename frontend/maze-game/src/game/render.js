@@ -25,10 +25,10 @@ const MAX_TRAIL = 30;
   let ox = 0;
   let oy = 0;
   
-  function triggerShake(px = 4, ms = 500) {
-  shakeStrength = px;
-  shakeDuration = ms;
-  shakeTime = performance.now();
+  function triggerShake(strength = 4, duration = 500) {
+  shakeStrength = strength;
+  shakeDuration = duration;
+  shakeStart = performance.now();
 }
 
   // FLOOR TILE
@@ -416,16 +416,14 @@ resize();
   let dx = 0;
   let dy = 0;
 
-  // ── CAMERA SHAKE (time-based)
   if (shakeStart) {
     const elapsed = performance.now() - shakeStart;
-
     if (elapsed < shakeDuration) {
-      const p = 1 - elapsed / shakeDuration; // decay 1 → 0
+      const p = 1 - elapsed / shakeDuration;
       dx = (Math.random() - 0.5) * shakeStrength * p;
       dy = (Math.random() - 0.5) * shakeStrength * p;
     } else {
-      shakeStart = 0; // stop shaking
+      shakeStart = 0;
     }
   }
 
