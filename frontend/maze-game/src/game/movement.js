@@ -1,5 +1,8 @@
 // src/game/movement.js
 
+import { unlockAudio, startRollSound, stopRollSound } from "./rollSound.js";
+import { getSettings } from "../settings.js";
+
 import { unlockAudio } from "./rollSound.js";
 
 export function createMovement({ state, onMoveFinished }) {
