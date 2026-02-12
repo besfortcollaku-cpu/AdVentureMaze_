@@ -1,9 +1,9 @@
 // src/game/movement.js
 
 import { getSettings } from "../settings.js";
-import { ensureAudioUnlocked } from "./rollSound.js";
-import { startRollSound, updateRollSound, stopRollSound } from "./rollSound.js";
-import { unlockAudioContextFromGesture } from "./rollSound.js";
+
+import { unlockAudio, startRollSound, stopRollSound } from "./rollSound.js";
+
 export function setGyroPreset(name) {
   if (name === "soft") {
     GYRO.deadZone = 0.35;

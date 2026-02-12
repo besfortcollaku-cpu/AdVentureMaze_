@@ -10,58 +10,41 @@ let rollFilter = null;
 /* -------------------------------------------------- */
 
 let audioCtx = null;
-let unlocked = false;
 
-export function unlockAudioContextFromGesture() {
-  if (unlocked) return;
-
-  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-
-  const buffer = audioCtx.createBuffer(1, 1, audioCtx.sampleRate);
-  const src = audioCtx.createBufferSource();
-  src.buffer = buffer;
-  src.connect(audioCtx.destination);
-  src.start(0);
-
-  unlocked = true;
-
-  console.log("🔊 Audio unlocked:", audioCtx.state);
-}
-
-export function isAudioUnlocked() {
-  return unlocked;
-}
-
-function getCtx() {
-  return unlocked ? audioCtx : null;
-} unlocked ? audioCtx : null;
-
-
-
-/* -------------------------------------------------- */
-/* MUST be called after first user gesture */
-/* -------------------------------------------------- */
-export async function ensureAudioUnlocked() {
-  if (audioCtx) return; // already unlocked
-
-  try {
+export function unlockAudio() {
+  if (!audioCtx) {
     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-
-    // iOS / Chrome need a real sound tick
-    const buffer = audioCtx.createBuffer(1, 1, audioCtx.sampleRate);
-    const src = audioCtx.createBufferSource();
-    src.buffer = buffer;
-    src.connect(audioCtx.destination);
-    src.start(0);
-
-    if (audioCtx.state === "suspended") {
-      await audioCtx.resume();
-    }
-  } catch (e) {
-    console.warn("Audio unlock failed", e);
+  }
+  if (audioCtx.state === "suspended") {
+    audioCtx.resume();
   }
 }
 
+// example rolling sound (keep yours if already working)
+let osc = null;
+let gain = null;
+
+export function startRollSound() {
+  if (!audioCtx) return;
+
+  osc = audioCtx.createOscillator();
+  gain = audioCtx.createGain();
+
+  osc.type = "sine";
+  osc.frequency.value = 160;
+  gain.gain.value = 0.15;
+
+  osc.connect(gain).connect(audioCtx.destination);
+  osc.start();
+}
+
+export function stopRollSound() {
+  try {
+    osc?.stop();
+    osc?.disconnect();
+  } catch {}
+  osc = null;
+}
 /* -------------------------------------------------- */
 /* Start rolling sound */
 /* -------------------------------------------------- */
