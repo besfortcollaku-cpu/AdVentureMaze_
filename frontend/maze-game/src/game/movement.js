@@ -5,9 +5,7 @@ import { getSettings } from "../settings.js";
 import { unlockAudio } from "./rollSound.js";
 
 export function createMovement({ state, onMoveFinished }) {
-
-  unlockAudioContextFromGesture(); // 🔑 GUARANTEED gesture
-
+    
   if (moving) return;
   if (!dx && !dy) return;
   let moving = false;
