@@ -1,35 +1,19 @@
 
-export function triggerShake(strength = 4, duration = 500) {
+
+export function createRenderer({ canvas, state }) {
+    
+    export function triggerShake(strength = 4, duration = 500) {
   shakeStrength = strength;
   shakeDuration = duration;
   shakeStart = performance.now();
 }
 
-export function createRenderer({ canvas, state }) {
-    
-    
-    let dx = 0;
-let dy = 0;
-
-if (shakeStart) {
-  const elapsed = performance.now() - shakeStart;
-  if (elapsed < shakeDuration) {
-    const p = 1 - elapsed / shakeDuration;
-    dx = (Math.random() - 0.5) * shakeStrength * p;
-    dy = (Math.random() - 0.5) * shakeStrength * p;
-  } else {
-    shakeStart = 0;
-  }
-}
-
-ctx.save();
-ctx.translate(dx, dy);
 
 
     let shakeTime = 0;
-let shakeDuration = 0;
-let shakeStrength = 0;
-let shakeStart = 0;
+    let shakeDuration = 0;
+    let shakeStrength = 0;
+    let shakeStart = 0;
     let lastBallX = null;
     let lastBallY = null;
     const trail = [];
@@ -434,24 +418,23 @@ window.addEventListener("resize", resize);
 resize();
 
   function render(playerFloat) {
-  ctx.clearRect(0, 0, w, h);
-
+      
   let dx = 0;
   let dy = 0;
 
-  if (shakeStart) {
-    const elapsed = performance.now() - shakeStart;
-    if (elapsed < shakeDuration) {
-      const p = 1 - elapsed / shakeDuration;
-      dx = (Math.random() - 0.5) * shakeStrength * p;
-      dy = (Math.random() - 0.5) * shakeStrength * p;
-    } else {
-      shakeStart = 0;
-    }
+if (shakeStart) {
+  const elapsed = performance.now() - shakeStart;
+  if (elapsed < shakeDuration) {
+    const p = 1 - elapsed / shakeDuration;
+    dx = (Math.random() - 0.5) * shakeStrength * p;
+    dy = (Math.random() - 0.5) * shakeStrength * p;
+  } else {
+    shakeStart = 0;
   }
+}
 
-  ctx.save();
-  ctx.translate(dx, dy);
+ctx.save();
+ctx.translate(dx, dy);
 
   drawBackground();
   drawFloor();

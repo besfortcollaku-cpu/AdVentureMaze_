@@ -170,8 +170,9 @@ export function createMovement({ state, onMoveFinished }) {
 
       // vibration only
       vibrate([18]);
-
-      onMoveFinished?.();
+      onMoveFinished?.({
+  hitWall: true
+});
     }
   }
 
