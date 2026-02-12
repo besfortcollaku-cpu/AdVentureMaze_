@@ -4,6 +4,7 @@ export function createRenderer({ canvas, state }) {
     let shakeTime = 0;
 let shakeDuration = 0;
 let shakeStrength = 0;
+let shakeStart = 0;
     let lastBallX = null;
     let lastBallY = null;
     const trail = [];
