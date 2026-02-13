@@ -328,7 +328,7 @@ ui.onRestartClick(async () => {
   // 🔴 No free → popup
   restartPopup.open({ freeLeft: 0 });
 });
-function >() {
+function boot {
   const count = freeRestartsLeft();
   const badge = document.getElementById("restartCount");
   const btn = document.getElementById("restartBtn");
