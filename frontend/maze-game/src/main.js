@@ -296,33 +296,8 @@ levelsUI.onSelect((levelNumber) => {
   
   ui.showWelcome();
   
-document.addEventListener("click", async (e) => {
-  const hintBtn = e.target.closest("#hintBtn");
-  const skipBtn = e.target.closest("#skipBtn");
-  const restartBtn = e.target.closest("#restartBtn");
-  if (!hintBtn && !skipBtn && !restartBtn) return;
-
-  if (hintBtn) {
-
-    if (!CURRENT_USER?.uid) {
-      ui.showLoginRequired();
-      return;
-    }
-
-    hintPopup.open({ freeLeft: freeHintsLeft() });
-  }
-
-  if (skipBtn) {
-    if (!CURRENT_USER?.uid) {
-      ui.showLoginRequired();
-      return;
-    }
-
-    skipPopup.open({ freeLeft: freeSkipsLeft() });
-  }
- 
-if (restartBtn) {
-  // 🔒 Guest → login required
+ui.onRestartClick(async () => {
+  // 🔒 Guest
   if (!CURRENT_USER?.uid) {
     ui.showLoginRequired();
     return;
@@ -330,7 +305,7 @@ if (restartBtn) {
 
   const freeLeft = freeRestartsLeft();
 
-  // 🟢 Free restart available → use immediately
+  // 🟢 Free restart
   if (freeLeft > 0) {
     const out = await fetch(`${BACKEND}/api/restart`, {
       method: "POST",
@@ -339,24 +314,18 @@ if (restartBtn) {
         Authorization: `Bearer ${CURRENT_ACCESS_TOKEN}`,
       },
       body: JSON.stringify({ mode: "free" }),
-    }).then((r) => r.json());
+    }).then(r => r.json());
 
-    if (!out?.ok) {
-      alert(out?.error || "Restart failed");
-      return;
-    }
+    if (!out?.ok) return alert(out.error);
 
-    // update user + badge
     CURRENT_USER = { ...CURRENT_USER, ...out.user };
     updateRestartBadge();
-
     game.setLevel(levels[levelIndex]);
     return;
   }
 
-  // 🔴 No free restarts → open popup
+  // 🔴 No free → popup
   restartPopup.open({ freeLeft: 0 });
-}
 });
 function updateRestartBadge() {
   const count = freeRestartsLeft();
