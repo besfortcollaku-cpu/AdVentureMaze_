@@ -143,12 +143,26 @@ async function loadMeAndSyncUI({ BACKEND, token, ui }) {
   CURRENT_USER.free_hints_used = me.user.free_hints_used ?? 0;
   CURRENT_USER.free_restarts_used = me.user.free_restarts_used ?? 0;
 
-  updateRestartBadge(); // 👈 add this
-setTimeout(updateRestartBadge, 0);
 return me;
 }
 
 
+function updateRestartBadge() {
+  const count = freeRestartsLeft();
+  const badge = document.getElementById("restartCount");
+  const btn = document.getElementById("restartBtn");
+
+  if (!badge || !btn) return;
+
+  if (count > 0) {
+    badge.textContent = count;
+    badge.style.display = "block";
+    btn.disabled = false;
+  } else {
+    badge.style.display = "none";
+    btn.disabled = true;
+  }
+}
 
 function freeSkipsLeft() {
   const used = Number(CURRENT_USER?.free_skips_used || 0);
@@ -319,27 +333,27 @@ ui.onRestartClick(async () => {
 
   // 🟢 Free restart
   if (freeLeft > 0) {
-  const out = await fetch(`${BACKEND}/api/restart`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${CURRENT_ACCESS_TOKEN}`,
-    },
-    body: JSON.stringify({ mode: "free" }),
-  }).then(r => r.json());
+    const out = await fetch(`${BACKEND}/api/restart`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${CURRENT_ACCESS_TOKEN}`,
+      },
+      body: JSON.stringify({ mode: "free" }),
+    }).then(r => r.json());
 
-  if (!out?.ok) return alert(out.error);
+    if (!out?.ok) return alert(out.error);
 
-  CURRENT_USER = {
-    ...CURRENT_USER,
-    ...out.user,
-  };
+    CURRENT_USER = {
+  ...CURRENT_USER,
+  ...out.user,
+  
+};
 
-  updateRestartBadge();
-  game.setLevel(levels[levelIndex]);
-  restartPopup.hide();
-  return; // ⛔ stop here
-}
+updateRestartBadge();
+game.setLevel(levels[levelIndex]);
+restartPopup.hide();
+  }
 
   // 🔴 No free → popup
   restartPopup.open({ freeLeft: 0 });
@@ -535,15 +549,15 @@ restartPopup.onBuyRestart(async () => {
   ...CURRENT_USER,
   ...out.user,
   free_restarts_used:
-  typeof out.user.free_restarts_used === "number"
-    ? out.user.free_restarts_used
-    : (CURRENT_USER.free_restarts_used || 0) + 1,
+    typeof out.user.free_restarts_used === "number"
+      ? out.user.free_restarts_used
+      : (CURRENT_USER.free_restarts_used || 0) + 1,
 };
 
 updateRestartBadge();
 game.setLevel(levels[levelIndex]);
 restartPopup.hide();
-});
+
 restartPopup.onWatchAdRestart(async () => {
   const out = await fetch(`${BACKEND}/api/restart`, {
     method: "POST",
