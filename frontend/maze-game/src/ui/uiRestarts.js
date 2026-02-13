@@ -5,7 +5,7 @@ export function createRestartPopup() {
   el.innerHTML = `
     <div class="popup-card">
       <h3>Restart Level</h3>
-      <button id="freeTestartBtn">Free Skip</button>
+      <<button id="freeRestartBtn">Free Restart</button>
       <button id="buyRestartBtn">Buy Testarts</button>
       <button id="watchAdRestartBtn">Watch Ad</button>
       <button id="closeRestartBtn">Close</button>
@@ -26,16 +26,15 @@ export function createRestartPopup() {
       this.show(opts);
     },
 
-    onFreeSkip(cb) {
-      el.querySelector("#freeRestartBtn").onclick = cb;
-    },
-    onBuySkip(cb) {
-      el.querySelector("#buyRestartBtn").onclick = cb;
-    },
-    onWatchAdSkip(cb) {
-      el.querySelector("#watchAdRestartBtn").onclick = cb;
-    },
-  };
+    onFreeRestart(cb) {
+  el.querySelector("#freeRestartBtn").onclick = cb;
+},
+onBuyRestart(cb) {
+  el.querySelector("#buyRestartBtn").onclick = cb;
+},
+onWatchAdRestart(cb) {
+  el.querySelector("#watchAdRestartBtn").onclick = cb;
+},
 
   el.querySelector("#closeRestartBtn").onclick = () => api.hide();
 
