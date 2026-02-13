@@ -39,7 +39,9 @@
   display: none;
   pointer-events: none;
 }
-
+.popup {
+  pointer-events: auto;
+}
 .close-btn {
   background: none;
   border: none;
