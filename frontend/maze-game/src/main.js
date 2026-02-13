@@ -328,19 +328,22 @@ ui.onRestartClick(async () => {
   // 🔴 No free → popup
   restartPopup.open({ freeLeft: 0 });
 });
-function updateRestartBadge() {
+function >() {
   const count = freeRestartsLeft();
   const badge = document.getElementById("restartCount");
   const btn = document.getElementById("restartBtn");
 
-  if (badge) {
-    if (count <= 0) {
-      badge.classList.add("hidden");
-    } else {
-      badge.textContent = count;
-      badge.classList.remove("hidden");
-    }
+  if (!badge || !btn) return;
+
+  if (count > 0) {
+    badge.textContent = count;
+    badge.style.display = "flex";
+    btn.disabled = false;
+  } else {
+    badge.style.display = "none";
+    btn.disabled = false; // important: still clickable → opens popup
   }
+}
 
   if (btn) {
     btn.disabled = count <= 0;
@@ -515,6 +518,7 @@ restartPopup.onBuyRestart(async () => {
   updateRestartBadge();
   game.setLevel(levels[levelIndex]);
   restartPopup.hide();
+  setTimeout(updateRestartBadge, 0);
 });
 
 restartPopup.onWatchAdRestart(async () => {
