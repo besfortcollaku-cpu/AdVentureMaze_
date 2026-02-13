@@ -148,7 +148,15 @@ setTimeout(updateRestartBadge, 0);
 return me;
 }
 
+function updateRestartBadge() {
+  const count = freeRestartsLeft?.() ?? 0;
 
+  const badge = document.querySelector("#restartCount");
+  if (!badge) return;
+
+  badge.textContent = String(count);
+  badge.style.display = count > 0 ? "block" : "none";
+}
 
 function freeSkipsLeft() {
   const used = Number(CURRENT_USER?.free_skips_used || 0);
