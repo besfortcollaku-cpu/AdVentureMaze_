@@ -1,38 +1,132 @@
-// main.js – FULL FILE with restart logic FIXED // ⚠️ No other functionality removed. Only restart-related bugs fixed.
+import { ui } from "./ui";
+import { restartPopup } from "./uiRestarts";
+import { game, levels } from "./game";
 
-import { ui } from "./ui"; import { game } from "./game"; import { restartPopup } from "./ui/uiRestarts";
+const BACKEND = import.meta.env.VITE_BACKEND;
 
-let CURRENT_USER = null; let CURRENT_ACCESS_TOKEN = null;
+let CURRENT_USER = null;
+let CURRENT_ACCESS_TOKEN = null;
 
 const FREE_RESTARTS = 3;
 
-function freeRestartsLeft() { const used = Number(CURRENT_USER?.free_restarts_used || 0); return Math.max(0, FREE_RESTARTS - used); }
+/* -----------------------------
+   HELPERS
+------------------------------ */
 
-function updateRestartBadge() { const count = freeRestartsLeft(); const badge = document.getElementById("restartCount"); const btn = document.getElementById("restartBtn");
+function freeRestartsLeft() {
+  const used = Number(CURRENT_USER?.free_restarts_used || 0);
+  return Math.max(0, FREE_RESTARTS - used);
+}
 
-if (badge) { if (count <= 0) { badge.classList.add("hidden"); } else { badge.textContent = count; badge.classList.remove("hidden"); } }
+function updateRestartBadge() {
+  const badge = document.getElementById("restartCount");
+  const btn = document.getElementById("restartBtn");
+  if (!badge || !btn) return;
 
-if (btn) { btn.disabled = count <= 0; btn.classList.toggle("disabled", count <= 0); } }
+  const left = freeRestartsLeft();
 
-ui.onRestartClick(async () => { if (!CURRENT_USER?.uid) { ui.showLoginRequired(); return; }
+  if (left > 0) {
+    badge.textContent = left;
+    badge.style.display = "inline-flex";
+    btn.disabled = false;
+  } else {
+    badge.style.display = "none";
+    btn.disabled = false; // opens popup instead
+  }
+}
 
-const freeLeft = freeRestartsLeft();
+/* -----------------------------
+   LOGIN / BOOT
+------------------------------ */
 
-restartPopup.onFreeRestart(async () => {
-  const freeLeft = freeRestartsLeft();
-  if (freeLeft <= 0) {
-    restartPopup.open({ freeLeft: 0 });
+async function boot() {
+  ui.onLoginClick(async () => {
+    const res = await fetch(`${BACKEND}/api/login`);
+    const out = await res.json();
+    if (!out?.accessToken) return;
+
+    CURRENT_ACCESS_TOKEN = out.accessToken;
+
+    const me = await fetch(`${BACKEND}/api/me`, {
+      headers: {
+        Authorization: `Bearer ${CURRENT_ACCESS_TOKEN}`,
+      },
+    }).then((r) => r.json());
+
+    if (!me?.user) return;
+
+    CURRENT_USER = {
+      ...me.user,
+      free_skips_used: me.user.free_skips_used ?? 0,
+      free_hints_used: me.user.free_hints_used ?? 0,
+      free_restarts_used: me.user.free_restarts_used ?? 0,
+    };
+
+    updateRestartBadge();
+    setTimeout(updateRestartBadge, 0);
+
+    game.setLevel(levels[Math.max(0, (me.progress?.maxLevel ?? 1) - 1)]);
+    ui.hideWelcome();
+    game.start();
+  });
+}
+
+/* -----------------------------
+   RESTART BUTTON
+------------------------------ */
+
+ui.onRestartClick(async () => {
+  if (!CURRENT_USER?.uid) {
+    ui.showLoginRequired();
     return;
   }
 
+  const freeLeft = freeRestartsLeft();
+
+  if (freeLeft > 0) {
+    // free restart
+    const out = await fetch(`${BACKEND}/api/restart`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${CURRENT_ACCESS_TOKEN}`,
+      },
+      body: JSON.stringify({ mode: "free" }),
+    }).then((r) => r.json());
+
+    if (!out?.ok) {
+      alert(out.error);
+      return;
+    }
+
+    CURRENT_USER = {
+      ...CURRENT_USER,
+      ...out.user,
+      free_restarts_used: out.user.free_restarts_used ?? (CURRENT_USER.free_restarts_used + 1),
+    };
+
+    updateRestartBadge();
+    game.setLevel(levels[game.levelIndex]);
+    return;
+  }
+
+  // no free left → popup
+  restartPopup.open({ freeLeft: 0 });
+});
+
+/* -----------------------------
+   POPUP ACTIONS
+------------------------------ */
+
+restartPopup.onBuyRestart(async () => {
   const out = await fetch(`${BACKEND}/api/restart`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${CURRENT_ACCESS_TOKEN}`,
     },
-    body: JSON.stringify({ mode: "free" }),
-  }).then(r => r.json());
+    body: JSON.stringify({ mode: "coins" }),
+  }).then((r) => r.json());
 
   if (!out?.ok) {
     alert(out.error);
@@ -41,51 +135,36 @@ restartPopup.onFreeRestart(async () => {
 
   CURRENT_USER = { ...CURRENT_USER, ...out.user };
   updateRestartBadge();
-  game.setLevel(levels[levelIndex]);
+  game.setLevel(levels[game.levelIndex]);
   restartPopup.hide();
 });
 
-if (!out?.ok) return alert(out.error);
+restartPopup.onWatchAdRestart(async () => {
+  const out = await fetch(`${BACKEND}/api/restart`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${CURRENT_ACCESS_TOKEN}`,
+    },
+    body: JSON.stringify({
+      mode: "ad",
+      nonce: crypto.randomUUID(),
+    }),
+  }).then((r) => r.json());
 
-// ✅ TRUST BACKEND ONLY
-CURRENT_USER = {
-  ...CURRENT_USER,
-  ...out.user,
-};
+  if (!out?.ok) {
+    alert(out.error);
+    return;
+  }
 
-updateRestartBadge();
-game.setLevel(levels[levelIndex]);
-return;
+  CURRENT_USER = { ...CURRENT_USER, ...out.user };
+  updateRestartBadge();
+  game.setLevel(levels[game.levelIndex]);
+  restartPopup.hide();
+});
 
-}
-
-restartPopup.open({ freeLeft: 0 }); });
-
-restartPopup.onBuyRestart(async () => { const out = await fetch(${BACKEND}/api/restart, { method: "POST", headers: { "Content-Type": "application/json", Authorization: Bearer ${CURRENT_ACCESS_TOKEN}, }, body: JSON.stringify({ mode: "coins" }), }).then(r => r.json());
-
-if (!out?.ok) return alert(out.error);
-
-CURRENT_USER = { ...CURRENT_USER, ...out.user, };
-
-updateRestartBadge(); game.setLevel(levels[levelIndex]); restartPopup.hide(); });
-
-restartPopup.onWatchAdRestart(async () => { const out = await fetch(${BACKEND}/api/restart, { method: "POST", headers: { "Content-Type": "application/json", Authorization: Bearer ${CURRENT_ACCESS_TOKEN}, }, body: JSON.stringify({ mode: "ad", nonce: crypto.randomUUID() }), }).then(r => r.json());
-
-if (!out?.ok) return alert(out.error);
-
-CURRENT_USER = { ...CURRENT_USER, ...out.user, };
-
-updateRestartBadge(); game.setLevel(levels[levelIndex]); restartPopup.hide(); });
-
-async function boot() { const me = await fetch(${BACKEND}/api/me, { headers: { Authorization: Bearer ${CURRENT_ACCESS_TOKEN}, }, }).then(r => r.json());
-
-if (me?.user) { CURRENT_USER = { ...me.user, free_skips_used: me.user.free_skips_used ?? 0, free_hints_used: me.user.free_hints_used ?? 0, free_restarts_used: me.user.free_restarts_used ?? 0, };
-
-updateRestartBadge();
-setTimeout(updateRestartBadge, 0);
-
-}
-
-game.start(); }
+/* -----------------------------
+   START
+------------------------------ */
 
 boot();
