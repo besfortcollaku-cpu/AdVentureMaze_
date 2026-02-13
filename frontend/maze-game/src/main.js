@@ -18,7 +18,32 @@ ui.onRestartClick(async () => { if (!CURRENT_USER?.uid) { ui.showLoginRequired()
 
 const freeLeft = freeRestartsLeft();
 
-if (freeLeft > 0) { const out = await fetch(${BACKEND}/api/restart, { method: "POST", headers: { "Content-Type": "application/json", Authorization: Bearer ${CURRENT_ACCESS_TOKEN}, }, body: JSON.stringify({ mode: "free" }), }).then(r => r.json());
+restartPopup.onFreeRestart(async () => {
+  const freeLeft = freeRestartsLeft();
+  if (freeLeft <= 0) {
+    restartPopup.open({ freeLeft: 0 });
+    return;
+  }
+
+  const out = await fetch(`${BACKEND}/api/restart`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${CURRENT_ACCESS_TOKEN}`,
+    },
+    body: JSON.stringify({ mode: "free" }),
+  }).then(r => r.json());
+
+  if (!out?.ok) {
+    alert(out.error);
+    return;
+  }
+
+  CURRENT_USER = { ...CURRENT_USER, ...out.user };
+  updateRestartBadge();
+  game.setLevel(levels[levelIndex]);
+  restartPopup.hide();
+});
 
 if (!out?.ok) return alert(out.error);
 
