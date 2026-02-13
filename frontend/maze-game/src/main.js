@@ -319,30 +319,27 @@ ui.onRestartClick(async () => {
 
   // 🟢 Free restart
   if (freeLeft > 0) {
-    const out = await fetch(`${BACKEND}/api/restart`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${CURRENT_ACCESS_TOKEN}`,
-      },
-      body: JSON.stringify({ mode: "free" }),
-    }).then(r => r.json());
+  const out = await fetch(`${BACKEND}/api/restart`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${CURRENT_ACCESS_TOKEN}`,
+    },
+    body: JSON.stringify({ mode: "free" }),
+  }).then(r => r.json());
 
-    if (!out?.ok) return alert(out.error);
+  if (!out?.ok) return alert(out.error);
 
-    CURRENT_USER = {
-  ...CURRENT_USER,
-  ...out.user,
-  free_restarts_used:
-  typeof out.user.free_restarts_used === "number"
-    ? out.user.free_restarts_used
-    : (CURRENT_USER.free_restarts_used || 0) + 1,
-};
+  CURRENT_USER = {
+    ...CURRENT_USER,
+    ...out.user,
+  };
 
-updateRestartBadge();
-game.setLevel(levels[levelIndex]);
-restartPopup.hide();
-  }
+  updateRestartBadge();
+  game.setLevel(levels[levelIndex]);
+  restartPopup.hide();
+  return; // ⛔ stop here
+}
 
   // 🔴 No free → popup
   restartPopup.open({ freeLeft: 0 });
@@ -546,7 +543,7 @@ restartPopup.onBuyRestart(async () => {
 updateRestartBadge();
 game.setLevel(levels[levelIndex]);
 restartPopup.hide();
-
+});
 restartPopup.onWatchAdRestart(async () => {
   const out = await fetch(`${BACKEND}/api/restart`, {
     method: "POST",
