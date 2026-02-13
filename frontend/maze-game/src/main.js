@@ -9,7 +9,7 @@ import { levels } from "./levels/index.js";
 import { createWinPopup } from "./ui/uiWin.js";
 import { createSkipPopup } from "./ui/uiSkip.js";
 import { createHintPopup } from "./ui/uiHints.js";
-import { createRestartPopup } from "./ui/uiRestarts.js";
+import { createRestartsPopup } from "./ui/uiRestarts.js";
 
 const restartPopup = createRestartPopup();
 const GUEST_PROGRESS_KEY = "guest_progress_v1";
