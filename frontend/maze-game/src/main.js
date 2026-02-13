@@ -334,9 +334,9 @@ ui.onRestartClick(async () => {
   ...CURRENT_USER,
   ...out.user,
   free_restarts_used:
-    typeof out.user.free_restarts_used === "number"
-      ? out.user.free_restarts_used
-      : (CURRENT_USER.free_restarts_used || 0) + 1,
+  typeof out.user.free_restarts_used === "number"
+    ? out.user.free_restarts_used
+    : (CURRENT_USER.free_restarts_used || 0) + 1,
 };
 
 updateRestartBadge();
@@ -538,9 +538,9 @@ restartPopup.onBuyRestart(async () => {
   ...CURRENT_USER,
   ...out.user,
   free_restarts_used:
-    typeof out.user.free_restarts_used === "number"
-      ? out.user.free_restarts_used
-      : (CURRENT_USER.free_restarts_used || 0) + 1,
+  typeof out.user.free_restarts_used === "number"
+    ? out.user.free_restarts_used
+    : (CURRENT_USER.free_restarts_used || 0) + 1,
 };
 
 updateRestartBadge();
