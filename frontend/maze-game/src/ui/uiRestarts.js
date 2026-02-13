@@ -1,5 +1,5 @@
 import "../css/restart.css";
-export function createRestartsPopup() {
+export function createRestartPopup() {
   const el = document.createElement("div");
   el.className = "popup hidden";
   el.innerHTML = `
