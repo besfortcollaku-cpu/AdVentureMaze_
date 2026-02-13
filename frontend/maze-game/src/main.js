@@ -144,8 +144,8 @@ async function loadMeAndSyncUI({ BACKEND, token, ui }) {
   CURRENT_USER.free_restarts_used = me.user.free_restarts_used ?? 0;
 
   updateRestartBadge(); // 👈 add this
-
-  return me;
+setTimeout(updateRestartBadge, 0);
+return me;
 }
 
 
@@ -235,9 +235,17 @@ if (CURRENT_ACCESS_TOKEN) {
     .then((r) => r.ok ? r.json() : null)
     .then((me) => {
       if (me?.user) {
-        CURRENT_USER = me.user;
+        CURRENT_USER = {
+  ...CURRENT_USER,
+  ...me.user,
+  free_skips_used: me.user.free_skips_used ?? 0,
+  free_hints_used: me.user.free_hints_used ?? 0,
+  free_restarts_used: me.user.free_restarts_used ?? 0,
+};
+updateRestartBadge();
         ui.setUser(me.user);
         ui.setCoins(me.user.coins ?? 0);
+        setTimeout(updateRestartBadge, 0);
       }
     })
     .catch(() => {});
