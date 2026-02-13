@@ -343,7 +343,6 @@ function updateRestartBadge() {
     badge.style.display = "none";
     btn.disabled = false; // important: still clickable → opens popup
   }
-}
 
   if (btn) {
     btn.disabled = count <= 0;
