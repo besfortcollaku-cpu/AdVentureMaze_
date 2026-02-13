@@ -145,12 +145,9 @@ async function loadMeAndSyncUI({ BACKEND, token, ui }) {
 
   return me;
 }
-const FREE_RESTARTS = 3;
 
-function freeRestartsLeft() {
-  const used = Number(CURRENT_USER?.free_restarts_used || 0);
-  return Math.max(0, FREE_RESTARTS - used);
-}
+
+
 function freeSkipsLeft() {
   const used = Number(CURRENT_USER?.free_skips_used || 0);
   return Math.max(0, FREE_SKIPS - used);
