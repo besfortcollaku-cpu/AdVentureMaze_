@@ -300,6 +300,7 @@ document.addEventListener("click", async (e) => {
   const hintBtn = e.target.closest("#hintBtn");
   const skipBtn = e.target.closest("#skipBtn");
   const restartBtn = e.target.closest("#restartBtn");
+  if (!hintBtn && !skipBtn && !restartBtn) return;
 
   if (hintBtn) {
 
