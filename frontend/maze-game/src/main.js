@@ -148,26 +148,7 @@ setTimeout(updateRestartBadge, 0);
 return me;
 }
 
-function updateRestartBadge() {
-  const count = freeRestartsLeft();
 
-  const badge = document.querySelector("#restartCount");
-  const btn = document.querySelector("#restartBtn");
-
-  if (badge) {
-    badge.textContent = String(count);
-
-    if (count > 0) {
-      badge.style.display = "block";
-    } else {
-      badge.style.display = "none";
-    }
-  }
-
-  if (btn) {
-    btn.disabled = count <= 0;
-  }
-}
 
 function freeSkipsLeft() {
   const used = Number(CURRENT_USER?.free_skips_used || 0);
@@ -545,11 +526,18 @@ restartPopup.onBuyRestart(async () => {
 
   if (!out?.ok) return alert(out.error);
 
-  CURRENT_USER = { ...CURRENT_USER, ...out.user };
-  updateRestartBadge();
-  game.setLevel(levels[levelIndex]);
-  restartPopup.hide();
-});
+  CURRENT_USER = {
+  ...CURRENT_USER,
+  ...out.user,
+  free_restarts_used:
+    typeof out.user.free_restarts_used === "number"
+      ? out.user.free_restarts_used
+      : (CURRENT_USER.free_restarts_used || 0) + 1,
+};
+
+updateRestartBadge();
+game.setLevel(levels[levelIndex]);
+restartPopup.hide();
 
 restartPopup.onWatchAdRestart(async () => {
   const out = await fetch(`${BACKEND}/api/restart`, {
