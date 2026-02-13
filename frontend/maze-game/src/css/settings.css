@@ -35,6 +35,10 @@
 .settings-header h2 {
   margin: 0;
 }
+.popup.hidden {
+  display: none;
+  pointer-events: none;
+}
 
 .close-btn {
   background: none;
