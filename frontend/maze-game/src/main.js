@@ -9,6 +9,9 @@ import { levels } from "./levels/index.js";
 import { createWinPopup } from "./ui/uiWin.js";
 import { createSkipPopup } from "./ui/uiSkip.js";
 import { createHintPopup } from "./ui/uiHints.js";
+import { createRestartPopup } from "./ui/uiRestarts.js";
+
+const restartPopup = createRestartPopup();
 const GUEST_PROGRESS_KEY = "guest_progress_v1";
 const GUEST_MAX_LEVEL = 5;
 let CURRENT_USER = null;
@@ -16,6 +19,12 @@ let CURRENT_ACCESS_TOKEN = null;
 const BACKEND = "https://triumphant-gentleness-production.up.railway.app";
 const FREE_SKIPS = 3;
 const FREE_HINTS = 3;
+const FREE_RESTARTS = 3;
+
+function freeRestartsLeft() {
+  const used = Number(CURRENT_USER?.free_restarts_used || 0);
+  return Math.max(0, FREE_RESTARTS - used);
+}
 
 let levelIndex = 0;
 // Keep the Levels 1screen consistent (guest: localStorage, logged-in: backend)
@@ -293,6 +302,7 @@ levelsUI.onSelect((levelNumber) => {
 document.addEventListener("click", (e) => {
   const hintBtn = e.target.closest("#hintBtn");
   const skipBtn = e.target.closest("#skipBtn");
+  const restartBtn = e.target.closest("#restartBtn");
 
   if (hintBtn) {
 
@@ -312,8 +322,7 @@ document.addEventListener("click", (e) => {
 
     skipPopup.open({ freeLeft: freeSkipsLeft() });
   }
-  const restartBtn = e.target.closest("#restartBtn");
-
+ 
 if (restartBtn) {
   // 🔒 Guest → login required
   if (!CURRENT_USER?.uid) {
@@ -321,19 +330,55 @@ if (restartBtn) {
     return;
   }
 
-  // 🟢 Logged-in
-  const freeLeft = freeRestartsLeft(); // we will add this next
+  const freeLeft = freeRestartsLeft();
 
+  // 🟢 Free restart available → use immediately
   if (freeLeft > 0) {
-    // immediate restart (no popup)
-    useRestartAndReloadLevel();
-  } else {
-    // open restart popup
-    restartPopup.open({ freeLeft: 0 });
+    const out = await fetch(`${BACKEND}/api/restart`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${CURRENT_ACCESS_TOKEN}`,
+      },
+      body: JSON.stringify({ mode: "free" }),
+    }).then((r) => r.json());
+
+    if (!out?.ok) {
+      alert(out?.error || "Restart failed");
+      return;
+    }
+
+    // update user + badge
+    CURRENT_USER = { ...CURRENT_USER, ...out.user };
+    updateRestartBadge();
+
+    game.setLevel(levels[levelIndex]);
+    return;
   }
+
+  // 🔴 No free restarts → open popup
+  restartPopup.open({ freeLeft: 0 });
 }
 });
+function updateRestartBadge() {
+  const count = freeRestartsLeft();
+  const badge = document.getElementById("restartCount");
+  const btn = document.getElementById("restartBtn");
 
+  if (badge) {
+    if (count <= 0) {
+      badge.classList.add("hidden");
+    } else {
+      badge.textContent = count;
+      badge.classList.remove("hidden");
+    }
+  }
+
+  if (btn) {
+    btn.disabled = count <= 0;
+    btn.classList.toggle("disabled", count <= 0);
+  }
+}
 // Create game (DO NOT START)
 const game = createGame({
   canvas: ui.canvas,
@@ -485,6 +530,45 @@ hintPopup.onWatchAdHint(async () => {
   if (!out.ok) return alert(out.error || "Hint failed");
   alert("Hint unlocked! (plug your hint text here)");
 });
+
+restartPopup.onBuyRestart(async () => {
+  const out = await fetch(`${BACKEND}/api/restart`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${CURRENT_ACCESS_TOKEN}`,
+    },
+    body: JSON.stringify({ mode: "coins" }),
+  }).then((r) => r.json());
+
+  if (!out?.ok) return alert(out.error);
+
+  CURRENT_USER = { ...CURRENT_USER, ...out.user };
+  updateRestartBadge();
+  game.setLevel(levels[levelIndex]);
+  restartPopup.hide();
+});
+
+restartPopup.onWatchAdRestart(async () => {
+  const out = await fetch(`${BACKEND}/api/restart`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${CURRENT_ACCESS_TOKEN}`,
+    },
+    body: JSON.stringify({
+      mode: "ad",
+      nonce: crypto.randomUUID(),
+    }),
+  }).then((r) => r.json());
+
+  if (!out?.ok) return alert(out.error);
+
+  updateRestartBadge();
+  game.setLevel(levels[levelIndex]);
+  restartPopup.hide();
+});
+
   // ---- GUEST ----
   ui.onGuestStart(() => {
   CURRENT_USER = { username: "Guest", uid: null };
