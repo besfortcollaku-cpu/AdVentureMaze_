@@ -330,10 +330,18 @@ ui.onRestartClick(async () => {
 
     if (!out?.ok) return alert(out.error);
 
-    CURRENT_USER = { ...CURRENT_USER, ...out.user };
-    updateRestartBadge();
-    game.setLevel(levels[levelIndex]);
-    return;
+    CURRENT_USER = {
+  ...CURRENT_USER,
+  ...out.user,
+  free_restarts_used:
+    typeof out.user.free_restarts_used === "number"
+      ? out.user.free_restarts_used
+      : (CURRENT_USER.free_restarts_used || 0) + 1,
+};
+
+updateRestartBadge();
+game.setLevel(levels[levelIndex]);
+restartPopup.hide();
   }
 
   // 🔴 No free → popup
