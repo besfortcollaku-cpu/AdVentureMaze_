@@ -149,13 +149,24 @@ return me;
 }
 
 function updateRestartBadge() {
-  const count = freeRestartsLeft?.() ?? 0;
+  const count = freeRestartsLeft();
 
   const badge = document.querySelector("#restartCount");
-  if (!badge) return;
+  const btn = document.querySelector("#restartBtn");
 
-  badge.textContent = String(count);
-  badge.style.display = count > 0 ? "block" : "none";
+  if (badge) {
+    badge.textContent = String(count);
+
+    if (count > 0) {
+      badge.style.display = "block";
+    } else {
+      badge.style.display = "none";
+    }
+  }
+
+  if (btn) {
+    btn.disabled = count <= 0;
+  }
 }
 
 function freeSkipsLeft() {
