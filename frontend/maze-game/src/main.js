@@ -11,7 +11,6 @@ import { createSkipPopup } from "./ui/uiSkip.js";
 import { createHintPopup } from "./ui/uiHints.js";
 import { createRestartPopup } from "./ui/uiRestarts.js";
 
-const restartPopup = createRestartPopup();
 const GUEST_PROGRESS_KEY = "guest_progress_v1";
 const GUEST_MAX_LEVEL = 5;
 let CURRENT_USER = null;
@@ -243,6 +242,8 @@ if (CURRENT_ACCESS_TOKEN) {
 const winPopup = createWinPopup();
 const skipPopup = createSkipPopup();
 const hintPopup = createHintPopup();
+const restartPopup = createRestartPopup();
+
 
 
 
