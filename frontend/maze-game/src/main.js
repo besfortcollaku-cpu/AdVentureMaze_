@@ -380,9 +380,13 @@ const game = createGame({
       apiClaimLevelComplete(completedLevel)
         .then((out) => {
           if (out?.user) {
-            CURRENT_USER = { ...CURRENT_USER, ...out.user };
-            ui.setCoins(out.user.coins ?? 0);
-          }
+  CURRENT_USER = {
+    ...CURRENT_USER,
+    ...out.user,
+    free_restarts_used: out.user.free_restarts_used ?? CURRENT_USER.free_restarts_used,
+  };
+  updateRestartBadge();
+}
         })
         .catch(() => {});
     }
