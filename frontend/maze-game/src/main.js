@@ -40,6 +40,23 @@ async function fetchAndSetCoins({ BACKEND, token, ui }) {
   const data = await res.json();
   ui.setCoins(data.coins ?? 0);
 }
+
+function updateBadge({ badgeId, used, max }) {
+  const badge = document.getElementById(badgeId);
+  if (!badge) return;
+
+  const left = Math.max(0, max - Number(used || 0));
+
+  if (left > 0) {
+    badge.textContent = left;
+    badge.classList.remove("hidden");
+  } else {
+    badge.textContent = "";
+    badge.classList.add("hidden");
+  }
+}
+
+
 async function apiClaimLevelComplete(levelNumber) {
   if (!CURRENT_ACCESS_TOKEN) return null;
 
@@ -140,7 +157,7 @@ ui.setCoins(me.user.coins ?? 0);
 CURRENT_USER.free_skips_used = me.user.free_skips_used ?? 0;
 CURRENT_USER.free_hints_used = me.user.free_hints_used ?? 0;
 CURRENT_USER.free_restarts_used = me.user.free_restarts_used ?? 0;
-updateRestartBadge();
+
 
 return me;
 }
@@ -328,33 +345,7 @@ ui.onRestartClick(async () => {
   // NO FREE LEFT → popup
   restartPopup.open({ freeLeft: 0 });
 });
-function updateRestartBadge() {
-  const badge = document.getElementById("restartCount");
-  const btn = document.getElementById("restartBtn");
 
-  if (!badge || !btn) return;
-  if (!CURRENT_USER) {
-    badge.classList.add("hidden");
-    return;
-  }
-
-  if (typeof CURRENT_USER.free_restarts_used !== "number") {
-    badge.classList.add("hidden");
-    return;
-  }
-
-  const left = Math.max(0, FREE_RESTARTS - CURRENT_USER.free_restarts_used);
-
-  if (left > 0) {
-    badge.textContent = left;
-    badge.classList.remove("hidden");
-  } else {
-    badge.textContent = "";
-    badge.classList.add("hidden");
-  }
-
-  btn.disabled = false;
-}
 // Create game (DO NOT START)
 const game = createGame({
   canvas: ui.canvas,
@@ -605,11 +596,25 @@ ui.onLoginClick(async () => {
   ui.hideWelcome();
 
   if (!game.isRunning?.()) {
-      
-    game.start();
-updateRestartBadge();
-}
-});
+  game.start();
+
+  updateBadge({
+    badgeId: "restartCount",
+    used: CURRENT_USER?.free_restarts_used,
+    max: FREE_RESTARTS,
+  });
+
+  updateBadge({
+    badgeId: "skipCount",
+    used: CURRENT_USER?.free_skips_used,
+    max: FREE_SKIPS,
+  });
+
+  updateBadge({
+    badgeId: "hintCount",
+    used: CURRENT_USER?.free_hints_used,
+    max: FREE_HINTS,
+  });
 }
 
 boot();
