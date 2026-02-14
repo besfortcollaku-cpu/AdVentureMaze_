@@ -28,6 +28,7 @@ function freeRestartsLeft() {
 let levelIndex = 0;
 // Keep the Levels 1screen consistent (guest: localStorage, logged-in: backend)
 let CURRENT_MAX_UNLOCKED_LEVEL = 1;
+
 async function fetchAndSetCoins({ BACKEND, token, ui }) {
   if (!token) return;
 
@@ -63,6 +64,18 @@ async function apiClaimLevelComplete(levelNumber) {
   return res.json();
 }
 
+function updateBadge({ badgeId, left }) {
+  const badge = document.getElementById(badgeId);
+  if (!badge) return;
+
+  if (left > 0) {
+    badge.textContent = left;
+    badge.classList.remove("hidden");
+  } else {
+    badge.textContent = "";
+    badge.classList.add("hidden");
+  }
+}
 
 
 async function apiSkip({ mode }) {
@@ -146,14 +159,23 @@ async function loadMeAndSyncUI({ BACKEND, token, ui }) {
 return me;
 }
 
-function updateRestartBadge() {
-  const count = freeRestartsLeft?.() ?? 0;
+function updateAllBadges() {
+  if (!CURRENT_USER) return;
 
-  const badge = document.querySelector("#restartCount");
-  if (!badge) return;
+  updateBadge({
+    badgeId: "restartCount",
+    left: Math.max(0, FREE_RESTARTS - (CURRENT_USER.free_restarts_used || 0)),
+  });
 
-  badge.textContent = String(count);
-  badge.style.display = count > 0 ? "block" : "none";
+  updateBadge({
+    badgeId: "skipCount",
+    left: Math.max(0, FREE_SKIPS - (CURRENT_USER.free_skips_used || 0)),
+  });
+
+  updateBadge({
+    badgeId: "hintCount",
+    left: Math.max(0, FREE_HINTS - (CURRENT_USER.free_hints_used || 0)),
+  });
 }
 
 function freeSkipsLeft() {
@@ -337,8 +359,9 @@ ui.onRestartClick(async () => {
     if (!out?.ok) return alert(out.error);
 
     CURRENT_USER = { ...CURRENT_USER, ...out.user };
-    updateRestartBadge();
     game.setLevel(levels[levelIndex]);
+    updateAllBadges();
+
     return;
   }
 
@@ -614,6 +637,7 @@ ui.onLoginClick(async () => {
 
   if (!game.isRunning?.()) {
     game.start();
+    updateAllBadges();
   }
 });
 }
