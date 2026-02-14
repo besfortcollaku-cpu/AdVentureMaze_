@@ -336,17 +336,13 @@ function updateRestartBadge() {
   if (!badge || !btn) return;
 
   if (count > 0) {
-    badge.textContent = count;
+    badge.textContent = String(count);
     badge.style.display = "flex";
     btn.disabled = false;
   } else {
+    badge.textContent = "";
     badge.style.display = "none";
-    btn.disabled = false; // important: still clickable → opens popup
-  }
-
-  if (btn) {
-    btn.disabled = count <= 0;
-    btn.classList.toggle("disabled", count <= 0);
+    btn.disabled = false; // must stay clickable to open popup
   }
 }
 // Create game (DO NOT START)
@@ -513,7 +509,10 @@ restartPopup.onBuyRestart(async () => {
 
   if (!out?.ok) return alert(out.error);
 
-  CURRENT_USER = { ...CURRENT_USER, ...out.user };
+  CURRENT_USER = {
+  ...CURRENT_USER,
+  ...out.user,
+};
   updateRestartBadge();
   game.setLevel(levels[levelIndex]);
   restartPopup.hide();
