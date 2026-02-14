@@ -343,14 +343,13 @@ ui.onRestartClick(() => {
   }
 
   restartPopup.open({
-  coins: CURRENT_USER?.coins ?? 0,
-  freeLeft: Math.max(
-    0,
-    FREE_RESTARTS - (CURRENT_USER.free_restarts_used || 0)
-  ),
-
+    coins: CURRENT_USER?.coins ?? 0,
+    freeLeft: Math.max(
+      0,
+      FREE_RESTARTS - (CURRENT_USER.free_restarts_used || 0)
+    ),
+  });
 });
-
 
 // Create game (DO NOT START)
 const game = createGame({
