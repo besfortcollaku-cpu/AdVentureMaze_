@@ -336,57 +336,17 @@ levelsUI.onSelect((levelNumber) => {
   
   ui.showWelcome();
   
-ui.onRestartClick(async () => {
-  // 🔒 Guest
+ui.onRestartClick(() => {
   if (!CURRENT_USER?.uid) {
     ui.showLoginRequired();
     return;
   }
 
-  const freeLeft = freeRestartsLeft();
-
-  // 🟢 Free restart
-  if (freeLeft > 0) {
-    const out = await fetch(`${BACKEND}/api/restart`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${CURRENT_ACCESS_TOKEN}`,
-      },
-      body: JSON.stringify({ mode: "free" }),
-    }).then(r => r.json());
-
-    if (!out?.ok) return alert(out.error);
-
-    CURRENT_USER = { ...CURRENT_USER, ...out.user };
-    game.setLevel(levels[levelIndex]);
-    updateAllBadges();
-
-    return;
-  }
-
-  // 🔴 No free → popup
-  restartPopup.open({ freeLeft: 0 });
+  restartPopup.open({
+    coins: CURRENT_USER?.coins ?? 0,
+  });
 });
-function updateRestartBadge() {
-  const count = freeRestartsLeft();
-  const badge = document.getElementById("restartCount");
-  const btn = document.getElementById("restartBtn");
 
-  if (badge) {
-    if (count <= 0) {
-      badge.classList.add("hidden");
-    } else {
-      badge.textContent = count;
-      badge.classList.remove("hidden");
-    }
-  }
-
-  if (btn) {
-    btn.disabled = count <= 0;
-    btn.classList.toggle("disabled", count <= 0);
-  }
-}
 // Create game (DO NOT START)
 const game = createGame({
   canvas: ui.canvas,

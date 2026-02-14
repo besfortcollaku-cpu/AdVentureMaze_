@@ -31,12 +31,12 @@ export function mountUI(root) {
       <footer class="bottom">
        <div class="btn-wrapper">
   <button id="hintBtn" class="icon">❓</button>
-  <span class="badge hidden" id="hintCount">4</span>
+  <span class="badge hidden" id="hintCount"></span>
 </div>
         <span>Swipe to move</span>
        <div class="btn-wrapper">
   <button id="skipBtn" class="icon">⏭</button>
-  <span class="badge Hidden" id="skipCount">101</span>
+  <span class="badge Hidden" id="skipCount"></span>
 </div>
       </footer>
 
