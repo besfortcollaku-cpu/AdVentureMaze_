@@ -134,8 +134,6 @@ async function loadMeAndSyncUI({ BACKEND, token, ui }) {
 
   ui.setUser(CURRENT_USER);
   ui.setCoins(me.user.coins ?? 0);
-  updateRestartBadge();
-
   // keep extra server fields on CURRENT_USER for skip/hint logic
   CURRENT_USER.free_skips_used = me.user.free_skips_used ?? 0;
   CURRENT_USER.free_hints_used = me.user.free_hints_used ?? 0;
