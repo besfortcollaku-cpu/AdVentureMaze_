@@ -134,6 +134,7 @@ async function loadMeAndSyncUI({ BACKEND, token, ui }) {
 
   ui.setUser(CURRENT_USER);
   ui.setCoins(me.user.coins ?? 0);
+  updateRestartBadge();
 
   // keep extra server fields on CURRENT_USER for skip/hint logic
   CURRENT_USER.free_skips_used = me.user.free_skips_used ?? 0;
@@ -337,13 +338,13 @@ function updateRestartBadge() {
   if (!badge || !btn) return;
 
   if (count > 0) {
-    badge.textContent = String(count);
-    badge.style.display = "flex";
+    badge.textContent = count;
+    badge.classList.remove("hidden");
     btn.disabled = false;
   } else {
     badge.textContent = "";
-    badge.style.display = "none";
-    btn.disabled = false; // must stay clickable to open popup
+    badge.classList.add("hidden");
+    btn.disabled = false;
   }
 }
 // Create game (DO NOT START)

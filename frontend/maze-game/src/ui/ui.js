@@ -15,7 +15,7 @@ export function mountUI(root) {
           <button class="icon" id="levelsBtn">☰</button>
           <div class="btn-wrapper">
   <button id="restartBtn" class="icon">🔄</button>
-  <span class="badge" id="restartCount">3</span>
+  <span class="badge hidden" id="restartCount"></span>
 </div>
         </div>
         <div class="coins">
@@ -31,12 +31,12 @@ export function mountUI(root) {
       <footer class="bottom">
        <div class="btn-wrapper">
   <button id="hintBtn" class="icon">❓</button>
-  <span class="badge" id="hintCount"></span>
+  <span class="badge hidden" id="hintCount"></span>
 </div>
         <span>Swipe to move</span>
        <div class="btn-wrapper">
   <button id="skipBtn" class="icon">⏭</button>
-  <span class="badge" id="skipCount"></span>
+  <span class="badge Hidden" id="skipCount"></span>
 </div>
       </footer>
 
