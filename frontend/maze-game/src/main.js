@@ -489,12 +489,32 @@ winPopup.onWatchAdClick(async () => {
 });
 
 // ---- SKIP / HINT buttons (backend-powered) ----
-ui.skipBtn.addEventListener("click", () => {
+ui.onSkipClick(async () => {
   if (!CURRENT_USER?.uid) {
-  ui.showLoginRequired();
-  return;
-}
-  skipPopup.open({ freeLeft: freeSkipsLeft() });
+    ui.showLoginRequired();
+    return;
+  }
+
+  // try FREE skip first (same as restart)
+  if (freeSkipsLeft() > 0) {
+    try {
+      const out = await apiSkip({ mode: "free" });
+      if (!out?.ok) throw new Error(out?.error);
+
+      if (out.user) {
+        CURRENT_USER = { ...CURRENT_USER, ...out.user };
+        updateAllBadges();
+      }
+
+      goNextLevel();
+      return;
+    } catch {
+      // fallback to popup if backend rejects
+    }
+  }
+
+  // no free skips left → popup
+  skipPopup.open({ freeLeft: 0 });
 });
 
 skipPopup.onFreeSkip(async () => {
