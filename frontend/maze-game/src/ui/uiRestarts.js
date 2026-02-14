@@ -13,41 +13,51 @@ export function createRestartPopup() {
   `;
   document.body.appendChild(el);
 
-  const api = {
-    open({ coins } = {}) {
-      el.classList.remove("hidden");
+  let onFreeRestart = null;
 
-      const buyBtn = el.querySelector("#buyRestartBtn");
-      const adBtn = el.querySelector("#watchAdRestartBtn");
+const api = {
+  open({ coins, freeLeft }) {
+    el.classList.remove("hidden");
 
-      // Paid restart
-      if (coins < 50) {
-        buyBtn.disabled = true;
-        buyBtn.textContent = "Not enough coins";
-      } else {
-        buyBtn.disabled = false;
-        buyBtn.textContent = "Restart (50 coins)";
-      }
+    // 🟢 AUTO APPLY FREE RESTART
+    if (freeLeft > 0 && typeof onFreeRestart === "function") {
+      onFreeRestart();
+      return;
+    }
 
-      // Ad always enabled
-      adBtn.disabled = false;
-      adBtn.textContent = "Watch Ad";
-    },
+    const buyBtn = el.querySelector("#buyRestartBtn");
+    const adBtn = el.querySelector("#watchAdRestartBtn");
 
-    hide() {
-      el.classList.add("hidden");
-    },
+    // Paid restart
+    if (coins < 50) {
+      buyBtn.disabled = true;
+      buyBtn.textContent = "Not enough coins";
+    } else {
+      buyBtn.disabled = false;
+      buyBtn.textContent = "Restart (50 coins)";
+    }
 
-    onBuyRestart(cb) {
-      el.querySelector("#buyRestartBtn").onclick = cb;
-    },
+    // Ad always enabled
+    adBtn.disabled = false;
+    adBtn.textContent = "Watch Ad";
+  },
 
-    onWatchAdRestart(cb) {
-      el.querySelector("#watchAdRestartBtn").onclick = cb;
-    },
-  };
+  hide() {
+    el.classList.add("hidden");
+  },
 
-  el.querySelector("#closeRestartBtn").onclick = () => api.hide();
+  onFreeRestart(cb) {
+    onFreeRestart = cb;
+  },
+
+  onBuyRestart(cb) {
+    el.querySelector("#buyRestartBtn").onclick = cb;
+  },
+
+  onWatchAdRestart(cb) {
+    el.querySelector("#watchAdRestartBtn").onclick = cb;
+  },
+};
 
   return api;
 }

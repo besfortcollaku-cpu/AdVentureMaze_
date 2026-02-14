@@ -343,8 +343,11 @@ ui.onRestartClick(() => {
   }
 
   restartPopup.open({
-    coins: CURRENT_USER?.coins ?? 0,
-  });
+  coins: CURRENT_USER?.coins ?? 0,
+  freeLeft: Math.max(
+    0,
+    FREE_RESTARTS - (CURRENT_USER.free_restarts_used || 0)
+  ),
 });
 
 // Create game (DO NOT START)
@@ -566,6 +569,24 @@ restartPopup.onWatchAdRestart(async () => {
   if (!out?.ok) return alert(out.error);
 
   updateRestartBadge();
+  game.setLevel(levels[levelIndex]);
+  restartPopup.hide();
+});
+restartPopup.onFreeRestart(async () => {
+  const res = await fetch(`${BACKEND}/api/restart`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${CURRENT_ACCESS_TOKEN}`,
+    },
+    body: JSON.stringify({ mode: "free" }),
+  });
+
+  const out = await res.json();
+  if (!out?.ok) return;
+
+  CURRENT_USER = { ...CURRENT_USER, ...out.user };
+  updateAllBadges();
   game.setLevel(levels[levelIndex]);
   restartPopup.hide();
 });
