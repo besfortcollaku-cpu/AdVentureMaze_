@@ -348,7 +348,7 @@ ui.onRestartClick(() => {
     0,
     FREE_RESTARTS - (CURRENT_USER.free_restarts_used || 0)
   ),
-  };
+
 });
 
 
