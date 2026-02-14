@@ -140,8 +140,6 @@ CURRENT_USER.free_skips_used = me.user.free_skips_used ?? 0;
 CURRENT_USER.free_hints_used = me.user.free_hints_used ?? 0;
 CURRENT_USER.free_restarts_used = me.user.free_restarts_used ?? 0;
 
-   // ✅ MOVED HERE
-
 return me;
 }
 
@@ -603,6 +601,7 @@ ui.onLoginClick(async () => {
 
   if (!game.isRunning?.()) {
     game.start();
+    setTimeout(updateRestartBadge, 0);
   }
 });
 }
