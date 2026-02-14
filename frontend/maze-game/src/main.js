@@ -336,21 +336,42 @@ levelsUI.onSelect((levelNumber) => {
   
   ui.showWelcome();
   
-ui.onRestartClick(() => {
+ui.onRestartClick(async () => {
   if (!CURRENT_USER?.uid) {
     ui.showLoginRequired();
     return;
   }
 
+  const freeLeft = Math.max(
+    0,
+    FREE_RESTARTS - (CURRENT_USER.free_restarts_used || 0)
+  );
+
+  // 🟢 FREE RESTART → NO POPUP
+  if (freeLeft > 0) {
+    const out = await fetch(`${BACKEND}/api/restart`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${CURRENT_ACCESS_TOKEN}`,
+      },
+      body: JSON.stringify({ mode: "free" }),
+    }).then(r => r.json());
+
+    if (!out?.ok) return;
+
+    CURRENT_USER = { ...CURRENT_USER, ...out.user };
+    game.setLevel(levels[levelIndex]);
+    updateAllBadges();
+    return;
+  }
+
+  // 🔴 NO FREE → POPUP
   restartPopup.open({
     coins: CURRENT_USER?.coins ?? 0,
-    freeLeft: Math.max(
-      0,
-      FREE_RESTARTS - (CURRENT_USER.free_restarts_used || 0)
-    ),
+    freeLeft: 0,
   });
 });
-
 // Create game (DO NOT START)
 const game = createGame({
   canvas: ui.canvas,

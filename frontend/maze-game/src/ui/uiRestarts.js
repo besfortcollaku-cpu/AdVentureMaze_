@@ -14,7 +14,10 @@ export function createRestartPopup() {
   document.body.appendChild(el);
 
   let onFreeRestart = null;
-
+const closeBtn = el.querySelector("#closeRestartBtn");
+closeBtn.addEventListener("click", () => {
+  api.hide();
+});
 const api = {
   open({ coins, freeLeft }) {
     el.classList.remove("hidden");
