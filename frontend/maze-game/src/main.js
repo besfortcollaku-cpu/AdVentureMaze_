@@ -139,6 +139,7 @@ ui.setCoins(me.user.coins ?? 0);
 CURRENT_USER.free_skips_used = me.user.free_skips_used ?? 0;
 CURRENT_USER.free_hints_used = me.user.free_hints_used ?? 0;
 CURRENT_USER.free_restarts_used = me.user.free_restarts_used ?? 0;
+updateRestartBadge();
 
 return me;
 }
@@ -320,30 +321,38 @@ ui.onRestartClick(async () => {
     if (!out?.ok) return;
 
     CURRENT_USER = { ...CURRENT_USER, ...out.user };
-    game.setLevel(levels[levelIndex]);
-    updateRestartBadge();
-    return;
+    game.setLevel(levels[levelIndex]);    return;
   }
 
   // NO FREE LEFT → popup
   restartPopup.open({ freeLeft: 0 });
 });
 function updateRestartBadge() {
-  const count = freeRestartsLeft();
   const badge = document.getElementById("restartCount");
   const btn = document.getElementById("restartBtn");
 
   if (!badge || !btn) return;
+  if (!CURRENT_USER) {
+    badge.classList.add("hidden");
+    return;
+  }
 
-  if (count > 0) {
-    badge.textContent = count;
+  if (typeof CURRENT_USER.free_restarts_used !== "number") {
+    badge.classList.add("hidden");
+    return;
+  }
+
+  const left = Math.max(0, FREE_RESTARTS - CURRENT_USER.free_restarts_used);
+
+  if (left > 0) {
+    badge.textContent = left;
     badge.classList.remove("hidden");
-    btn.disabled = false;
   } else {
     badge.textContent = "";
     badge.classList.add("hidden");
-    btn.disabled = false;
   }
+
+  btn.disabled = false;
 }
 // Create game (DO NOT START)
 const game = createGame({
