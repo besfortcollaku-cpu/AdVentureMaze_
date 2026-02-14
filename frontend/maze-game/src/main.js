@@ -140,6 +140,7 @@ ui.setCoins(me.user.coins ?? 0);
 CURRENT_USER.free_skips_used = me.user.free_skips_used ?? 0;
 CURRENT_USER.free_hints_used = me.user.free_hints_used ?? 0;
 CURRENT_USER.free_restarts_used = me.user.free_restarts_used ?? 0;
+updateRestartBadge();
 
 return me;
 }
