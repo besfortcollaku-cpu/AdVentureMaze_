@@ -133,12 +133,16 @@ async function loadMeAndSyncUI({ BACKEND, token, ui }) {
   };
 
   ui.setUser(CURRENT_USER);
-  ui.setCoins(me.user.coins ?? 0);
-  // keep extra server fields on CURRENT_USER for skip/hint logic
-  CURRENT_USER.free_skips_used = me.user.free_skips_used ?? 0;
-  CURRENT_USER.free_hints_used = me.user.free_hints_used ?? 0;
+ui.setCoins(me.user.coins ?? 0);
 
-  return me;
+// keep extra server fields on CURRENT_USER
+CURRENT_USER.free_skips_used = me.user.free_skips_used ?? 0;
+CURRENT_USER.free_hints_used = me.user.free_hints_used ?? 0;
+CURRENT_USER.free_restarts_used = me.user.free_restarts_used ?? 0;
+
+updateRestartBadge();   // ✅ MOVED HERE
+
+return me;
 }
 
 
