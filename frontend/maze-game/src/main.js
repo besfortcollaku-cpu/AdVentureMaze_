@@ -616,5 +616,6 @@ ui.onLoginClick(async () => {
     max: FREE_HINTS,
   });
 }
+}
 
 boot();
