@@ -336,37 +336,17 @@ levelsUI.onSelect((levelNumber) => {
   
   ui.showWelcome();
   
-ui.onRestartClick(async () => {
+ui.onRestartClick(() => {
   // 🔒 Guest
   if (!CURRENT_USER?.uid) {
     ui.showLoginRequired();
     return;
   }
 
-  const freeLeft = freeRestartsLeft();
-
-  // 🟢 Free restart
-  if (freeLeft > 0) {
-    const out = await fetch(`${BACKEND}/api/restart`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${CURRENT_ACCESS_TOKEN}`,
-      },
-      body: JSON.stringify({ mode: "free" }),
-    }).then(r => r.json());
-
-    if (!out?.ok) return alert(out.error);
-
-    CURRENT_USER = { ...CURRENT_USER, ...out.user };
-    game.setLevel(levels[levelIndex]);
-    updateAllBadges();
-
-    return;
-  }
-
-  // 🔴 No free → popup
-  restartPopup.open({ freeLeft: 0 });
+  // 🔁 Restart is popup-only now
+  restartPopup.open({
+    coins: CURRENT_USER?.coins ?? 0,
+  });
 });
 function updateRestartBadge() {
   const count = freeRestartsLeft();
@@ -573,25 +553,33 @@ ui.onHintClick(async () => {
 });
 
 restartPopup.onBuyRestart(async () => {
-  const out = await fetch(`${BACKEND}/api/restart`, {
+  const res = await fetch(`${BACKEND}/api/restart`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${CURRENT_ACCESS_TOKEN}`,
     },
     body: JSON.stringify({ mode: "coins" }),
-  }).then((r) => r.json());
+  });
 
-  if (!out?.ok) return alert(out.error);
+  const out = await res.json();
+  if (!out?.ok) return alert(out.error || "Restart failed");
 
   CURRENT_USER = { ...CURRENT_USER, ...out.user };
-  updateRestartBadge();
+  updateAllBadges();
   game.setLevel(levels[levelIndex]);
   restartPopup.hide();
 });
-
 restartPopup.onWatchAdRestart(async () => {
-  const out = await fetch(`${BACKEND}/api/restart`, {
+  const btn = document.querySelector("#watchAdRestartBtn");
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = "Watching ad...";
+  }
+
+  await new Promise((r) => setTimeout(r, 5000));
+
+  const res = await fetch(`${BACKEND}/api/restart`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -601,11 +589,12 @@ restartPopup.onWatchAdRestart(async () => {
       mode: "ad",
       nonce: crypto.randomUUID(),
     }),
-  }).then((r) => r.json());
+  });
 
-  if (!out?.ok) return alert(out.error);
+  const out = await res.json();
+  if (!out?.ok) return alert(out.error || "Restart failed");
 
-  updateRestartBadge();
+  updateAllBadges();
   game.setLevel(levels[levelIndex]);
   restartPopup.hide();
 });

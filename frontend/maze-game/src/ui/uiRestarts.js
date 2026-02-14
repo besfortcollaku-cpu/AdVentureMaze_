@@ -6,8 +6,7 @@ export function createRestartPopup() {
   el.innerHTML = `
     <div class="popup-card">
       <h3>Restart Level</h3>
-      <button id="freeRestartBtn">Free Restart</button>
-      <button id="buyRestartBtn">Buy Restart</button>
+      <button id="buyRestartBtn">Buy Restart (-50 Coins)</button>
       <button id="watchAdRestartBtn">Watch Ad</button>
       <button id="closeRestartBtn">Close</button>
     </div>
@@ -24,9 +23,7 @@ export function createRestartPopup() {
     open(opts) {
       this.show(opts);
     },
-    onFreeRestart(cb) {
-      el.querySelector("#freeRestartBtn").onclick = cb;
-    },
+    
     onBuyRestart(cb) {
       el.querySelector("#buyRestartBtn").onclick = cb;
     },
