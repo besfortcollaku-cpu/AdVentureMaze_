@@ -348,7 +348,9 @@ ui.onRestartClick(() => {
     0,
     FREE_RESTARTS - (CURRENT_USER.free_restarts_used || 0)
   ),
+  }
 });
+
 
 // Create game (DO NOT START)
 const game = createGame({
@@ -572,6 +574,7 @@ restartPopup.onWatchAdRestart(async () => {
   game.setLevel(levels[levelIndex]);
   restartPopup.hide();
 });
+
 restartPopup.onFreeRestart(async () => {
   const res = await fetch(`${BACKEND}/api/restart`, {
     method: "POST",
@@ -590,7 +593,6 @@ restartPopup.onFreeRestart(async () => {
   game.setLevel(levels[levelIndex]);
   restartPopup.hide();
 });
-
   // ---- GUEST ----
   ui.onGuestStart(() => {
   CURRENT_USER = { username: "Guest", uid: null };
