@@ -523,7 +523,6 @@ restartPopup.onBuyRestart(async () => {
 };
   game.setLevel(levels[levelIndex]);
   restartPopup.hide();
-  updateRestartBadge();
 });
 
 restartPopup.onWatchAdRestart(async () => {
