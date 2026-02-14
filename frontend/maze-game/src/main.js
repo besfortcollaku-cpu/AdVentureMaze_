@@ -18,6 +18,7 @@ let CURRENT_ACCESS_TOKEN = null;
 const BACKEND = "https://triumphant-gentleness-production.up.railway.app";
 const FREE_SKIPS = 3;
 const FREE_HINTS = 3;
+const FREE_RESTARTS = 3;
 function freeRestartsLeft() {
   return Number(CURRENT_USER?.free?.restarts_left ?? 0);
 }
