@@ -15,7 +15,7 @@ export function mountUI(root) {
           <button class="icon" id="levelsBtn">☰</button>
           <div class="btn-wrapper">
   <button id="restartBtn" class="icon">🔄</button>
-  <span class="badge hidden" id="restartCount"></span>
+  <span class="badge hidden" id="restartCount">0</span>
 </div>
         </div>
         <div class="coins">
