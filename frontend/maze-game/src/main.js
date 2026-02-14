@@ -19,8 +19,10 @@ const BACKEND = "https://triumphant-gentleness-production.up.railway.app";
 const FREE_SKIPS = 3;
 const FREE_HINTS = 3;
 const FREE_RESTARTS = 3;
+
 function freeRestartsLeft() {
-  return Number(CURRENT_USER?.free?.restarts_left ?? 0);
+  const used = Number(CURRENT_USER?.free_restarts_used || 0);
+  return Math.max(0, FREE_RESTARTS - used);
 }
 
 let levelIndex = 0;
@@ -40,23 +42,6 @@ async function fetchAndSetCoins({ BACKEND, token, ui }) {
   const data = await res.json();
   ui.setCoins(data.coins ?? 0);
 }
-
-function updateBadge({ badgeId, used, max }) {
-  const badge = document.getElementById(badgeId);
-  if (!badge) return;
-
-  const left = Math.max(0, max - Number(used || 0));
-
-  if (left > 0) {
-    badge.textContent = left;
-    badge.classList.remove("hidden");
-  } else {
-    badge.textContent = "";
-    badge.classList.add("hidden");
-  }
-}
-
-
 async function apiClaimLevelComplete(levelNumber) {
   if (!CURRENT_ACCESS_TOKEN) return null;
 
@@ -151,18 +136,27 @@ async function loadMeAndSyncUI({ BACKEND, token, ui }) {
   };
 
   ui.setUser(CURRENT_USER);
-ui.setCoins(me.user.coins ?? 0);
+  ui.setCoins(me.user.coins ?? 0);
 
-// keep extra server fields on CURRENT_USER
-CURRENT_USER.free_skips_used = me.user.free_skips_used ?? 0;
-CURRENT_USER.free_hints_used = me.user.free_hints_used ?? 0;
-CURRENT_USER.free_restarts_used = me.user.free_restarts_used ?? 0;
+  // keep extra server fields on CURRENT_USER for skip/hint logic
+  CURRENT_USER.free_skips_used = me.user.free_skips_used ?? 0;
+  CURRENT_USER.free_hints_used = me.user.free_hints_used ?? 0;
+  CURRENT_USER.free_restarts_used = me.user.free_restarts_used ?? 0;
 
-
+  updateRestartBadge(); // 👈 add this
+setTimeout(updateRestartBadge, 0);
 return me;
 }
 
+function updateRestartBadge() {
+  const count = freeRestartsLeft?.() ?? 0;
 
+  const badge = document.querySelector("#restartCount");
+  if (!badge) return;
+
+  badge.textContent = String(count);
+  badge.style.display = count > 0 ? "block" : "none";
+}
 
 function freeSkipsLeft() {
   const used = Number(CURRENT_USER?.free_skips_used || 0);
@@ -249,9 +243,17 @@ if (CURRENT_ACCESS_TOKEN) {
     .then((r) => r.ok ? r.json() : null)
     .then((me) => {
       if (me?.user) {
-        CURRENT_USER = me.user;
+        CURRENT_USER = {
+  ...CURRENT_USER,
+  ...me.user,
+  free_skips_used: me.user.free_skips_used ?? 0,
+  free_hints_used: me.user.free_hints_used ?? 0,
+  free_restarts_used: me.user.free_restarts_used ?? 0,
+};
+updateRestartBadge();
         ui.setUser(me.user);
         ui.setCoins(me.user.coins ?? 0);
+        setTimeout(updateRestartBadge, 0);
       }
     })
     .catch(() => {});
@@ -315,37 +317,55 @@ levelsUI.onSelect((levelNumber) => {
   ui.showWelcome();
   
 ui.onRestartClick(async () => {
+  // 🔒 Guest
   if (!CURRENT_USER?.uid) {
     ui.showLoginRequired();
     return;
   }
 
-  const used = Number(CURRENT_USER.free_restarts_used || 0);
-  const freeLeft = Math.max(0, 3 - used);
+  const freeLeft = freeRestartsLeft();
 
+  // 🟢 Free restart
   if (freeLeft > 0) {
-    // FREE restart
-    const res = await fetch(`${BACKEND}/api/restart`, {
+    const out = await fetch(`${BACKEND}/api/restart`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${CURRENT_ACCESS_TOKEN}`,
       },
       body: JSON.stringify({ mode: "free" }),
-    });
+    }).then(r => r.json());
 
-    const out = await res.json();
-
-    if (!out?.ok) return;
+    if (!out?.ok) return alert(out.error);
 
     CURRENT_USER = { ...CURRENT_USER, ...out.user };
-    game.setLevel(levels[levelIndex]);    return;
+    updateRestartBadge();
+    game.setLevel(levels[levelIndex]);
+    return;
   }
 
-  // NO FREE LEFT → popup
+  // 🔴 No free → popup
   restartPopup.open({ freeLeft: 0 });
 });
+function updateRestartBadge() {
+  const count = freeRestartsLeft();
+  const badge = document.getElementById("restartCount");
+  const btn = document.getElementById("restartBtn");
 
+  if (badge) {
+    if (count <= 0) {
+      badge.classList.add("hidden");
+    } else {
+      badge.textContent = count;
+      badge.classList.remove("hidden");
+    }
+  }
+
+  if (btn) {
+    btn.disabled = count <= 0;
+    btn.classList.toggle("disabled", count <= 0);
+  }
+}
 // Create game (DO NOT START)
 const game = createGame({
   canvas: ui.canvas,
@@ -510,10 +530,8 @@ restartPopup.onBuyRestart(async () => {
 
   if (!out?.ok) return alert(out.error);
 
-  CURRENT_USER = {
-  ...CURRENT_USER,
-  ...out.user,
-};
+  CURRENT_USER = { ...CURRENT_USER, ...out.user };
+  updateRestartBadge();
   game.setLevel(levels[levelIndex]);
   restartPopup.hide();
 });
@@ -533,6 +551,7 @@ restartPopup.onWatchAdRestart(async () => {
 
   if (!out?.ok) return alert(out.error);
 
+  updateRestartBadge();
   game.setLevel(levels[levelIndex]);
   restartPopup.hide();
 });
@@ -596,26 +615,9 @@ ui.onLoginClick(async () => {
   ui.hideWelcome();
 
   if (!game.isRunning?.()) {
-  game.start();
-
-  updateBadge({
-    badgeId: "restartCount",
-    used: CURRENT_USER?.free_restarts_used,
-    max: FREE_RESTARTS,
-  });
-
-  updateBadge({
-    badgeId: "skipCount",
-    used: CURRENT_USER?.free_skips_used,
-    max: FREE_SKIPS,
-  });
-
-  updateBadge({
-    badgeId: "hintCount",
-    used: CURRENT_USER?.free_hints_used,
-    max: FREE_HINTS,
-  });
-}
+    game.start();
+  }
+});
 }
 
 boot();
