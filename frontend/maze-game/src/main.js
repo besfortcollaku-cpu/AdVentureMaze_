@@ -322,7 +322,6 @@ ui.onRestartClick(async () => {
   ...out.user,
   free_restarts_used: Number(out.user?.free_restarts_used || 0),
 };
-updateRestartBadge();
     game.setLevel(levels[levelIndex]);
     return;
   }
@@ -515,10 +514,9 @@ restartPopup.onBuyRestart(async () => {
   ...CURRENT_USER,
   ...out.user,
 };
-  updateRestartBadge();
   game.setLevel(levels[levelIndex]);
   restartPopup.hide();
-  setTimeout(updateRestartBadge, 0);
+  updateRestartBadge();
 });
 
 restartPopup.onWatchAdRestart(async () => {
@@ -536,7 +534,6 @@ restartPopup.onWatchAdRestart(async () => {
 
   if (!out?.ok) return alert(out.error);
 
-  updateRestartBadge();
   game.setLevel(levels[levelIndex]);
   restartPopup.hide();
 });
@@ -600,8 +597,8 @@ ui.onLoginClick(async () => {
   ui.hideWelcome();
 
   if (!game.isRunning?.()) {
+      updateRestartBadge();
     game.start();
-updateRestartBadge();
 }
 });
 }
