@@ -543,20 +543,33 @@ skipPopup.onWatchAdSkip(async () => {
   goNextLevel();
 });
 
-hintPopup.onBuyHint(async () => {
-  const out = await apiHint({ mode: "coins" });
-  if (!out.ok) return alert(out.error || "Hint failed");
-  if (out.user) {
-    CURRENT_USER = { ...CURRENT_USER, ...out.user };
-    ui.setCoins(out.user.coins);
+ui.onHintClick(async () => {
+  if (!CURRENT_USER?.uid) {
+    ui.showLoginRequired();
+    return;
   }
-  alert("Hint unlocked! (plug your hint text here)");
-});
 
-hintPopup.onWatchAdHint(async () => {
-  const out = await apiHint({ mode: "ad" });
-  if (!out.ok) return alert(out.error || "Hint failed");
-  alert("Hint unlocked! (plug your hint text here)");
+  // try FREE hint first (same logic as skip & restart)
+  if (freeHintsLeft() > 0) {
+    try {
+      const out = await apiHint({ mode: "free" });
+      if (!out?.ok) throw new Error(out?.error);
+
+      if (out.user) {
+        CURRENT_USER = { ...CURRENT_USER, ...out.user };
+        updateAllBadges();
+      }
+
+      // show hint effect here (your existing hint reveal logic)
+      hintPopup.showHint?.();
+      return;
+    } catch {
+      // fallback to popup if backend rejects
+    }
+  }
+
+  // no free hints left → popup
+  hintPopup.open({ freeLeft: 0 });
 });
 
 restartPopup.onBuyRestart(async () => {
