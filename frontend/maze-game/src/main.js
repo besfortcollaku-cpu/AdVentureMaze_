@@ -319,8 +319,12 @@ ui.onRestartClick(async () => {
 
     if (!out?.ok) return alert(out.error);
 
-    CURRENT_USER = { ...CURRENT_USER, ...out.user };
-    updateRestartBadge();
+    CURRENT_USER = {
+  ...CURRENT_USER,
+  ...out.user,
+  free_restarts_used: Number(out.user?.free_restarts_used || 0),
+};
+updateRestartBadge();
     game.setLevel(levels[levelIndex]);
     return;
   }
