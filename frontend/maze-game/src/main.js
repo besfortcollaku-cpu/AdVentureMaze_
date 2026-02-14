@@ -601,8 +601,8 @@ ui.onLoginClick(async () => {
 
   if (!game.isRunning?.()) {
     game.start();
-    setTimeout(updateRestartBadge, 0);
-  }
+updateRestartBadge();
+}
 });
 }
 
