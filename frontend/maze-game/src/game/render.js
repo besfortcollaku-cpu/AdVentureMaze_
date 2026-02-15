@@ -237,7 +237,7 @@ ctx.restore();
 if (contactFlash) {
   const age = performance.now() - contactFlash.time;
 
-  if (age < 1000) {
+  if (age < 220) {
     const cx = ox + contactFlash.x * tile + tile / 2;
     const cy = oy + contactFlash.y * tile + tile / 2;
 
@@ -250,7 +250,7 @@ if (contactFlash) {
       color = "rgba(255,170,120,";
     }
 
-    const alpha = 0.35 * (1 - age / 120);
+    const alpha = 0.35 * (1 - age / 220);
 
     ctx.save();
     ctx.globalCompositeOperation = "lighter";
