@@ -372,6 +372,18 @@ ctx.globalAlpha = 1;
   
   function drawWalls() {
   const grid = state.grid;
+  const theme = getTheme();
+
+  let glowColor = "rgba(0,0,0,0.55)";
+  let glow2 = "rgba(0,0,0,0.35)";
+
+  if (theme === "forest") {
+    glowColor = "rgba(20,80,40,0.55)";
+    glow2 = "rgba(20,80,40,0.35)";
+  } else if (theme === "lava") {
+    glowColor = "rgba(120,40,10,0.55)";
+    glow2 = "rgba(120,40,10,0.35)";
+  }
 
   const WALL_W = tile;
   const WALL_H = tile * 1.5;
@@ -384,7 +396,7 @@ ctx.globalAlpha = 1;
       const py = oy + y * tile;
 
      // darkest core
-  ctx.fillStyle = "rgba(0,0,0,0.55)";
+  ctx.fillStyle = glowColor;
   ctx.fillRect(
     px + tile * 0.12,
     py - tile * 0.18,
@@ -393,22 +405,22 @@ ctx.globalAlpha = 1;
   );
 
   // soft spread 1
-  ctx.fillStyle = "rgba(0,0,0,0.45)";
-  ctx.fillRect(
+ctx.fillStyle = glowColor;
+ctx.fillRect(
     px + tile * 0.2,
     py - tile * 0.3,
     tile,
     tile
   );
-  ctx.fillStyle = "rgba(0,0,0,0.35)";
-  ctx.fillRect(
+ctx.fillStyle = glowColor;
+ctx.fillRect(
     px + tile * 0.3,
     py - tile * 0.4,
     tile,
     tile
   );
-  ctx.fillStyle = "rgba(0,0,0,0.25)";
-  ctx.fillRect(
+ctx.fillStyle = glowColor;  
+ctx.fillRect(
     px + tile * 0.4,
     py - tile * 0.5,
     tile,
@@ -416,8 +428,8 @@ ctx.globalAlpha = 1;
   );
 
   // soft spread 2
-  ctx.fillStyle = "rgba(0,0,0,0.20)";
-  ctx.fillRect(
+ctx.fillStyle = glowColor;
+ctx.fillRect(
     px + tile * 0.55,
     py - tile * 0.65,
     tile,
