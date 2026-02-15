@@ -24,6 +24,14 @@ function freeRestartsLeft() {
   const used = Number(CURRENT_USER?.free_restarts_used || 0);
   return Math.max(0, FREE_RESTARTS - used);
 }
+document.addEventListener(
+  "touchmove",
+  (e) => {
+    if (document.body.classList.contains("welcome-visible")) return;
+    e.preventDefault();
+  },
+  { passive: false }
+);
 
 let levelIndex = 0;
 // Keep the Levels 1screen consistent (guest: localStorage, logged-in: backend)
