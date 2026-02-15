@@ -31,7 +31,6 @@ items.forEach((btn) => {
 });
 
 
-  const closeBtn = overlay.querySelector(".theme-close");
 
   closeBtn.onclick = () => {
     overlay.classList.add("hidden");
