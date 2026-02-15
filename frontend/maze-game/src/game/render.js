@@ -435,37 +435,15 @@ shine.addColorStop(0.4, `hsla(${glowHue}, 100%, 70%, 0.25)`);
   );
 
   // soft spread 1
-ctx.fillStyle = glowColor;
+ctx.fillStyle = glow2;
 ctx.fillRect(
     px + tile * 0.2,
     py - tile * 0.3,
     tile,
     tile
   );
-ctx.fillStyle = glowColor;
-ctx.fillRect(
-    px + tile * 0.3,
-    py - tile * 0.4,
-    tile,
-    tile
-  );
-ctx.fillStyle = glowColor;  
-ctx.fillRect(
-    px + tile * 0.4,
-    py - tile * 0.5,
-    tile,
-    tile
-  );
 
-  // soft spread 2
-ctx.fillStyle = glowColor;
-ctx.fillRect(
-    px + tile * 0.55,
-    py - tile * 0.65,
-    tile,
-    tile
-      );
-
+ 
       // ── WALL SPRITE
       if (wallReady) {
         ctx.drawImage(
