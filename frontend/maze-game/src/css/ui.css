@@ -350,10 +350,10 @@ body.game-running .app {
 }
 
 /* ===== LAVA THEME (UI ONLY) ===== */
+html.theme-lava,
 body.theme-lava {
   background: radial-gradient(circle at top, #2a0f05, #0b0402);
 }
-
 body.theme-lava .top,
 body.theme-lava .bottom,
 body.theme-lava .ad {
@@ -377,7 +377,10 @@ body.theme-lava .coins {
 body.theme-ice {
   background: radial-gradient(circle at top, #1b255c, #070b18);
 }
-
+html.theme-ice,
+body.theme-ice {
+  background: radial-gradient(circle at top, #1b255c, #070b18);
+}
 body.theme-ice .icon {
   background: rgba(255,255,255,0.08);
 }
@@ -387,6 +390,7 @@ body.theme-ice .coins {
 }
 
 /* ===== FOREST THEME (UI ONLY) ===== */
+html.theme-forest,
 body.theme-forest {
   background: radial-gradient(circle at top, #0f2a1a, #06150d);
 }
@@ -403,4 +407,8 @@ body.theme-forest .icon {
 
 body.theme-forest .coins {
   border-color: #4ade80;
+}
+
+html {
+  transition: background 0.3s ease;
 }
