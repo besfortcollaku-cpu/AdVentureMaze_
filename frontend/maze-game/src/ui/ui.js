@@ -176,6 +176,7 @@ hideLoginRequired() {
     canvas,
     levelsBtn,
     hintBtn,
+    themeBtn,
     skipBtn,
     onHintClick(fn) {
     onHintClick = fn;
