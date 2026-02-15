@@ -127,6 +127,7 @@ accountBtn.addEventListener("click", () => {
 // ----- THEME UI -----
 const themeUI = mountThemeUI(root);
 themeBtn.addEventListener("click", () => {
+    alert("THEME BUTTON CLICKED");
   themeUI.open();
 });
   // Hint/Skip clicks are wired up by main.js
