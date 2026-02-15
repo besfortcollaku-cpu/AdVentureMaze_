@@ -4,6 +4,11 @@ export function createRenderer({ canvas, state }) {
     let lastBallX = null;
     let lastBallY = null;
     const trail = [];
+    let lastCellX = null;
+let lastCellY = null;
+
+let contactFlash = null;
+// { x, y, time }
 const MAX_TRAIL = 30;
   if (!(canvas instanceof HTMLCanvasElement)) {
     console.error("Renderer: canvas missing");
@@ -228,6 +233,38 @@ ctx.restore();
       }
     }
   }
+  // ── CONTACT FLASH RENDER
+if (contactFlash) {
+  const age = performance.now() - contactFlash.time;
+
+  if (age < 120) {
+    const cx = ox + contactFlash.x * tile + tile / 2;
+    const cy = oy + contactFlash.y * tile + tile / 2;
+
+    const theme = getTheme();
+
+    let color = "rgba(160,220,255,"; // ice
+    if (theme === "forest") {
+      color = "rgba(140,255,180,";
+    } else if (theme === "lava") {
+      color = "rgba(255,170,120,";
+    }
+
+    const alpha = 0.35 * (1 - age / 120);
+
+    ctx.save();
+    ctx.globalCompositeOperation = "lighter";
+    ctx.fillStyle = `${color}${alpha})`;
+
+    ctx.beginPath();
+    ctx.arc(cx, cy, tile * 0.35, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.restore();
+  } else {
+    contactFlash = null;
+  }
+}
 }
 function drawCrystalShard(x, y, angle, size, alpha, hueShift = 0) {
   ctx.save();
@@ -267,6 +304,20 @@ function drawCrystalShard(x, y, angle, size, alpha, hueShift = 0) {
   const r = size / 2;
   const c = cellCenter(playerFloat.x, playerFloat.y);
 
+// ── CONTACT TILE DETECTION
+const cellX = Math.floor(playerFloat.x);
+const cellY = Math.floor(playerFloat.y);
+
+if (cellX !== lastCellX || cellY !== lastCellY) {
+  lastCellX = cellX;
+  lastCellY = cellY;
+
+  contactFlash = {
+    x: cellX,
+    y: cellY,
+    time: performance.now()
+  };
+}
   // ─────────────────────────
   // DERIVE VELOCITY
   // ─────────────────────────
