@@ -1,3 +1,4 @@
+import { getTheme } from "../theme.js";
 
 
 export function createRenderer({ canvas, state }) {
@@ -90,9 +91,19 @@ ballImg.src = "/textures/sprites/crystal/gold_ball.png";
   // DRAW
   // ======================
   function drawBackground() {
+  const theme = getTheme();
+
+  if (theme === "forest") {
+    ctx.fillStyle = "#0b1f14"; // deep forest green
+  } else if (theme === "lava") {
+    ctx.fillStyle = "#1a0703"; // dark volcanic
+  } else {
+    // ice (default)
     ctx.fillStyle = "#0e1430";
-    ctx.fillRect(0, 0, w, h);
   }
+
+  ctx.fillRect(0, 0, w, h);
+}
 function drawWallShadow(px, py) {
   ctx.save();
 
