@@ -373,4 +373,34 @@ body.theme-lava .coins {
 #welcomeOverlay * {
   pointer-events: auto;
   touch-action: manipulation;
+}/* ===== ICE THEME (UI ONLY - DEFAULT) ===== */
+body.theme-ice {
+  background: radial-gradient(circle at top, #1b255c, #070b18);
+}
+
+body.theme-ice .icon {
+  background: rgba(255,255,255,0.08);
+}
+
+body.theme-ice .coins {
+  border-color: #8a6d1d;
+}
+
+/* ===== FOREST THEME (UI ONLY) ===== */
+body.theme-forest {
+  background: radial-gradient(circle at top, #0f2a1a, #06150d);
+}
+
+body.theme-forest .top,
+body.theme-forest .bottom,
+body.theme-forest .ad {
+  background: transparent;
+}
+
+body.theme-forest .icon {
+  background: rgba(80, 200, 120, 0.15);
+}
+
+body.theme-forest .coins {
+  border-color: #4ade80;
 }
