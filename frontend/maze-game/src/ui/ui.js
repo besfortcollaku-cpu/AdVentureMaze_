@@ -97,17 +97,17 @@ loginReqLoginBtn.onclick = () => {
 };
 
 
-  // ----- CORE ELEMENTS -----
-  const canvas = root.querySelector("#game");
-  const guestBtn = root.querySelector("#guestBtn");
-  const loginBtn = root.querySelector("#loginBtn");
-  const levelsBtn = root.querySelector("#levelsBtn");
-  const accountBtn = root.querySelector("#accountBtn");
-  const themeBtn = root.querySelector("#themeBtn");
-  const settingsBtn = root.querySelector("#settingsBtn");
-  const restartBtn = root.querySelector("#restartBtn");
-  const hintBtn = root.querySelector("#hintBtn");
-  const skipBtn = root.querySelector("#skipBtn");
+// ----- CORE ELEMENTS -----
+const canvas = root.querySelector("#game");
+const guestBtn = document.body.querySelector("#guestBtn");
+const loginBtn = document.body.querySelector("#loginBtn");
+const levelsBtn = root.querySelector("#levelsBtn");
+const accountBtn = root.querySelector("#accountBtn");
+const themeBtn = root.querySelector("#themeBtn");
+const settingsBtn = root.querySelector("#settingsBtn");
+const restartBtn = root.querySelector("#restartBtn");
+const hintBtn = root.querySelector("#hintBtn");
+const skipBtn = root.querySelector("#skipBtn");
 
   // ----- ACCOUNT UI -----
   const accountUI = mountAccountUI(root);
