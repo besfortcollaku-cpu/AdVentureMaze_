@@ -237,7 +237,7 @@ ctx.restore();
 if (contactFlash) {
   const age = performance.now() - contactFlash.time;
 
-  if (age < 480) {
+  if (age < 1000) {
     const cx = ox + contactFlash.x * tile + tile / 2;
     const cy = oy + contactFlash.y * tile + tile / 2;
 
