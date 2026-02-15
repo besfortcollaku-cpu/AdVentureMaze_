@@ -1,7 +1,6 @@
 import { mountAccountUI } from "./uiAccount.js";
 import { mountSettingsUI } from "./uiSettings.js";
 import { mountThemeUI } from "./uiTheme.js";
-import { mountThemeUI } from "./uiTheme.js";
 // NOTE: Hint/Skip popups are now controlled from src/main.js so
 // they can call the backend (free/coins/ad) and update the game.
 import { mountLevelsUI } from "./uiLevels.js"; 
