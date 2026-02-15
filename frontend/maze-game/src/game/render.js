@@ -151,7 +151,7 @@ function drawFloor() {
   ctx.fillStyle = tint;
   ctx.fillRect(px, py, tile, tile);
 }
-        
+        }
       } else {
         // 🔹 NORMAL TILE
         if (floorReady) {
