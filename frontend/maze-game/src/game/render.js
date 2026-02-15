@@ -163,6 +163,15 @@ function drawFloor() {
         // 🔹 PATH COMPLETED TILE
         if (floorDoneReady) {
           ctx.drawImage(floorDoneImg, px, py, tile, tile);
+          // subtle done-floor glow animation
+const pulse =
+  0.12 + Math.sin(now * 0.002 + x * 0.4 + y * 0.4) * 0.06;
+
+ctx.save();
+ctx.globalCompositeOperation = "screen";
+ctx.fillStyle = `rgba(255,255,255,${pulse})`;
+ctx.fillRect(px, py, tile, tile);
+ctx.restore();
         } else if (floorReady) {
           ctx.drawImage(floorImg, px, py, tile, tile);
           if (tint) {
