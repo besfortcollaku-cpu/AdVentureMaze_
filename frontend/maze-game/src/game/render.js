@@ -1,5 +1,4 @@
-import { getTheme } from "../theme.js";
-
+import { getTheme, onThemeChange } from "../theme.js";
 
 export function createRenderer({ canvas, state }) {
     let lastBallX = null;
@@ -32,26 +31,45 @@ const MAX_TRAIL = 30;
   let ox = 0;
   let oy = 0;
 
+
+function applyThemeAssets() {
+  const theme = getTheme();
+
+  const base =
+    theme === "forest"
+      ? "/textures/themes/forest/"
+      : theme === "lava"
+      ? "/textures/themes/lava/"
+      : "/textures/themes/ice/";
+
+  floorReady = floorDoneReady = wallReady = ballReady = false;
+
+  floorImg.src = base + "floor.png";
+  floorDoneImg.src = base + "floor_done.png";
+  wallImg.src = base + "wall.png";
+  ballImg.src = base + "ball.png";
+}
   // FLOOR TILE
   const floorImg = new Image();
   let floorReady = false;
   floorImg.onload = () => (floorReady = true);
-  floorImg.src = "/textures/sprites/crystal/crystal_floor.png";
+ 
   // FLOOR TILE (PAINTED / DONE)
+  
 const floorDoneImg = new Image();
 let floorDoneReady = false;
 floorDoneImg.onload = () => (floorDoneReady = true);
-floorDoneImg.src = "/textures/sprites/crystal/crystal_floor_done.png";
 // WALL TILE
+
 const wallImg = new Image();
 let wallReady = false;
 wallImg.onload = () => (wallReady = true);
-wallImg.src = "/textures/sprites/crystal/corner_bl.png";
 // BALL SPRITE
+
 const ballImg = new Image();
 let ballReady = false;
 ballImg.onload = () => (ballReady = true);
-ballImg.src = "/textures/sprites/crystal/gold_ball.png";
+  applyThemeAssets();
   // ======================
   // RESIZE
   // ======================
@@ -487,6 +505,10 @@ resize();
   }
 
   }
+  onThemeChange(() => {
+    applyThemeAssets();
+  });
+
 
   return { resize, render };
 }
