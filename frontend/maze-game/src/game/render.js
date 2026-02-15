@@ -433,6 +433,14 @@ ctx.translate(c.cx, c.cy);
 ctx.rotate(angle);
 ctx.scale(scaleX, scaleY);
 
+ctx.save();
+
+// rotate toward movement direction
+const angle = Math.atan2(vy, vx);
+ctx.translate(c.cx, c.cy);
+ctx.rotate(angle);
+ctx.scale(scaleX, scaleY);
+
 ctx.drawImage(
   ballImg,
   -r,
