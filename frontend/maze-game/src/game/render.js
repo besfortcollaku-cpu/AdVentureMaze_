@@ -21,10 +21,17 @@ const MAX_TRAIL = 30;
  let shakeStrength = 0;
  let shakeX = 0;
  let shakeY = 0;
+ let deformTime = 0;
+let deformDirX = 0;
+let deformDirY = 0;
  state.onMoveFinished = () => {
-       console.log("SHAKE TRIGGERED");
-  shakeTime = 12;       // duration in frames
-  shakeStrength = 6;   // pixels
+  shakeTime = 12;
+  shakeStrength = 6;
+
+  // trigger directional squash
+  deformTime = 100; // ms
+  deformDirX = lastBallX !== null ? lastBallX : 0;
+  deformDirY = lastBallY !== null ? lastBallY : 0;
 };
 
   // ======================
@@ -328,6 +335,19 @@ if (cellX !== lastCellX || cellY !== lastCellY) {
     vx = c.cx - lastBallX;
     vy = c.cy - lastBallY;
   }
+  const speedNorm = Math.min(1, Math.hypot(vx, vy) / tile);
+
+// stretch while moving
+let scaleX = 1 + speedNorm * 0.12;
+let scaleY = 1 - speedNorm * 0.08;
+
+// squash on stop
+if (deformTime > 0) {
+  const t = deformTime / 100;
+  scaleX = 1 - t * 0.15;
+  scaleY = 1 + t * 0.15;
+  deformTime -= 16; // approx frame time
+}
 
   lastBallX = c.cx;
   lastBallY = c.cy;
@@ -405,12 +425,23 @@ ctx.globalAlpha = 1;
   // MAIN BALL
   // ─────────────────────────
   if (ballReady) {
-    ctx.drawImage(
-      ballImg,
-      c.cx - r,
-      c.cy - r,
-      size,
-      size
+    ctx.save();
+
+// rotate toward movement direction
+const angle = Math.atan2(vy, vx);
+ctx.translate(c.cx, c.cy);
+ctx.rotate(angle);
+ctx.scale(scaleX, scaleY);
+
+ctx.drawImage(
+  ballImg,
+  -r,
+  -r,
+  size,
+  size
+);
+
+ctx.restore();
     );
   } else {
     ctx.fillStyle = "#ffd34d";
