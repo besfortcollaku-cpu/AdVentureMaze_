@@ -14,7 +14,7 @@ export function mountThemeUI(root) {
     </div>
   `;
 
-document.body.appendChild(overlay);
+document.body.appendChild(el);
 
   const closeBtn = overlay.querySelector(".theme-close");
 
