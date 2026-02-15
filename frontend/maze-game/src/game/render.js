@@ -102,7 +102,8 @@ ballImg.src = "/textures/sprites/crystal/gold_ball.png";
     ctx.fillStyle = "#0e1430";
   }
 
-  ctx.fillRect(0, 0, w, h);
+  // draw larger than canvas to cover shadows & shake
+  ctx.fillRect(-w, -h, w * 3, h * 3);
 }
 function drawWallShadow(px, py) {
   ctx.save();
