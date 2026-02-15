@@ -122,6 +122,14 @@ function drawWallShadow(px, py) {
 }
 function drawFloor() {
   const grid = state.grid;
+  const theme = getTheme();
+
+  let tint = null;
+  if (theme === "forest") {
+    tint = "rgba(60, 120, 80, 0.18)";
+  } else if (theme === "lava") {
+    tint = "rgba(160, 60, 30, 0.18)";
+  }
 
   for (let y = 0; y < grid.length; y++) {
     for (let x = 0; x < grid[y].length; x++) {
@@ -139,11 +147,19 @@ function drawFloor() {
           ctx.drawImage(floorDoneImg, px, py, tile, tile);
         } else if (floorReady) {
           ctx.drawImage(floorImg, px, py, tile, tile);
-        }
+          if (tint) {
+  ctx.fillStyle = tint;
+  ctx.fillRect(px, py, tile, tile);
+}
+        
       } else {
         // 🔹 NORMAL TILE
         if (floorReady) {
           ctx.drawImage(floorImg, px, py, tile, tile);
+          if (tint) {
+  ctx.fillStyle = tint;
+  ctx.fillRect(px, py, tile, tile);
+}
           // ── CRYSTAL SUBSURFACE LIGHT (cheap + elegant)
 const t = performance.now() * 0.001;
 const pulse = 0.5 + Math.sin(t + x * 0.8 + y * 0.6) * 0.5;
