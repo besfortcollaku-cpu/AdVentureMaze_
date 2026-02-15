@@ -450,7 +450,7 @@ ctx.drawImage(
 );
 
 ctx.restore();
-    );
+
   } else {
     ctx.fillStyle = "#ffd34d";
     ctx.beginPath();
