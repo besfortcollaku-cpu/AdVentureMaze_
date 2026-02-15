@@ -1,19 +1,19 @@
 /* ===== THEME SELECT OVERLAY ===== */
+
 .theme-overlay {
   position: fixed;
   inset: 0;
   z-index: 60;
   background: rgba(0, 0, 0, 0.6);
 
-  display: none;
+  display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.theme-overlay.active {
-  display: flex;
+.theme-overlay.hidden {
+  display: none;
 }
-
 
 .theme-overlay.hidden {
   display: none;
