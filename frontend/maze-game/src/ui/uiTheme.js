@@ -1,6 +1,7 @@
 export function mountThemeUI(root) {
   const overlay = document.createElement("div");
-  overlay.className = "theme-overlay hidden";
+  overlay.classList.add("hidden");
+  overlay.classList.remove("hidden");
 
   overlay.innerHTML = `
     <div class="theme-card">
