@@ -388,7 +388,6 @@ for (let i = 0; i < trail.length; i++) {
   const t = trail[i];
   const fade = i / trail.length;
 
-  const angle = Math.atan2(t.vy, t.vx);
   const size = r * (0.18 + fade * 0.12);
 
   drawCrystalShard(
@@ -428,7 +427,7 @@ ctx.globalAlpha = 1;
     ctx.save();
 
 // rotate toward movement direction
-
+const angle = Math.atan2(vy, vx);
 ctx.translate(c.cx, c.cy);
 ctx.rotate(angle);
 ctx.scale(scaleX, scaleY);
