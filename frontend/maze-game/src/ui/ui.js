@@ -1,5 +1,6 @@
 import { mountAccountUI } from "./uiAccount.js";
 import { mountSettingsUI } from "./uiSettings.js";
+import { mountThemeUI } from "./uiTheme.js";
 
 // NOTE: Hint/Skip popups are now controlled from src/main.js so
 // they can call the backend (free/coins/ad) and update the game.
@@ -123,6 +124,11 @@ accountBtn.addEventListener("click", () => {
     settingsUI.open();
   });
 
+// ----- THEME UI -----
+const themeUI = mountThemeUI(root);
+themeBtn.addEventListener("click", () => {
+  themeUI.open();
+});
   // Hint/Skip clicks are wired up by main.js
 
   // ----- HANDLERS -----
