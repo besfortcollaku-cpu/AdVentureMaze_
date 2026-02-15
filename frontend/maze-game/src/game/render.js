@@ -175,7 +175,7 @@ function drawFloor() {
   ctx.fillRect(px, py, tile, tile);
   ctx.restore();
 }
-        } else if (floorReady) {
+         else if (floorReady) {
           ctx.drawImage(floorImg, px, py, tile, tile);
           if (tint) {
   ctx.save();
