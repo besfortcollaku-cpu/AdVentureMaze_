@@ -1,4 +1,5 @@
 import "../css/theme.css";
+import { setTheme } from "../theme.js";
 
 export function mountThemeUI(root) {
   const overlay = document.createElement("div");
@@ -17,6 +18,18 @@ export function mountThemeUI(root) {
   `;
 
   document.body.appendChild(overlay);
+  
+  const closeBtn = overlay.querySelector(".theme-close");
+  const items = overlay.querySelectorAll(".theme-item");
+
+items.forEach((btn) => {
+  btn.addEventListener("click", () => {
+    const value = btn.dataset.theme;
+    setTheme(value);
+    overlay.classList.add("hidden");
+  });
+});
+
 
   const closeBtn = overlay.querySelector(".theme-close");
 
