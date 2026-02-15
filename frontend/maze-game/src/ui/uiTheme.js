@@ -1,7 +1,8 @@
+import "../css/theme.css";
+
 export function mountThemeUI(root) {
   const overlay = document.createElement("div");
-  overlay.classList.add("hidden");
-  overlay.classList.remove("hidden");
+  overlay.className = "theme-overlay hidden";
 
   overlay.innerHTML = `
     <div class="theme-card">
@@ -15,7 +16,7 @@ export function mountThemeUI(root) {
     </div>
   `;
 
-document.body.appendChild(overlay);
+  document.body.appendChild(overlay);
 
   const closeBtn = overlay.querySelector(".theme-close");
 
