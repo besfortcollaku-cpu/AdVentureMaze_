@@ -130,9 +130,15 @@ accountBtn.addEventListener("click", () => {
 // ----- THEME UI -----
 const themeUI = mountThemeUI(root);
 function applyTheme(theme) {
-  document.body.classList.remove("theme-lava");
-  if (theme === "lava") {
+  document.body.classList.remove("theme-ice", "theme-forest", "theme-lava");
+
+  if (theme === "forest") {
+    document.body.classList.add("theme-forest");
+  } else if (theme === "lava") {
     document.body.classList.add("theme-lava");
+  } else {
+    // default
+    document.body.classList.add("theme-ice");
   }
 }
 
