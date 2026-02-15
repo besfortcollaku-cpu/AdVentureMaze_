@@ -236,11 +236,7 @@ if (storedToken) {
   document.body.style.position = "fixed";
   document.body.style.width = "100%";
   document.body.style.height = "100%";
-  document.addEventListener(
-    "touchmove",
-    (e) => e.preventDefault(),
-    { passive: false }
-  );
+  
   
 
   // Mount UI
