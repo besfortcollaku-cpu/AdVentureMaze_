@@ -148,10 +148,12 @@ function drawFloor() {
         } else if (floorReady) {
           ctx.drawImage(floorImg, px, py, tile, tile);
           if (tint) {
+  ctx.save();
+  ctx.globalCompositeOperation = "multiply";
   ctx.fillStyle = tint;
   ctx.fillRect(px, py, tile, tile);
-}
-        }
+  ctx.restore();
+}   }
       } else {
         // 🔹 NORMAL TILE
         if (floorReady) {
