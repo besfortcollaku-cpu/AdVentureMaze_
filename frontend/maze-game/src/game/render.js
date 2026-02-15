@@ -221,6 +221,18 @@ function drawCrystalShard(x, y, angle, size, alpha, hueShift = 0) {
 
 
   function drawBall(playerFloat) {
+      const theme = getTheme();
+
+  let glowHue = 195; // ice default (blue)
+  let sparkColor = "rgba(120,220,255,";
+
+  if (theme === "forest") {
+    glowHue = 135; // green
+    sparkColor = "rgba(120,255,180,";
+  } else if (theme === "lava") {
+    glowHue = 20; // orange-red
+    sparkColor = "rgba(255,160,80,";
+  }
   const size = tile * 0.9;
   const r = size / 2;
   const c = cellCenter(playerFloat.x, playerFloat.y);
@@ -284,7 +296,7 @@ for (let i = 0; i < trail.length; i++) {
     angle,
     size,
     0.35 * fade,
-    i * 4 // subtle color shift
+    i * 4 + (glowHue - 195)// subtle color shift
   );
 }
 
@@ -337,8 +349,8 @@ ctx.globalAlpha = 1;
     lx, ly, r * 0.9
   );
 
-  shine.addColorStop(0, "rgba(255,255,255,0.85)");
-  shine.addColorStop(0.4, "rgba(255,255,255,0.25)");
+  shine.addColorStop(0, `hsla(${glowHue}, 100%, 90%, 0.85)`);
+shine.addColorStop(0.4, `hsla(${glowHue}, 100%, 70%, 0.25)`);
   shine.addColorStop(1, "rgba(255,255,255,0)");
 
   ctx.fillStyle = shine;
@@ -359,7 +371,7 @@ ctx.globalAlpha = 1;
 
       const pr = r * (0.08 + Math.random() * 0.12);
 
-      ctx.fillStyle = `rgba(120,220,255,${0.2 + Math.random() * 0.4})`;
+      ctx.fillStyle = `${sparkColor}${0.2 + Math.random() * 0.4})`;
       ctx.beginPath();
       ctx.arc(px, py, pr, 0, Math.PI * 2);
       ctx.fill();
