@@ -346,3 +346,22 @@ body.game-running .app {
 #themeBtn {
   font-size: 18px;
 }
+
+/* ===== LAVA THEME (UI ONLY) ===== */
+body.theme-lava {
+  background: radial-gradient(circle at top, #2a0f05, #0b0402);
+}
+
+body.theme-lava .top,
+body.theme-lava .bottom,
+body.theme-lava .ad {
+  background: transparent;
+}
+
+body.theme-lava .icon {
+  background: rgba(255, 120, 60, 0.15);
+}
+
+body.theme-lava .coins {
+  border-color: #ff9f43;
+}

@@ -1,7 +1,7 @@
 import { mountAccountUI } from "./uiAccount.js";
 import { mountSettingsUI } from "./uiSettings.js";
 import { mountThemeUI } from "./uiTheme.js";
-
+import { mountThemeUI } from "./uiTheme.js";
 // NOTE: Hint/Skip popups are now controlled from src/main.js so
 // they can call the backend (free/coins/ad) and update the game.
 import { mountLevelsUI } from "./uiLevels.js"; 
@@ -126,6 +126,19 @@ accountBtn.addEventListener("click", () => {
 
 // ----- THEME UI -----
 const themeUI = mountThemeUI(root);
+function applyTheme(theme) {
+  document.body.classList.remove("theme-lava");
+  if (theme === "lava") {
+    document.body.classList.add("theme-lava");
+  }
+}
+
+// initial apply
+applyTheme(getTheme());
+
+// react to changes
+onThemeChange(applyTheme);
+
 themeBtn.addEventListener("click", () => {
   themeUI.open();
 });
