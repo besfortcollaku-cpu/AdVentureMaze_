@@ -13,6 +13,7 @@ export function mountUI(root) {
           <button class="icon" id="accountBtn">👤</button>
           <button class="icon" id="settingsBtn">⚙️</button>
           <button class="icon" id="levelsBtn">☰</button>
+          <button class="icon" id="themeBtn">🎨</button>
           <div class="btn-wrapper">
   <button id="restartBtn" class="icon">🔄</button>
   <span class="badge hidden" id="restartCount">56</span>
@@ -98,6 +99,7 @@ loginReqLoginBtn.onclick = () => {
   const loginBtn = root.querySelector("#loginBtn");
   const levelsBtn = root.querySelector("#levelsBtn");
   const accountBtn = root.querySelector("#accountBtn");
+  const themeBtn = root.querySelector("#themeBtn");
   const settingsBtn = root.querySelector("#settingsBtn");
   const restartBtn = root.querySelector("#restartBtn");
   const hintBtn = root.querySelector("#hintBtn");

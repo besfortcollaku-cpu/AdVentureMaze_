@@ -342,3 +342,7 @@ body.game-running .app {
 .badge.hidden {
   display: none;
 }
+/* ===== THEME BUTTON (UI ONLY) ===== */
+#themeBtn {
+  font-size: 18px;
+}
