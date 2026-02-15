@@ -42,18 +42,23 @@ export function mountUI(root) {
       </footer>
 
       <div class="ad">Ad Banner</div>
-
-      <div id="welcomeOverlay" class="welcomeOverlay">
-        <div class="welcomeCard">
-          <h1>Welcome to AdVenture Maze</h1>
-          <button id="loginBtn" class="startBtn secondary">Login with Pi</button>
-          <button id="guestBtn" class="startBtn">Play as Guest</button>
-        </div>
-      </div>
     </div>
      `;
     
-    
+    // ===== WELCOME OVERLAY =====
+const welcome = document.createElement("div");
+welcome.id = "welcomeOverlay";
+welcome.className = "welcomeOverlay";
+
+welcome.innerHTML = `
+  <div class="welcomeCard">
+    <h1>Welcome to AdVenture Maze</h1>
+    <button id="loginBtn" class="startBtn secondary">Login with Pi</button>
+    <button id="guestBtn" class="startBtn">Play as Guest</button>
+  </div>
+`;
+
+document.body.appendChild(welcome);
     // ===== Login Required Overlay =====
 const loginRequiredOverlay = document.createElement("div");
 loginRequiredOverlay.className = "login-required-overlay hidden";
@@ -94,7 +99,6 @@ loginReqLoginBtn.onclick = () => {
 
   // ----- CORE ELEMENTS -----
   const canvas = root.querySelector("#game");
-  const welcome = root.querySelector("#welcomeOverlay");
   const guestBtn = root.querySelector("#guestBtn");
   const loginBtn = root.querySelector("#loginBtn");
   const levelsBtn = root.querySelector("#levelsBtn");
