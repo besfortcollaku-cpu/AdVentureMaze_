@@ -204,9 +204,11 @@ body.welcome-visible .app {
   pointer-events: none;
 }
 
-body.welcome-visible .welcomeoverlay {
-  display: flex;
+body.welcome-visible #welcomeOverlay {
+  pointer-events: auto;
 }
+
+
 
 body.game-running .welcomeoverlay {
   display: none;

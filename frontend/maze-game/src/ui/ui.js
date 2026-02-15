@@ -108,7 +108,6 @@ const settingsBtn = root.querySelector("#settingsBtn");
 const restartBtn = root.querySelector("#restartBtn");
 const hintBtn = root.querySelector("#hintBtn");
 const skipBtn = root.querySelector("#skipBtn");
-
   // ----- ACCOUNT UI -----
   const accountUI = mountAccountUI(root);
   let accountClickHandler = null;
