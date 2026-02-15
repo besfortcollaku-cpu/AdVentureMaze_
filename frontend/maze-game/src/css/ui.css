@@ -367,3 +367,10 @@ body.theme-lava .icon {
 body.theme-lava .coins {
   border-color: #ff9f43;
 }
+
+/* ===== WELCOME OVERLAY TOUCH FIX ===== */
+#welcomeOverlay,
+#welcomeOverlay * {
+  pointer-events: auto;
+  touch-action: manipulation;
+}
