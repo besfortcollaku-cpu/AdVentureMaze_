@@ -4,7 +4,7 @@ body {
   height: 100%;
   overflow: hidden;
   overscroll-behavior: none;
-  background: linear-gradient(
+  background: linear-gradient;
     to bottom,
     var(--ui-bg-top),
     var(--ui-bg-mid),
