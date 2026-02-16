@@ -549,8 +549,20 @@ body.theme-lava {
 
 body.theme-ice {
   --ui-bg: url("/textures/ui/background/ice.png");
-}.appBackground {
+}
+
+.app {
   background-image: var(--ui-bg);
   background-size: cover;
   background-position: center;
+  background-repeat: no-repeat;
+}
+
+/* subtle dark veil so UI stays readable */
+.app::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.35);
+  pointer-events: none;
 }
