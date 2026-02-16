@@ -124,6 +124,7 @@ tile = Math.floor(Math.max(fitTile, minTile));
 // center board
 ox = Math.floor((w - state.cols * tile) / 2);
 oy = Math.floor((h - state.rows * tile) / 2);
+}
   // ======================
   // HELPERS
   // ======================
