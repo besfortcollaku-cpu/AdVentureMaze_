@@ -464,19 +464,7 @@ body.game-running .app {
 }
 
 
-/* ===== THEME BACKGROUNDS (APP LEVEL) ===== */
 
-body.theme-ice .app {
-  background: radial-gradient(circle at top, #1b255c, #070b18);
-}
-
-body.theme-forest .app {
-  background: radial-gradient(circle at top, #0f2a1a, #06150d);
-}
-
-body.theme-lava .app {
-  background: radial-gradient(circle at top, #2a0f05, #0b0402);
-}
 /* ===== LAVA THEME (UI ONLY) ===== */
 
 body.theme-lava .top,
