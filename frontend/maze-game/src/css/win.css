@@ -333,3 +333,74 @@
     animation-duration: 0.22s;
   }
 }
+
+.winOverlay.theme-forest .winModal {
+  background: linear-gradient(
+    180deg,
+    rgba(26, 70, 46, 0.96),
+    rgba(12, 32, 22, 0.98)
+  );
+}
+
+.winOverlay.theme-forest .badge {
+  background: linear-gradient(180deg, #3fdc8c, #1e9f5a);
+  box-shadow: 0 10px 22px rgba(63, 220, 140, 0.35);
+}
+
+.winOverlay.theme-forest .btn.primary {
+  background: linear-gradient(180deg, #42e695, #2bb673);
+  color: #0b2a1c;
+}
+
+.winOverlay.theme-lava .winModal {
+  background: linear-gradient(
+    180deg,
+    rgba(90, 24, 12, 0.96),
+    rgba(36, 8, 4, 0.98)
+  );
+}
+
+.winOverlay.theme-lava .badge {
+  background: linear-gradient(180deg, #ff7a45, #d93a1a);
+  box-shadow: 0 10px 22px rgba(255, 90, 40, 0.45);
+}
+
+.winOverlay.theme-lava .btn.primary {
+  background: linear-gradient(180deg, #ff8c42, #ff5a1f);
+  color: #2a0b05;
+}
+.winOverlay.theme-ice .winModal {
+  background: linear-gradient(
+    180deg,
+    rgba(40, 90, 150, 0.96),
+    rgba(18, 32, 60, 0.98)
+  );
+}
+
+.winOverlay.theme-ice .badge {
+  background: linear-gradient(180deg, #6fdcff, #3aa0ff);
+  box-shadow: 0 10px 22px rgba(120, 200, 255, 0.45);
+}
+
+.winOverlay.theme-ice .btn.primary {
+  background: linear-gradient(180deg, #6fe0ff, #4aa8ff);
+  color: #061320;
+}
+
+
+.winOverlay:not(.hidden) .winModal {
+  animation: winPulse 1.8s ease-in-out infinite;
+}
+
+@keyframes winPulse {
+  0%, 100% {
+    box-shadow:
+      0 25px 60px rgba(0,0,0,0.65),
+      inset 0 1px 0 rgba(255,255,255,0.05);
+  }
+  50% {
+    box-shadow:
+      0 28px 68px rgba(0,0,0,0.75),
+      inset 0 1px 0 rgba(255,255,255,0.08);
+  }
+}

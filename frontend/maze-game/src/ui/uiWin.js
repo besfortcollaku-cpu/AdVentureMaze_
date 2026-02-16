@@ -1,6 +1,7 @@
 // src/ui/uiWin.js
 // Level Complete / Win popup UI
 import "../css/win.css";
+import { getTheme } from "../theme.js";
 export function createWinPopup() {
   let onNext = null;
   let onWatchAd = null;
@@ -61,9 +62,18 @@ export function createWinPopup() {
   // ---------------------------
   // API
   // ---------------------------
-  function show({ levelNumber }) {    levelText.textContent = `You finished Level ${levelNumber}`;
-    el.classList.remove("hidden");
-  }
+  function show({ levelNumber }) {
+  const theme = getTheme();
+
+  // reset theme classes
+  el.classList.remove("theme-forest", "theme-lava", "theme-ice");
+
+  // apply current theme
+  el.classList.add(`theme-${theme}`);
+
+  levelText.textContent = `You finished Level ${levelNumber}`;
+  el.classList.remove("hidden");
+}
 
   function hide() {
     el.classList.add("hidden");
