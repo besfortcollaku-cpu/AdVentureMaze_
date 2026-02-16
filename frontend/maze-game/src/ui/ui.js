@@ -10,16 +10,17 @@ export function mountUI(root) {
     <div id="app" class="app">
       <header class="top">
         <h1 class="level">Level 1</h1>
-        <div class="icons">
-          <button class="icon" id="accountBtn">👤</button>
-          <button class="icon" id="settingsBtn">⚙️</button>
-          <button class="icon" id="levelsBtn">☰</button>
-          <button class="icon" id="themeBtn">🎨</button>
-          <div class="btn-wrapper">
-  <button id="restartBtn" class="icon">🔄</button>
-  <span class="badge hidden" id="restartCount">56</span>
+    <div class="icons">
+  <button class="icon" id="accountBtn">${ICONS.account}</button>
+  <button class="icon" id="settingsBtn">${ICONS.settings}</button>
+  <button class="icon" id="levelsBtn">${ICONS.levels}</button>
+  <button class="icon" id="themeBtn">${ICONS.theme}</button>
+
+  <div class="btn-wrapper">
+    <button id="restartBtn" class="icon">${ICONS.restart}</button>
+    <span class="badge hidden" id="restartCount"></span>
+  </div>
 </div>
-        </div>
         <div class="coins">
           <span id="userName" class="userName">Guest</span>
           🪙 <span id="coinCount">0</span>
@@ -31,13 +32,15 @@ export function mountUI(root) {
       </div>
 
       <footer class="bottom">
-       <div class="btn-wrapper">
-  <button id="hintBtn" class="icon">❓</button>
+<div class="btn-wrapper">
+  <button id="hintBtn" class="icon">${ICONS.hint}</button>
   <span class="badge hidden" id="hintCount"></span>
 </div>
-        <span>Swipe to move</span>
-       <div class="btn-wrapper">
-  <button id="skipBtn" class="icon">⏭</button>
+
+<span>Swipe to move</span>
+
+<div class="btn-wrapper">
+  <button id="skipBtn" class="icon">${ICONS.skip}</button>
   <span class="badge Hidden" id="skipCount"></span>
 </div>
       </footer>
@@ -273,3 +276,25 @@ triggerLogin() {
     },
   };
 }
+
+
+/* ---------------- SVG ICONS ---------------- */
+
+function iconSVG(path, strokeWidth = 1.8) {
+  return `
+    <svg class="icon-svg" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="${path}" fill="none" stroke="currentColor" stroke-width="${strokeWidth}"
+        stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  `;
+}
+
+const ICONS = {
+  account: iconSVG("M12 12c2.8 0 5-2.2 5-5s-2.2-5-5-5-5 2.2-5 5 2.2 5 5 5Zm0 2c-4 0-8 2-8 5v1h16v-1c0-3-4-5-8-5"),
+  settings: iconSVG("M12 15.2a3.2 3.2 0 1 0 0-6.4a3.2 3.2 0 0 0 0 6.4Zm9-3.2-2-.6a7 7 0 0 0-.6-1.4l1.2-1.8-1.7-1.7-1.8 1.2c-.4-.2-.9-.4-1.4-.6L13 3h-2l-.6 2.1c-.5.1-1 .3-1.4.6L7.2 4.5 5.5 6.2l1.2 1.8c-.2.4-.4.9-.6 1.4L4 12l2.1.6c.1.5.3 1 .6 1.4l-1.2 1.8 1.7 1.7 1.8-1.2c.4.2.9.4 1.4.6L11 21h2l.6-2.1c.5-.1 1-.3 1.4-.6l1.8 1.2 1.7-1.7-1.2-1.8c.2-.4.4-.9.6-1.4L21 12Z", 1.6),
+  levels: iconSVG("M5 6h14M5 12h14M5 18h14"),
+  theme: iconSVG("M12 3a9 9 0 1 0 9 9c0-.6-.5-1-1-1h-3a2 2 0 0 1-2-2V6a3 3 0 0 0-3-3Z"),
+  restart: iconSVG("M12 5v3l4-4-4-4v3a9 9 0 1 0 9 9h-2a7 7 0 1 1-7-7Z"),
+  hint: iconSVG("M12 3a6 6 0 0 0-3 11.2V17h6v-2.8A6 6 0 0 0 12 3Zm-1 17h2v2h-2Z"),
+  skip: iconSVG("M5 4l8 8-8 8V4Zm10 0h2v16h-2V4Z")
+};
