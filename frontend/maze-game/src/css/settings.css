@@ -173,28 +173,3 @@ body.theme-lava input:checked + .slider {
 body.theme-forest .close-btn { background: rgba(80,200,120,0.18); }
 body.theme-lava   .close-btn { background: rgba(255,120,60,0.18); }
 body.theme-ice    .close-btn { background: rgba(120,180,255,0.18); }
-
-
-.setting-label {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.setting-label .icon-svg {
-  width: 22px;
-  height: 22px;
-  color: currentColor;
-}
-body.theme-forest .setting-label { color: #4ade80; }
-body.theme-lava   .setting-label { color: #fb923c; }
-body.theme-ice    .setting-label { color: #7dd3fc; }
-
-.settings-backdrop {
-  pointer-events: none;
-  opacity: 0;
-}
-body.settings-open .settings-backdrop {
-  pointer-events: auto;
-  opacity: 1;
-}
