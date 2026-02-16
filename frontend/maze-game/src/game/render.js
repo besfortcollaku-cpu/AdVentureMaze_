@@ -107,7 +107,7 @@ ballImg.onload = () => (ballReady = true);
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
   // ── board padding (visible gap around maze)
-  const boardPadding = 35;
+  const boardPadding = 15;
 
   // usable area inside canvas
   const usableW = w - boardPadding * 2;
