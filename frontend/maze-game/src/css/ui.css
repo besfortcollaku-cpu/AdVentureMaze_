@@ -6,12 +6,7 @@ body {
   overscroll-behavior: none;
 }
 body {
-  background: linear-gradient(
-    to bottom,
-    var(--ui-bg-top),
-    var(--ui-bg-mid),
-    var(--ui-bg-bot)
-  );
+  background: #000; /* fallback only */
 }
 :root {
   /* defaults = ice */
@@ -46,16 +41,6 @@ body.theme-lava {
   box-sizing: border-box;
 }
 
-html,
-body {
-  margin: 0;
-  padding: 0;
-  height: 100%;
-  background: radial-gradient(circle at top, #1b255c, #070b18);
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-  overflow: hidden;
-  touch-action: manipulation;
-}
 
 #app {
   width: 100%;
@@ -556,10 +541,7 @@ body.theme-lava {
 }
 
 body.theme-ice {
-  --ui-bg: url("/textures/ui/background/ice.png");
-}
-
-.app {
+  --.app {
   position: relative;
   min-height: 100vh;
   background-image: var(--ui-bg);
@@ -568,12 +550,17 @@ body.theme-ice {
   background-repeat: no-repeat;
 }
 
-/* subtle dark veil so UI stays readable */
 .app::before {
   content: "";
   position: absolute;
   inset: 0;
-  background: rgba(0,0,0,0.35);
+  background: linear-gradient(
+    to bottom,
+    var(--ui-bg-top),
+    var(--ui-bg-mid),
+    var(--ui-bg-bot)
+  );
+  opacity: 0.6;          /* 🔑 control strength here */
   z-index: 0;
   pointer-events: none;
 }
