@@ -22,9 +22,9 @@ body {
 
 /* Forest */
 body.theme-forest {
-  --ui-bg-top: #040f0a;
-  --ui-bg-mid: #071a12;
-  --ui-bg-bot: #040f0a;
+  --ui-bg-top: #020a06;
+  --ui-bg-mid: #05130d;
+  --ui-bg-bot: #020a06;
 }
 
 /* Lava */
