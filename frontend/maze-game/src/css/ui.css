@@ -1,15 +1,28 @@
+/* ===============================
+   RESET & BASE
+================================ */
 
 html,
 body {
   height: 100%;
   overflow: hidden;
   overscroll-behavior: none;
+  margin: 0;
+  padding: 0;
 }
+
 body {
   background: #000; /* fallback only */
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  color: #fff;
 }
+
+/* ===============================
+   THEME VARIABLES
+================================ */
+
 :root {
-  /* defaults = ice */
+  /* default = ice */
   --ui-bg-top: #070c22;
   --ui-bg-mid: #0b1433;
   --ui-bg-bot: #070c22;
@@ -17,6 +30,7 @@ body {
 
 /* Forest */
 body.theme-forest {
+  --ui-bg: url("/textures/ui/background/forest.png");
   --ui-bg-top: #020a06;
   --ui-bg-mid: #05130d;
   --ui-bg-bot: #020a06;
@@ -24,77 +38,80 @@ body.theme-forest {
 
 /* Lava */
 body.theme-lava {
-  --ui-bg-top: #0b0201;
-  --ui-bg-mid: #140503;
-  --ui-bg-bot: #0b0201;
-}
-#app {
-  height: 100%;
-  overflow: hidden;
+  --ui-bg: url("/textures/ui/background/lava.png");
+  --ui-bg-top: #120401;
+  --ui-bg-mid: #220802;
+  --ui-bg-bot: #120401;
 }
 
-
-/* =========================
-   RESET / BASE
-========================= */
-* {
-  box-sizing: border-box;
+/* Ice */
+body.theme-ice {
+  --ui-bg: url("/textures/ui/background/ice.png");
+  --ui-bg-top: #070c22;
+  --ui-bg-mid: #0b1433;
+  --ui-bg-bot: #070c22;
 }
 
+/* ===============================
+   APP BACKGROUND (PNG + OVERLAY)
+================================ */
 
-#app {
-  width: 100%;
-  height: 100%;
-}
-
-/* =========================
-   APP LAYOUT
-========================= */
 .app {
-  height: 100%;
+  position: relative;
+  min-height: 100vh;
+
+  background-image: var(--ui-bg);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+
   display: flex;
   flex-direction: column;
-  color: #fff;
-    background: linear-gradient(...);
 }
 
-/* =========================
-   TOP BAR
-========================= */
-.top {
-  padding: 14px 12px 10px;
-  text-align: center;
+/* mood overlay */
+.app::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+
   background: linear-gradient(
     to bottom,
-    rgba(0, 0, 0, 0.45),
-    rgba(0, 0, 0, 0.15)
+    var(--ui-bg-top),
+    var(--ui-bg-mid),
+    var(--ui-bg-bot)
   );
+
+  opacity: 0.6;
+  z-index: 0;
+  pointer-events: none;
 }
-.bottomBar {
-  background: rgba(0, 0, 0, 0.3);
+
+/* lift all UI above background */
+.app > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* ===============================
+   TOP BAR
+================================ */
+
+.top {
+  padding: 16px 12px 8px;
+  text-align: center;
 }
 
 .level {
   margin: 0 0 10px;
-  font-size: 36px;
+  font-size: 32px;
   font-weight: 800;
 }
-.iconBtn {
-  all: unset;
-  width: 44px;
-  height: 44px;
-  border-radius: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-}
 
-.iconBtn svg {
-  width: 22px;
-  height: 22px;
-  pointer-events: none;
-}
+/* ===============================
+   ICON BAR
+================================ */
+
 .icons {
   display: flex;
   justify-content: center;
@@ -107,331 +124,101 @@ body.theme-lava {
   height: 44px;
   border-radius: 14px;
   border: none;
-position: relative;
+
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+
   display: flex;
   align-items: center;
   justify-content: center;
 
-  font-size: 18px;
-  color: #ffffff;
-
-  background: rgba(255, 255, 255, 0.05);
-
-  /* material depth */
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,0.10),
-    inset 0 -1px 0 rgba(0,0,0,0.25),
-    0 2px 6px rgba(0,0,0,0.45);
-
-  transition:
-    background 0.2s ease,
-    box-shadow 0.2s ease,
-    transform 0.1s ease;
+  backdrop-filter: blur(6px);
 }
 
+/* theme tint only (NO background override) */
 body.theme-forest .icon {
-  background: rgba(40, 110, 70, 0.22);
-  color: #d8ffe9;
-
-  box-shadow:
-    inset 0 1px 0 rgba(120,255,180,0.18),
-    0 0 6px rgba(60,160,100,0.22),
-    0 2px 6px rgba(0,0,0,0.45);
+  background: rgba(80, 200, 120, 0.15);
 }
+
 body.theme-lava .icon {
-  background: rgba(140, 40, 20, 0.24);
-  color: #ffd6b0;
-
-  box-shadow:
-    inset 0 1px 0 rgba(255,160,80,0.22),
-    0 0 7px rgba(200,80,30,0.28),
-    0 2px 6px rgba(0,0,0,0.55);
-}
-body.theme-ice .icon {
-  background: rgba(80, 140, 200, 0.22);
-  color: #e8f6ff;
-
-  box-shadow:
-    inset 0 1px 0 rgba(180,220,255,0.22),
-    0 0 7px rgba(120,180,255,0.28),
-    0 2px 6px rgba(0,0,0,0.45);
-}
-body.theme-forest .iconBtn {
-  color: #d8ffe9;
+  background: rgba(255, 120, 60, 0.15);
 }
 
-body.theme-lava .iconBtn {
-  color: #ffd6b0;
-}
+/* ===============================
+   COINS
+================================ */
 
-body.theme-ice .iconBtn {
-  color: #e8f6ff;
-}
-.icon:active {
-  transform: scale(0.93);
-
-  box-shadow:
-    inset 0 2px 6px rgba(0,0,0,0.55),
-    inset 0 -1px 0 rgba(255,255,255,0.06);
-}
-.icon::before {
-  content: "";
-  position: absolute;
-  inset: 1px;
-  border-radius: 13px;
-  pointer-events: none;
-
-  box-shadow:
-    inset 0 1px 1px rgba(255,255,255,0.08),
-    inset 0 -1px 1px rgba(0,0,0,0.18);
-}
 .coins {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 16px;
+  gap: 10px;
+
+  padding: 6px 14px;
   border-radius: 20px;
   border: 2px solid #8a6d1d;
-  font-weight: 700;
+
+  background: rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(6px);
 }
 
-.icon-svg {
-  width: 22px;
-  height: 22px;
-  pointer-events: none;
-}
-/* =========================
-   GAME BOARD
-========================= */
-.board {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
+/* ===============================
+   BOARD
+================================ */
 
-canvas#game {
-  width: 90vw;
-  max-width: 360px;
-  aspect-ratio: 1 / 1;
-  background: rgba(255,255,255,0.05);
+.boardWrap {
+  margin: 14px;
+  padding: 14px;
+
+  background: rgba(0, 0, 0, 0.35);
   border-radius: 22px;
+
+  backdrop-filter: blur(8px);
 }
 
-/* =========================
-   BOTTOM BAR
-========================= */
-.bottom {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px;
-  gap: 8px;
-}
-
-.btn {
-  padding: 10px 14px;
-  border-radius: 10px;
-  border: none;
-  background: rgba(255,255,255,0.12);
-  color: #fff;
-  font-weight: 600;
-}
-
-.bottom span {
-  opacity: 0.75;
-  font-size: 14px;
-}
-
-/* =========================
-   AD BANNER
-========================= */
-.ad {
-  margin: 10px 12px 16px;
-  padding: 16px;
+.boardFrame {
   border-radius: 18px;
-  background: #2b4a7a;
-  text-align: center;
-  font-weight: 700;
-}
-
-/* =========================
-   WELCOME OVERLAY
-========================= */
-.welcomeOverlay {
-    pointer-events: auto;
-  position: fixed;
-  inset: 0;
-  z-index: 50;
-
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-
-  padding-bottom: 120px;
-
-  background: radial-gradient(circle at top, rgba(15,30,51,0.95), rgba(7,13,24,0.98));
-}
-#welcomeOverlay.show {
-  display: flex;
-}
-
-.welcomeCard {
-  width: min(92%, 420px);
-  text-align: left;
-}
-
-.welcomeCard h1 {
-  font-size: 36px;
-  line-height: 1.2;
-  margin-bottom: 20px;
-  color: #fff;
-}
-.startBtn {
-  width: 100%;
-  padding: 16px;
-  border-radius: 16px;
-  font-size: 18px;
-  font-weight: 600;
-
-  background: #ffffff;
-  color: #000;
-  border: none;
-}
-
-/* =========================
-   GAME RUNNING STATE
-========================= */
-body.game-running #welcomeOverlay {
-  display: none !important;
-}
-
-body.game-running {
-  position: fixed;
-  inset: 0;
   overflow: hidden;
 }
 
-/* ---------- GLOBAL STATES ---------- */
-
-body.welcome-visible .app {
-  pointer-events: none;
+/* IMPORTANT: no fake light layer */
+canvas#game {
+  display: block;
+  background: transparent;
 }
 
-body.welcome-visible #welcomeOverlay {
-  pointer-events: auto;
-}
+/* ===============================
+   BOTTOM BAR
+================================ */
 
-
-
-body.game-running .welcomeoverlay {
-  display: none;
-}
-
-body.game-running .app {
-  filter: none;
-  pointer-events: auto;
-}
-.game-running .welcomeOverlay {
-  display: none;
-}
-.startBtn.secondary {
-  margin-top: 12px;
-  background: rgba(255,255,255,0.15);
-  color: #fff;
-}
-.username{
-  font-weight:700;
-  opacity:.95;
-  margin-right:6px;
-}
-
-/* ===== Login Required Overlay ===== */
-.login-required-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 50;
-  background: rgba(0, 0, 0, 0.6);
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.login-required-overlay.hidden {
-  display: none;
-}
-.hidden {
-  display: none;
-  pointer-events: none;
-}
-
-.login-required-card {
-  background: #111;
-  color: #fff;
-  padding: 24px;
-  border-radius: 12px;
-  width: 90%;
-  max-width: 320px;
-  text-align: center;
-}
-
-.login-required-card h2 {
-  margin-bottom: 8px;
-}
-
-.login-required-actions {
-  display: flex;
-  gap: 12px;
-  margin-top: 16px;
-}
-
-.login-required-actions button {
-  flex: 1;
+.bottomBar {
+  margin: 10px 14px 14px;
   padding: 10px;
-  border-radius: 8px;
-  border: none;
-  font-size: 16px;
-}
-
-.login-required-actions .login-btn {
-  background: #4caf50;
-  color: #000;
-}
-
-.login-required-actions .cancel-btn {
-  background: #444;
-  color: #fff;
-}
-
-/* ===== POPUPS (Hint / Skip / Win) ===== */
-.popup {
-  position: fixed;
-  inset: 0;
-  z-index: 9999;
-  background: rgba(0, 0, 0, 0.6);
 
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
+  gap: 12px;
+
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 18px;
+
+  backdrop-filter: blur(6px);
 }
 
-.popup.hidden {
-  display: none;
-}
-
-.popup-card {
-  background: #0f172a;
-  color: white;
-  padding: 20px;
+.btn {
+  min-width: 64px;
+  padding: 10px;
   border-radius: 14px;
-  min-width: 260px;
-  max-width: 90%;
+
+  border: none;
+  color: #fff;
+
+  background: rgba(255, 255, 255, 0.08);
 }
-.btn-wrapper {
-  position: relative;
-  display: inline-block;
-}
+
+/* ===============================
+   BADGES
+================================ */
 
 .badge {
   position: absolute;
@@ -458,100 +245,13 @@ body.game-running .app {
 .badge.hidden {
   display: none;
 }
-/* ===== THEME BUTTON (UI ONLY) ===== */
-#themeBtn {
-  font-size: 18px;
-}
 
+/* ===============================
+   WELCOME OVERLAY TOUCH FIX
+================================ */
 
-
-/* ===== LAVA THEME (UI ONLY) ===== */
-
-body.theme-lava .top,
-body.theme-lava .bottom,
-body.theme-lava .ad {
-  background: transparent;
-}
-
-body.theme-lava .icon {
-  background: rgba(255, 120, 60, 0.15);
-}
-
-body.theme-lava .coins {
-  border-color: #ff9f43;
-}
-
-/* ===== WELCOME OVERLAY TOUCH FIX ===== */
 #welcomeOverlay,
 #welcomeOverlay * {
   pointer-events: auto;
   touch-action: manipulation;
-}/* ===== ICE THEME (UI ONLY - DEFAULT) ===== */
-body.theme-ice {
-  background: radial-gradient(circle at top, #1b255c, #070b18);
-}
-
-body.theme-ice .icon {
-  background: rgba(255,255,255,0.08);
-}
-
-body.theme-ice .coins {
-  border-color: #8a6d1d;
-}
-
-/* ===== FOREST THEME (UI ONLY) ===== */
-
-body.theme-forest .top,
-body.theme-forest .bottom,
-body.theme-forest .ad {
-  background: transparent;
-}
-
-body.theme-forest .icon {
-  background: rgba(80, 200, 120, 0.15);
-}
-
-body.theme-forest .coins {
-  border-color: #4ade80;
-}
-
-html {
-  transition: background 0.3s ease;
-}
-
-
-body.theme-forest {
-  --ui-bg: url("/textures/ui/background/forest.png");
-}
-
-body.theme-lava {
-  --ui-bg: url("/textures/ui/background/lava.png");
-}
-
-body.theme-ice {
-  position: relative;
-  min-height: 100vh;
-  background-image: var(--ui-bg);
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-}
-
-.app::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    to bottom,
-    var(--ui-bg-top),
-    var(--ui-bg-mid),
-    var(--ui-bg-bot)
-  );
-  opacity: 0.6;          /* 🔑 control strength here */
-  z-index: 0;
-  pointer-events: none;
-}
-.app > * {
-  position: relative;
-  z-index: 1;
 }
