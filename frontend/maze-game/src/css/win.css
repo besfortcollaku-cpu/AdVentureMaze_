@@ -5,7 +5,7 @@
 .winOverlay {
   position: fixed;
   inset: 0;
-  z-index: 30;
+  z-index: 40;
 
   display: flex;
   align-items: center;
@@ -411,7 +411,10 @@
   background-size: cover;
   background-position: center;
   opacity: 0.9; /* slightly softer */
-    position: relative;
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;   /* 🔑 VERY IMPORTANT */
 }
 .winBg::after {
   content: "";
@@ -430,15 +433,6 @@
   z-index: 30;
 }
 
-/* background layer */
-.winBg {
-  position: absolute;
-  inset: 0;
-  background-image: var(--ui-bg);
-  background-size: cover;
-  background-position: center;
-  z-index: 0;
-}
 
 .winBg::after {
   content: "";
@@ -446,7 +440,6 @@
   inset: 0;
   background: rgba(0, 0, 0, 0.4);
 }
-
 /* modal above background */
 .winModal {
   position: relative;
