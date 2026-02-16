@@ -633,7 +633,6 @@ resize();
     shakeTime--;
   }
 
-  drawBackground();
   drawFloor();
   drawBall(playerFloat);
   drawWallShadow();
