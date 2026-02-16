@@ -4,8 +4,32 @@ body {
   height: 100%;
   overflow: hidden;
   overscroll-behavior: none;
+  background: linear-gradient(
+    to bottom,
+    var(--ui-bg-top),
+    var(--ui-bg-mid),
+    var(--ui-bg-bot)
+}
+:root {
+  /* defaults = ice */
+  --ui-bg-top: #070c22;
+  --ui-bg-mid: #0b1433;
+  --ui-bg-bot: #070c22;
 }
 
+/* Forest */
+body.theme-forest {
+  --ui-bg-top: #040f0a;
+  --ui-bg-mid: #071a12;
+  --ui-bg-bot: #040f0a;
+}
+
+/* Lava */
+body.theme-lava {
+  --ui-bg-top: #0b0201;
+  --ui-bg-mid: #140503;
+  --ui-bg-bot: #0b0201;
+}
 #app {
   height: 100%;
   overflow: hidden;

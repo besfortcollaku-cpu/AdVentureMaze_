@@ -165,6 +165,15 @@ ballImg.onload = () => (ballReady = true);
 
   ctx.fillStyle = vg;
   ctx.fillRect(-w, -h, w * 3, h * 3);
+  // ── SOFT TOP/BOTTOM BLEND INTO UI (very subtle)
+const edgeFade = ctx.createLinearGradient(0, 0, 0, h);
+edgeFade.addColorStop(0, "rgba(0,0,0,0.25)");
+edgeFade.addColorStop(0.08, "rgba(0,0,0,0)");
+edgeFade.addColorStop(0.92, "rgba(0,0,0,0)");
+edgeFade.addColorStop(1, "rgba(0,0,0,0.25)");
+
+ctx.fillStyle = edgeFade;
+ctx.fillRect(-w, -h, w * 3, h * 3);
 }
 function drawWallShadow(px, py) {
   ctx.save();
