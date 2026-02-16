@@ -525,6 +525,9 @@ html {
   transition: background 0.3s ease;
 }
 
+body.theme-ice {
+  --ui-bg: url("/textures/ui/background/ice.png");
+}
 
 body.theme-forest {
   --ui-bg: url("/textures/ui/background/forest.png");
