@@ -10,7 +10,7 @@ export function createWinPopup() {
   // HTML
   // ---------------------------
   const el = document.createElement("div");
-  el.className = "overlay winOverlay hidden";
+  el.className = "overlay winOverlay winBg hidden";
 
   el.innerHTML = `
     <div class="modal winModal">
