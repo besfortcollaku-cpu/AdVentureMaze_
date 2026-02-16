@@ -124,6 +124,14 @@ const usableW = w - boardPadding * 2;
 const usableH = h - boardPadding * 2;
 
 // base tile size (fit-to-usable-area)
+// desired inner gap around the board (in px)
+const boardPadding = 35;
+
+// usable area inside canvas
+const usableW = w - boardPadding * 2;
+const usableH = h - boardPadding * 2;
+
+// base tile size (fit-to-usable-area)
 const fitTile = Math.min(
   usableW / state.cols,
   usableH / state.rows
@@ -141,6 +149,10 @@ tile = Math.floor(Math.max(fitTile, minTile));
 ox = Math.floor(
   boardPadding + (usableW - state.cols * tile) / 2
 );
+oy = Math.floor(
+  boardPadding + (usableH - state.rows * tile) / 2
+);
+
 oy = Math.floor(
   boardPadding + (usableH - state.rows * tile) / 2
 );
