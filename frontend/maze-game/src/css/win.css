@@ -413,7 +413,7 @@
   opacity: 0.9; /* slightly softer */
     position: relative;
 }
-..winBg::after {
+.winBg::after {
   content: "";
   position: absolute;
   inset: 0;
