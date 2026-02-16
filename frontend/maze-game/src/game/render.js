@@ -344,14 +344,13 @@ const speed = Math.hypot(vx, vy);
 const speedNorm = Math.min(1, speed / (tile * 0.5));
 
 // stretch while moving
-let scaleX = 1 + speedNorm * 0.18;
-let scaleY = 1 - speedNorm * 0.12;
+let scaleX = 1 + speedNorm * 0.22;
+let scaleY = 1 - speedNorm * 0.16;
 
-// squash on stop (directional)
 if (deformTime > 0) {
   const t = deformTime / 120;
-  scaleX = 1 - t * 0.22;
-  scaleY = 1 + t * 0.22;
+  scaleX = 1 - t * 0.28;
+  scaleY = 1 + t * 0.28;
   deformTime -= 16;
 }
 
@@ -432,18 +431,16 @@ ctx.globalAlpha = 1;
   if (ballReady) {
     ctx.save();
 
-// rotate toward movement direction
-const angle = Math.atan2(vy, vx);
-ctx.translate(c.cx, c.cy);
-ctx.rotate(angle);
-ctx.scale(scaleX, scaleY);
+// apply deformation without rotation
+const drawW = size * scaleX;
+const drawH = size * scaleY;
 
 ctx.drawImage(
   ballImg,
-  -r,
-  -r,
-  size,
-  size
+  c.cx - drawW / 2,
+  c.cy - drawH / 2,
+  drawW,
+  drawH
 );
 
 ctx.restore();
