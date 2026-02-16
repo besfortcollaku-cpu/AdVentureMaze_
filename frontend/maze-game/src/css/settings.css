@@ -111,3 +111,65 @@ input:checked + .slider {
 input:checked + .slider::before {
   transform: translateX(20px);
 }
+
+/* =========================
+   THEMED SETTINGS PANEL
+========================= */
+
+.settings-card {
+  background: rgba(15, 23, 42, 0.92);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+/* ===== ICE ===== */
+body.theme-ice .settings-card {
+  background: rgba(15, 30, 70, 0.92);
+  box-shadow: 0 0 40px rgba(120,180,255,0.25);
+}
+
+body.theme-ice .slider {
+  background: #1e3a8a;
+}
+body.theme-ice input:checked + .slider {
+  background: #38bdf8;
+}
+
+/* ===== FOREST ===== */
+body.theme-forest .settings-card {
+  background: rgba(10, 35, 22, 0.92);
+  box-shadow: 0 0 40px rgba(80,200,120,0.25);
+}
+
+body.theme-forest .slider {
+  background: #14532d;
+}
+body.theme-forest input:checked + .slider {
+  background: #4ade80;
+}
+
+/* ===== LAVA ===== */
+body.theme-lava .settings-card {
+  background: rgba(40, 10, 5, 0.94);
+  box-shadow: 0 0 40px rgba(255,120,60,0.28);
+}
+
+body.theme-lava .slider {
+  background: #7c2d12;
+}
+body.theme-lava input:checked + .slider {
+  background: #fb923c;
+}
+
+.close-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  background: rgba(255,255,255,0.08);
+}
+
+body.theme-forest .close-btn { background: rgba(80,200,120,0.18); }
+body.theme-lava   .close-btn { background: rgba(255,120,60,0.18); }
+body.theme-ice    .close-btn { background: rgba(120,180,255,0.18); }
