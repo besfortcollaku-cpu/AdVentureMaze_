@@ -10,10 +10,11 @@ export function createWinPopup() {
   // HTML
   // ---------------------------
   const el = document.createElement("div");
-  el.className = "overlay winOverlay winBg hidden";
+  el.className = "overlay winOverlay hidden";
 
   el.innerHTML = `
     <div class="modal winModal">
+      <div class="winBg"></div>
       <div class="badge">CONGRATS!</div>
 
       <h2 class="title">Level Complete</h2>
@@ -35,6 +36,7 @@ export function createWinPopup() {
       <div class="tip">
         Tip: Watch ad gives +50 coins
       </div>
+        </div>
     </div>
   `;
 
