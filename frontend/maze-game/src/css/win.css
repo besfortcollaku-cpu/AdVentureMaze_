@@ -420,3 +420,8 @@
   background: rgba(0,0,0,0.35);
   z-index: 0;
 }
+
+.winOverlay .winModal {
+  position: relative;
+  z-index: 1;
+}
