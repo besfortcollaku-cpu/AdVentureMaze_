@@ -537,3 +537,20 @@ body.theme-forest .coins {
 html {
   transition: background 0.3s ease;
 }
+
+
+body.theme-forest {
+  --ui-bg: url("/textures/ui/background/forest.png");
+}
+
+body.theme-lava {
+  --ui-bg: url("/textures/ui/background/lava.png");
+}
+
+body.theme-ice {
+  --ui-bg: url("/textures/ui/background/ice.png");
+}.appBackground {
+  background-image: var(--ui-bg);
+  background-size: cover;
+  background-position: center;
+}
