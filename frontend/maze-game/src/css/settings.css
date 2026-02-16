@@ -189,3 +189,12 @@ body.theme-ice    .close-btn { background: rgba(120,180,255,0.18); }
 body.theme-forest .setting-label { color: #4ade80; }
 body.theme-lava   .setting-label { color: #fb923c; }
 body.theme-ice    .setting-label { color: #7dd3fc; }
+
+.settings-backdrop {
+  pointer-events: none;
+  opacity: 0;
+}
+body.settings-open .settings-backdrop {
+  pointer-events: auto;
+  opacity: 1;
+}
