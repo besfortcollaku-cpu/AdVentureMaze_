@@ -456,3 +456,6 @@
   color: #ffffff;
   font-weight: 700;
 }
+body.win-open .app::before {
+  opacity: 0 !important;
+}
