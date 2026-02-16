@@ -107,16 +107,23 @@ ballImg.onload = () => (ballReady = true);
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
   // ✅ SINGLE source of truth
-  tile = Math.floor(
-    Math.min(
-      w / state.cols,
-      h / state.rows
-    )
-  );
+// base tile size (fit-to-screen)
+const fitTile = Math.min(
+  w / state.cols,
+  h / state.rows
+);
 
-  ox = Math.floor((w - state.cols * tile) / 2);
-  oy = Math.floor((h - state.rows * tile) / 2);
-}
+// enforce minimum board scale (85%)
+const minBoardScale = 0.85;
+const minTile =
+  Math.min(w, h) * minBoardScale / Math.max(state.cols, state.rows);
+
+// final tile size
+tile = Math.floor(Math.max(fitTile, minTile));
+
+// center board
+ox = Math.floor((w - state.cols * tile) / 2);
+oy = Math.floor((h - state.rows * tile) / 2);
   // ======================
   // HELPERS
   // ======================
@@ -167,10 +174,10 @@ ballImg.onload = () => (ballReady = true);
   ctx.fillRect(-w, -h, w * 3, h * 3);
   // ── SOFT TOP/BOTTOM BLEND INTO UI (very subtle)
 const edgeFade = ctx.createLinearGradient(0, 0, 0, h);
-edgeFade.addColorStop(0, "rgba(0,0,0,0.25)");
-edgeFade.addColorStop(0.08, "rgba(0,0,0,0)");
-edgeFade.addColorStop(0.92, "rgba(0,0,0,0)");
-edgeFade.addColorStop(1, "rgba(0,0,0,0.25)");
+edgeFade.addColorStop(0, "rgba(0,0,0,0.45)");
+edgeFade.addColorStop(0.12, "rgba(0,0,0,0)");
+edgeFade.addColorStop(0.88, "rgba(0,0,0,0)");
+edgeFade.addColorStop(1, "rgba(0,0,0,0.45)");
 
 ctx.fillStyle = edgeFade;
 ctx.fillRect(-w, -h, w * 3, h * 3);
