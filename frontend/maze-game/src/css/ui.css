@@ -464,7 +464,14 @@ body.game-running .app {
 }
 
 
-
+body.theme-forest .app,
+body.theme-lava .app,
+body.theme-ice .app {
+  background-image: var(--ui-bg);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
 /* ===== LAVA THEME (UI ONLY) ===== */
 
 body.theme-lava .top,
@@ -528,14 +535,7 @@ body.theme-lava {
   --ui-bg: url("/textures/ui/background/lava.png");
 }
 
-body.theme-ice {
-  position: relative;
-  min-height: 100vh;
-  background-image: var(--ui-bg);
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-}
+
 
 .app::before {
   content: "";
