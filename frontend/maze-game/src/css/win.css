@@ -459,3 +459,11 @@
 body.win-open .app::before {
   opacity: 0 !important;
 }
+.winModal *,
+.winModal button,
+.winModal h1,
+.winModal h2,
+.winModal p {
+  opacity: 1 !important;
+  filter: none !important;
+}
