@@ -69,6 +69,13 @@ body.theme-ice {
   flex-direction: column;
 }
 
+/* 🔧 FIX: ensure game area gets space */
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
 /* mood overlay */
 .app::before {
   content: "";
