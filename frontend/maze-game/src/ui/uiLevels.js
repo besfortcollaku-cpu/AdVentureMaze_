@@ -72,13 +72,12 @@ export function mountLevelsUI(root) {
 
       if (level < maxUnlocked) {
         btn.classList.add("completed");
-        icon.textContent = "✔️";
+        icon.innerHTML = btn.classList.contains("locked") ? "🔒" : "✔";
       } else if (level === maxUnlocked) {
         btn.classList.add("unlocked");
         icon.textContent = "";
       } else {
         btn.classList.add("locked");
-        icon.textContent = "🔒";
       }
     });
   }
