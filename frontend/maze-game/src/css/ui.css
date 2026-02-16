@@ -262,3 +262,25 @@ canvas#game {
   pointer-events: auto;
   touch-action: manipulation;
 }
+
+.boardWrap {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.boardFrame {
+  width: 100%;
+  max-width: 420px;
+}
+.app {
+  display: flex;
+  flex-direction: column;
+}
+.bottomBar {
+  flex-shrink: 0;
+}
+.top {
+  flex-shrink: 0;
+}
