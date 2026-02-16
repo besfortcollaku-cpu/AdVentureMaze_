@@ -20,6 +20,14 @@ body {
 /* ===============================
    THEME VARIABLES
 ================================ */
+body.theme-forest .app,
+body.theme-lava .app,
+body.theme-ice .app {
+  background-image: var(--ui-bg);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
 
 :root {
   /* default = ice */
