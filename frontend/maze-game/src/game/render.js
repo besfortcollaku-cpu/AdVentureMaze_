@@ -2,7 +2,9 @@ import { getTheme, onThemeChange } from "../theme.js";
 
 export function createRenderer({ canvas, state }) {
     let lastBallX = null;
-    let lastBallY = null;
+let lastBallY = null;
+let lastBallVX = 0;
+let lastBallVY = 0;
     const trail = [];
     let lastCellX = null;
 let lastCellY = null;
@@ -22,16 +24,17 @@ const MAX_TRAIL = 30;
  let shakeX = 0;
  let shakeY = 0;
  let deformTime = 0;
-let deformDirX = 0;
-let deformDirY = 0;
- state.onMoveFinished = () => {
+let deformNX = 0;
+let deformNY = 0;
+state.onMoveFinished = () => {
   shakeTime = 12;
   shakeStrength = 6;
 
-  // trigger directional squash
-  deformTime = 100; // ms
-  deformDirX = lastBallX !== null ? lastBallX : 0;
-  deformDirY = lastBallY !== null ? lastBallY : 0;
+  // directional squash uses last velocity
+  const len = Math.hypot(lastBallVX, lastBallVY) || 1;
+  deformNX = lastBallVX / len;
+  deformNY = lastBallVY / len;
+  deformTime = 120; // ms
 };
 
   // ======================
@@ -335,18 +338,21 @@ if (cellX !== lastCellX || cellY !== lastCellY) {
     vx = c.cx - lastBallX;
     vy = c.cy - lastBallY;
   }
-  const speedNorm = Math.min(1, Math.hypot(vx, vy) / tile);
+  lastBallVX = vx;
+lastBallVY = vy;
+const speed = Math.hypot(vx, vy);
+const speedNorm = Math.min(1, speed / (tile * 0.5));
 
 // stretch while moving
-let scaleX = 1 + speedNorm * 0.12;
-let scaleY = 1 - speedNorm * 0.08;
+let scaleX = 1 + speedNorm * 0.18;
+let scaleY = 1 - speedNorm * 0.12;
 
-// squash on stop
+// squash on stop (directional)
 if (deformTime > 0) {
-  const t = deformTime / 100;
-  scaleX = 1 - t * 0.15;
-  scaleY = 1 + t * 0.15;
-  deformTime -= 16; // approx frame time
+  const t = deformTime / 120;
+  scaleX = 1 - t * 0.22;
+  scaleY = 1 + t * 0.22;
+  deformTime -= 16;
 }
 
   lastBallX = c.cx;
