@@ -133,16 +133,37 @@ ballImg.onload = () => (ballReady = true);
   function drawBackground() {
   const theme = getTheme();
 
+  let grad = ctx.createLinearGradient(0, 0, 0, h);
+
   if (theme === "forest") {
-    ctx.fillStyle = "#0b1f14"; // deep forest green
+    grad.addColorStop(0, "#06140d");
+    grad.addColorStop(0.5, "#0e2b1c");
+    grad.addColorStop(1, "#06140d");
   } else if (theme === "lava") {
-    ctx.fillStyle = "#1a0703"; // dark volcanic
+    grad.addColorStop(0, "#120302");
+    grad.addColorStop(0.5, "#2a0b06");
+    grad.addColorStop(1, "#120302");
   } else {
-    // ice (default)
-    ctx.fillStyle = "#0e1430";
+    // ice
+    grad.addColorStop(0, "#090f2a");
+    grad.addColorStop(0.5, "#141e42");
+    grad.addColorStop(1, "#090f2a");
   }
 
-  // draw larger than canvas to cover shadows & shake
+  // base gradient
+  ctx.fillStyle = grad;
+  ctx.fillRect(-w, -h, w * 3, h * 3);
+
+  // ── VIGNETTE (visible but clean)
+  const vg = ctx.createRadialGradient(
+    w / 2, h / 2, tile,
+    w / 2, h / 2, Math.max(w, h)
+  );
+
+  vg.addColorStop(0, "rgba(0,0,0,0)");
+  vg.addColorStop(1, "rgba(0,0,0,0.55)");
+
+  ctx.fillStyle = vg;
   ctx.fillRect(-w, -h, w * 3, h * 3);
 }
 function drawWallShadow(px, py) {
