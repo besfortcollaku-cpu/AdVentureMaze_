@@ -541,7 +541,6 @@ body.theme-lava {
 }
 
 body.theme-ice {
-  --.app {
   position: relative;
   min-height: 100vh;
   background-image: var(--ui-bg);
