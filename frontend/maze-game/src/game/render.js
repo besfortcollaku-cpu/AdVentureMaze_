@@ -358,7 +358,6 @@ if (deformTime > 0) {
   lastBallX = c.cx;
   lastBallY = c.cy;
 
-  const speed = Math.hypot(vx, vy);
   const len = speed || 1;
   const nx = vx / len;
   const ny = vy / len;
