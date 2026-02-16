@@ -420,8 +420,7 @@
   content: "";
   position: absolute;
   inset: 0;
-  background: rgba(0,0,0,0.15);
-  z-index: 0;
+  background: rgba(0, 0, 0, 0.45);
 }
 
 .winOverlay .winModal {
@@ -433,15 +432,27 @@
   z-index: 30;
 }
 
-
-.winBg::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.4);
-}
 /* modal above background */
 .winModal {
   position: relative;
   z-index: 1;
+    background: rgba(20, 25, 35, 0.92); /* solid enough */
+  backdrop-filter: blur(6px);
+
+  color: #fff;
+  box-shadow:
+    0 20px 40px rgba(0,0,0,0.6),
+    0 0 0 1px rgba(255,255,255,0.05);
+}
+  .winModal h1,
+.winModal h2,
+.winModal p {
+  opacity: 1;
+  color: #ffffff;
+}
+
+.winModal button {
+  opacity: 1;
+  color: #ffffff;
+  font-weight: 700;
 }
