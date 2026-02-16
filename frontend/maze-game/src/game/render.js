@@ -26,15 +26,22 @@ const MAX_TRAIL = 30;
  let deformTime = 0;
 let deformNX = 0;
 let deformNY = 0;
+let bounceTime = 0;
+let bounceX = 0;
+let bounceY = 0;
 state.onMoveFinished = () => {
   shakeTime = 12;
   shakeStrength = 6;
 
-  // directional squash uses last velocity
   const len = Math.hypot(lastBallVX, lastBallVY) || 1;
   deformNX = lastBallVX / len;
   deformNY = lastBallVY / len;
-  deformTime = 120; // ms
+  deformTime = 120;
+
+  // wall micro-bounce (opposite of movement)
+  bounceX = -deformNX * 4;
+  bounceY = -deformNY * 4;
+  bounceTime = 80; // ms
 };
 
   // ======================
@@ -313,7 +320,15 @@ function drawCrystalShard(x, y, angle, size, alpha, hueShift = 0) {
   const size = tile * 0.9;
   const r = size / 2;
   const c = cellCenter(playerFloat.x, playerFloat.y);
+let bx = 0;
+let by = 0;
 
+if (bounceTime > 0) {
+  const t = bounceTime / 80;
+  bx = bounceX * t;
+  by = bounceY * t;
+  bounceTime -= 16;
+}
 // ── CONTACT TILE DETECTION
 const cellX = Math.floor(playerFloat.x);
 const cellY = Math.floor(playerFloat.y);
@@ -437,8 +452,8 @@ const drawH = size * scaleY;
 
 ctx.drawImage(
   ballImg,
-  c.cx - drawW / 2,
-  c.cy - drawH / 2,
+  c.cx - drawW / 2 + bx,
+  c.cy - drawH / 2 + by,
   drawW,
   drawH
 );
