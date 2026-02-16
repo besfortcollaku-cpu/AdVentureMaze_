@@ -557,3 +557,17 @@ body.theme-lava {
   position: relative;
   z-index: 1;
 }
+
+
+
+body.theme-ice {
+  --ui-bg: url("/textures/ui/background/ice.png");
+}
+
+body.theme-forest {
+  --ui-bg: url("/textures/ui/background/forest.png");
+}
+
+body.theme-lava {
+  --ui-bg: url("/textures/ui/background/lava.png");
+}
