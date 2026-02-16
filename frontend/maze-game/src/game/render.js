@@ -108,23 +108,42 @@ ballImg.onload = () => (ballReady = true);
 
   // ✅ SINGLE source of truth
 // base tile size (fit-to-screen)
+// desired inner gap around the board (in px)
+const boardPadding = 35;
+
+// usable area inside canvas
+const usableW = w - boardPadding * 2;
+const usableH = h - boardPadding * 2;
+
+// base tile size (fit-to-usable-area)
+// desired inner gap around the board (in px)
+const boardPadding = 35;
+
+// usable area inside canvas
+const usableW = w - boardPadding * 2;
+const usableH = h - boardPadding * 2;
+
+// base tile size (fit-to-usable-area)
 const fitTile = Math.min(
-  w / state.cols,
-  h / state.rows
+  usableW / state.cols,
+  usableH / state.rows
 );
 
 // enforce minimum board scale (85%)
 const minBoardScale = 0.85;
 const minTile =
-  Math.min(w, h) * minBoardScale / Math.max(state.cols, state.rows);
+  Math.min(usableW, usableH) * minBoardScale / Math.max(state.cols, state.rows);
 
 // final tile size
 tile = Math.floor(Math.max(fitTile, minTile));
 
-// center board
-ox = Math.floor((w - state.cols * tile) / 2);
-oy = Math.floor((h - state.rows * tile) / 2);
-}
+// center board inside padded area
+ox = Math.floor(
+  boardPadding + (usableW - state.cols * tile) / 2
+);
+oy = Math.floor(
+  boardPadding + (usableH - state.rows * tile) / 2
+);
   // ======================
   // HELPERS
   // ======================
