@@ -14,9 +14,9 @@ export function createWinPopup() {
 
   el.innerHTML = `
     <div class="modal winModal">
-      <div class="winBg congratsBadge" id="congratsBadge"></div>
-      <div class="badge">CONGRATS!</div>
-
+      <div id="congratsBadge" class="badge">
+  CONGRATS!
+</div>
       <h2 class="title">Level Complete</h2>
       <div class="subtitle" id="winLevelText">You finished Level</div>
 

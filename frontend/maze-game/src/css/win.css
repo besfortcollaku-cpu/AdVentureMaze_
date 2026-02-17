@@ -248,10 +248,9 @@ body.theme-lava .winModal {
 }
 
 #congratsBadge {
-  position: fixed !important;
-  top: 90px !important;        /* below header */
-  left: 50% !important;
-  right: auto !important;
-  transform: translateX(-50%) !important;
-  z-index: 2000 !important;
+  position: absolute;
+  top: -14px;                 /* floats above modal */
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
 }
