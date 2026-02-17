@@ -220,22 +220,22 @@
 
 /* BASE modal */
 .winModal {
-  background: rgba(255, 255, 255, 0.10);
+  background: rgba(255, 255, 255, 0.30);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
 }
 
 /* FOREST */
 body.theme-forest .winModal {
-  background: rgba(60, 140, 90, 0.20) !important;
+  background: rgba(60, 140, 90, 0.30) !important;
 }
 
 /* ICE */
 body.theme-ice .winModal {
-  background: rgba(90, 150, 220, 0.18) !important;
+  background: rgba(90, 150, 220, 0.30) !important;
 }
 
 /* LAVA */
 body.theme-lava .winModal {
-  background: rgba(180, 80, 50, 0.22) !important;
+  background: rgba(180, 80, 50, 0.30) !important;
 }
