@@ -1,4 +1,4 @@
-import "../css/restart.css";
+import "../css/popup.css";
 
 export function createRestartPopup() {
   const el = document.createElement("div");
@@ -6,9 +6,9 @@ export function createRestartPopup() {
   el.innerHTML = `
     <div class="popup-card">
       <h3>Restart Level</h3>
-      <button id="buyRestartBtn">Buy Restart</button>
-      <button id="watchAdRestartBtn">Watch Ad</button>
-      <button id="closeRestartBtn">Close</button>
+      <button id="buyRestartBtn" class="primary">Buy Restart</button>
+      <button id="watchAdRestartBtn" class="primary">Watch Ad</button>
+      <button id="closeRestartBtn" class="primary">Close</button>
     </div>
   `;
   document.body.appendChild(el);
