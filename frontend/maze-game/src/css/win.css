@@ -55,11 +55,7 @@
   border-radius: 22px;
 
   /* IMPORTANT: no opacity here */
-  background: linear-gradient(
-    180deg,
-    rgba(22, 28, 38, 0.16),
-    rgba(12, 16, 24, 0.18)
-  );
+  
 
   color: #ffffff;
   text-align: center;
