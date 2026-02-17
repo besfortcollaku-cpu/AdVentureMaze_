@@ -62,6 +62,7 @@ body.theme-lava {
    TOP BAR
 ========================= */
 .top {
+      backdrop-filter: blur(6px);
   padding: 14px 12px 10px;
   text-align: center;
   background: linear-gradient(
@@ -71,7 +72,13 @@ body.theme-lava {
   );
 }
 .bottomBar {
-  background: rgba(0, 0, 0, 0.3);
+  background: linear-gradient(
+    to top,
+    rgba(0,0,0,0.55),
+    rgba(0,0,0,0.2),
+    transparent
+  );
+  backdrop-filter: blur(6px);
 }
 
 .level {
@@ -215,6 +222,10 @@ canvas#game {
   max-width: 360px;
   aspect-ratio: 1 / 1;
     background: transparent;
+    box-shadow:
+    0 12px 40px rgba(0,0,0,0.55),
+    inset 0 0 0 2px rgba(255,255,255,0.06),
+    inset 0 0 30px rgba(120,255,180,0.15);
 }
 
 /* =========================
