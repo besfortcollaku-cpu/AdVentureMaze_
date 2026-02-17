@@ -30,7 +30,6 @@
   background-position: center;
   background-repeat: no-repeat;
 
-  filter: saturate(1.1) contrast(1.05);
   z-index: 0;
 }
 
