@@ -251,7 +251,7 @@ body.theme-lava .winModal {
   position: absolute;
   top: 14px;
   left: 50%;
-  right: auto !important;
   transform: translateX(-50%);
+  right: auto !important;
   z-index: 3;
 }
