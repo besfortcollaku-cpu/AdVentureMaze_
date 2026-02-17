@@ -241,7 +241,3 @@
     rgba(0,0,0,0.85)
   );
 }
-
-.theme-forest .winBg { background-image: url("/textures/ui/background/forest.png"); }
-.theme-lava   .winBg { background-image: url("/textures/ui/background/lava.png"); }
-.theme-ice    .winBg { background-image: url("/textures/ui/background/ice.png"); }  
