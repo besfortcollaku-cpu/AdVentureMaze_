@@ -247,11 +247,11 @@ body.theme-lava .winModal {
   -webkit-backdrop-filter: blur(12px);
 }
 
-.congratsBadge {
-  position: absolute;
-  top: 14px;
-  left: 50%;
-  transform: translateX(-50%);
+#congratsBadge {
+  position: fixed !important;
+  top: 90px !important;        /* below header */
+  left: 50% !important;
   right: auto !important;
-  z-index: 3;
+  transform: translateX(-50%) !important;
+  z-index: 2000 !important;
 }
