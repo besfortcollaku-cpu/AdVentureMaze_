@@ -62,7 +62,7 @@ body.theme-lava {
    TOP BAR
 ========================= */
 .top {
-      backdrop-filter: blur(6px);
+      backdrop-filter: blur(2px);
   padding: 14px 12px 10px;
   text-align: center;
   background: linear-gradient(
@@ -78,7 +78,7 @@ body.theme-lava {
     rgba(0,0,0,0.2),
     transparent
   );
-  backdrop-filter: blur(6px);
+  backdrop-filter: blur(2px);
 }
 
 .level {
