@@ -20,14 +20,12 @@ export function createWinPopup() {
       <h2 class="title">Level Complete</h2>
       <div class="subtitle" id="winLevelText">You finished Level</div>
 
-      <div class="victoryBox">
-        <span class="icon">♪</span>
-        <span>Victory vibes</span>
-      </div>
 
-      <button class="btn primary" id="nextLevelBtn">
+<div class="winCard">
+      <button class="btn primary btnNext" id="nextLevelBtn">
         Next level
       </button>
+</div>
 
       <button class="btn secondary" id="watchAdBtn">
         Watch Ad <span class="reward">+50</span> 🪙
