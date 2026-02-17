@@ -64,9 +64,6 @@
   color: #ffffff;
   text-align: center;
 
-  box-shadow:
-    0 28px 70px rgba(0,0,0,0.75),
-    inset 0 1px 0 rgba(255,255,255,0.06);
 
   animation: winIn 0.35s cubic-bezier(0.22, 1.2, 0.36, 1);
 }
