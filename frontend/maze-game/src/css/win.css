@@ -249,7 +249,7 @@ body.theme-lava .winModal {
 
 #congratsBadge {
   position: absolute;
-  top: -14px;                 /* floats above modal */
+  top: -25px;                 /* floats above modal */
   left: 50%;
   transform: translateX(-50%);
   z-index: 10;
