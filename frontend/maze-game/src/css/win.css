@@ -75,7 +75,8 @@
   font-weight: 900;
   letter-spacing: 0.5px;
 
-  
+  background: linear-gradient(180deg, #4ade80, #16a34a);
+  color: #062a16;
 
   box-shadow: 0 10px 22px rgba(74, 222, 128, 0.35);
 }
@@ -169,11 +170,7 @@
 
 /* Forest */
 .winOverlay.theme-forest .winModal {
-  background: linear-gradient(
-    180deg,
-    rgba(20, 48, 32, 0.96),
-    rgba(10, 24, 16, 0.98)
-  );
+  
 }
 
 .winOverlay.theme-forest .badge {
