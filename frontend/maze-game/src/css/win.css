@@ -246,3 +246,12 @@ body.theme-lava .winModal {
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
 }
+
+.congratsBadge {
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  right: auto !important;
+  transform: translateX(-50%);
+  z-index: 3;
+}
