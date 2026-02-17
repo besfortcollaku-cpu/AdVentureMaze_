@@ -1,13 +1,15 @@
-import "../css/popup.css";
+import "../css/hints.css";
+
 export function createHintPopup() {
   const el = document.createElement("div");
   el.className = "popup hidden";
   el.innerHTML = `
     <div class="popup-card">
       <h3>Hint</h3>
-      <button id="buyHintBtn" class="primary">Buy Hint</button>
-      <button id="watchAdHintBtn" class="primary">Watch Ad</button>
-      <button id="closeHintBtn" class="primary">Close</button>
+      <button id="freeHintBtn">Free Hint</button>
+      <button id="buyHintBtn">Buy Hint</button>
+      <button id="watchAdHintBtn">Watch Ad</button>
+      <button id="closeHintBtn">Close</button>
     </div>
   `;
   document.body.appendChild(el);

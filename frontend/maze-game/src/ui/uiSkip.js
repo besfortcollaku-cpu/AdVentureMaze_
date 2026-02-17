@@ -1,12 +1,14 @@
-import "../css/popup.css";export function createSkipPopup() {
+import "../css/skip.css";
+export function createSkipPopup() {
   const el = document.createElement("div");
   el.className = "popup hidden";
   el.innerHTML = `
     <div class="popup-card">
       <h3>Skip Level</h3>
-      <button id="buySkipBtn" class="primary">Buy Skip</button>
-      <button id="watchAdSkipBtn" class="primary">Watch Ad</button>
-      <button id="closeSkipBtn" class="primary">Close</button>
+      <button id="freeSkipBtn">Free Skip</button>
+      <button id="buySkipBtn">Buy Skip</button>
+      <button id="watchAdSkipBtn">Watch Ad</button>
+      <button id="closeSkipBtn">Close</button>
     </div>
   `;
   document.body.appendChild(el);

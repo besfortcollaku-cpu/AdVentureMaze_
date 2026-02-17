@@ -1,0 +1,70 @@
+/* ===== Popup Backdrop ===== */
+.popup {
+  position: fixed;
+  inset: 0;
+  background: rgba(5, 10, 25, 0.75);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.popup.hidden {
+  display: none;
+}
+
+/* ===== Popup Card ===== */
+.popup-card {
+  width: min(92%, 360px);
+  background: linear-gradient(180deg, #0e2440, #08192e);
+  border-radius: 22px;
+  padding: 22px;
+  color: #fff;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+  text-align: center;
+}
+
+/* ===== Title ===== */
+.popup-card h3 {
+  margin: 0 0 16px;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+/* ===== Buttons ===== */
+.popup-card button {
+  width: 100%;
+  border: none;
+  border-radius: 16px;
+  padding: 14px 16px;
+  margin-top: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.08s ease, opacity 0.08s ease;
+}
+
+.popup-card button:active {
+  transform: scale(0.97);
+}
+
+/* Primary */
+#freeSkipBtn {
+  background: linear-gradient(180deg, #2fd4ff, #16a3ff);
+  color: #00121f;
+}
+
+/* Secondary */
+#buySkipBtn,
+#watchAdSkipBtn {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+
+/* Close */
+#closeSkipBtn {
+  background: transparent;
+  color: #9fb3c8;
+  font-size: 14px;
+}

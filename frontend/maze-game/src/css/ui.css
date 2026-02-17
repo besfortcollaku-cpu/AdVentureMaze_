@@ -582,3 +582,41 @@ body.theme-forest {
 body.theme-lava {
   --ui-bg: url("/textures/ui/background/lava.png");
 }
+/* =========================
+   GAME BACKGROUND PER THEME
+========================= */
+
+/* Forest */
+body.theme-forest .board {
+  background-image: url("/textures/ui/background/bg_game_forest.png");
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+/* Ice */
+body.theme-ice .board {
+  background-image: url("/textures/ui/background/bg_game_ice.png");
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+/* Lava */
+body.theme-lava .board {
+  background-image: url("/textures/ui/background/bg_game_lava.png");
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+canvas#game {
+  position: relative;
+  z-index: 1;
+
+  width: 100%;
+  max-width: 360px;
+  aspect-ratio: 1 / 1;
+
+  background: transparent; /* IMPORTANT */
+  border-radius: 18px;
+}
