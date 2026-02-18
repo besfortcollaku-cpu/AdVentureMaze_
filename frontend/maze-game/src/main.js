@@ -230,6 +230,23 @@ async function migrateGuestProgress({ BACKEND, token }) {
   localStorage.removeItem(GUEST_PROGRESS_KEY);
 }
 async function boot() {
+// ---- LOAD PROGRESS EARLY ----
+if (CURRENT_ACCESS_TOKEN) {
+  try {
+    const progress = await loadProgress({ BACKEND, token: CURRENT_ACCESS_TOKEN });
+    window.__progress = progress?.data || { level: 1 };
+    CURRENT_MAX_UNLOCKED_LEVEL = Math.max(1, window.__progress.level || 1);
+  } catch {
+    window.__progress = { level: 1 };
+    CURRENT_MAX_UNLOCKED_LEVEL = 1;
+  }
+} else {
+  const guest = loadGuestProgress();
+  window.__progress = { level: guest.maxLevel || 1 };
+  CURRENT_MAX_UNLOCKED_LEVEL = window.__progress.level;
+}
+levelsUI?.setUnlocked?.(CURRENT_MAX_UNLOCKED_LEVEL);
+
     const storedToken = localStorage.getItem("pi_access_token");
 if (storedToken) {
   CURRENT_ACCESS_TOKEN = storedToken;

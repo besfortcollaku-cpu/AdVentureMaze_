@@ -13,13 +13,16 @@ export function mountLevelsUI({ onSelect }) {
     return null;
   }
 
-  window.__levelsUI = {
+  renderLevels();
+
+  return {
     open,
     close,
-    render,
+    setUnlocked,
+    onSelect(cb) {
+      onSelectLevel = cb;
+    }
   };
-
-  return window.__levelsUI;
 }
 
 function open() {
