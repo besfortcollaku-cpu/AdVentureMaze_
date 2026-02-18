@@ -328,3 +328,33 @@ body.theme-lava .settings-card {
   background: rgba(0, 0, 0, 0.06);
   z-index: 1;
 }
+.settings-card {
+  position: relative;
+  z-index: 2;
+
+  max-width: 360px;
+  padding: 22px;
+  border-radius: 22px;
+
+  color: #fff;
+
+  /* NO blur here */
+  backdrop-filter: none;
+
+  border: 1px solid rgba(255,255,255,0.14);
+
+  box-shadow:
+    0 18px 40px rgba(0,0,0,0.35),
+    inset 0 1px 0 rgba(255,255,255,0.08);
+}
+body.theme-forest .settings-card {
+  background: rgba(20, 60, 35, 0.65);
+}
+
+body.theme-ice .settings-card {
+  background: rgba(45, 90, 145, 0.65);
+}
+
+body.theme-lava .settings-card {
+  background: rgba(90, 35, 20, 0.65);
+}
