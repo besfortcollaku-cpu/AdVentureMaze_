@@ -1,7 +1,5 @@
-
-// uiLevels.js
-import "../css/levels.css";
 // src/ui/uiLevels.js
+import "../css/levels.css";
 
 let rootEl = null;
 let onSelectLevel = null;
@@ -12,41 +10,52 @@ export function mountLevelsUI({ onSelect }) {
 
   if (!rootEl) {
     console.warn("Levels UI not found in DOM");
-    return;
+    return null;
   }
 
-  renderLevels();
+  window.__levelsUI = {
+    open,
+    close,
+    render,
+  };
+
+  return window.__levelsUI;
 }
 
-function renderLevels() {
+function open() {
+  if (!rootEl) return;
+  rootEl.classList.remove("hidden");
+  render();
+}
+
+function close() {
+  if (!rootEl) return;
+  rootEl.classList.add("hidden");
+}
+
+function render() {
   if (!window.__progress) {
-    console.error("Progress not loaded yet");
+    console.warn("Progress not loaded yet");
     return;
   }
 
-  const { level: currentLevel } = window.__progress;
+  const unlocked = window.__progress.level; // 🔥 THIS is the key
+  const total = window.__levels?.length || 20;
 
-  const TOTAL_LEVELS = getTotalLevels();
   const grid = rootEl.querySelector(".levelsGrid");
-
-  if (!grid) {
-    console.error("levelsGrid not found");
-    return;
-  }
-
   grid.innerHTML = "";
 
-  for (let i = 1; i <= TOTAL_LEVELS; i++) {
+  for (let i = 1; i <= total; i++) {
     const tile = document.createElement("button");
     tile.className = "levelTile";
 
-    if (i < currentLevel) {
-      tile.classList.add("completed");
+    if (i < unlocked) {
+      tile.classList.add("done");
       tile.innerHTML = "✓";
-    } else if (i === currentLevel) {
+    } else if (i === unlocked) {
       tile.classList.add("current");
-      tile.innerHTML = i;
-      tile.onclick = () => onSelectLevel(i);
+      tile.textContent = i;
+      tile.onclick = () => onSelectLevel(i - 1);
     } else {
       tile.classList.add("locked");
       tile.innerHTML = "🔒";
@@ -56,15 +65,3 @@ function renderLevels() {
     grid.appendChild(tile);
   }
 }
-
-// reads real level count from backend config
-function getTotalLevels() {
-  // backend-defined levels list
-  if (window.__levels && Array.isArray(window.__levels)) {
-    return window.__levels.length;
-  }
-
-  // fallback safety
-  return 20;
-}
-

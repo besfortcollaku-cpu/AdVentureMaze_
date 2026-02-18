@@ -313,19 +313,15 @@ ui.onAccountClick(async () => {
   ui.showWelcome();
   ui.triggerLogin();
 });
-const levelsUI = mountLevelsUI(root);  
-ui.levelsBtn.addEventListener("click", () => {
-  // keep levels UI in sync before opening
-  if (CURRENT_USER?.uid) {
-    levelsUI.setUnlocked?.(CURRENT_MAX_UNLOCKED_LEVEL || 1);
-  } else {
-    const guestProgress = loadGuestProgress();
-    const unlocked = Math.min(guestProgress.maxLevel || 1, GUEST_MAX_LEVEL);
-    CURRENT_MAX_UNLOCKED_LEVEL = unlocked;
-    levelsUI.setUnlocked?.(unlocked);
+const levelsUI = mountLevelsUI({
+  onSelect(levelNumber) {
+    // Guest lock
+    if (!CURRENT_USER?.uid && levelNumber > GUEST_MAX_LEVEL) {
+      ui.showLoginRequired();
+      return;
+    }
+    goToLevel(levelNumber - 1);
   }
-
-  levelsUI.open();
 });
 
 // Level select
