@@ -226,3 +226,66 @@ body.theme-ice .levelBtn.unlocked {
 body.theme-lava .levelBtn.unlocked {
   border-color: rgba(255, 140, 80, 0.45);
 }
+/* =========================
+   CLEAN LEVEL TILE
+========================= */
+.levelBtn {
+  width: 64px;
+  height: 64px;
+  border-radius: 14px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: rgba(255, 255, 255, 0.12); /* clean glass */
+  border: 1px solid rgba(255, 255, 255, 0.22);
+
+  color: #ffffff;
+  font-size: 20px;
+  font-weight: 800;
+
+  box-shadow: none;        /* 🔴 remove outer glow */
+  backdrop-filter: none;  /* 🔴 no blur */
+
+  position: relative;
+} 
+.levelBtn .label {
+  display: none;
+}
+.levelBtn span {
+  font-size: 20px;
+}
+.levelBtn.completed::after {
+  content: "✓";
+  color: #7CFFB2;
+  font-size: 24px;
+  font-weight: 900;
+}
+.levelBtn.completed {
+  opacity: 0.6;
+}
+.levelBtn.locked {
+  opacity: 0.35;
+  pointer-events: none;
+}
+.levelBtn.locked::after {
+  content: "🔒";
+  position: absolute;
+  top: 6px;
+  right: 6px;
+
+  font-size: 14px;
+  opacity: 0.8;
+}
+body.theme-forest .levelBtn {
+  border-color: rgba(90, 220, 140, 0.35);
+}
+
+body.theme-ice .levelBtn {
+  border-color: rgba(140, 190, 255, 0.35);
+}
+
+body.theme-lava .levelBtn {
+  border-color: rgba(255, 150, 90, 0.35);
+}
