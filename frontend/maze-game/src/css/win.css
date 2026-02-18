@@ -289,3 +289,42 @@ body.theme-ice .settings-card {
 body.theme-lava .settings-card {
   background: rgba(90, 35, 20, 0.65);
 }
+
+/* =========================
+   SETTINGS OVERLAY
+========================= */
+.settingsOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: none;
+}
+
+/* THEME BACKGROUND (PNG) */
+.settingsOverlay::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+
+  background-image: var(--ui-bg);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+
+  z-index: 0;
+}
+
+/* LIGHT VEIL (same idea as win) */
+.settingsOverlay::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+
+  background: rgba(0, 0, 0, 0.06);
+  z-index: 1;
+}
