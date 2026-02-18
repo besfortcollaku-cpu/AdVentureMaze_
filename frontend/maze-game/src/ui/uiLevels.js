@@ -68,23 +68,3 @@ function getTotalLevels() {
   return 20;
 }
 
-export function mountLevelsUI() {
-  const root = document.getElementById("levelsOverlay");
-  if (!root) {
-    console.warn("Levels UI not found in DOM");
-    return null;
-  }
-
-  // create DOM once
-  // attach listeners
-  // fetch progress
-  // render levels
-
-  window.__levelsUI = {
-    open,
-    close,
-    selectLevel
-  };
-
-  return window.__levelsUI;
-}
