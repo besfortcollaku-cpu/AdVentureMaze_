@@ -11,8 +11,8 @@ export function mountSettingsUI(root) {
   el.className = "settings-overlay hidden";
 
   el.innerHTML = `
-    <div class="settings-backdrop"></div>
-    <div class="settings-card">
+<div class="settingsOverlay hidden">
+  <div class="settings-card">
       <div class="settings-header">
         <h2>Settings</h2>
         <button class="close-btn">✕</button>
