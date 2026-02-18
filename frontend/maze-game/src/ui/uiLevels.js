@@ -1,15 +1,17 @@
 
 // uiLevels.js
 import "../css/levels.css";
-import { levels as LEVELS } from "../levels/index.js";
+// src/ui/uiLevels.js
 
+import { LEVELS } from "../levels/index.js";
 
 const overlay = document.getElementById("levelsOverlay");
 const grid = document.getElementById("levelsGrid");
+const closeBtn = document.getElementById("levelsClose");
 
 async function getProgress() {
   const res = await fetch("/progress", {
-    credentials: "include" // IMPORTANT for Pi auth
+    credentials: "include"
   });
 
   const json = await res.json();
@@ -21,26 +23,23 @@ async function getProgress() {
 function renderLevels(maxUnlocked) {
   grid.innerHTML = "";
 
-  LEVELS.forEach((lvl, index) => {
+  LEVELS.forEach((_, index) => {
     const levelNumber = index + 1;
-
     const tile = document.createElement("button");
     tile.className = "level-tile";
 
-    // ✅ COMPLETED
+    // ✅ Completed
     if (levelNumber < maxUnlocked) {
       tile.classList.add("completed");
       tile.innerHTML = "✓";
     }
-
-    // ✅ UNLOCKED (CURRENT)
+    // ▶ Current unlocked
     else if (levelNumber === maxUnlocked) {
       tile.classList.add("unlocked");
       tile.textContent = levelNumber;
       tile.onclick = () => startLevel(levelNumber);
     }
-
-    // 🔒 LOCKED
+    // 🔒 Locked
     else {
       tile.classList.add("locked");
       tile.innerHTML = "🔒";
@@ -56,10 +55,7 @@ export async function openLevels() {
 
   try {
     const progress = await getProgress();
-
-    // 🔥 THIS IS THE KEY LINE
     const maxUnlocked = Math.max(1, Number(progress.level || 1));
-
     renderLevels(maxUnlocked);
   } catch (e) {
     console.error("Levels load failed:", e);
@@ -68,4 +64,17 @@ export async function openLevels() {
 
 export function closeLevels() {
   overlay.classList.add("hidden");
+}
+
+/**
+ * ✅ REQUIRED by main.js and ui.js
+ * Mounts listeners ONCE
+ */
+export function mountLevelsUI() {
+  if (!overlay || !grid) {
+    console.warn("Levels UI not found in DOM");
+    return;
+  }
+
+  closeBtn?.addEventListener("click", closeLevels);
 }
