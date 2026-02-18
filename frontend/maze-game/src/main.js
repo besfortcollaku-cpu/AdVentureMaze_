@@ -249,6 +249,7 @@ if (storedToken) {
 
   // Mount UI
 const ui = mountUI(root);
+const levelsUI = mountLevelsUI(root);  
 
 
 
@@ -313,7 +314,7 @@ ui.onAccountClick(async () => {
   ui.showWelcome();
   ui.triggerLogin();
 });
-const levelsUI = mountLevelsUI(root);  
+
 ui.levelsBtn.addEventListener("click", () => {
   // keep levels UI in sync before opening
   if (CURRENT_USER?.uid) {
@@ -662,6 +663,13 @@ ui.onLoginClick(async () => {
     token: CURRENT_ACCESS_TOKEN,
     ui,
   });
+  // ---- GLOBAL PROGRESS FOR LEVELS UI ----
+window.__progress = {
+  level:
+    me?.progress?.maxLevel ??
+    me?.progress?.highestLevel ??
+    1,
+};
   // 🔑 STORE PROGRESS GLOBALLY FOR LEVELS UI (PERSIST AFTER REFRESH)
 window.__progress = {
   level:

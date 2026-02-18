@@ -6,7 +6,7 @@ let onSelectLevel = null;
 let totalLevels = 0;
 
 export function mountLevelsUI({ onSelect, levelsCount }) {
-  onSelectLevel = onSelect;
+  onSelectLevel = typeof onSelect === "function" ? onSelect : () => {};
   totalLevels = levelsCount;
 
   rootEl = document.getElementById("levelsOverlay");
