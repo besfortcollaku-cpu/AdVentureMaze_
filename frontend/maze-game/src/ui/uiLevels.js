@@ -24,6 +24,25 @@ export function mountLevelsUI(root) {
 
   root.appendChild(overlay);
 
+
+async function loadProgress() {
+  try {
+    const maze = window.__maze;
+    const uid = maze?.uid;
+
+    if (!uid) return;
+
+    const res = await fetch(`/progress?uid=${uid}`);
+    const json = await res.json();
+
+    if (json?.ok && json.data?.level) {
+      maxUnlocked = Number(json.data.level);
+      render();
+    }
+  } catch (e) {
+    console.warn("Failed to load progress", e);
+  }
+}
   const grid = overlay.querySelector("#levelsGrid");
   const closeBtn = overlay.querySelector("#levelsClose");
 
@@ -98,6 +117,7 @@ export function mountLevelsUI(root) {
   function open() {
     document.body.classList.add("overlay-open");
     overlay.style.display = "flex";
+    loadProgress();
   }
 
   function close() {
