@@ -221,7 +221,7 @@
 /* BASE modal */
 .winModal {
   background: rgba(255, 255, 255, 0.30);
-  backdrop-filter: blur(20px);
+  backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
 }
 
@@ -279,4 +279,13 @@ body.theme-lava .winModal {
 
 .winCard:active {
   transform: scale(0.98);
+}
+body.theme-forest .settings-card {
+  background: rgba(20, 60, 35, 0.65);
+}
+body.theme-ice .settings-card {
+  background: rgba(45, 90, 145, 0.65);
+}
+body.theme-lava .settings-card {
+  background: rgba(90, 35, 20, 0.65);
 }
