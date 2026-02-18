@@ -1,6 +1,6 @@
 // uiLevels.js
 
-import { LEVELS } from "./levels/index.js";
+import { LEVELS } from "../levels/index.js";
 
 const overlay = document.getElementById("levelsOverlay");
 const grid = document.getElementById("levelsGrid");
