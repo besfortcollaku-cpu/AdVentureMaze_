@@ -662,6 +662,13 @@ ui.onLoginClick(async () => {
     token: CURRENT_ACCESS_TOKEN,
     ui,
   });
+  // 🔑 STORE PROGRESS GLOBALLY FOR LEVELS UI (PERSIST AFTER REFRESH)
+window.__progress = {
+  level:
+    me?.progress?.maxLevel ??
+    me?.progress?.highestLevel ??
+    1,
+};
 
   const maxLevel =
     me?.progress?.maxLevel ??
