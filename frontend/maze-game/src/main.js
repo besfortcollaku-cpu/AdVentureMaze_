@@ -249,6 +249,13 @@ if (storedToken) {
 
   // Mount UI
 const ui = mountUI(root);
+window.__levelsUI = mountLevelsUI({
+  onSelect(level) {
+    levelIndex = level - 1;
+    startLevel(levelIndex);
+  },
+});
+
 const levelsUI = mountLevelsUI({
   onSelect(level) {
     levelIndex = level - 1;
