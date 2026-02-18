@@ -1,5 +1,7 @@
+
 // uiLevels.js
 import "../css/levels.css";
+import { levels as LEVELS } from "../levels/index.js";
 
 export function mountLevelsUI(root) {
   // ----- DOM -----
@@ -11,7 +13,7 @@ export function mountLevelsUI(root) {
     <div class="levelsCard">
       <div class="levelsHeader">
         <span class="badge">LEVELS</span>
-        <h2>Select Level</h2>
+        <h2>Select</h2>
       </div>
 
       <div class="levelsGrid" id="levelsGrid"></div>
@@ -28,7 +30,9 @@ export function mountLevelsUI(root) {
   // ----- STATE -----
   let maxUnlocked = 1;
   let selectHandler = null;
-  const TOTAL_LEVELS = 55;
+
+  // real total levels from src/levels/index.js
+  const TOTAL_LEVELS = Array.isArray(LEVELS) && LEVELS.length > 0 ? LEVELS.length : 55;
 
   // ----- BUILD GRID ONCE -----
   const levelButtons = [];
@@ -36,25 +40,27 @@ export function mountLevelsUI(root) {
   for (let i = 1; i <= TOTAL_LEVELS; i++) {
     const btn = document.createElement("button");
     btn.className = "levelBtn";
-    btn.dataset.level = i;
+    btn.dataset.level = String(i);
 
-    btn.innerHTML = `
-      <span class="icon"></span>
-      <span class="label">Level ${i}</span>
-    `;
+    // IMPORTANT: single content only (no "Level" text, no extra inner squares)
+    btn.textContent = String(i);
 
     btn.addEventListener("click", () => {
+      const level = Number(btn.dataset.level || 0);
+
+      // locked behavior (guest gating)
       if (btn.classList.contains("locked")) {
-        // If guest taps a locked level above the guest limit, show login-required.
         const maze = window.__maze;
         const guestMax = Number(maze?.guestMaxLevel || 0);
         const isLoggedIn = maze?.isLoggedIn?.() === true;
-        if (!isLoggedIn && guestMax > 0 && i > guestMax) {
+
+        if (!isLoggedIn && guestMax > 0 && level > guestMax) {
           maze?.showLoginRequired?.();
         }
         return;
       }
-      selectHandler?.(i);
+
+      selectHandler?.(level);
       close();
     });
 
@@ -64,22 +70,28 @@ export function mountLevelsUI(root) {
 
   // ----- RENDER STATES -----
   function render() {
-    levelButtons.forEach((btn) => {
+    for (const btn of levelButtons) {
       const level = Number(btn.dataset.level);
-      btn.classList.remove("locked", "completed", "unlocked");
 
-      const icon = btn.querySelector(".icon");
+      btn.classList.remove("locked", "completed", "unlocked", "current");
 
       if (level < maxUnlocked) {
+        // completed => ✓ only (no number)
         btn.classList.add("completed");
-        icon.innerHTML = btn.classList.contains("locked") ? "🔒" : "✔";
+        btn.textContent = "✓";
+        btn.setAttribute("aria-label", `Level ${level} completed`);
       } else if (level === maxUnlocked) {
-        btn.classList.add("unlocked");
-        icon.textContent = "";
+        // current unlocked => number only
+        btn.classList.add("unlocked", "current");
+        btn.textContent = String(level);
+        btn.setAttribute("aria-label", `Level ${level}`);
       } else {
+        // locked => empty content (lock badge should be CSS ::after)
         btn.classList.add("locked");
+        btn.textContent = "";
+        btn.setAttribute("aria-label", `Level ${level} locked`);
       }
-    });
+    }
   }
 
   // ----- OPEN / CLOSE -----
@@ -95,13 +107,16 @@ export function mountLevelsUI(root) {
 
   closeBtn.addEventListener("click", close);
 
+  // initial render
+  render();
+
   // ----- PUBLIC API -----
   return {
     open,
     close,
 
     setUnlocked(level) {
-      maxUnlocked = Math.max(1, level || 1);
+      maxUnlocked = Math.max(1, Number(level) || 1);
       render();
     },
 
