@@ -247,7 +247,7 @@ if (CURRENT_ACCESS_TOKEN) {
   CURRENT_MAX_UNLOCKED_LEVEL = window.__progress.level;
 }
 
-    const storedToken = localStorage.getItem("pi_access_token");
+    
 if (storedToken) {
   CURRENT_ACCESS_TOKEN = storedToken;
 }
