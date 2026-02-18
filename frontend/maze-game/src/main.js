@@ -230,6 +230,7 @@ async function migrateGuestProgress({ BACKEND, token }) {
   localStorage.removeItem(GUEST_PROGRESS_KEY);
 }
 async function boot() {
+    const storedToken = localStorage.getItem("pi_access_token");
 // ---- LOAD PROGRESS EARLY ----
 if (CURRENT_ACCESS_TOKEN) {
   try {
@@ -245,7 +246,6 @@ if (CURRENT_ACCESS_TOKEN) {
   window.__progress = { level: guest.maxLevel || 1 };
   CURRENT_MAX_UNLOCKED_LEVEL = window.__progress.level;
 }
-levelsUI?.setUnlocked?.(CURRENT_MAX_UNLOCKED_LEVEL);
 
     const storedToken = localStorage.getItem("pi_access_token");
 if (storedToken) {
@@ -330,9 +330,10 @@ ui.onAccountClick(async () => {
   ui.showWelcome();
   ui.triggerLogin();
 });
+
+
 const levelsUI = mountLevelsUI({
   onSelect(levelNumber) {
-    // Guest lock
     if (!CURRENT_USER?.uid && levelNumber > GUEST_MAX_LEVEL) {
       ui.showLoginRequired();
       return;
@@ -341,15 +342,10 @@ const levelsUI = mountLevelsUI({
   }
 });
 
+// 🔓 NOW unlock levels (correct timing)
+levelsUI.setUnlocked?.(CURRENT_MAX_UNLOCKED_LEVEL);
 // Level select
-levelsUI.onSelect((levelNumber) => {
-  // Guest can only open levels 1..GUEST_MAX_LEVEL
-  if (!CURRENT_USER?.uid && levelNumber > GUEST_MAX_LEVEL) {
-    ui.showLoginRequired();
-    return;
-  }
-  goToLevel(levelNumber - 1);
-});
+
   
   ui.showWelcome();
   
