@@ -621,12 +621,3 @@ canvas#game {
   background: transparent; /* IMPORTANT */
   border-radius: 18px;
 }
-
-/* === HARD OVERRIDE: WELCOME MUST BE CLICKABLE === */
-#welcomeOverlay {
-  pointer-events: auto !important;
-}
-
-#welcomeOverlay * {
-  pointer-events: auto !important;
-}

@@ -231,23 +231,6 @@ async function migrateGuestProgress({ BACKEND, token }) {
 }
 async function boot() {
     const storedToken = localStorage.getItem("pi_access_token");
-// ---- LOAD PROGRESS EARLY ----
-if (CURRENT_ACCESS_TOKEN) {
-  try {
-    const progress = await loadProgress({ BACKEND, token: CURRENT_ACCESS_TOKEN });
-    window.__progress = progress?.data || { level: 1 };
-    CURRENT_MAX_UNLOCKED_LEVEL = Math.max(1, window.__progress.level || 1);
-  } catch {
-    window.__progress = { level: 1 };
-    CURRENT_MAX_UNLOCKED_LEVEL = 1;
-  }
-} else {
-  const guest = loadGuestProgress();
-  window.__progress = { level: guest.maxLevel || 1 };
-  CURRENT_MAX_UNLOCKED_LEVEL = window.__progress.level;
-}
-
-    
 if (storedToken) {
   CURRENT_ACCESS_TOKEN = storedToken;
 }
@@ -330,29 +313,30 @@ ui.onAccountClick(async () => {
   ui.showWelcome();
   ui.triggerLogin();
 });
+const levelsUI = mountLevelsUI(root);  
+ui.levelsBtn.addEventListener("click", () => {
+  // keep levels UI in sync before opening
+  if (CURRENT_USER?.uid) {
+    levelsUI.setUnlocked?.(CURRENT_MAX_UNLOCKED_LEVEL || 1);
+  } else {
+    const guestProgress = loadGuestProgress();
+    const unlocked = Math.min(guestProgress.maxLevel || 1, GUEST_MAX_LEVEL);
+    CURRENT_MAX_UNLOCKED_LEVEL = unlocked;
+    levelsUI.setUnlocked?.(unlocked);
+  }
 
+  levelsUI.open();
+});
 
-let levelsUI = null;
-
-try {
-  levelsUI = mountLevelsUI({
-    onSelect(levelNumber) {
-      if (!CURRENT_USER?.uid && levelNumber > GUEST_MAX_LEVEL) {
-        ui.showLoginRequired();
-        return;
-      }
-      goToLevel(levelNumber - 1);
-    }
-  });
-
-  levelsUI?.setUnlocked?.(CURRENT_MAX_UNLOCKED_LEVEL);
-} catch (e) {
-  console.warn("Levels UI failed to mount (safe ignore)", e);
-}
-// 🔓 NOW unlock levels (correct timing)
-levelsUI.setUnlocked?.(CURRENT_MAX_UNLOCKED_LEVEL);
 // Level select
-
+levelsUI.onSelect((levelNumber) => {
+  // Guest can only open levels 1..GUEST_MAX_LEVEL
+  if (!CURRENT_USER?.uid && levelNumber > GUEST_MAX_LEVEL) {
+    ui.showLoginRequired();
+    return;
+  }
+  goToLevel(levelNumber - 1);
+});
   
   ui.showWelcome();
   

@@ -1,70 +1,112 @@
-// src/ui/uiLevels.js
+// uiLevels.js
 import "../css/levels.css";
 
-let rootEl = null;
-let onSelectLevel = null;
+export function mountLevelsUI(root) {
+  // ----- DOM -----
+  const overlay = document.createElement("div");
+  overlay.id = "levelsOverlay";
+  overlay.className = "levelsOverlay";
 
-export function mountLevelsUI({ onSelect }) {
-  onSelectLevel = onSelect;
-  rootEl = document.getElementById("levelsOverlay");
+  overlay.innerHTML = `
+    <div class="levelsCard">
+      <div class="levelsHeader">
+        <span class="badge">LEVELS</span>
+        <h2>Select Level</h2>
+      </div>
 
-  if (!rootEl) {
-    console.warn("Levels UI not found in DOM");
-    return null;
+      <div class="levelsGrid" id="levelsGrid"></div>
+
+      <button class="closeBtn" id="levelsClose">Close</button>
+    </div>
+  `;
+
+  root.appendChild(overlay);
+
+  const grid = overlay.querySelector("#levelsGrid");
+  const closeBtn = overlay.querySelector("#levelsClose");
+
+  // ----- STATE -----
+  let maxUnlocked = 1;
+  let selectHandler = null;
+  const TOTAL_LEVELS = 20;
+
+  // ----- BUILD GRID ONCE -----
+  const levelButtons = [];
+
+  for (let i = 1; i <= TOTAL_LEVELS; i++) {
+    const btn = document.createElement("button");
+    btn.className = "levelBtn";
+    btn.dataset.level = i;
+
+    btn.innerHTML = `
+      <span class="icon"></span>
+      <span class="label">Level ${i}</span>
+    `;
+
+    btn.addEventListener("click", () => {
+      if (btn.classList.contains("locked")) {
+        // If guest taps a locked level above the guest limit, show login-required.
+        const maze = window.__maze;
+        const guestMax = Number(maze?.guestMaxLevel || 0);
+        const isLoggedIn = maze?.isLoggedIn?.() === true;
+        if (!isLoggedIn && guestMax > 0 && i > guestMax) {
+          maze?.showLoginRequired?.();
+        }
+        return;
+      }
+      selectHandler?.(i);
+      close();
+    });
+
+    grid.appendChild(btn);
+    levelButtons.push(btn);
   }
 
-  renderLevels();
+  // ----- RENDER STATES -----
+  function render() {
+    levelButtons.forEach((btn) => {
+      const level = Number(btn.dataset.level);
+      btn.classList.remove("locked", "completed", "unlocked");
 
+      const icon = btn.querySelector(".icon");
+
+      if (level < maxUnlocked) {
+        btn.classList.add("completed");
+        icon.innerHTML = btn.classList.contains("locked") ? "🔒" : "✔";
+      } else if (level === maxUnlocked) {
+        btn.classList.add("unlocked");
+        icon.textContent = "";
+      } else {
+        btn.classList.add("locked");
+      }
+    });
+  }
+
+  // ----- OPEN / CLOSE -----
+  function open() {
+    document.body.classList.add("overlay-open");
+    overlay.style.display = "flex";
+  }
+
+  function close() {
+    document.body.classList.remove("overlay-open");
+    overlay.style.display = "none";
+  }
+
+  closeBtn.addEventListener("click", close);
+
+  // ----- PUBLIC API -----
   return {
     open,
     close,
-    setUnlocked,
+
+    setUnlocked(level) {
+      maxUnlocked = Math.max(1, level || 1);
+      render();
+    },
+
     onSelect(cb) {
-      onSelectLevel = cb;
-    }
+      selectHandler = cb;
+    },
   };
-}
-
-function open() {
-  if (!rootEl) return;
-  rootEl.classList.remove("hidden");
-  render();
-}
-
-function close() {
-  if (!rootEl) return;
-  rootEl.classList.add("hidden");
-}
-
-function render() {
-  if (!window.__progress) {
-    console.warn("Progress not loaded yet");
-    return;
-  }
-
-  const unlocked = window.__progress.level; // 🔥 THIS is the key
-  const total = window.__levels?.length || 20;
-
-  const grid = rootEl.querySelector(".levelsGrid");
-  grid.innerHTML = "";
-
-  for (let i = 1; i <= total; i++) {
-    const tile = document.createElement("button");
-    tile.className = "levelTile";
-
-    if (i < unlocked) {
-      tile.classList.add("done");
-      tile.innerHTML = "✓";
-    } else if (i === unlocked) {
-      tile.classList.add("current");
-      tile.textContent = i;
-      tile.onclick = () => onSelectLevel(i - 1);
-    } else {
-      tile.classList.add("locked");
-      tile.innerHTML = "🔒";
-      tile.disabled = true;
-    }
-
-    grid.appendChild(tile);
-  }
 }
