@@ -1,4 +1,4 @@
-,export async function loadProgress({ BACKEND, token }) {
+export async function loadProgress({ BACKEND, token }) {
   const res = await fetch(`${BACKEND}/me`, {
     headers: {
       Authorization: `Bearer ${token}`,
