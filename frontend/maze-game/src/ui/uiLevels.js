@@ -3,78 +3,67 @@
 import "../css/levels.css";
 // src/ui/uiLevels.js
 
-import { levels } from "../levels/index.js";
+let rootEl = null;
+let onSelectLevel = null;
 
-const overlay = document.getElementById("levelsOverlay");
-const grid = document.getElementById("levelsGrid");
-const closeBtn = document.getElementById("levelsClose");
+export function mountLevelsUI({ onSelect }) {
+  onSelectLevel = onSelect;
+  rootEl = document.getElementById("levelsOverlay");
 
-async function getProgress() {
-  const res = await fetch("/progress", {
-    credentials: "include"
-  });
+  if (!rootEl) {
+    console.warn("Levels UI not found in DOM");
+    return;
+  }
 
-  const json = await res.json();
-  if (!json.ok) throw new Error("Failed to load progress");
-
-  return json.data; // { uid, level, coins }
+  renderLevels();
 }
 
-function renderLevels(maxUnlocked) {
+function renderLevels() {
+  if (!window.__progress) {
+    console.error("Progress not loaded yet");
+    return;
+  }
+
+  const { level: currentLevel } = window.__progress;
+
+  const TOTAL_LEVELS = getTotalLevels();
+  const grid = rootEl.querySelector(".levelsGrid");
+
+  if (!grid) {
+    console.error("levelsGrid not found");
+    return;
+  }
+
   grid.innerHTML = "";
 
-  LEVELS.forEach((_, index) => {
-    const levelNumber = index + 1;
+  for (let i = 1; i <= TOTAL_LEVELS; i++) {
     const tile = document.createElement("button");
-    tile.className = "level-tile";
+    tile.className = "levelTile";
 
-    // ✅ Completed
-    if (levelNumber < maxUnlocked) {
+    if (i < currentLevel) {
       tile.classList.add("completed");
       tile.innerHTML = "✓";
-    }
-    // ▶ Current unlocked
-    else if (levelNumber === maxUnlocked) {
-      tile.classList.add("unlocked");
-      tile.textContent = levelNumber;
-      tile.onclick = () => startLevel(levelNumber);
-    }
-    // 🔒 Locked
-    else {
+    } else if (i === currentLevel) {
+      tile.classList.add("current");
+      tile.innerHTML = i;
+      tile.onclick = () => onSelectLevel(i);
+    } else {
       tile.classList.add("locked");
       tile.innerHTML = "🔒";
       tile.disabled = true;
     }
 
     grid.appendChild(tile);
-  });
-}
-
-export async function openLevels() {
-  overlay.classList.remove("hidden");
-
-  try {
-    const progress = await getProgress();
-    const maxUnlocked = Math.max(1, Number(progress.level || 1));
-    renderLevels(maxUnlocked);
-  } catch (e) {
-    console.error("Levels load failed:", e);
   }
 }
 
-export function closeLevels() {
-  overlay.classList.add("hidden");
-}
-
-/**
- * ✅ REQUIRED by main.js and ui.js
- * Mounts listeners ONCE
- */
-export function mountLevelsUI() {
-  if (!overlay || !grid) {
-    console.warn("Levels UI not found in DOM");
-    return;
+// reads real level count from backend config
+function getTotalLevels() {
+  // backend-defined levels list
+  if (window.__levels && Array.isArray(window.__levels)) {
+    return window.__levels.length;
   }
 
-  closeBtn?.addEventListener("click", closeLevels);
+  // fallback safety
+  return 20;
 }
