@@ -28,7 +28,7 @@ export function mountLevelsUI(root) {
   // ----- STATE -----
   let maxUnlocked = 1;
   let selectHandler = null;
-  const TOTAL_LEVELS = 20;
+  const TOTAL_LEVELS = 55;
 
   // ----- BUILD GRID ONCE -----
   const levelButtons = [];
