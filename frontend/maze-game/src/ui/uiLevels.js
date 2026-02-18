@@ -47,7 +47,6 @@ async function loadProgress() {
   const closeBtn = overlay.querySelector("#levelsClose");
 
   // ----- STATE -----
-  let maxUnlocked = 1;
   let selectHandler = null;
 
   // real total levels from src/levels/index.js
