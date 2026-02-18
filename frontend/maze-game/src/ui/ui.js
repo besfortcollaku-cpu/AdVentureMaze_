@@ -5,7 +5,6 @@ import { mountLevelsUI } from "./uiLevels.js";
 import { getTheme, onThemeChange } from "../theme.js";
 // NOTE: Hint/Skip popups are now controlled from src/main.js so
 // they can call the backend (free/coins/ad) and update the game.
-import { mountLevelsUI } from "./uiLevels.js"; 
 export function mountUI(root) {
   root.innerHTML = `
     <div id="app" class="app">
