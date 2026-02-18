@@ -249,7 +249,12 @@ if (storedToken) {
 
   // Mount UI
 const ui = mountUI(root);
-const levelsUI = mountLevelsUI(root);  
+const levelsUI = mountLevelsUI({
+  onSelect(level) {
+    levelIndex = level - 1;
+    startLevel(levelIndex);
+  },
+});
 
 
 

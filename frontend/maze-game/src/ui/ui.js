@@ -1,6 +1,7 @@
 import { mountAccountUI } from "./uiAccount.js";
 import { mountSettingsUI } from "./uiSettings.js";
 import { mountThemeUI } from "./uiTheme.js";
+import { mountLevelsUI } from "./uiLevels.js";
 import { getTheme, onThemeChange } from "../theme.js";
 // NOTE: Hint/Skip popups are now controlled from src/main.js so
 // they can call the backend (free/coins/ad) and update the game.
@@ -123,7 +124,20 @@ accountBtn.addEventListener("click", () => {
     accountUI.show();
   }
 });
+// ===== LEVELS OVERLAY =====
+const levelsOverlay = document.createElement("div");
+levelsOverlay.id = "levelsOverlay";
+levelsOverlay.className = "levelsOverlay hidden";
 
+levelsOverlay.innerHTML = `
+  <div class="levelsCard">
+    <h2>Select Level</h2>
+    <div id="levelsGrid" class="levelsGrid"></div>
+    <button id="levelsCloseBtn" class="closeBtn">Close</button>
+  </div>
+`;
+
+document.body.appendChild(levelsOverlay);
   // ----- SETTINGS UI -----
   const settingsUI = mountSettingsUI(root);
   settingsBtn.addEventListener("click", () => {

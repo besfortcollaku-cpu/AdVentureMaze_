@@ -3,11 +3,9 @@ import "../css/levels.css";
 let rootEl = null;
 let gridEl = null;
 let onSelectLevel = null;
-let totalLevels = 0;
 
-export function mountLevelsUI({ onSelect, levelsCount }) {
-  onSelectLevel = typeof onSelect === "function" ? onSelect : () => {};
-  totalLevels = levelsCount;
+export function mountLevelsUI({ onSelect }) {
+  onSelectLevel = onSelect;
 
   rootEl = document.getElementById("levelsOverlay");
   if (!rootEl) {
@@ -15,54 +13,59 @@ export function mountLevelsUI({ onSelect, levelsCount }) {
     return null;
   }
 
-  gridEl = rootEl.querySelector(".levelsGrid");
-  if (!gridEl) {
-    console.warn("[LevelsUI] .levelsGrid not found");
-    return null;
-  }
+  gridEl = rootEl.querySelector("#levelsGrid");
+  const closeBtn = rootEl.querySelector("#levelsCloseBtn");
+
+  closeBtn.onclick = () => close();
+
+  render();
 
   return {
     open,
     close,
-    refresh,
+    refresh: render,
   };
 }
 
 function open() {
-  if (!rootEl) return;
   rootEl.classList.remove("hidden");
-  refresh();
 }
 
 function close() {
-  if (!rootEl) return;
   rootEl.classList.add("hidden");
 }
 
-function refresh() {
+function render() {
   if (!gridEl) return;
 
-  const unlocked =
-    Number(window.__progress?.level || 1);
+  const progress = window.__progress || { level: 1 };
+  const maxUnlocked = progress.level || 1;
 
   gridEl.innerHTML = "";
+
+  const totalLevels = window.__levels?.length || 20;
 
   for (let i = 1; i <= totalLevels; i++) {
     const btn = document.createElement("button");
     btn.className = "levelTile";
 
-    if (i < unlocked) {
-      btn.classList.add("done");
+    if (i < maxUnlocked) {
+      btn.classList.add("completed");
       btn.innerHTML = "✓";
-      btn.onclick = () => onSelectLevel(i - 1);
-    } else if (i === unlocked) {
+    } else if (i === maxUnlocked) {
       btn.classList.add("current");
       btn.textContent = i;
-      btn.onclick = () => onSelectLevel(i - 1);
     } else {
       btn.classList.add("locked");
       btn.innerHTML = "🔒";
       btn.disabled = true;
+    }
+
+    if (i <= maxUnlocked) {
+      btn.onclick = () => {
+        close();
+        onSelectLevel?.(i);
+      };
     }
 
     gridEl.appendChild(btn);
