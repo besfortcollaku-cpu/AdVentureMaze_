@@ -137,11 +137,28 @@ levelsOverlay.innerHTML = `
 `;
 
 document.body.appendChild(levelsOverlay);
+
+  // ----- LEVELS UI MOUNT -----
+const levelsUI = mountLevelsUI({
+  onSelect(levelNumber) {
+    // forward to main.js through a custom event
+    document.dispatchEvent(
+      new CustomEvent("level-select", { detail: levelNumber })
+    );
+  },
+});
   // ----- SETTINGS UI -----
   const settingsUI = mountSettingsUI(root);
   settingsBtn.addEventListener("click", () => {
     settingsUI.open();
   });
+
+// ui.js — ONLY UI responsibility
+levelsBtn.addEventListener("click", () => {
+  if (window.__levelsUI) {
+    window.__levelsUI.open();
+  }
+});
 
 // ----- THEME UI -----
 const themeUI = mountThemeUI(root);
