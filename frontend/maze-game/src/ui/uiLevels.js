@@ -3,7 +3,7 @@
 import "../css/levels.css";
 // src/ui/uiLevels.js
 
-import { LEVELS } from "../levels/index.js";
+import { levels } from "../levels/index.js";
 
 const overlay = document.getElementById("levelsOverlay");
 const grid = document.getElementById("levelsGrid");
