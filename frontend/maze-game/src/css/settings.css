@@ -11,8 +11,12 @@
 .settings-backdrop {
   position: absolute;
   inset: 0;
-  backdrop-filter: blur(12px);
-  background: rgba(0, 0, 0, 0.15); /* very light veil */
+
+  /* very light blur, just separation */
+  backdrop-filter: blur(4px);
+
+  /* almost no darkening */
+  background: rgba(0, 0, 0, 0.08);
 }
 
 .settings-card {
@@ -24,8 +28,15 @@
   border-radius: 22px;
   color: #fff;
 
-  backdrop-filter: blur(16px);
-  border: 1px solid rgba(255,255,255,0.12);
+  /* NO blur here */
+  background: rgba(20, 60, 35, 0.55); /* default forest */
+
+  border: 1px solid rgba(255,255,255,0.14);
+
+  box-shadow:
+    0 18px 40px rgba(0,0,0,0.35),
+    inset 0 1px 0 rgba(255,255,255,0.08);
+}
 
   box-shadow:
     0 20px 50px rgba(0,0,0,0.35),
@@ -122,11 +133,6 @@ input:checked + .slider::before {
    THEMED SETTINGS PANEL
 ========================= */
 
-.settings-card {
-  background: rgba(15, 23, 42, 0.92);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255,255,255,0.08);
-}
 
 /* ===== ICE ===== */
 body.theme-ice .settings-card {
