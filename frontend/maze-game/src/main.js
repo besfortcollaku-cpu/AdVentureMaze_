@@ -332,16 +332,23 @@ ui.onAccountClick(async () => {
 });
 
 
-const levelsUI = mountLevelsUI({
-  onSelect(levelNumber) {
-    if (!CURRENT_USER?.uid && levelNumber > GUEST_MAX_LEVEL) {
-      ui.showLoginRequired();
-      return;
-    }
-    goToLevel(levelNumber - 1);
-  }
-});
+let levelsUI = null;
 
+try {
+  levelsUI = mountLevelsUI({
+    onSelect(levelNumber) {
+      if (!CURRENT_USER?.uid && levelNumber > GUEST_MAX_LEVEL) {
+        ui.showLoginRequired();
+        return;
+      }
+      goToLevel(levelNumber - 1);
+    }
+  });
+
+  levelsUI?.setUnlocked?.(CURRENT_MAX_UNLOCKED_LEVEL);
+} catch (e) {
+  console.warn("Levels UI failed to mount (safe ignore)", e);
+}
 // 🔓 NOW unlock levels (correct timing)
 levelsUI.setUnlocked?.(CURRENT_MAX_UNLOCKED_LEVEL);
 // Level select
