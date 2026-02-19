@@ -3,7 +3,7 @@ import { createGameState } from "./state.js";
 import { createMovement } from "./movement.js";
 import { createRenderer } from "./render.js";
 
-export function createGame({ canvas, level, onLevelComplete }) {
+export function createGame({ canvas, level, onLevelComplete, onTilePainted }) {
   let state = createGameState(level);
   let renderer = createRenderer({ canvas, state });
 
@@ -11,6 +11,7 @@ export function createGame({ canvas, level, onLevelComplete }) {
 
   let movement = createMovement({
     state,
+    onTilePainted,
     onMoveFinished: () => {
       if (!completed && state.isComplete()) {
         completed = true;
@@ -115,6 +116,7 @@ export function createGame({ canvas, level, onLevelComplete }) {
 
     movement = createMovement({
       state,
+      onTilePainted,
       onMoveFinished: () => {
         if (!completed && state.isComplete()) {
           completed = true;
@@ -128,8 +130,45 @@ export function createGame({ canvas, level, onLevelComplete }) {
     const p = movement.getAnimatedPlayer(performance.now());
     renderer.render(p);
   }
+function applyProgress({ paintedKeys, player } = {}) {
+    if (!paintedKeys && !player) return;
 
+    // restore painted tiles
+    if (Array.isArray(paintedKeys)) {
+      const next = new Set();
+      for (const k of paintedKeys) {
+        if (typeof k !== "string") continue;
+        const parts = k.split(",");
+        if (parts.length !== 2) continue;
+        const x = Number(parts[0]);
+        const y = Number(parts[1]);
+        if (!Number.isFinite(x) || !Number.isFinite(y)) continue;
+        if (!state.isWalkable(x, y)) continue;
+        next.add(`${x},${y}`);
+      }
+      state.painted = next;
+    }
+
+    // restore player position (safe)
+    if (player && Number.isFinite(player.x) && Number.isFinite(player.y)) {
+      if (state.isWalkable(player.x, player.y)) {
+        state.player.x = player.x;
+        state.player.y = player.y;
+      }
+    }
+
+    // always ensure start is painted
+    if (state.isWalkable(state.player.x, state.player.y)) {
+      state.paint(state.player.x, state.player.y);
+    }
+
+    // render immediately
+    renderer.resize();
+    const p = movement.getAnimatedPlayer(performance.now());
+    renderer.render(p);
+  }
   return {
+    applyProgress,
     start() {
       bindInputsOnce();
       startLoop();

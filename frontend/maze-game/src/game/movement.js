@@ -8,8 +8,8 @@ import {
 } from "./rollSound.js";
 import { getSettings } from "../settings.js";
 
-export function createMovement({ state, onMoveFinished }) {
-  let moving = false;
+export function createMovement({ state, onMoveFinished, onTilePainted }) {
+    let moving = false;
   let soundActive = false;
 
   const anim = {
@@ -23,6 +23,17 @@ export function createMovement({ state, onMoveFinished }) {
     lastPaintCellX: 0,
     lastPaintCellY: 0,
   };
+  function paintAndNotify(x, y) {
+    if (!state.isWalkable(x, y)) return;
+    const didNew = state.paint(x, y);
+    if (didNew) {
+      onTilePainted?.({
+        key: `${x},${y}`,
+        x,
+        y,
+      });
+    }
+  }
 
   function vibrate(pattern) {
     const s = getSettings();
@@ -143,7 +154,7 @@ export function createMovement({ state, onMoveFinished }) {
         if (x !== cx) x += stepX;
         else if (y !== cy) y += stepY;
 
-        if (state.isWalkable(x, y)) state.paint(x, y);
+        paintAndNotify(x, y);
       }
 
       anim.lastPaintCellX = cx;
@@ -157,9 +168,7 @@ export function createMovement({ state, onMoveFinished }) {
       state.playerHit = true;
 
       // ensure final tile painted
-      if (state.isWalkable(state.player.x, state.player.y)) {
-        state.paint(state.player.x, state.player.y);
-      }
+      paintAndNotify(state.player.x, state.player.y);
 
       moving = false;
 

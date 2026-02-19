@@ -35,8 +35,11 @@ export function createGameState(level) {
     },
 
     paint(x, y) {
-      state.painted.add(key(x, y));
-    },
+  const k = key(x, y);
+  const before = state.painted.size;
+  state.painted.add(k);
+  return state.painted.size !== before;
+},
 
     isPainted(x, y) {
       return state.painted.has(key(x, y));

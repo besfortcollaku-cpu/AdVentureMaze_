@@ -34,6 +34,28 @@ document.addEventListener(
 );
 
 let levelIndex = 0;
+let RESUME_ENABLED = false;
+let RESUME_TILES = new Set();
+let RESUME_POS = null;
+let RESUME_SAVE_TIMER = null;
+
+function scheduleResumeSave(currentLevelNumber) {
+  if (!CURRENT_USER?.uid) return;
+  if (!RESUME_ENABLED) return;
+  if (RESUME_SAVE_TIMER) return;
+
+  RESUME_SAVE_TIMER = setTimeout(() => {
+    RESUME_SAVE_TIMER = null;
+
+    apiSetProgress({
+      uid: CURRENT_USER.uid,
+      level: currentLevelNumber,
+      coins: CURRENT_USER?.coins ?? 0,
+      paintedKeys: Array.from(RESUME_TILES),
+      resume: RESUME_POS,
+    }).catch(() => {});
+  }, 700);
+}
 // Keep the Levels 1screen consistent (guest: localStorage, logged-in: backend)
 let CURRENT_MAX_UNLOCKED_LEVEL = 1;
 
@@ -50,6 +72,28 @@ async function fetchAndSetCoins({ BACKEND, token, ui }) {
 
   const data = await res.json();
   ui.setCoins(data.coins ?? 0);
+}
+
+async function apiSetProgress({ uid, level, coins, paintedKeys, resume } = {}) {
+  if (!CURRENT_ACCESS_TOKEN) return null;
+
+  const res = await fetch(`${BACKEND}/progress`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${CURRENT_ACCESS_TOKEN}`,
+    },
+    body: JSON.stringify({
+      uid,
+      level,
+      coins,
+      paintedKeys,
+      resume,
+    }),
+  });
+
+  // never break gameplay
+  return res.json().catch(() => ({}));
 }
 async function apiClaimLevelComplete(levelNumber) {
   if (!CURRENT_ACCESS_TOKEN) return null;
@@ -383,7 +427,19 @@ const game = createGame({
   level: levels[0],
   getCurrentUser: () => CURRENT_USER ?? { username: "guest", uid: null },
 
+  onTilePainted({ key, x, y }) {
+    if (!CURRENT_USER?.uid) return;
+    if (!RESUME_ENABLED) return;
+
+    RESUME_TILES.add(key);
+    RESUME_POS = { x, y };
+
+    scheduleResumeSave(levelIndex + 1);
+  },
+
   onLevelComplete({ level }) {
+    RESUME_ENABLED = false;
+
     const completedLevel = level?.number ?? (levelIndex + 1);
 
     // ✅ server reward: +1 coin once per level
@@ -405,12 +461,22 @@ const game = createGame({
     // ✅ logged-in: unlock next level in UI (old UNLOCKED_LEVEL behavior)
     // ✅ logged-in: unlock next level + SAVE progress (OLD LOGIC RESTORED)
 if (CURRENT_USER?.uid) {
-  const nextUnlocked = Math.min(levels.length, completedLevel + 1);
+      const nextUnlocked = Math.min(levels.length, completedLevel + 1);
+      CURRENT_MAX_UNLOCKED_LEVEL = Math.max(
+        CURRENT_MAX_UNLOCKED_LEVEL,
+        nextUnlocked
+      );
+      setTimeout(() => levelsUI.setUnlocked?.(CURRENT_MAX_UNLOCKED_LEVEL), 0);
 
-  CURRENT_MAX_UNLOCKED_LEVEL = Math.max(
-    CURRENT_MAX_UNLOCKED_LEVEL,
-    nextUnlocked
-  );
+      // persist unlocked progress + CLEAR resume (no resume after completion)
+      apiSetProgress({
+        uid: CURRENT_USER.uid,
+        level: nextUnlocked,
+        coins: CURRENT_USER?.coins ?? 0,
+        paintedKeys: [],
+        resume: null,
+      }).catch(() => {});
+    }
 
   // 🔥 persist progress to backend
   apiSetProgress({
@@ -713,6 +779,28 @@ levelsUI.setUnlocked?.(UNLOCKED_LEVEL);
 
   // start at the unlocked level (or 1)
   setLevel(Math.max(0, UNLOCKED_LEVEL - 1));
+  // enable in-progress resume only for logged-in users
+  RESUME_ENABLED = true;
+  RESUME_TILES = new Set();
+  RESUME_POS = null;
+
+  // restore painted path + position ONLY if backend sent it
+  const paintedKeys = me?.progress?.paintedKeys;
+  const resume = me?.progress?.resume;
+
+  if (Array.isArray(paintedKeys) || (resume && resume.x != null && resume.y != null)) {
+    if (Array.isArray(paintedKeys)) {
+      for (const k of paintedKeys) RESUME_TILES.add(k);
+    }
+    if (resume && resume.x != null && resume.y != null) {
+      RESUME_POS = { x: resume.x, y: resume.y };
+    }
+
+    game.applyProgress({
+      paintedKeys: Array.from(RESUME_TILES),
+      player: RESUME_POS,
+    });
+  }
   document.body.classList.add("game-running");
   ui.hideWelcome();
 
