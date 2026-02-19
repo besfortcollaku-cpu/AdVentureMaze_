@@ -520,8 +520,8 @@ if (CURRENT_USER?.uid) {
 
   // persist unlocked progress + CLEAR resume
   apiSetProgress({
-      console.log("SAVING RESUME", safeLevel, RESUME_TILES.size, RESUME_POS);
-    uid: CURRENT_USER.uid,
+      console.log("SAVING RESUME", safeLevel, RESUME_TILES.size, RESUME_POS);,
+      uid: CURRENT_USER.uid,
     level: nextUnlocked,
     coins: CURRENT_USER?.coins ?? 0,
     paintedKeys: [],
