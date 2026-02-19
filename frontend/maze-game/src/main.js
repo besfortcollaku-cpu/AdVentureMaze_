@@ -247,16 +247,6 @@ if (storedToken) {
   
   
 
-  // Mount UI
-const ui = mountUI(root);
-const levelsUI = mountLevelsUI({
-  onSelect(level) {
-    levelIndex = level - 1;
-    goToLevel(levelIndex);
-  },
-});
-
-window.__levelsUI = levelsUI;
 
 
 // Expose a tiny bridge for UI modules that don't have direct access to `ui`.

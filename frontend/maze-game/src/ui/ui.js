@@ -150,6 +150,14 @@ levelsBtn.addEventListener("click", () => {
     window.__levelsUI.open();
   }
 });
+// ----- LEVELS UI MOUNT -----
+window.__levelsUI = mountLevelsUI({
+  onSelect(levelNumber) {
+    document.dispatchEvent(
+      new CustomEvent("level-select", { detail: levelNumber })
+    );
+  },
+});
 
 // ----- THEME UI -----
 const themeUI = mountThemeUI(root);
