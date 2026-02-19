@@ -52,9 +52,16 @@ function scheduleResumeSave(currentLevelNumber) {
       Number(currentLevelNumber || 1)
     );
 
+    console.log(
+      "SAVING RESUME",
+      safeLevel,
+      RESUME_TILES.size,
+      RESUME_POS
+    );
+
     apiSetProgress({
       uid: CURRENT_USER.uid,
-      level: safeLevel, // ✅ NEVER DOWNGRADE UNLOCKED LEVEL
+      level: safeLevel,
       coins: CURRENT_USER?.coins ?? 0,
       paintedKeys: Array.from(RESUME_TILES),
       resume: RESUME_POS,
@@ -520,7 +527,6 @@ if (CURRENT_USER?.uid) {
 
   // persist unlocked progress + CLEAR resume
   apiSetProgress({
-      console.log("SAVING RESUME", safeLevel, RESUME_TILES.size, RESUME_POS);,
       uid: CURRENT_USER.uid,
     level: nextUnlocked,
     coins: CURRENT_USER?.coins ?? 0,
