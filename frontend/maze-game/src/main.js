@@ -47,9 +47,14 @@ function scheduleResumeSave(currentLevelNumber) {
   RESUME_SAVE_TIMER = setTimeout(() => {
     RESUME_SAVE_TIMER = null;
 
+    const safeLevel = Math.max(
+      Number(CURRENT_MAX_UNLOCKED_LEVEL || 1),
+      Number(currentLevelNumber || 1)
+    );
+
     apiSetProgress({
       uid: CURRENT_USER.uid,
-      level: currentLevelNumber,
+      level: safeLevel, // ✅ NEVER DOWNGRADE UNLOCKED LEVEL
       coins: CURRENT_USER?.coins ?? 0,
       paintedKeys: Array.from(RESUME_TILES),
       resume: RESUME_POS,
@@ -496,12 +501,14 @@ if (CURRENT_USER?.uid) {
 });
 
 function goToLevel(nextIndex) {
-    // reset resume state for new level
+  levelIndex = Math.max(0, Math.min(levels.length - 1, nextIndex));
+  const lvl = levels[levelIndex];
+
+  // resume data belongs to the level being played, but unlocked level MUST stay
   RESUME_TILES = new Set();
   RESUME_POS = null;
   RESUME_ENABLED = Boolean(CURRENT_USER?.uid);
-  levelIndex = Math.max(0, Math.min(levels.length - 1, nextIndex));
-  const lvl = levels[levelIndex];
+
   game.setLevel(lvl);
   ui.setLevel(levelIndex + 1);
 }
