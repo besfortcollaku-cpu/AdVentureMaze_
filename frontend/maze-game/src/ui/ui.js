@@ -232,6 +232,7 @@ renderLevels({ maxUnlocked, onSelect }) {
     levelsGrid.appendChild(btn);
   }
 }
+,
       showLoginRequired() {
   loginRequiredOverlay.classList.remove("hidden");
 },
