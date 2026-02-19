@@ -316,14 +316,15 @@ ui.onAccountClick(async () => {
 const levelsUI = mountLevelsUI(root, { totalLevels: levels.length });  
 ui.levelsBtn.addEventListener("click", () => {
   // keep levels UI in sync before opening
-  if (CURRENT_USER?.uid) {
-    levelsUI.setUnlocked?.(CURRENT_MAX_UNLOCKED_LEVEL || 1);
-  } else {
-    const guestProgress = loadGuestProgress();
-    const unlocked = Math.min(guestProgress.maxLevel || 1, GUEST_MAX_LEVEL);
-    CURRENT_MAX_UNLOCKED_LEVEL = unlocked;
-    levelsUI.setUnlocked?.(unlocked);
-  }
+if (CURRENT_USER?.uid) {
+  // logged-in: NEVER apply guest cap
+  levelsUI.setUnlocked?.(CURRENT_MAX_UNLOCKED_LEVEL || 1);
+} else {
+  const guestProgress = loadGuestProgress();
+  const unlocked = Math.min(guestProgress.maxLevel || 1, GUEST_MAX_LEVEL);
+  CURRENT_MAX_UNLOCKED_LEVEL = unlocked;
+  levelsUI.setUnlocked?.(unlocked);
+}
 
   levelsUI.open();
 });
@@ -672,8 +673,11 @@ ui.onLoginClick(async () => {
 
   const UNLOCKED_LEVEL = Math.max(1, Number(unlockedLevel) || 1);
 
-  CURRENT_MAX_UNLOCKED_LEVEL = UNLOCKED_LEVEL;
-  levelsUI.setUnlocked?.(UNLOCKED_LEVEL);
+// 🔓 remove guest cap completely for logged-in users
+window.__maze.guestMaxLevel = Infinity;
+
+CURRENT_MAX_UNLOCKED_LEVEL = UNLOCKED_LEVEL;
+levelsUI.setUnlocked?.(UNLOCKED_LEVEL);
 
   // start at the unlocked level (or 1)
   setLevel(Math.max(0, UNLOCKED_LEVEL - 1));
