@@ -774,9 +774,9 @@ ui.onLoginClick(async () => {
     BACKEND,
     ui,
     onLogin: ({ accessToken }) => {
-      // called ONLY on fresh login
-      CURRENT_ACCESS_TOKEN = accessToken;
-    },
+  CURRENT_ACCESS_TOKEN = accessToken;
+  localStorage.setItem("pi_access_token", accessToken);
+},
   });
 
   // 🔥 CRITICAL FIX: handle existing session
