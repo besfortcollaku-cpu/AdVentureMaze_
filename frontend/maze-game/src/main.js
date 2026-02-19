@@ -403,12 +403,24 @@ const game = createGame({
 
 
     // ✅ logged-in: unlock next level in UI (old UNLOCKED_LEVEL behavior)
-    if (CURRENT_USER?.uid) {
-      const nextUnlocked = Math.min(levels.length, completedLevel + 1);
-      CURRENT_MAX_UNLOCKED_LEVEL = Math.max(CURRENT_MAX_UNLOCKED_LEVEL, nextUnlocked);
-      setTimeout(() => levelsUI.setUnlocked?.(CURRENT_MAX_UNLOCKED_LEVEL), 0);
-    }
+    // ✅ logged-in: unlock next level + SAVE progress (OLD LOGIC RESTORED)
+if (CURRENT_USER?.uid) {
+  const nextUnlocked = Math.min(levels.length, completedLevel + 1);
 
+  CURRENT_MAX_UNLOCKED_LEVEL = Math.max(
+    CURRENT_MAX_UNLOCKED_LEVEL,
+    nextUnlocked
+  );
+
+  // 🔥 persist progress to backend
+  apiSetProgress({
+    uid: CURRENT_USER.uid,
+    level: nextUnlocked,
+    coins: CURRENT_USER.coins,
+  }).catch(() => {});
+
+  setTimeout(() => levelsUI.setUnlocked?.(CURRENT_MAX_UNLOCKED_LEVEL), 0);
+}
     // 🟡 guest progress is local-only (levels 1..GUEST_MAX_LEVEL)
     if (!CURRENT_USER?.uid) {
       const nextUnlock = Math.min(GUEST_MAX_LEVEL, completedLevel + 1);
@@ -633,7 +645,27 @@ restartPopup.onFreeRestart(async () => {
   ui.hideWelcome();
   game.start();
 });
+   // PROGRES LEVELS
 
+
+async function apiSetProgress({ uid, level, coins }) {
+  if (!CURRENT_ACCESS_TOKEN) return;
+
+  const res = await fetch(`${BACKEND}/progress`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${CURRENT_ACCESS_TOKEN}`,
+    },
+    body: JSON.stringify({ uid, level, coins }),
+  });
+
+  if (!res.ok) {
+    throw new Error("progress save failed");
+  }
+
+  return res.json().catch(() => ({}));
+}
 // ---- PI LOGIN ----
 ui.onLoginClick(async () => {
   const result = await ensurePiLogin({
