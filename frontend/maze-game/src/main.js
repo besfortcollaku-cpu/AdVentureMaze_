@@ -313,20 +313,63 @@ if (CURRENT_ACCESS_TOKEN) {
       Authorization: `Bearer ${CURRENT_ACCESS_TOKEN}`,
     },
   })
-    .then((r) => r.ok ? r.json() : null)
+    .then((r) => (r.ok ? r.json() : null))
     .then((me) => {
-      if (me?.user) {
-        CURRENT_USER = {
-  ...CURRENT_USER,
-  ...me.user,
-  free_skips_used: me.user.free_skips_used ?? 0,
-  free_hints_used: me.user.free_hints_used ?? 0,
-  free_restarts_used: me.user.free_restarts_used ?? 0,
-};
-updateRestartBadge();
-        ui.setUser(me.user);
-        ui.setCoins(me.user.coins ?? 0);
-        setTimeout(updateRestartBadge, 0);
+      if (!me?.user) return;
+
+      CURRENT_USER = {
+        ...me.user,
+        free_skips_used: me.user.free_skips_used ?? 0,
+        free_hints_used: me.user.free_hints_used ?? 0,
+        free_restarts_used: me.user.free_restarts_used ?? 0,
+      };
+
+      ui.setUser(me.user);
+      ui.setCoins(me.user.coins ?? 0);
+
+      const unlockedLevel =
+        me?.progress?.level ??
+        me?.progress?.maxLevel ??
+        me?.progress?.highestLevel ??
+        1;
+
+      const UNLOCKED_LEVEL = Math.max(1, Number(unlockedLevel) || 1);
+
+      window.__maze.guestMaxLevel = Infinity;
+      CURRENT_MAX_UNLOCKED_LEVEL = UNLOCKED_LEVEL;
+      levelsUI.setUnlocked?.(UNLOCKED_LEVEL);
+
+      // load correct level
+      setLevel(Math.max(0, UNLOCKED_LEVEL - 1));
+
+      // enable resume
+      RESUME_ENABLED = true;
+      RESUME_TILES = new Set();
+      RESUME_POS = null;
+
+      const paintedKeys = me?.progress?.paintedKeys;
+      const resume = me?.progress?.resume;
+
+      if (Array.isArray(paintedKeys)) {
+        for (const k of paintedKeys) RESUME_TILES.add(k);
+      }
+
+      if (resume && resume.x != null && resume.y != null) {
+        RESUME_POS = { x: resume.x, y: resume.y };
+      }
+
+      if (RESUME_TILES.size > 0 || RESUME_POS) {
+        game.applyProgress({
+          paintedKeys: Array.from(RESUME_TILES),
+          player: RESUME_POS,
+        });
+      }
+
+      document.body.classList.add("game-running");
+      ui.hideWelcome();
+
+      if (!game.isRunning?.()) {
+        game.start();
       }
     })
     .catch(() => {});
