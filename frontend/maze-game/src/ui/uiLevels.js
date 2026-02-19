@@ -1,73 +1,114 @@
+// uiLevels.js
 import "../css/levels.css";
 
-let rootEl = null;
-let gridEl = null;
-let onSelectLevel = null;
+export function mountLevelsUI(root, { totalLevels } = {}) {
+  // ----- DOM -----
+  const overlay = document.createElement("div");
+  overlay.id = "levelsOverlay";
+  overlay.className = "levelsOverlay";
 
-export function mountLevelsUI({ onSelect }) {
-  onSelectLevel = onSelect;
+  overlay.innerHTML = `
+    <div class="levelsCard">
+      <div class="levelsHeader">
+        <span class="badge">LEVELS</span>
+        <h2>Select Level</h2>
+      </div>
 
-  rootEl = document.getElementById("levelsOverlay");
-  if (!rootEl) {
-    console.warn("[LevelsUI] #levelsOverlay not found");
-    return null;
+      <div class="levelsGrid" id="levelsGrid"></div>
+
+      <button class="closeBtn" id="levelsClose">Close</button>
+    </div>
+  `;
+
+  root.appendChild(overlay);
+
+  const grid = overlay.querySelector("#levelsGrid");
+  const closeBtn = overlay.querySelector("#levelsClose");
+
+  // ----- STATE -----
+  // ----- STATE -----
+  let maxUnlocked = 1;
+  let selectHandler = null;
+
+  const TOTAL_LEVELS = Number(totalLevels || 0) || 20;
+
+  // ----- BUILD GRID ONCE -----
+  const levelButtons = [];
+
+  for (let i = 1; i <= TOTAL_LEVELS; i++) {
+    const btn = document.createElement("button");
+    btn.className = "levelBtn";
+    btn.dataset.level = i;
+
+    btn.innerHTML = `
+      <span class="icon"></span>
+      <span class="label">Level ${i}</span>
+    `;
+
+    btn.addEventListener("click", () => {
+      if (btn.classList.contains("locked")) {
+        // If guest taps a locked level above the guest limit, show login-required.
+        const maze = window.__maze;
+        const guestMax = Number(maze?.guestMaxLevel || 0);
+        const isLoggedIn = maze?.isLoggedIn?.() === true;
+        if (!isLoggedIn && guestMax > 0 && i > guestMax) {
+          maze?.showLoginRequired?.();
+        }
+        return;
+      }
+      selectHandler?.(i);
+      close();
+    });
+
+    grid.appendChild(btn);
+    levelButtons.push(btn);
   }
 
-  gridEl = rootEl.querySelector("#levelsGrid");
-  const closeBtn = rootEl.querySelector("#levelsCloseBtn");
+  // ----- RENDER STATES -----
+  function render() {
+    levelButtons.forEach((btn) => {
+      const level = Number(btn.dataset.level);
+      btn.classList.remove("locked", "completed", "unlocked");
 
-  closeBtn.onclick = () => close();
+      const icon = btn.querySelector(".icon");
 
-  render();
+      if (level < maxUnlocked) {
+        btn.classList.add("completed");
+        icon.innerHTML = btn.classList.contains("locked") ? "🔒" : "✔";
+      } else if (level === maxUnlocked) {
+        btn.classList.add("unlocked");
+        icon.textContent = "";
+      } else {
+        btn.classList.add("locked");
+      }
+    });
+  }
 
+  // ----- OPEN / CLOSE -----
+  function open() {
+    document.body.classList.add("overlay-open");
+    overlay.style.display = "flex";
+  }
+
+  function close() {
+    document.body.classList.remove("overlay-open");
+    overlay.style.display = "none";
+  }
+
+  closeBtn.addEventListener("click", close);
+
+  // ----- PUBLIC API -----
   return {
     open,
     close,
-    refresh: render,
+
+    setUnlocked(level) {
+      maxUnlocked = Math.max(1, level || 1);
+      render();
+    },
+
+    onSelect(cb) {
+      selectHandler = cb;
+    },
   };
-}
-
-function open() {
-  rootEl.classList.remove("hidden");
-}
-
-function close() {
-  rootEl.classList.add("hidden");
-}
-
-function render() {
-  if (!gridEl) return;
-
-  const progress = window.__progress || { level: 1 };
-  const maxUnlocked = progress.level || 1;
-
-  gridEl.innerHTML = "";
-
-  const totalLevels = window.__levels?.length || 20;
-
-  for (let i = 1; i <= totalLevels; i++) {
-    const btn = document.createElement("button");
-    btn.className = "levelTile";
-
-    if (i < maxUnlocked) {
-      btn.classList.add("completed");
-      btn.innerHTML = "✓";
-    } else if (i === maxUnlocked) {
-      btn.classList.add("current");
-      btn.textContent = i;
-    } else {
-      btn.classList.add("locked");
-      btn.innerHTML = "🔒";
-      btn.disabled = true;
-    }
-
-    if (i <= maxUnlocked) {
-      btn.onclick = () => {
-        close();
-        onSelectLevel?.(i);
-      };
-    }
-
-    gridEl.appendChild(btn);
-  }
 }

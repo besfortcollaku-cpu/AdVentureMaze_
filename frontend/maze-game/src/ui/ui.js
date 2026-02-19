@@ -1,10 +1,10 @@
 import { mountAccountUI } from "./uiAccount.js";
 import { mountSettingsUI } from "./uiSettings.js";
 import { mountThemeUI } from "./uiTheme.js";
-
 import { getTheme, onThemeChange } from "../theme.js";
 // NOTE: Hint/Skip popups are now controlled from src/main.js so
 // they can call the backend (free/coins/ad) and update the game.
+import { mountLevelsUI } from "./uiLevels.js"; 
 export function mountUI(root) {
   root.innerHTML = `
     <div id="app" class="app">
@@ -123,26 +123,7 @@ accountBtn.addEventListener("click", () => {
     accountUI.show();
   }
 });
-const levelsOverlay = document.createElement("div");
-levelsOverlay.id = "levelsOverlay";
-levelsOverlay.className = "levelsOverlay hidden";
 
-levelsOverlay.innerHTML = `
-  <div class="levelsCard">
-    <h2>Select Level</h2>
-    <div id="levelsGrid" class="levelsGrid"></div>
-    <button id="levelsCloseBtn" class="closeBtn">Close</button>
-  </div>
-`;
-
-document.body.appendChild(levelsOverlay);
-
-const levelsGrid = levelsOverlay.querySelector("#levelsGrid");
-const levelsCloseBtn = levelsOverlay.querySelector("#levelsCloseBtn");
-
-levelsCloseBtn.onclick = () => {
-  levelsOverlay.classList.add("hidden");
-};
   // ----- SETTINGS UI -----
   const settingsUI = mountSettingsUI(root);
   settingsBtn.addEventListener("click", () => {
@@ -210,29 +191,7 @@ skipBtn.addEventListener("click", () => onSkipClick());
   // ----- PUBLIC API -----
   return {
       
-      openLevels() {
-  levelsOverlay.classList.remove("hidden");
-},
-closeLevels() {
-  levelsOverlay.classList.add("hidden");
-},
-renderLevels({ maxUnlocked, onSelect }) {
-  levelsGrid.innerHTML = "";
-  for (let i = 1; i <= window.__levels.length; i++) {
-    const btn = document.createElement("button");
-    btn.className = "level-tile";
-    btn.textContent = i;
-
-    if (i > maxUnlocked) {
-      btn.classList.add("locked");
-      btn.disabled = true;
-    }
-
-    btn.onclick = () => onSelect(i);
-    levelsGrid.appendChild(btn);
-  }
-}
-,
+      
       showLoginRequired() {
   loginRequiredOverlay.classList.remove("hidden");
 },
