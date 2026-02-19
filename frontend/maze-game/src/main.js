@@ -1,6 +1,5 @@
 
 import "./css/ui.css";
-import { mountLevelsUI } from "./ui/uiLevels.js";
 import { mountUI } from "./ui/ui.js";
 import { loadProgress } from "./api/loadProgress.js";
 import { createGame } from "./game/game.js";
@@ -10,7 +9,7 @@ import { createWinPopup } from "./ui/uiWin.js";
 import { createSkipPopup } from "./ui/uiSkip.js";
 import { createHintPopup } from "./ui/uiHints.js";
 import { createRestartPopup } from "./ui/uiRestarts.js";
-
+window.__levels = levels;
 const GUEST_PROGRESS_KEY = "guest_progress_v1";
 const GUEST_MAX_LEVEL = 5;
 let CURRENT_USER = null;
@@ -312,29 +311,22 @@ ui.onAccountClick(async () => {
 });
 
 ui.levelsBtn.addEventListener("click", () => {
-  // keep levels UI in sync before opening
-  if (CURRENT_USER?.uid) {
-    levelsUI.setUnlocked?.(CURRENT_MAX_UNLOCKED_LEVEL || 1);
-  } else {
-    const guestProgress = loadGuestProgress();
-    const unlocked = Math.min(guestProgress.maxLevel || 1, GUEST_MAX_LEVEL);
-    CURRENT_MAX_UNLOCKED_LEVEL = unlocked;
-    levelsUI.setUnlocked?.(unlocked);
-  }
+  const unlocked = CURRENT_USER?.uid
+    ? CURRENT_MAX_UNLOCKED_LEVEL
+    : Math.min(loadGuestProgress().maxLevel || 1, GUEST_MAX_LEVEL);
 
-  levelsUI.open();
+  ui.renderLevels({
+    maxUnlocked: unlocked,
+    onSelect(levelNumber) {
+      document.dispatchEvent(
+        new CustomEvent("level-select", { detail: levelNumber })
+      );
+    },
+  });
+
+  ui.openLevels();
 });
 
-// Level select
-levelsUI.onSelect((levelNumber) => {
-  // Guest can only open levels 1..GUEST_MAX_LEVEL
-  if (!CURRENT_USER?.uid && levelNumber > GUEST_MAX_LEVEL) {
-    ui.showLoginRequired();
-    return;
-  }
-  goToLevel(levelNumber - 1);
-});
-  
   ui.showWelcome();
   
 ui.onRestartClick(async () => {
@@ -420,6 +412,17 @@ const game = createGame({
   },
 });
 
+document.addEventListener("level-select", (e) => {
+  const levelNumber = e.detail;
+
+  if (!CURRENT_USER?.uid && levelNumber > GUEST_MAX_LEVEL) {
+    ui.showLoginRequired();
+    return;
+  }
+
+  goToLevel(levelNumber - 1);
+  ui.closeLevels();
+});
 function goToLevel(nextIndex) {
   levelIndex = Math.max(0, Math.min(levels.length - 1, nextIndex));
   const lvl = levels[levelIndex];
@@ -659,28 +662,7 @@ ui.onLoginClick(async () => {
     token: CURRENT_ACCESS_TOKEN,
     ui,
   });
-  // ---- GLOBAL PROGRESS FOR LEVELS UI ----
-window.__progress = {
-  level:
-    me?.progress?.maxLevel ??
-    me?.progress?.highestLevel ??
-    1,
-};
-CURRENT_MAX_UNLOCKED_LEVEL = window.__progress.level;
-levelsUI.setUnlocked(CURRENT_MAX_UNLOCKED_LEVEL);
  
-
-  const maxLevel =
-    me?.progress?.maxLevel ??
-    me?.progress?.highestLevel ??
-    1;
-
-  CURRENT_MAX_UNLOCKED_LEVEL = Math.max(1, Number(maxLevel) || 1);
-  levelsUI.setUnlocked?.(maxLevel);
-  // start at the unlocked level (or 1)
-  setLevel(Math.max(0, maxLevel - 1));
-  document.body.classList.add("game-running");
-  ui.hideWelcome();
 
   if (!game.isRunning?.()) {
     game.start();
