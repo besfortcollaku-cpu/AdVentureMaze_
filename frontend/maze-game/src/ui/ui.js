@@ -138,15 +138,6 @@ levelsOverlay.innerHTML = `
 
 document.body.appendChild(levelsOverlay);
 
-  // ----- LEVELS UI MOUNT -----
-const levelsUI = mountLevelsUI({
-  onSelect(levelNumber) {
-    // forward to main.js through a custom event
-    document.dispatchEvent(
-      new CustomEvent("level-select", { detail: levelNumber })
-    );
-  },
-});
   // ----- SETTINGS UI -----
   const settingsUI = mountSettingsUI(root);
   settingsBtn.addEventListener("click", () => {
