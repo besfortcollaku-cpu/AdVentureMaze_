@@ -249,20 +249,14 @@ if (storedToken) {
 
   // Mount UI
 const ui = mountUI(root);
-window.__levelsUI = mountLevelsUI({
-  onSelect(level) {
-    levelIndex = level - 1;
-    startLevel(levelIndex);
-  },
-});
-
 const levelsUI = mountLevelsUI({
   onSelect(level) {
     levelIndex = level - 1;
-    startLevel(levelIndex);
+    goToLevel(levelIndex);
   },
 });
 
+window.__levelsUI = levelsUI;
 
 
 // Expose a tiny bridge for UI modules that don't have direct access to `ui`.
@@ -682,13 +676,9 @@ window.__progress = {
     me?.progress?.highestLevel ??
     1,
 };
-  // 🔑 STORE PROGRESS GLOBALLY FOR LEVELS UI (PERSIST AFTER REFRESH)
-window.__progress = {
-  level:
-    me?.progress?.maxLevel ??
-    me?.progress?.highestLevel ??
-    1,
-};
+CURRENT_MAX_UNLOCKED_LEVEL = window.__progress.level;
+levelsUI.setUnlocked(CURRENT_MAX_UNLOCKED_LEVEL);
+ 
 
   const maxLevel =
     me?.progress?.maxLevel ??
