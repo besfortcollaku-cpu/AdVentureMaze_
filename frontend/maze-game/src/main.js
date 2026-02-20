@@ -58,7 +58,7 @@ function scheduleResumeSave(currentLevelNumber) {
       RESUME_TILES.size,
       RESUME_POS
     );
-
+console.log("RESUME_TILES ARRAY:", Array.from(RESUME_TILES));
     apiSetProgress({
       uid: CURRENT_USER.uid,
       level: safeLevel,
