@@ -52,17 +52,16 @@ function scheduleResumeSave(currentLevelNumber) {
       Number(CURRENT_MAX_UNLOCKED_LEVEL || 1),
       Number(currentLevelNumber || 1)
     );
-
+if (LEVEL_START_KEY) {
+  RESUME_TILES.add(LEVEL_START_KEY);
+}
     console.log(
       "SAVING RESUME",
       safeLevel,
       RESUME_TILES.size,
       RESUME_POS
     );
-// ✅ always include original spawn tile
-if (LEVEL_START_KEY) {
-  RESUME_TILES.add(LEVEL_START_KEY);
-}
+    
     apiSetProgress({
       uid: CURRENT_USER.uid,
       level: safeLevel,
@@ -579,13 +578,14 @@ function goToLevel(nextIndex) {
   const selectedLevelNumber = levelIndex + 1;
 
   game.setLevel(lvl);
-  // ✅ capture spawn tile for this level
+// ✅ Capture spawn tile AFTER level fully loads
 setTimeout(() => {
   const p = game.getPlayer?.();
   if (p) {
     LEVEL_START_KEY = `${p.x},${p.y}`;
+    console.log("LEVEL_START_KEY =", LEVEL_START_KEY);
   }
-}, 0);
+}, 50);
   ui.setLevel(selectedLevelNumber);
 
   // Only logged-in users can resume
@@ -907,9 +907,7 @@ if (!game.isRunning?.()) {
   updateAllBadges();
   // ✅ capture original spawn tile
   const p = game.getPlayer?.();
-  if (p) {
-    LEVEL_START_KEY = `${p.x},${p.y}`;
-  }
+ 
 }
 
 // ✅ APPLY PROGRESS AFTER GAME STARTS (IMPORTANT)
