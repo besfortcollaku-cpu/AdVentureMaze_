@@ -24,6 +24,7 @@ import { level19 } from "./level19.js";
 import { level20 } from "./level20.js";
 import { level21 } from "./level21.js";
 import { level22 } from "./level22.js";
+import { level23 } from "./level23.js";
 
 
 export const levels = [
@@ -49,6 +50,7 @@ export const levels = [
  level20,
  level21,
  level22,
+ level23,
 ];
 
 export function getLevel(index) {
