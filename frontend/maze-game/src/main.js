@@ -58,7 +58,12 @@ function scheduleResumeSave(currentLevelNumber) {
       RESUME_TILES.size,
       RESUME_POS
     );
-console.log("RESUME_TILES ARRAY:", Array.from(RESUME_TILES));
+    // ✅ ensure starting tile always included
+const player = game.getPlayer?.();
+if (player) {
+  const startKey = `${player.x},${player.y}`;
+  RESUME_TILES.add(startKey);
+}
     apiSetProgress({
       uid: CURRENT_USER.uid,
       level: safeLevel,
