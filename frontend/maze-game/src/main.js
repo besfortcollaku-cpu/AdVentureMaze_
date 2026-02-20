@@ -554,13 +554,44 @@ function goToLevel(nextIndex) {
   levelIndex = Math.max(0, Math.min(levels.length - 1, nextIndex));
   const lvl = levels[levelIndex];
 
-  // resume data belongs to the level being played, but unlocked level MUST stay
-  RESUME_TILES = new Set();
-  RESUME_POS = null;
-  RESUME_ENABLED = Boolean(CURRENT_USER?.uid);
+  const selectedLevelNumber = levelIndex + 1;
 
   game.setLevel(lvl);
-  ui.setLevel(levelIndex + 1);
+  ui.setLevel(selectedLevelNumber);
+
+  // Only logged-in users can resume
+  if (!CURRENT_USER?.uid) return;
+
+  RESUME_ENABLED = true;
+
+  // Fetch latest progress from backend memory (already loaded in CURRENT_MAX_UNLOCKED_LEVEL flow)
+  fetch(`${BACKEND}/api/me`, {
+    headers: {
+      Authorization: `Bearer ${CURRENT_ACCESS_TOKEN}`,
+    },
+  })
+    .then((r) => (r.ok ? r.json() : null))
+    .then((me) => {
+      const progress = me?.progress;
+      if (!progress) return;
+
+      // Only resume if this level matches saved level
+      if (progress.level !== selectedLevelNumber) return;
+
+      const paintedKeys = progress.paintedKeys;
+      const resume = progress.resume;
+
+      if (Array.isArray(paintedKeys) || resume) {
+        RESUME_TILES = new Set(Array.isArray(paintedKeys) ? paintedKeys : []);
+        RESUME_POS = resume ?? null;
+
+        game.applyProgress({
+          paintedKeys: Array.from(RESUME_TILES),
+          player: RESUME_POS,
+        });
+      }
+    })
+    .catch(() => {});
 }
 
 function goNextLevel() {
