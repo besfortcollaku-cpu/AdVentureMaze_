@@ -59,11 +59,9 @@ function scheduleResumeSave(currentLevelNumber) {
       RESUME_TILES.size,
       RESUME_POS
     );
-    // ✅ ensure starting tile always included
-const player = game.getPlayer?.();
-if (player) {
-  const startKey = `${player.x},${player.y}`;
-  RESUME_TILES.add(startKey);
+// ✅ always include original spawn tile
+if (LEVEL_START_KEY) {
+  RESUME_TILES.add(LEVEL_START_KEY);
 }
     apiSetProgress({
       uid: CURRENT_USER.uid,
@@ -581,6 +579,13 @@ function goToLevel(nextIndex) {
   const selectedLevelNumber = levelIndex + 1;
 
   game.setLevel(lvl);
+  // ✅ capture spawn tile for this level
+setTimeout(() => {
+  const p = game.getPlayer?.();
+  if (p) {
+    LEVEL_START_KEY = `${p.x},${p.y}`;
+  }
+}, 0);
   ui.setLevel(selectedLevelNumber);
 
   // Only logged-in users can resume
