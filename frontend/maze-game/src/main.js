@@ -38,6 +38,7 @@ let RESUME_ENABLED = false;
 let RESUME_TILES = new Set();
 let RESUME_POS = null;
 let RESUME_SAVE_TIMER = null;
+let LEVEL_START_KEY = null;
 
 function scheduleResumeSave(currentLevelNumber) {
   if (!CURRENT_USER?.uid) return;
@@ -382,6 +383,8 @@ if (CURRENT_ACCESS_TOKEN) {
 
       if (!game.isRunning?.()) {
         game.start();
+    updateAllBadges();
+        
       }
     })
     .catch(() => {});
@@ -817,6 +820,7 @@ restartPopup.onFreeRestart(async () => {
   document.body.classList.add("game-running");
   ui.hideWelcome();
   game.start();
+  updateAllBadges();
 });
    // PROGRES LEVELS
 
@@ -895,6 +899,12 @@ ui.hideWelcome();
 
 if (!game.isRunning?.()) {
   game.start();
+  updateAllBadges();
+  // ✅ capture original spawn tile
+  const p = game.getPlayer?.();
+  if (p) {
+    LEVEL_START_KEY = `${p.x},${p.y}`;
+  }
 }
 
 // ✅ APPLY PROGRESS AFTER GAME STARTS (IMPORTANT)
