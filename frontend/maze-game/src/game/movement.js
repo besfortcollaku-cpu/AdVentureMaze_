@@ -35,6 +35,9 @@ export function createMovement({ state, onMoveFinished, onTilePainted }) {
     }
   }
 
+  // ✅ ensure the starting tile is captured for resume
+  paintAndNotify(state.player.x, state.player.y);
+
   function vibrate(pattern) {
     const s = getSettings();
     if (!s.vibration) return;
