@@ -869,38 +869,49 @@ levelsUI.setUnlocked?.(UNLOCKED_LEVEL);
   RESUME_TILES = new Set();
   RESUME_POS = null;
 
-  // restore painted path + position ONLY if backend sent it
-  const paintedKeys = me?.progress?.paintedKeys;
-  const resume = me?.progress?.resume;
+// restore painted path + position ONLY if backend sent it
+const paintedKeys = me?.progress?.paintedKeys;
+const resume = me?.progress?.resume;
 
-  if (Array.isArray(paintedKeys) || (resume && resume.x != null && resume.y != null)) {
-    if (Array.isArray(paintedKeys)) {
-      for (const k of paintedKeys) RESUME_TILES.add(k);
-    }
-    if (resume && resume.x != null && resume.y != null) {
-      RESUME_POS = { x: resume.x, y: resume.y };
-    }
+if (Array.isArray(paintedKeys) || (resume && resume.x != null && resume.y != null)) {
 
-    game.applyProgress({
-      paintedKeys: Array.from(RESUME_TILES),
-      player: RESUME_POS,
-    });
+  if (Array.isArray(paintedKeys)) {
+    RESUME_TILES.clear();
+    for (const k of paintedKeys) RESUME_TILES.add(k);
   }
-  document.body.classList.add("game-running");
-  ui.hideWelcome();
 
-  if (!game.isRunning?.()) {
-    game.start();
-    // ✅ ensure starting tile is captured for resume
-if (CURRENT_USER?.uid && RESUME_ENABLED) {
-  const player = game.getPlayer?.();
-  if (player) {
-    const startKey = `${player.x},${player.y}`;
-    RESUME_TILES.add(startKey);
-    RESUME_POS = { x: player.x, y: player.y };
+  if (resume && resume.x != null && resume.y != null) {
+    RESUME_POS = { x: resume.x, y: resume.y };
   }
 }
-    updateAllBadges();
+
+document.body.classList.add("game-running");
+ui.hideWelcome();
+
+if (!game.isRunning?.()) {
+  game.start();
+}
+
+// ✅ APPLY PROGRESS AFTER GAME STARTS (IMPORTANT)
+if (RESUME_TILES.size > 0 || RESUME_POS) {
+  game.applyProgress({
+    paintedKeys: Array.from(RESUME_TILES),
+    player: RESUME_POS,
+  });
+
+  // ✅ force repaint of current player tile (fix start tile bug)
+  const p = game.getPlayer?.();
+  if (p) {
+    const k = `${p.x},${p.y}`;
+    RESUME_TILES.add(k);
+    game.applyProgress({
+      paintedKeys: [k],
+      player: null,
+    });
+  }
+}
+
+updateAllBadges();
   }
 });
 }
