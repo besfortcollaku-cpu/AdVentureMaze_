@@ -465,6 +465,7 @@ ui.onRestartClick(async () => {
     if (!out?.ok) return;
 
     CURRENT_USER = { ...CURRENT_USER, ...out.user };
+    wipeResumeForCurrentLevel();
     game.setLevel(levels[levelIndex]);
     updateAllBadges();
     return;
@@ -549,6 +550,21 @@ if (CURRENT_USER?.uid) {
     }
   },
 });
+function wipeResumeForCurrentLevel() {
+  if (!CURRENT_USER?.uid) return;
+
+  RESUME_TILES = new Set();
+  RESUME_POS = null;
+
+  apiSetProgress({
+    uid: CURRENT_USER.uid,
+    level: CURRENT_MAX_UNLOCKED_LEVEL,
+    coins: CURRENT_USER?.coins ?? 0,
+    paintedKeys: [],
+    resume: null,
+  }).catch(() => {});
+}
+
 
 function goToLevel(nextIndex) {
   levelIndex = Math.max(0, Math.min(levels.length - 1, nextIndex));
@@ -739,6 +755,7 @@ restartPopup.onBuyRestart(async () => {
 
   CURRENT_USER = { ...CURRENT_USER, ...out.user };
   updateRestartBadge();
+  wipeResumeForCurrentLevel();
   game.setLevel(levels[levelIndex]);
   restartPopup.hide();
 });
@@ -778,6 +795,7 @@ restartPopup.onFreeRestart(async () => {
 
   CURRENT_USER = { ...CURRENT_USER, ...out.user };
   updateAllBadges();
+  wipeResumeForCurrentLevel();
   game.setLevel(levels[levelIndex]);
   restartPopup.hide();
 });
