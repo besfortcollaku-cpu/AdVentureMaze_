@@ -891,6 +891,15 @@ levelsUI.setUnlocked?.(UNLOCKED_LEVEL);
 
   if (!game.isRunning?.()) {
     game.start();
+    // ✅ ensure starting tile is captured for resume
+if (CURRENT_USER?.uid && RESUME_ENABLED) {
+  const player = game.getPlayer?.();
+  if (player) {
+    const startKey = `${player.x},${player.y}`;
+    RESUME_TILES.add(startKey);
+    RESUME_POS = { x: player.x, y: player.y };
+  }
+}
     updateAllBadges();
   }
 });
