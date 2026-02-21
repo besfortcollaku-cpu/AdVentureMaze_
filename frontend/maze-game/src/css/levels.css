@@ -99,10 +99,16 @@ body.overlay-open {
   gap: 12px;
 
   margin: 12px 0 18px;
-  overflow-y: auto;
   flex: 1;
 
-  scrollbar-width: thin;
+  overflow-y: scroll;
+  -webkit-overflow-scrolling: touch;
+
+  scrollbar-width: none; /* Firefox */
+}
+
+.levelsGrid::-webkit-scrollbar {
+  display: none; /* Chrome/Safari */
 }
 
 .levelsGrid::-webkit-scrollbar {

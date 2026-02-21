@@ -23,6 +23,21 @@ export function mountLevelsUI(root, { totalLevels } = {}) {
   root.appendChild(overlay);
 
   const grid = overlay.querySelector("#levelsGrid");
+  // ----- TOUCH DRAG SCROLL -----
+let startY = 0;
+let startScroll = 0;
+
+overlay.addEventListener("touchstart", (e) => {
+  startY = e.touches[0].clientY;
+  startScroll = grid.scrollTop;
+}, { passive: true });
+
+overlay.addEventListener("touchmove", (e) => {
+  const currentY = e.touches[0].clientY;
+  const delta = startY - currentY;
+
+  grid.scrollTop = startScroll + delta;
+}, { passive: true });
   const closeBtn = overlay.querySelector("#levelsClose");
 
   // ----- STATE -----
