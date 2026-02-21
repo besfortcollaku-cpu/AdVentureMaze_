@@ -33,7 +33,7 @@ items.forEach((btn) => {
 
 
 closeBtn.onclick = () => {
-  overlay.classList.add("hidden");
+  overlay.classList.remove("active");
 }; 
 
   return {
