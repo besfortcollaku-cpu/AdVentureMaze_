@@ -148,8 +148,12 @@ body.overlay-open {
 }
 
 .levelBtn.completed {
-  background: rgba(255, 255, 255, 0.18);
-  box-shadow: inset 0 0 0 1px rgba(140, 255, 200, 0.5);
+  background: rgba(255, 217, 90, 0.08);
+  border-color: rgba(255, 217, 90, 0.5);
+
+  box-shadow:
+    0 0 8px rgba(255, 217, 90, 0.25),
+    inset 0 0 0 1px rgba(255, 217, 90, 0.3);
 }
 
 .levelBtn.unlocked {
@@ -232,14 +236,19 @@ body.theme-lava .levelBtn.unlocked {
   font-size: 20px;
 }
 .levelBtn.completed::after {
-  content: "✓";
-  color: #7CFFB2;
-  font-size: 24px;
-  font-weight: 900;
+  content: "★";
+  position: absolute;
+  top: 4px;
+  right: 6px;
+
+  font-size: 14px;
+  color: #FFD95A;
+
+  text-shadow:
+    0 0 6px rgba(255, 217, 90, 0.7),
+    0 0 12px rgba(255, 217, 90, 0.4);
 }
-.levelBtn.completed {
-  opacity: 0.6;
-}
+
 .levelBtn.locked {
   opacity: 0.35;
   pointer-events: none;
@@ -290,4 +299,15 @@ body.theme-lava .levelBtn {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+
+@keyframes starPulse {
+  0% { transform: scale(1); opacity: 0.9; }
+  50% { transform: scale(1.15); opacity: 1; }
+  100% { transform: scale(1); opacity: 0.9; }
+}
+
+.levelBtn.completed::after {
+  animation: starPulse 2s infinite ease-in-out;
 }
