@@ -16,6 +16,11 @@
   transition: opacity 0.25s ease;
 }
 
+/* ONLY visible when active */
+.theme-overlay.active {
+  opacity: 1;
+  pointer-events: auto;
+}
 /* PNG background */
 .theme-overlay::before {
   content: "";

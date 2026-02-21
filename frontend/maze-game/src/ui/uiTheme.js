@@ -4,6 +4,7 @@ import { setTheme } from "../theme.js";
 export function mountThemeUI(root) {
   const overlay = document.createElement("div");
   overlay.className = "theme-overlay";
+overlay.classList.remove("active");   // force closed state
 
   overlay.innerHTML = `
     <div class="theme-card">
