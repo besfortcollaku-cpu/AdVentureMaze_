@@ -1,8 +1,8 @@
-// src/levels/level22.js
+// src/levels/level24.js
 
 
 
-export const level23 = {
+export const level24 = {
 
   name: "LEVEL 23",
 
@@ -18,7 +18,7 @@ export const level23 = {
 
 
 [0,0,1,0,0,0,0],
-[0,0,0,0,1,1,0],
+[0,0,0,0,0,1,0],
 [0,1,1,1,1,1,0],
 [0,1,1,1,1,1,0],
 [0,1,1,1,1,1,0],
