@@ -1,5 +1,5 @@
 /* =========================
-   THEME OVERLAY (LEVEL STYLE)
+   THEME OVERLAY (CONTROLLED)
 ========================= */
 
 .theme-overlay {
@@ -7,19 +7,14 @@
   inset: 0;
   z-index: 1000;
 
-  display: flex;
+  display: none;              /* 🔥 hidden by default */
+
   align-items: center;
   justify-content: center;
-
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.25s ease;
 }
 
-/* ONLY visible when active */
 .theme-overlay.active {
-  opacity: 1;
-  pointer-events: auto;
+  display: flex;              /* 🔥 only visible when active */
 }
 /* PNG background */
 .theme-overlay::before {
