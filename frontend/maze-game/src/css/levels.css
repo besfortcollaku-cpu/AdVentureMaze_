@@ -1,57 +1,20 @@
 /* =========================
    LEVELS OVERLAY
 ========================= */
-.levelsCard {
-  width: 100%;
-  max-width: 520px;
-  max-height: 88vh;
-
-  border-radius: 26px 26px 0 0;
-  padding: 22px;
-
-  background: linear-gradient(
-    180deg,
-    rgba(255,255,255,0.12),
-    rgba(255,255,255,0.06)
-  );
-
-  display: flex;
-  flex-direction: column;
-
-  position: relative;
-  z-index: 2;
-
-  transform: translateY(0); /* TEMP FORCE */
-}
-
-  box-shadow: 0 -12px 40px 0 rgba(0,0,0,0.5);
-
-  display: flex;
-  flex-direction: column;
-
-  transform: translateY(100%);
-  transition: transform 0.35s cubic-bezier(.2,.8,.2,1);
-}
 .levelsOverlay {
   position: fixed;
   inset: 0;
   z-index: 1000;
 
-  display: flex;
+  display: none;
+  align-items: center;
   justify-content: center;
-  align-items: flex-end;
 
-  background: rgba(0,0,0,0.45);
-  backdrop-filter: blur(6px);
-
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.25s ease;
+  background: none;
 }
 
-.levelsOverlay.active {
-  opacity: 1;
-  pointer-events: auto;
+body.overlay-open {
+  overflow: hidden;
 }
 
 /* =========================
@@ -68,13 +31,6 @@
   background-repeat: no-repeat;
 
   z-index: 0;
-
-  opacity: 0;
-  transition: opacity 0.25s ease;
-}
-
-.levelsOverlay.active::before {
-  opacity: 1;
 }
 
 /* subtle dark veil (NO BLUR) */
@@ -85,13 +41,6 @@
 
   background: rgba(0, 0, 0, 0.35);
   z-index: 1;
-
-  opacity: 0;
-  transition: opacity 0.25s ease;
-}
-
-.levelsOverlay.active::after {
-  opacity: 1;
 }
 
 /* =========================
@@ -111,18 +60,7 @@
     rgba(255, 255, 255, 0.10),
     rgba(255, 255, 255, 0.05)
   );
-  .levelsCard::before {
-  content: "";
-  width: 44px;
-  height: 5px;
-  border-radius: 6px;
-  background: rgba(255,255,255,0.4);
-  align-self: center;
-  margin-bottom: 14px;
-}
-.levelsOverlay.active .levelsCard {
-  transform: translateY(0);
-}
+
   box-shadow:
     0 18px 60px rgba(0, 0, 0, 0.55),
     inset 0 0 0 1px rgba(255, 255, 255, 0.12);
@@ -157,8 +95,8 @@
 ========================= */
 .levelsGrid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 10px;
 
   margin: 12px 0 18px;
   flex: 1;
