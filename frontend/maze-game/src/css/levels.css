@@ -220,27 +220,7 @@ body.theme-lava .levelBtn.unlocked {
 /* =========================
    CLEAN LEVEL TILE
 ========================= */
-.levelBtn {
-  width: 64px;
-  height: 64px;
-  border-radius: 14px;
 
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  background: rgba(255, 255, 255, 0.12); /* clean glass */
-  border: 1px solid rgba(255, 255, 255, 0.22);
-
-  color: #ffffff;
-  font-size: 20px;
-  font-weight: 800;
-
-  box-shadow: none;        /* 🔴 remove outer glow */
-  backdrop-filter: none;  /* 🔴 no blur */
-
-  position: relative;
-} 
 .levelBtn .label {
   display: none;
 }
