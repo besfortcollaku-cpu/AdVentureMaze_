@@ -14,8 +14,14 @@
     rgba(255,255,255,0.12),
     rgba(255,255,255,0.06)
   );
-  .levelsOverlay.active .levelsCard {
-  transform: translateY(0);
+
+  display: flex;
+  flex-direction: column;
+
+  position: relative;
+  z-index: 2;
+
+  transform: translateY(0); /* TEMP FORCE */
 }
 
   box-shadow: 0 -12px 40px rgba(0,0,0,0.5);
