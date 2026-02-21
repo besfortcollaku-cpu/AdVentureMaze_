@@ -290,6 +290,8 @@ canvas#game {
 .welcomeCard {
   width: min(92%, 420px);
   text-align: left;
+    animation: softBounceIn 0.35s ease-out;
+
 }
 
 .welcomeCard h1 {
@@ -385,6 +387,8 @@ body.game-running .app {
   width: 90%;
   max-width: 320px;
   text-align: center;
+    animation: softBounceIn 0.35s ease-out;
+
 }
 
 .login-required-card h2 {
@@ -438,6 +442,8 @@ body.game-running .app {
   border-radius: 14px;
   min-width: 260px;
   max-width: 90%;
+    animation: softBounceIn 0.35s ease-out;
+
 }
 .btn-wrapper {
   position: relative;
