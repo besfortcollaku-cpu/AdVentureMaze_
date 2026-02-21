@@ -38,6 +38,32 @@ overlay.addEventListener("touchmove", (e) => {
 
   grid.scrollTop = startScroll + delta;
 }, { passive: true });
+
+// =====================================
+// ----- DRAG DOWN TO CLOSE -----
+// =====================================
+let dragStartY = 0;
+let dragging = false;
+
+overlay.addEventListener("touchstart", (e) => {
+  dragStartY = e.touches[0].clientY;
+  dragging = true;
+}, { passive: true });
+
+overlay.addEventListener("touchmove", (e) => {
+  if (!dragging) return;
+
+  const delta = e.touches[0].clientY - dragStartY;
+
+  if (delta > 80) {
+    dragging = false;
+    close();
+  }
+}, { passive: true });
+
+overlay.addEventListener("touchend", () => {
+  dragging = false;
+});
   const closeBtn = overlay.querySelector("#levelsClose");
 
   // ----- STATE -----
@@ -100,15 +126,19 @@ overlay.addEventListener("touchmove", (e) => {
   }
 
   // ----- OPEN / CLOSE -----
-  function open() {
-    document.body.classList.add("overlay-open");
-    overlay.style.display = "flex";
-  }
+function open() {
+  overlay.style.display = "flex";
+  requestAnimationFrame(() => {
+    overlay.classList.add("active");
+  });
+}
 
-  function close() {
-    document.body.classList.remove("overlay-open");
+function close() {
+  overlay.classList.remove("active");
+  setTimeout(() => {
     overlay.style.display = "none";
-  }
+  }, 300);
+}
 
   closeBtn.addEventListener("click", close);
 
