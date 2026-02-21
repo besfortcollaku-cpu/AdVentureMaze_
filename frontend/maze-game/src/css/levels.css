@@ -122,6 +122,10 @@ body.overlay-open {
 /* =========================
    LEVEL BUTTON
 ========================= */
+.levelItem {
+  padding: 8px;
+  font-size: 13px;
+}
 .levelBtn {
   height: 64px;
   border-radius: 16px;
