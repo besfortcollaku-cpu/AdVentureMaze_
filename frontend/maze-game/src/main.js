@@ -380,6 +380,18 @@ if (CURRENT_ACCESS_TOKEN) {
 
       if (!game.isRunning?.()) {
         game.start();
+        // force capture starting tile for resume AFTER login ready
+if (CURRENT_USER?.uid && RESUME_ENABLED) {
+  const state = game.getState();
+  const x = state.player.x;
+  const y = state.player.y;
+
+  scheduleResumeSave(levelIndex + 1, {
+    key: `${x},${y}`,
+    x,
+    y,
+  });
+}
     updateAllBadges();
         
       }
@@ -825,6 +837,18 @@ restartPopup.onFreeRestart(async () => {
   document.body.classList.add("game-running");
   ui.hideWelcome();
   game.start();
+  // force capture starting tile for resume AFTER login ready
+if (CURRENT_USER?.uid && RESUME_ENABLED) {
+  const state = game.getState();
+  const x = state.player.x;
+  const y = state.player.y;
+
+  scheduleResumeSave(levelIndex + 1, {
+    key: `${x},${y}`,
+    x,
+    y,
+  });
+}
   updateAllBadges();
 });
    // PROGRES LEVELS
@@ -904,6 +928,18 @@ ui.hideWelcome();
 
 if (!game.isRunning?.()) {
   game.start();
+  // force capture starting tile for resume AFTER login ready
+if (CURRENT_USER?.uid && RESUME_ENABLED) {
+  const state = game.getState();
+  const x = state.player.x;
+  const y = state.player.y;
+
+  scheduleResumeSave(levelIndex + 1, {
+    key: `${x},${y}`,
+    x,
+    y,
+  });
+}
   updateAllBadges();
   // ✅ capture original spawn tile
   const p = game.getPlayer?.();
