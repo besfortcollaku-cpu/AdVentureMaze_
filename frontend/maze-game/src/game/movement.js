@@ -35,8 +35,16 @@ export function createMovement({ state, onMoveFinished, onTilePainted }) {
     }
   }
 
-  // ✅ ensure the starting tile is captured for resume
-  paintAndNotify(state.player.x, state.player.y);
+// ensure the starting tile is captured for resume
+const startX = state.player.x;
+const startY = state.player.y;
+
+// force notify resume even if already painted
+onTilePainted?.({
+  key: `${startX},${startY}`,
+  x: startX,
+  y: startY,
+});
 
   function vibrate(pattern) {
     const s = getSettings();
