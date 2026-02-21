@@ -3,8 +3,7 @@ import { setTheme } from "../theme.js";
 
 export function mountThemeUI(root) {
   const overlay = document.createElement("div");
-  overlay.className = "theme-overlay";
-overlay.classList.remove("active");   // force closed state
+  overlay.className = "theme-overlay hidden";
 
   overlay.innerHTML = `
     <div class="theme-card">
@@ -27,22 +26,26 @@ items.forEach((btn) => {
   btn.addEventListener("click", () => {
     const value = btn.dataset.theme;
     setTheme(value);
-    overlay.classList.remove("active");
+    overlay.classList.add("hidden");
   });
 });
 
 
 
   closeBtn.onclick = () => {
-    overlay.classList.remove("active");
+    overlay.classList.add("hidden");
   };
 
   return {
     open() {
-  overlay.classList.add("active");
-},
-close() {
-  overlay.classList.remove("active");
-},
+overlay.classList.remove("hidden");
+  requestAnimationFrame(() => {
+    overlay.style.opacity = "1";
+  });    },
+    close() {
+overlay.style.opacity = "0";
+  setTimeout(() => {
+    overlay.classList.add("hidden");
+  }, 250);    },
   };
 }
