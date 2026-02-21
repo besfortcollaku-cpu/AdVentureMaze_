@@ -23,6 +23,7 @@
   color: #fff;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
   text-align: center;
+    animation: softBounceIn 0.35s ease-out;
 }
 
 /* ===== Title ===== */
