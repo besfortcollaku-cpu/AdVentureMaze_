@@ -42,3 +42,4 @@ return {
     overlay.classList.remove("active"); // CLOSE
   },
 };
+}
