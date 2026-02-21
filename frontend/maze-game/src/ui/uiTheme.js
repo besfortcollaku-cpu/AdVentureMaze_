@@ -38,10 +38,14 @@ items.forEach((btn) => {
 
   return {
     open() {
-      overlay.classList.remove("hidden");
-    },
+overlay.classList.remove("hidden");
+  requestAnimationFrame(() => {
+    overlay.style.opacity = "1";
+  });    },
     close() {
-      overlay.classList.add("hidden");
-    },
+overlay.style.opacity = "0";
+  setTimeout(() => {
+    overlay.classList.add("hidden");
+  }, 250);    },
   };
 }
