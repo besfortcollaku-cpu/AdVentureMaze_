@@ -57,7 +57,7 @@ overlay.addEventListener("touchmove", (e) => {
 
     btn.innerHTML = `
       <span class="icon"></span>
-      <span class="label">Level ${i}</span>
+      <span class="label">${i}</span>
     `;
 
     btn.addEventListener("click", () => {

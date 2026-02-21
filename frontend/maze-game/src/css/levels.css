@@ -129,7 +129,10 @@ body.overlay-open {
 }
 
 .levelBtn .label {
-  font-size: 13px;
+  width: 100%;
+  text-align: center;
+  font-size: 18px;
+  font-weight: 700;
   opacity: 0.9;
 }
 
