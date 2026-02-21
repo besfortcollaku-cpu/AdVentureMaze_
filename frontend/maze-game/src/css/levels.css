@@ -126,26 +126,7 @@ body.overlay-open {
   padding: 8px;
   font-size: 13px;
 }
-.levelBtn {
-  height: 64px;
-  border-radius: 16px;
 
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  background: rgba(255, 255, 255, 0.12); /* lighter, cleaner */
-  border: 1px solid rgba(255, 255, 255, 0.22);
-
-  color: #ffffff;
-  font-weight: 800;
-  font-size: 18px;
-
-  backdrop-filter: none; /* IMPORTANT: no blur inside */
-  box-shadow: none;
-
-  transition: transform 0.15s ease, background 0.15s ease;
-}
 .levelBtn .label {
   font-size: 13px;
   opacity: 0.9;
