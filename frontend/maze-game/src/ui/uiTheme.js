@@ -3,7 +3,7 @@ import { setTheme } from "../theme.js";
 
 export function mountThemeUI(root) {
   const overlay = document.createElement("div");
-  overlay.className = "theme-overlay";
+  overlay.className = "theme-overlay hidden";
 
   overlay.innerHTML = `
     <div class="theme-card">
@@ -20,26 +20,32 @@ export function mountThemeUI(root) {
   document.body.appendChild(overlay);
   
   const closeBtn = overlay.querySelector(".theme-close");
-const items = overlay.querySelectorAll(".theme-item");
+  const items = overlay.querySelectorAll(".theme-item");
 
 items.forEach((btn) => {
   btn.addEventListener("click", () => {
     const value = btn.dataset.theme;
     setTheme(value);
-    overlay.classList.remove("active");  // CLOSE
+    overlay.classList.add("hidden");
   });
 });
 
-closeBtn.onclick = () => {
-  overlay.classList.remove("active");  // CLOSE
-};
 
-return {
-  open() {
-    overlay.classList.add("active");   // OPEN
-  },
-  close() {
-    overlay.classList.remove("active"); // CLOSE
-  },
-};
+
+  closeBtn.onclick = () => {
+    overlay.classList.add("hidden");
+  };
+
+  return {
+    open() {
+overlay.classList.remove("hidden");
+  requestAnimationFrame(() => {
+    overlay.style.opacity = "1";
+  });    },
+    close() {
+overlay.style.opacity = "0";
+  setTimeout(() => {
+    overlay.classList.add("hidden");
+  }, 250);    },
+  };
 }

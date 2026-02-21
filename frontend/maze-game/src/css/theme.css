@@ -1,14 +1,19 @@
 /* =========================
    THEME OVERLAY (LEVEL STYLE)
 ========================= */
+
 .theme-overlay {
   position: fixed;
   inset: 0;
   z-index: 1000;
 
-  display: none;              /* hidden by default */
+  display: flex;
   align-items: center;
   justify-content: center;
+
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
 }
 
 /* PNG background */
@@ -25,7 +30,7 @@
   z-index: 0;
 }
 
-/* Dark veil */
+/* dark veil */
 .theme-overlay::after {
   content: "";
   position: absolute;
@@ -35,8 +40,9 @@
   z-index: 1;
 }
 
-.theme-overlay.active {
-  display: flex;
+.theme-overlay:not(.hidden) {
+  opacity: 1;
+  pointer-events: auto;
 }
 /* ===== CARD ===== */
 
@@ -45,7 +51,6 @@
   z-index: 2;
 
   width: min(92vw, 420px);
-  max-height: 82vh;
   padding: 22px;
   border-radius: 26px;
 
@@ -60,9 +65,7 @@
     inset 0 0 0 1px rgba(255, 255, 255, 0.12);
 
   color: #ffffff;
-
-  display: flex;
-  flex-direction: column;
+  text-align: center;
 
   animation: softBounceIn 0.25s ease-out;
 }
