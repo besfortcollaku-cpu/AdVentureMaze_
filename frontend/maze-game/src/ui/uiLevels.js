@@ -55,9 +55,7 @@ overlay.addEventListener("touchmove", (e) => {
     btn.className = "levelBtn";
     btn.dataset.level = i;
 
-    btn.innerHTML = `
-      <span class="icon">Level ${i}</span>
-    `;
+    btn.textContent = i;
 
     btn.addEventListener("click", () => {
       if (btn.classList.contains("locked")) {
