@@ -20,28 +20,25 @@ export function mountThemeUI(root) {
   document.body.appendChild(overlay);
   
   const closeBtn = overlay.querySelector(".theme-close");
-  const items = overlay.querySelectorAll(".theme-item");
+const items = overlay.querySelectorAll(".theme-item");
 
 items.forEach((btn) => {
   btn.addEventListener("click", () => {
     const value = btn.dataset.theme;
     setTheme(value);
-    overlay.classList.remove("active");
+    overlay.classList.remove("active");  // CLOSE
   });
 });
 
-
-
 closeBtn.onclick = () => {
-  overlay.classList.remove("active");
-}; 
+  overlay.classList.remove("active");  // CLOSE
+};
 
-  return {
+return {
   open() {
-    overlay.classList.add("active");
+    overlay.classList.add("active");   // OPEN
   },
   close() {
-    overlay.classList.remove("active");
+    overlay.classList.remove("active"); // CLOSE
   },
 };
-}
