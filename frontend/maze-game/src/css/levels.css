@@ -122,9 +122,10 @@ body.overlay-open {
 /* =========================
    LEVEL BUTTON
 ========================= */
-.levelItem {
-  padding: 8px;
-  font-size: 13px;
+..levelItem {
+  padding: 0;
+  background: none;
+  border: none;
 }
 
 .levelBtn .label {
@@ -279,6 +280,9 @@ body.theme-lava .levelBtn {
 }
 
 .levelBtn {
+  width: 100%;
+  height: 60px;
+  border-radius: 16px;
   position: relative;
   display: flex;
   align-items: center;
