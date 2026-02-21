@@ -197,3 +197,6 @@ body.theme-lava .settings-card {
   background: rgba(90, 35, 20, 0.55);
   box-shadow: 0 0 40px rgba(255,120,60,0.35);
 }
+.settings-card {
+  animation: softBounceIn 0.35s ease-out;
+}
