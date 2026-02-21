@@ -70,7 +70,7 @@ body.overlay-open {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  animation: softBounceIn 0.35s ease-out;
+  animation: softBounceIn 0.65s ease-out;
 }
 
 /* =========================
