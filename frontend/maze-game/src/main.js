@@ -209,19 +209,24 @@ async function loadMeAndSyncUI({ BACKEND, token, ui }) {
 
   const me = await res.json();
 
+  const user = me?.user || {};
+  const progress = me?.progress || {};
+
   CURRENT_USER = {
-  ...me.user,
-  uid: me.user.uid,
-  username: me.user.username,
-};
+    ...user,
+    ...progress,
+    uid: user.uid,
+    username: user.username,
+  };
 
-ui.setUser({
-  ...CURRENT_USER,
-  level: CURRENT_MAX_UNLOCKED_LEVEL,
-});
-ui.setCoins(CURRENT_USER.coins ?? 0);
+  ui.setUser({
+    ...CURRENT_USER,
+    level: Number(progress.level || 1),
+  });
 
-return me;
+  ui.setCoins(Number(user.coins ?? progress.coins ?? 0));
+
+  return me;
 }
 
 function updateAllBadges() {
