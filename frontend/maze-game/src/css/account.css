@@ -48,14 +48,17 @@
   border-radius: 26px;
 
   background: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.10),
-    rgba(255, 255, 255, 0.05)
-  );
+  180deg,
+  rgba(20, 20, 30, 0.85),
+  rgba(15, 15, 25, 0.75)
+);
+
+backdrop-filter: blur(18px);
+-webkit-backdrop-filter: blur(18px);
 
   box-shadow:
     0 18px 60px rgba(0, 0, 0, 0.55),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+    inset 0 0 0 1px rgba(255, 255, 255, 0.18);
 
   color: #fff;
 
