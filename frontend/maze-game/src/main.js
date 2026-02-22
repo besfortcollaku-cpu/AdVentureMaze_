@@ -860,7 +860,6 @@ if (CURRENT_USER?.uid && RESUME_ENABLED) {
   });
 }
   updateAllBadges();
-});
    // PROGRES LEVELS
 
 
