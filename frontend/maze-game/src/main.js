@@ -320,6 +320,21 @@ window.__maze = window.__maze || {};
 window.__maze.guestMaxLevel = GUEST_MAX_LEVEL;
 window.__maze.showLoginRequired = () => ui.showLoginRequired();
 window.__maze.isLoggedIn = () => Boolean(CURRENT_USER?.uid);
+function mergeUserPatch(patch) {
+  if (!patch) return;
+
+  const keepUid = CURRENT_USER?.uid ?? null;
+  const keepName = CURRENT_USER?.username ?? CURRENT_USER?.name ?? "guest";
+
+  CURRENT_USER = { ...CURRENT_USER, ...patch };
+
+  // preserve login identity if backend patch didn't include it
+  if (!CURRENT_USER?.uid && keepUid) CURRENT_USER.uid = keepUid;
+  if (!CURRENT_USER?.username && keepName) CURRENT_USER.username = keepName;
+
+  // once logged in, never apply guest cap again
+  if (CURRENT_USER?.uid) window.__maze.guestMaxLevel = Infinity;
+}
 if (CURRENT_ACCESS_TOKEN) {
   fetch(`${BACKEND}/api/me`, {
     headers: {
@@ -475,7 +490,7 @@ ui.onRestartClick(async () => {
 
     if (!out?.ok) return;
 
-    CURRENT_USER = { ...CURRENT_USER, ...out.user };
+    mergeUserPatch(out.user);
     wipeResumeForCurrentLevel();
     game.setLevel(levels[levelIndex]);
     updateAllBadges();
@@ -514,7 +529,7 @@ const game = createGame({
       apiClaimLevelComplete(completedLevel)
         .then((out) => {
           if (out?.user) {
-            CURRENT_USER = { ...CURRENT_USER, ...out.user };
+            mergeUserPatch(out.user);
             ui.setCoins(out.user.coins ?? 0);
           }
         })
@@ -690,7 +705,7 @@ ui.onSkipClick(async () => {
       if (!out?.ok) throw new Error(out?.error);
 
       if (out.user) {
-        CURRENT_USER = { ...CURRENT_USER, ...out.user };
+        mergeUserPatch(out.user);
         updateAllBadges();
       }
 
@@ -709,7 +724,7 @@ skipPopup.onFreeSkip(async () => {
   const out = await apiSkip({ mode: "free" });
   if (!out.ok) return alert(out.error || "Skip failed");
   if (out.user) {
-    CURRENT_USER = { ...CURRENT_USER, ...out.user };
+    mergeUserPatch(out.user);
     ui.setCoins(out.user.coins);
   }
   goNextLevel();
@@ -719,7 +734,7 @@ skipPopup.onBuySkip(async () => {
   const out = await apiSkip({ mode: "coins" });
   if (!out.ok) return alert(out.error || "Skip failed");
   if (out.user) {
-    CURRENT_USER = { ...CURRENT_USER, ...out.user };
+    mergeUserPatch(out.user);
     ui.setCoins(out.user.coins);
   }
   goNextLevel();
@@ -744,7 +759,7 @@ ui.onHintClick(async () => {
       if (!out?.ok) throw new Error(out?.error);
 
       if (out.user) {
-        CURRENT_USER = { ...CURRENT_USER, ...out.user };
+        mergeUserPatch(out.user);
         updateAllBadges();
       }
 
@@ -772,7 +787,7 @@ restartPopup.onBuyRestart(async () => {
 
   if (!out?.ok) return alert(out.error);
 
-  CURRENT_USER = { ...CURRENT_USER, ...out.user };
+  mergeUserPatch(out.user);
   updateRestartBadge();
   wipeResumeForCurrentLevel();
   game.setLevel(levels[levelIndex]);
@@ -812,7 +827,7 @@ restartPopup.onFreeRestart(async () => {
   const out = await res.json();
   if (!out?.ok) return;
 
-  CURRENT_USER = { ...CURRENT_USER, ...out.user };
+  mergeUserPatch(out.user);
   updateAllBadges();
   wipeResumeForCurrentLevel();
   game.setLevel(levels[levelIndex]);

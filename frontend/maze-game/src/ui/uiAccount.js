@@ -21,10 +21,7 @@ export function mountAccountUI(root) {
   <div class="accountScroll">
     <div class="accountContent">
 
-      <div class="accountSection">
-        <div class="accountLabel">UID</div>
-        <div class="accountValue mono" id="accountUid">-</div>
-      </div>
+
 
       <!-- FUTURE CONTENT WILL GO HERE -->
 
@@ -39,7 +36,7 @@ export function mountAccountUI(root) {
   const closeBtn = root.querySelector("#accountCloseBtn");
 
   const usernameEl = root.querySelector("#accountUsername");
-  const uidEl = root.querySelector("#accountUid");
+  
   const coinsEl = root.querySelector("#accountCoins");
  const levelsEl = root.querySelector("#accountLevels");
 const skipsUsedEl = root.querySelector("#accountSkipsUsed");
@@ -74,10 +71,8 @@ statsToggle?.addEventListener("click", () => {
 
   function setUser(user) {
   const name = user?.username ?? "guest";
-  const uid = user?.uid ?? "-";
 
   if (usernameEl) usernameEl.textContent = name;
-  if (uidEl) uidEl.textContent = uid;
 
   if (levelsEl) levelsEl.textContent = String(user?.level ?? 0);
   if (skipsUsedEl) skipsUsedEl.textContent = String(user?.free_skips_used ?? 0);
