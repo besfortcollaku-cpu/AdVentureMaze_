@@ -215,7 +215,10 @@ async function loadMeAndSyncUI({ BACKEND, token, ui }) {
     username: me.user.username,
   };
 
-  ui.setUser(CURRENT_USER);
+  ui.setUser({
+  ...CURRENT_USER,
+  level: CURRENT_MAX_UNLOCKED_LEVEL,
+});
   ui.setCoins(me.user.coins ?? 0);
 
   // keep extra server fields on CURRENT_USER for skip/hint logic
