@@ -33,8 +33,11 @@ items.forEach((btn) => {
 
 
   closeBtn.onclick = () => {
+  overlay.style.opacity = "0";
+  setTimeout(() => {
     overlay.classList.add("hidden");
-  };
+  }, 250);
+};
 
   return {
     open() {
