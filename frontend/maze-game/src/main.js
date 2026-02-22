@@ -209,22 +209,17 @@ async function loadMeAndSyncUI({ BACKEND, token, ui }) {
 
   const me = await res.json();
 
-  // 🔥 THIS WAS MISSING
   CURRENT_USER = {
-    uid: me.user.uid,
-    username: me.user.username,
-  };
+  ...me.user,
+  uid: me.user.uid,
+  username: me.user.username,
+};
 
-  ui.setUser({
+ui.setUser({
   ...CURRENT_USER,
   level: CURRENT_MAX_UNLOCKED_LEVEL,
 });
-  ui.setCoins(me.user.coins ?? 0);
-
-  // keep extra server fields on CURRENT_USER for skip/hint logic
-  CURRENT_USER.free_skips_used = me.user.free_skips_used ?? 0;
-  CURRENT_USER.free_hints_used = me.user.free_hints_used ?? 0;
-  CURRENT_USER.free_restarts_used = me.user.free_restarts_used ?? 0;
+ui.setCoins(CURRENT_USER.coins ?? 0);
 
 return me;
 }
@@ -319,7 +314,7 @@ const ui = mountUI(root);
 window.__maze = window.__maze || {};
 window.__maze.guestMaxLevel = GUEST_MAX_LEVEL;
 window.__maze.showLoginRequired = () => ui.showLoginRequired();
-window.__maze.isLoggedIn = () => Boolean(CURRENT_USER?.uid);
+window.__maze.isLoggedIn = () => Boolean(CURRENT_ACCESS_TOKEN);
 if (CURRENT_ACCESS_TOKEN) {
   fetch(`${BACKEND}/api/me`, {
     headers: {
@@ -452,7 +447,7 @@ levelsUI.onSelect((levelNumber) => {
   ui.showWelcome();
   
 ui.onRestartClick(async () => {
-  if (!CURRENT_USER?.uid) {
+  if (!CURRENT_ACCESS_TOKEN) {
     ui.showLoginRequired();
     return;
   }
@@ -547,7 +542,7 @@ if (CURRENT_USER?.uid) {
   }).catch(() => {});
 }
     // 🟡 guest progress is local-only (levels 1..GUEST_MAX_LEVEL)
-    if (!CURRENT_USER?.uid) {
+    if (!CURRENT_ACCESS_TOKEN) {
       const nextUnlock = Math.min(GUEST_MAX_LEVEL, completedLevel + 1);
       const current = loadGuestProgress();
       const newMax = Math.min(
@@ -646,7 +641,7 @@ winPopup.onNextLevel(() => {
   goNextLevel();
 });
 winPopup.onWatchAdClick(async () => {
-  if (!CURRENT_USER?.uid) {
+  if (!CURRENT_ACCESS_TOKEN) {
   ui.showLoginRequired();
   return;
 }
@@ -678,7 +673,7 @@ winPopup.onWatchAdClick(async () => {
 
 // ---- SKIP / HINT buttons (backend-powered) ----
 ui.onSkipClick(async () => {
-  if (!CURRENT_USER?.uid) {
+  if (!CURRENT_ACCESS_TOKEN) {
     ui.showLoginRequired();
     return;
   }
@@ -732,7 +727,7 @@ skipPopup.onWatchAdSkip(async () => {
 });
 
 ui.onHintClick(async () => {
-  if (!CURRENT_USER?.uid) {
+  if (!CURRENT_ACCESS_TOKEN) {
     ui.showLoginRequired();
     return;
   }
@@ -825,8 +820,10 @@ restartPopup.onFreeRestart(async () => {
 
   const guestProgress = loadGuestProgress();
   const unlocked = Math.min(guestProgress.maxLevel || 1, GUEST_MAX_LEVEL);
-  CURRENT_MAX_UNLOCKED_LEVEL = unlocked;
-  levelsUI.setUnlocked?.(unlocked);
+  ui.setUser({
+  ...CURRENT_USER,
+  level: CURRENT_MAX_UNLOCKED_LEVEL,
+});
 
   document.body.classList.add("game-running");
   ui.hideWelcome();
@@ -891,8 +888,10 @@ ui.onLoginClick(async () => {
 // 🔓 remove guest cap completely for logged-in users
 window.__maze.guestMaxLevel = Infinity;
 
-CURRENT_MAX_UNLOCKED_LEVEL = UNLOCKED_LEVEL;
-levelsUI.setUnlocked?.(UNLOCKED_LEVEL);
+ui.setUser({
+  ...CURRENT_USER,
+  level: CURRENT_MAX_UNLOCKED_LEVEL,
+});
 
   // start at the unlocked level (or 1)
   setLevel(Math.max(0, UNLOCKED_LEVEL - 1));
