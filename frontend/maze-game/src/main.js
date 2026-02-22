@@ -441,16 +441,15 @@ const restartPopup = createRestartPopup();
 
 const levelsUI = mountLevelsUI(root, { totalLevels: levels.length });  
 ui.levelsBtn.addEventListener("click", () => {
-  // keep levels UI in sync before opening
-if (CURRENT_USER?.uid) {
-  // logged-in: NEVER apply guest cap
-  levelsUI.setUnlocked?.(CURRENT_MAX_UNLOCKED_LEVEL || 1);
-} else {
-  const guestProgress = loadGuestProgress();
-  const unlocked = Math.min(guestProgress.maxLevel || 1, GUEST_MAX_LEVEL);
-  CURRENT_MAX_UNLOCKED_LEVEL = unlocked;
-  levelsUI.setUnlocked?.(unlocked);
-}
+  // logged-in if token exists
+  if (CURRENT_ACCESS_TOKEN) {
+    levelsUI.setUnlocked?.(CURRENT_MAX_UNLOCKED_LEVEL || 1);
+  } else {
+    const guestProgress = loadGuestProgress();
+    const unlocked = Math.min(guestProgress.maxLevel || 1, GUEST_MAX_LEVEL);
+    CURRENT_MAX_UNLOCKED_LEVEL = unlocked;
+    levelsUI.setUnlocked?.(unlocked);
+  }
 
   levelsUI.open();
 });
@@ -884,7 +883,7 @@ ui.onLoginClick(async () => {
   if (!CURRENT_ACCESS_TOKEN) {
     return;
   }
-
+window.__maze.isLoggedIn = () => true;
   await migrateGuestProgress({
     BACKEND,
     token: CURRENT_ACCESS_TOKEN,
@@ -895,6 +894,7 @@ ui.onLoginClick(async () => {
     token: CURRENT_ACCESS_TOKEN,
     ui,
   });
+  CURRENT_USER = me?.user ?? CURRENT_USER;
 
   const unlockedLevel =
     me?.progress?.level ??
