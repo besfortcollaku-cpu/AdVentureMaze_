@@ -6,77 +6,31 @@ export function mountAccountUI(root) {
   const wrap = document.createElement("div");
   wrap.innerHTML = `
     <div class="accountOverlay" id="accountOverlay" aria-hidden="true">
-      <div class="accountCard">
-        <div class="accountHeader">
-          <div class="accountTitle">Account</div>
-          <button class="accountClose" id="accountCloseBtn" aria-label="Close">✕</button>
-        </div>
-
-        <div class="accountSection">
-          <div class="accountLabel">Username</div>
-          <div class="accountValue" id="accountUsername">guest</div>
-        </div>
-
-        <div class="accountSection">
-          <div class="accountLabel">UID</div>
-          <div class="accountValue mono" id="accountUid">-</div>
-        </div>
-
-        <div class="accountSection">
-          <div class="accountLabel">Coins</div>
-          <div class="accountValue" id="accountCoins">0</div>
-        </div>
-        <div class="accountSection">
-  <button class="accountStatsToggle" id="accountStatsToggle">
-    Player Stats ▾
-  </button>
-
-  <div class="accountStatsList hidden" id="accountStatsList">
-    <div class="accountStatRow">
-      <span>Levels Completed</span>
-      <span id="accountLevels">0</span>
-    </div>
-
-    <div class="accountStatRow">
-      <span>Free Skips Used</span>
-      <span id="accountSkipsUsed">0</span>
-    </div>
-
-    <div class="accountStatRow">
-      <span>Free Hints Used</span>
-      <span id="accountHintsUsed">0</span>
-    </div>
-
-    <div class="accountStatRow">
-      <span>Free Restarts Used</span>
-      <span id="accountRestartsUsed">0</span>
-    </div>
-  </div>
-</div>
-<div class="accountSection" id="inviteSection">
-  <div class="accountLabel">Invite Friends</div>
-
-  <div class="accountInviteRow">
-    <input
-      type="text"
-      id="accountInviteLink"
-      readonly
-      class="accountInviteInput"
-    />
-    <button id="accountCopyInvite" class="accountInviteBtn">
-      Copy
-    </button>
-  </div>
-
-  <div class="accountInviteStats">
-    Invited Users:
-    <span id="accountInviteCount">0</span>
-  </div>
-</div>
-        <div class="accountNote">
-          Account switching / logout is disabled (Pi Browser).
-        </div>
+<div class="accountCard full">
+  <div class="accountTopBar">
+    <div class="accountTopLeft">
+      <div class="accountTopName" id="accountUsername">guest</div>
+      <div class="accountTopCoins">
+        🪙 <span id="accountCoins">0</span>
       </div>
+    </div>
+
+    <button class="accountClose" id="accountCloseBtn">✕</button>
+  </div>
+
+  <div class="accountScroll">
+    <div class="accountContent">
+
+      <div class="accountSection">
+        <div class="accountLabel">UID</div>
+        <div class="accountValue mono" id="accountUid">-</div>
+      </div>
+
+      <!-- FUTURE CONTENT WILL GO HERE -->
+
+    </div>
+  </div>
+</div>
     </div>
   `;
   root.appendChild(wrap);
