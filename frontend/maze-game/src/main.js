@@ -351,6 +351,7 @@ if (CURRENT_ACCESS_TOKEN) {
         free_hints_used: me.user.free_hints_used ?? 0,
         free_restarts_used: me.user.free_restarts_used ?? 0,
       };
+      window.__maze.guestMaxLevel = Infinity;
 
       ui.setUser(me.user);
       ui.setCoins(me.user.coins ?? 0);
