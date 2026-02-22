@@ -328,18 +328,12 @@ function mergeUserPatch(patch) {
 
   CURRENT_USER = { ...CURRENT_USER, ...patch };
 
-if (CURRENT_ACCESS_TOKEN) {
-  // never allow logged-in state to become guest by accident
-  if (!CURRENT_USER?.uid) CURRENT_USER.uid = "logged-in";
-}
+// preserve login identity if backend patch didn't include it
+if (!CURRENT_USER?.uid && keepUid) CURRENT_USER.uid = keepUid;
+if (!CURRENT_USER?.username && keepName) CURRENT_USER.username = keepName;
 
-  // preserve login identity if backend patch didn't include it
-  if (!CURRENT_USER?.uid && keepUid) CURRENT_USER.uid = keepUid;
-  if (!CURRENT_USER?.username && keepName) CURRENT_USER.username = keepName;
-
-  // once logged in, never apply guest cap again
-  if (CURRENT_USER?.uid) window.__maze.guestMaxLevel = Infinity;
-}
+// once logged in (token), never apply guest cap again
+if (CURRENT_ACCESS_TOKEN) window.__maze.guestMaxLevel = Infinity;
 if (CURRENT_ACCESS_TOKEN) {
   fetch(`${BACKEND}/api/me`, {
     headers: {
@@ -461,8 +455,7 @@ ui.levelsBtn.addEventListener("click", () => {
 
 // Level select
 levelsUI.onSelect((levelNumber) => {
-  // Guest can only open levels 1..GUEST_MAX_LEVEL
-  if (!CURRENT_USER?.uid && levelNumber > GUEST_MAX_LEVEL) {
+  if (!CURRENT_ACCESS_TOKEN && levelNumber > GUEST_MAX_LEVEL) {
     ui.showLoginRequired();
     return;
   }
@@ -547,7 +540,7 @@ const game = createGame({
 
     // ✅ logged-in: unlock next level in UI (old UNLOCKED_LEVEL behavior)
     // ✅ logged-in: unlock next level + SAVE progress (OLD LOGIC RESTORED)
-if (CURRENT_USER?.uid) {
+if (CURRENT_ACCESS_TOKEN) {
   const nextUnlocked = Math.min(levels.length, completedLevel + 1);
 
   CURRENT_MAX_UNLOCKED_LEVEL = Math.max(
@@ -656,8 +649,7 @@ winPopup.onNextLevel(() => {
   const nextLevelNumber = levelIndex + 2; // levelIndex is 0-based
 
   // 🔒 Guest limit: require login after level 5
-  if (!CURRENT_USER?.uid && nextLevelNumber > GUEST_MAX_LEVEL) {
-    winPopup.hide();
+if (!CURRENT_ACCESS_TOKEN && nextLevelNumber > GUEST_MAX_LEVEL) {    winPopup.hide();
     ui.showLoginRequired();
     return;
   }
@@ -839,10 +831,13 @@ restartPopup.onFreeRestart(async () => {
   restartPopup.hide();
 });
   // ---- GUEST ----
-  ui.onGuestStart(() => {
+ ui.onGuestStart(() => {
+  if (CURRENT_ACCESS_TOKEN) return;
+
   CURRENT_USER = { username: "Guest", uid: null };
-if (CURRENT_ACCESS_TOKEN) return;
   CURRENT_ACCESS_TOKEN = null;
+  ...
+});
 
   const guestProgress = loadGuestProgress();
   const unlocked = Math.min(guestProgress.maxLevel || 1, GUEST_MAX_LEVEL);
