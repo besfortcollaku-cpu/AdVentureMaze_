@@ -26,26 +26,33 @@ export function mountAccountUI(root) {
           <div class="accountLabel">Coins</div>
           <div class="accountValue" id="accountCoins">0</div>
         </div>
-        <div class="accountSection">
-  <div class="accountLabel">Levels Completed</div>
-  <div class="accountValue" id="accountLevels">0</div>
-</div>
+        <<div class="accountSection">
+  <button class="accountStatsToggle" id="accountStatsToggle">
+    Player Stats ▾
+  </button>
 
-<div class="accountSection">
-  <div class="accountLabel">Free Skips Used</div>
-  <div class="accountValue" id="accountSkipsUsed">0</div>
-</div>
+  <div class="accountStatsList hidden" id="accountStatsList">
+    <div class="accountStatRow">
+      <span>Levels Completed</span>
+      <span id="accountLevels">0</span>
+    </div>
 
-<div class="accountSection">
-  <div class="accountLabel">Free Hints Used</div>
-  <div class="accountValue" id="accountHintsUsed">0</div>
-</div>
+    <div class="accountStatRow">
+      <span>Free Skips Used</span>
+      <span id="accountSkipsUsed">0</span>
+    </div>
 
-<div class="accountSection">
-  <div class="accountLabel">Free Restarts Used</div>
-  <div class="accountValue" id="accountRestartsUsed">0</div>
-</div>
+    <div class="accountStatRow">
+      <span>Free Hints Used</span>
+      <span id="accountHintsUsed">0</span>
+    </div>
 
+    <div class="accountStatRow">
+      <span>Free Restarts Used</span>
+      <span id="accountRestartsUsed">0</span>
+    </div>
+  </div>
+</div>
         <div class="accountNote">
           Account switching / logout is disabled (Pi Browser).
         </div>
@@ -64,6 +71,17 @@ export function mountAccountUI(root) {
 const skipsUsedEl = root.querySelector("#accountSkipsUsed");
 const hintsUsedEl = root.querySelector("#accountHintsUsed");
 const restartsUsedEl = root.querySelector("#accountRestartsUsed");
+const statsToggle = root.querySelector("#accountStatsToggle");
+const statsList = root.querySelector("#accountStatsList");
+
+statsToggle?.addEventListener("click", () => {
+  const isHidden = statsList.classList.contains("hidden");
+
+  statsList.classList.toggle("hidden");
+  statsToggle.textContent = isHidden
+    ? "Player Stats ▴"
+    : "Player Stats ▾";
+});
 
   function show() {
     if (!overlay) return;

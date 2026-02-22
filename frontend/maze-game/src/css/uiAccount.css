@@ -67,3 +67,35 @@ export function createAccountPopup() {
     hide,
   };
 }
+.accountStatsToggle {
+  width: 100%;
+  background: rgba(255,255,255,0.08);
+  border: none;
+  border-radius: 16px;
+  padding: 14px 16px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+  cursor: pointer;
+  transition: transform 0.08s ease;
+}
+
+.accountStatsToggle:active {
+  transform: scale(0.97);
+}
+
+.accountStatsList {
+  margin-top: 12px;
+}
+
+.accountStatsList.hidden {
+  display: none;
+}
+
+.accountStatRow {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  font-size: 14px;
+}
