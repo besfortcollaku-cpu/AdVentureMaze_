@@ -209,22 +209,17 @@ async function loadMeAndSyncUI({ BACKEND, token, ui }) {
 
   const me = await res.json();
 
-  // 🔥 THIS WAS MISSING
-  CURRENT_USER = {
-    uid: me.user.uid,
-    username: me.user.username,
-  };
+CURRENT_USER = {
+  ...me.user,
+  uid: me.user.uid,
+  username: me.user.username,
+};
 
-  ui.setUser({
+ui.setUser({
   ...CURRENT_USER,
   level: CURRENT_MAX_UNLOCKED_LEVEL,
 });
-  ui.setCoins(me.user.coins ?? 0);
-
-  // keep extra server fields on CURRENT_USER for skip/hint logic
-  CURRENT_USER.free_skips_used = me.user.free_skips_used ?? 0;
-  CURRENT_USER.free_hints_used = me.user.free_hints_used ?? 0;
-  CURRENT_USER.free_restarts_used = me.user.free_restarts_used ?? 0;
+ui.setCoins(CURRENT_USER.coins ?? 0);
 
 return me;
 }
@@ -334,6 +329,7 @@ if (!CURRENT_USER?.username && keepName) CURRENT_USER.username = keepName;
 
 // once logged in (token), never apply guest cap again
 if (CURRENT_ACCESS_TOKEN) window.__maze.guestMaxLevel = Infinity;
+}
 if (CURRENT_ACCESS_TOKEN) {
   fetch(`${BACKEND}/api/me`, {
     headers: {
@@ -831,13 +827,11 @@ restartPopup.onFreeRestart(async () => {
   restartPopup.hide();
 });
   // ---- GUEST ----
- ui.onGuestStart(() => {
+  ui.onGuestStart(() => {
   if (CURRENT_ACCESS_TOKEN) return;
 
   CURRENT_USER = { username: "Guest", uid: null };
   CURRENT_ACCESS_TOKEN = null;
-
-});
 
   const guestProgress = loadGuestProgress();
   const unlocked = Math.min(guestProgress.maxLevel || 1, GUEST_MAX_LEVEL);
@@ -860,8 +854,9 @@ if (CURRENT_USER?.uid && RESUME_ENABLED) {
   });
 }
   updateAllBadges();
+});
    // PROGRES LEVELS
-}
+
 
 
 // ---- PI LOGIN ----
