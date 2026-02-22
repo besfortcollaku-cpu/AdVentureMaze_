@@ -113,14 +113,13 @@ const restartBtn = root.querySelector("#restartBtn");
 const hintBtn = root.querySelector("#hintBtn");
 const skipBtn = root.querySelector("#skipBtn");
   // ----- ACCOUNT UI -----
-  const accountUI = mountAccountUI(root);
-  let accountClickHandler = null;
+const accountUI = mountAccountUI(root);
 
 accountBtn.addEventListener("click", () => {
-  if (accountClickHandler) {
-    accountClickHandler();
-  } else {
+  if (window.__maze?.isLoggedIn?.()) {
     accountUI.show();
+  } else {
+    window.__maze?.showLoginRequired?.();
   }
 });
 
@@ -215,9 +214,6 @@ hideLoginRequired() {
   },
     showLoginGate() {
   this.showWelcome();
-},
-onAccountClick(cb) {
-  accountClickHandler = cb;
 },
 hideLoginGate() {
   this.hideWelcome();

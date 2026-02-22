@@ -419,16 +419,7 @@ const restartPopup = createRestartPopup();
 
   // (level-complete reward is handled via global apiClaimLevelComplete)
 
-ui.onAccountClick(async () => {
-  // already logged in → show account
-  if (CURRENT_USER?.uid) {
-    return; // ui.js will open account UI
-  }
 
-  // guest → force Pi login
-  ui.showWelcome();
-  ui.triggerLogin();
-});
 const levelsUI = mountLevelsUI(root, { totalLevels: levels.length });  
 ui.levelsBtn.addEventListener("click", () => {
   // keep levels UI in sync before opening
