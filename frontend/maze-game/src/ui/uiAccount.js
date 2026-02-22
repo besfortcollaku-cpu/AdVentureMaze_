@@ -26,7 +26,7 @@ export function mountAccountUI(root) {
           <div class="accountLabel">Coins</div>
           <div class="accountValue" id="accountCoins">0</div>
         </div>
-        <<div class="accountSection">
+        <div class="accountSection">
   <button class="accountStatsToggle" id="accountStatsToggle">
     Player Stats ▾
   </button>
@@ -53,6 +53,26 @@ export function mountAccountUI(root) {
     </div>
   </div>
 </div>
+<div class="accountSection" id="inviteSection">
+  <div class="accountLabel">Invite Friends</div>
+
+  <div class="accountInviteRow">
+    <input
+      type="text"
+      id="accountInviteLink"
+      readonly
+      class="accountInviteInput"
+    />
+    <button id="accountCopyInvite" class="accountInviteBtn">
+      Copy
+    </button>
+  </div>
+
+  <div class="accountInviteStats">
+    Invited Users:
+    <span id="accountInviteCount">0</span>
+  </div>
+</div>
         <div class="accountNote">
           Account switching / logout is disabled (Pi Browser).
         </div>
@@ -73,7 +93,10 @@ const hintsUsedEl = root.querySelector("#accountHintsUsed");
 const restartsUsedEl = root.querySelector("#accountRestartsUsed");
 const statsToggle = root.querySelector("#accountStatsToggle");
 const statsList = root.querySelector("#accountStatsList");
-
+const inviteLinkEl = root.querySelector("#accountInviteLink");
+const inviteCountEl = root.querySelector("#accountInviteCount");
+const copyInviteBtn = root.querySelector("#accountCopyInvite");
+const inviteSection = root.querySelector("#inviteSection");
 statsToggle?.addEventListener("click", () => {
   const isHidden = statsList.classList.contains("hidden");
 
@@ -107,7 +130,28 @@ statsToggle?.addEventListener("click", () => {
   if (hintsUsedEl) hintsUsedEl.textContent = String(user?.free_hints_used ?? 0);
   if (restartsUsedEl) restartsUsedEl.textContent = String(user?.free_restarts_used ?? 0);
 }
+if (inviteCountEl) {
+  inviteCountEl.textContent = String(user?.invited_count ?? 0);
+}
 
+if (inviteLinkEl && user?.uid) {
+  inviteLinkEl.value = `${window.location.origin}?ref=${user.uid}`;
+}
+
+if (inviteSection) {
+  inviteSection.style.display = user?.uid ? "block" : "none";
+}
+copyInviteBtn?.addEventListener("click", async () => {
+  if (!inviteLinkEl?.value) return;
+
+  try {
+    await navigator.clipboard.writeText(inviteLinkEl.value);
+    copyInviteBtn.textContent = "Copied ✓";
+    setTimeout(() => {
+      copyInviteBtn.textContent = "Copy";
+    }, 1500);
+  } catch {}
+});
   function setCoins(n) {
     if (coinsEl) coinsEl.textContent = String(n ?? 0);
   }

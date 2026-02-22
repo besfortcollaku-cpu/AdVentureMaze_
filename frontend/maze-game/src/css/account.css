@@ -120,3 +120,34 @@ backdrop-filter: blur(18px);
   opacity: .7;
   text-align: center;
 }
+.accountInviteRow {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.accountInviteInput {
+  flex: 1;
+  border-radius: 12px;
+  border: none;
+  padding: 10px;
+  background: rgba(255,255,255,0.08);
+  color: #fff;
+  font-size: 12px;
+}
+
+.accountInviteBtn {
+  border: none;
+  border-radius: 12px;
+  padding: 10px 14px;
+  background: linear-gradient(180deg, #2fd4ff, #16a3ff);
+  color: #00121f;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.accountInviteStats {
+  margin-top: 10px;
+  font-size: 13px;
+  opacity: 0.85;
+}
