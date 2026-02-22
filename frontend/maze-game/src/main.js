@@ -41,7 +41,7 @@ let RESUME_SAVE_TIMER = null;
 let LEVEL_START_KEY = null;
 
 function scheduleResumeSave(currentLevelNumber) {
-  if (!CURRENT_USER?.uid) return;
+  if (!CURRENT_ACCESS_TOKEN) return;
   if (!RESUME_ENABLED) return;
   if (RESUME_SAVE_TIMER) return;
 
@@ -328,6 +328,11 @@ function mergeUserPatch(patch) {
 
   CURRENT_USER = { ...CURRENT_USER, ...patch };
 
+if (CURRENT_ACCESS_TOKEN) {
+  // never allow logged-in state to become guest by accident
+  if (!CURRENT_USER?.uid) CURRENT_USER.uid = "logged-in";
+}
+
   // preserve login identity if backend patch didn't include it
   if (!CURRENT_USER?.uid && keepUid) CURRENT_USER.uid = keepUid;
   if (!CURRENT_USER?.username && keepName) CURRENT_USER.username = keepName;
@@ -467,7 +472,7 @@ levelsUI.onSelect((levelNumber) => {
   ui.showWelcome();
   
 ui.onRestartClick(async () => {
-  if (!CURRENT_USER?.uid) {
+  if (!CURRENT_ACCESS_TOKEN) {
     ui.showLoginRequired();
     return;
   }
@@ -510,7 +515,7 @@ const game = createGame({
   getCurrentUser: () => CURRENT_USER ?? { username: "guest", uid: null },
 
   onTilePainted({ key, x, y }) {
-    if (!CURRENT_USER?.uid) return;
+    if (!CURRENT_ACCESS_TOKEN) return;
     if (!RESUME_ENABLED) return;
 
     RESUME_TILES.add(key);
@@ -562,7 +567,7 @@ if (CURRENT_USER?.uid) {
   }).catch(() => {});
 }
     // 🟡 guest progress is local-only (levels 1..GUEST_MAX_LEVEL)
-    if (!CURRENT_USER?.uid) {
+    if (!CURRENT_ACCESS_TOKEN) {
       const nextUnlock = Math.min(GUEST_MAX_LEVEL, completedLevel + 1);
       const current = loadGuestProgress();
       const newMax = Math.min(
@@ -577,7 +582,7 @@ if (CURRENT_USER?.uid) {
   },
 });
 function wipeResumeForCurrentLevel() {
-  if (!CURRENT_USER?.uid) return;
+  if (!CURRENT_ACCESS_TOKEN) return;
 
   RESUME_TILES = new Set();
   RESUME_POS = null;
@@ -610,7 +615,7 @@ setTimeout(() => {
   ui.setLevel(selectedLevelNumber);
 
   // Only logged-in users can resume
-  if (!CURRENT_USER?.uid) return;
+  if (!CURRENT_ACCESS_TOKEN) return;
 
   RESUME_ENABLED = true;
 
@@ -661,7 +666,7 @@ winPopup.onNextLevel(() => {
   goNextLevel();
 });
 winPopup.onWatchAdClick(async () => {
-  if (!CURRENT_USER?.uid) {
+  if (!CURRENT_ACCESS_TOKEN) {
   ui.showLoginRequired();
   return;
 }
@@ -693,7 +698,7 @@ winPopup.onWatchAdClick(async () => {
 
 // ---- SKIP / HINT buttons (backend-powered) ----
 ui.onSkipClick(async () => {
-  if (!CURRENT_USER?.uid) {
+  if (!CURRENT_ACCESS_TOKEN) {
     ui.showLoginRequired();
     return;
   }
@@ -747,7 +752,7 @@ skipPopup.onWatchAdSkip(async () => {
 });
 
 ui.onHintClick(async () => {
-  if (!CURRENT_USER?.uid) {
+  if (!CURRENT_ACCESS_TOKEN) {
     ui.showLoginRequired();
     return;
   }
@@ -836,6 +841,7 @@ restartPopup.onFreeRestart(async () => {
   // ---- GUEST ----
   ui.onGuestStart(() => {
   CURRENT_USER = { username: "Guest", uid: null };
+if (CURRENT_ACCESS_TOKEN) return;
   CURRENT_ACCESS_TOKEN = null;
 
   const guestProgress = loadGuestProgress();
