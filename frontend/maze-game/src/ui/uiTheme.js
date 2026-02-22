@@ -3,7 +3,7 @@ import { setTheme } from "../theme.js";
 
 export function mountThemeUI(root) {
   const overlay = document.createElement("div");
-  overlay.className = "theme-overlay hidden";
+  overlay.className = "theme-overlay hidden ";
 
   overlay.innerHTML = `
     <div class="theme-card">
@@ -30,25 +30,21 @@ items.forEach((btn) => {
   });
 });
 
-
-
-  closeBtn.onclick = () => {
+function close() {
   overlay.style.opacity = "0";
   setTimeout(() => {
     overlay.classList.add("hidden");
   }, 250);
-};
+}
 
+closeBtn.addEventListener("click", close);
   return {
-    open() {
-overlay.classList.remove("hidden");
-  requestAnimationFrame(() => {
-    overlay.style.opacity = "1";
-  });    },
-    close() {
-overlay.style.opacity = "0";
-  setTimeout(() => {
-    overlay.classList.add("hidden");
-  }, 250);    },
-  };
+  open() {
+    overlay.classList.remove("hidden");
+    requestAnimationFrame(() => {
+      overlay.style.opacity = "1";
+    });
+  },
+  close,
+};
 }
