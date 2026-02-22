@@ -836,7 +836,7 @@ restartPopup.onFreeRestart(async () => {
 
   CURRENT_USER = { username: "Guest", uid: null };
   CURRENT_ACCESS_TOKEN = null;
-  ...
+
 });
 
   const guestProgress = loadGuestProgress();
