@@ -26,25 +26,18 @@ items.forEach((btn) => {
   btn.addEventListener("click", () => {
     const value = btn.dataset.theme;
     setTheme(value);
-    overlay.classList.add("hidden");
   });
 });
 
 function close() {
-  overlay.style.opacity = "0";
-  setTimeout(() => {
-    overlay.classList.add("hidden");
-  }, 250);
+  overlay.classList.add("hidden");
 }
 
 closeBtn.addEventListener("click", close);
   return {
-  open() {
-    overlay.classList.remove("hidden");
-    requestAnimationFrame(() => {
-      overlay.style.opacity = "1";
-    });
-  },
+open() {
+  overlay.classList.remove("hidden");
+},
   close,
 };
 }
