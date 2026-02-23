@@ -15,6 +15,7 @@ const GUEST_PROGRESS_KEY = "guest_progress_v1";
 const GUEST_MAX_LEVEL = 5;
 let CURRENT_USER = null;
 let CURRENT_ACCESS_TOKEN = null;
+let ui = null;
 const BACKEND = "https://triumphant-gentleness-production.up.railway.app";
 const FREE_SKIPS = 3;
 const FREE_HINTS = 3;
@@ -342,7 +343,7 @@ if (storedToken) {
     return;
   }
   // Mount UI
-const ui = mountUI(root);
+     ui = mountUI(root);
 if (CURRENT_ACCESS_TOKEN) {
   try {
     const me = await loadMeAndSyncUI({
