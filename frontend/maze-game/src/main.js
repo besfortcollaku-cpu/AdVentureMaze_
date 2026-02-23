@@ -989,6 +989,7 @@ if (Array.isArray(paintedKeys) || (resume && resume.x != null && resume.y != nul
 
 document.body.classList.add("game-running");
 ui.hideWelcome();
+  updateAllBadges();
 
 if (!game.isRunning?.()) {
   game.start();
