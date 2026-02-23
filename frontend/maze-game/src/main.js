@@ -345,7 +345,7 @@ if (CURRENT_ACCESS_TOKEN) {
   // DO NOT overwrite CURRENT_USER again
   updateAllBadges();
 } // 🔥 force correct badge state immediately
-    } else {
+     else {
       throw new Error("Invalid session");
     }
   } catch (e) {
