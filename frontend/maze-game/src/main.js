@@ -335,6 +335,14 @@ if (storedToken) {
   CURRENT_ACCESS_TOKEN = normalizeToken(storedToken);
 }
 // 🔥 AUTO-HYDRATE USER IF TOKEN EXISTS
+
+  const root = document.querySelector("#app");
+  if (!root) {
+    document.body.innerHTML = "<h1>#app not found</h1>";
+    return;
+  }
+  // Mount UI
+const ui = mountUI(root);
 if (CURRENT_ACCESS_TOKEN) {
   try {
     const me = await loadMeAndSyncUI({
@@ -357,23 +365,6 @@ if (CURRENT_ACCESS_TOKEN) {
     localStorage.removeItem("pi_access_token");
   }
 }
-  const root = document.querySelector("#app");
-  if (!root) {
-    document.body.innerHTML = "<h1>#app not found</h1>";
-    return;
-  }
-  // Mount UI
-const ui = mountUI(root);
-
-  // iOS hard lock
-  document.body.style.position = "fixed";
-  document.body.style.width = "100%";
-  document.body.style.height = "100%";
-  
-  
-
-
-
 
 // Expose a tiny bridge for UI modules that don't have direct access to `ui`.
 // (Used by the Levels screen to show "Login required" for locked guest levels.)
