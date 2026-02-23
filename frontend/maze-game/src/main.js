@@ -92,7 +92,7 @@ async function fetchAndSetCoins({ BACKEND, token, ui }) {
 async function apiSetProgress({ uid, level, coins, paintedKeys, resume } = {}) {
   if (!CURRENT_ACCESS_TOKEN) return null;
 
-  const res = await fetch(`${BACKEND}/progress`, {
+  const res = await fetch(`${BACKEND}/api/progress`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -325,24 +325,13 @@ window.__maze.guestMaxLevel = GUEST_MAX_LEVEL;
 window.__maze.showLoginRequired = () => ui.showLoginRequired();
 window.__maze.isLoggedIn = () => Boolean(CURRENT_ACCESS_TOKEN);
 if (CURRENT_ACCESS_TOKEN) {
-  fetch(`${BACKEND}/api/me`, {
-    headers: {
-      Authorization: `Bearer ${CURRENT_ACCESS_TOKEN}`,
-    },
+  loadMeAndSyncUI({
+    BACKEND,
+    token: CURRENT_ACCESS_TOKEN,
+    ui,
   })
-    .then((r) => (r.ok ? r.json() : null))
     .then((me) => {
       if (!me?.user) return;
-
-      CURRENT_USER = {
-        ...me.user,
-        free_skips_used: me.user.free_skips_used ?? 0,
-        free_hints_used: me.user.free_hints_used ?? 0,
-        free_restarts_used: me.user.free_restarts_used ?? 0,
-      };
-
-      ui.setUser(me.user);
-      ui.setCoins(me.user.coins ?? 0);
 
       const unlockedLevel =
         me?.progress?.level ??
@@ -356,10 +345,8 @@ if (CURRENT_ACCESS_TOKEN) {
       CURRENT_MAX_UNLOCKED_LEVEL = UNLOCKED_LEVEL;
       levelsUI.setUnlocked?.(UNLOCKED_LEVEL);
 
-      // load correct level
       setLevel(Math.max(0, UNLOCKED_LEVEL - 1));
 
-      // enable resume
       RESUME_ENABLED = true;
       RESUME_TILES = new Set();
       RESUME_POS = null;
@@ -387,20 +374,7 @@ if (CURRENT_ACCESS_TOKEN) {
 
       if (!game.isRunning?.()) {
         game.start();
-        // force capture starting tile for resume AFTER login ready
-if (CURRENT_USER?.uid && RESUME_ENABLED) {
-  const state = game.getState();
-  const x = state.player.x;
-  const y = state.player.y;
-
-  scheduleResumeSave(levelIndex + 1, {
-    key: `${x},${y}`,
-    x,
-    y,
-  });
-}
-    updateAllBadges();
-        
+        updateAllBadges();
       }
     })
     .catch(() => {});
@@ -430,7 +404,7 @@ const restartPopup = createRestartPopup();
 const levelsUI = mountLevelsUI(root, { totalLevels: levels.length });  
 ui.levelsBtn.addEventListener("click", () => {
   // keep levels UI in sync before opening
-if (CURRENT_USER?.uid) {
+if (CURRENT_ACCESS_TOKEN) {
   // logged-in: NEVER apply guest cap
   levelsUI.setUnlocked?.(CURRENT_MAX_UNLOCKED_LEVEL || 1);
 } else {
@@ -446,7 +420,7 @@ if (CURRENT_USER?.uid) {
 // Level select
 levelsUI.onSelect((levelNumber) => {
   // Guest can only open levels 1..GUEST_MAX_LEVEL
-  if (!CURRENT_USER?.uid && levelNumber > GUEST_MAX_LEVEL) {
+  if (!CURRENT_ACCESS_TOKEN && levelNumber > GUEST_MAX_LEVEL) {
     ui.showLoginRequired();
     return;
   }
@@ -531,7 +505,7 @@ const game = createGame({
 
     // ✅ logged-in: unlock next level in UI (old UNLOCKED_LEVEL behavior)
     // ✅ logged-in: unlock next level + SAVE progress (OLD LOGIC RESTORED)
-if (CURRENT_USER?.uid) {
+if (CURRENT_ACCESS_TOKEN) {
   const nextUnlocked = Math.min(levels.length, completedLevel + 1);
 
   CURRENT_MAX_UNLOCKED_LEVEL = Math.max(
@@ -640,7 +614,7 @@ winPopup.onNextLevel(() => {
   const nextLevelNumber = levelIndex + 2; // levelIndex is 0-based
 
   // 🔒 Guest limit: require login after level 5
-  if (!CURRENT_USER?.uid && nextLevelNumber > GUEST_MAX_LEVEL) {
+if (!CURRENT_ACCESS_TOKEN && levelNumber > GUEST_MAX_LEVEL) {  
     winPopup.hide();
     ui.showLoginRequired();
     return;
