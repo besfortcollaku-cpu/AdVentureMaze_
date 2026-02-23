@@ -332,6 +332,27 @@ async function boot() {
 if (storedToken) {
   CURRENT_ACCESS_TOKEN = normalizeToken(storedToken);
 }
+// 🔥 AUTO-HYDRATE USER IF TOKEN EXISTS
+if (CURRENT_ACCESS_TOKEN) {
+  try {
+    const me = await loadMeAndSyncUI({
+      BACKEND,
+      token: CURRENT_ACCESS_TOKEN,
+      ui,
+    });
+
+    if (me?.user) {
+      updateAllBadges();
+    } else {
+      // token invalid → clear it
+      CURRENT_ACCESS_TOKEN = null;
+      localStorage.removeItem("pi_access_token");
+    }
+  } catch {
+    CURRENT_ACCESS_TOKEN = null;
+    localStorage.removeItem("pi_access_token");
+  }
+}
   const root = document.querySelector("#app");
   if (!root) {
     document.body.innerHTML = "<h1>#app not found</h1>";
