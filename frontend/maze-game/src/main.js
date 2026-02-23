@@ -20,10 +20,7 @@ const FREE_SKIPS = 3;
 const FREE_HINTS = 3;
 const FREE_RESTARTS = 3;
 
-function freeRestartsLeft() {
-  const used = Number(CURRENT_USER?.free_restarts_used || 0);
-  return Math.max(0, FREE_RESTARTS - used);
-}
+
 document.addEventListener(
   "touchmove",
   (e) => {
@@ -55,9 +52,12 @@ function applyUserPatch(patch) {
   if (!CURRENT_USER?.uid && keepUid) CURRENT_USER.uid = keepUid;
   if (!CURRENT_USER?.username && keepName) CURRENT_USER.username = keepName;
 
-  // keep header stable
+  // update header
   ui?.setUser?.(CURRENT_USER);
   ui?.setCoins?.(CURRENT_USER?.coins ?? 0);
+
+  // 🔥 CRITICAL: refresh badges from DB values
+  updateAllBadges();
 }
 function scheduleResumeSave(currentLevelNumber) {
   if (!CURRENT_ACCESS_TOKEN) return;
@@ -277,6 +277,11 @@ function updateAllBadges() {
     badgeId: "hintCount",
     left: Math.max(0, FREE_HINTS - (CURRENT_USER.free_hints_used || 0)),
   });
+}
+
+function freeRestartsLeft() {
+  const used = Number(CURRENT_USER?.free_restarts_used || 0);
+  return Math.max(0, FREE_RESTARTS - used);
 }
 
 function freeSkipsLeft() {
