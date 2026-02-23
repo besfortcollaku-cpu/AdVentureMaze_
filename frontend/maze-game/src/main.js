@@ -230,7 +230,10 @@ async function loadMeAndSyncUI({ BACKEND, token, ui }) {
   },
 });
 
-  if (!res.ok) return null;
+  if (!res.ok) {
+  console.warn("Failed /api/me", res.status);
+  return { user: CURRENT_USER, progress: null };
+}
 
   const me = await res.json();
 
@@ -882,6 +885,10 @@ ui.onLoginClick(async () => {
     token: CURRENT_ACCESS_TOKEN,
     ui,
   });
+  if (!me?.user) {
+  console.error("Login succeeded but /api/me failed");
+  return;
+}
 
   const unlockedLevel =
     me?.progress?.level ??
