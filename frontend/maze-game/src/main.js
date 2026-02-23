@@ -938,6 +938,7 @@ ui.onLoginClick(async () => {
     token: CURRENT_ACCESS_TOKEN,
     ui,
   });
+  updateAllBadges();
   if (!me?.user) {
   console.error("Login succeeded but /api/me failed");
   return;
