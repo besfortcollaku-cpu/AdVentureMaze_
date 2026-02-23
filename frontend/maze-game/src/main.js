@@ -261,6 +261,7 @@ async function loadMeAndSyncUI({ BACKEND, token, ui }) {
 }
 
 function updateAllBadges() {
+    console.log("BADGE UPDATE STATE:", CURRENT_USER);
   if (!CURRENT_USER) return;
 
   updateBadge({
