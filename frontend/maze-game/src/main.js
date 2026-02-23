@@ -715,27 +715,78 @@ ui.onSkipClick(async () => {
 skipPopup.onFreeSkip(async () => {
   const out = await apiSkip({ mode: "free" });
   if (!out.ok) return alert(out.error || "Skip failed");
+
   if (out.user) {
     applyUserPatch(out.user);
-    ui.setCoins(out.user.coins);
+    updateAllBadges(); // ✅ ADD THIS
   }
+
+  skipPopup.hide();
   goNextLevel();
 });
 
 skipPopup.onBuySkip(async () => {
   const out = await apiSkip({ mode: "coins" });
   if (!out.ok) return alert(out.error || "Skip failed");
+
   if (out.user) {
     applyUserPatch(out.user);
-    ui.setCoins(out.user.coins);
+    updateAllBadges();
   }
+
+  skipPopup.hide();
   goNextLevel();
 });
 
 skipPopup.onWatchAdSkip(async () => {
   const out = await apiSkip({ mode: "ad" });
   if (!out.ok) return alert(out.error || "Skip failed");
+
+  if (out.user) {
+    applyUserPatch(out.user);
+    updateAllBadges();
+  }
+
+  skipPopup.hide();
   goNextLevel();
+});
+
+// ---- HINT POPUP HANDLERS ----
+
+hintPopup.onFreeHint(async () => {
+  const out = await apiHint({ mode: "free" });
+  if (!out.ok) return alert(out.error || "Hint failed");
+
+  if (out.user) {
+    applyUserPatch(out.user);
+    updateAllBadges();
+  }
+
+  hintPopup.hide();
+});
+
+hintPopup.onBuyHint(async () => {
+  const out = await apiHint({ mode: "coins" });
+  if (!out.ok) return alert(out.error || "Hint failed");
+
+  if (out.user) {
+    applyUserPatch(out.user);
+    updateAllBadges();
+  }
+
+  hintPopup.hide();
+});
+
+hintPopup.onWatchAdHint(async () => {
+  const out = await apiHint({ mode: "ad" });
+  if (!out.ok) return alert(out.error || "Hint failed");
+
+  if (out.user) {
+    applyUserPatch(out.user);
+    updateAllBadges();
+  }
+
+  hintPopup.hide();
 });
 
 ui.onHintClick(async () => {
