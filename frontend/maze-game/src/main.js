@@ -264,30 +264,24 @@ async function loadMeAndSyncUI({ BACKEND, token, ui }) {
 function updateAllBadges() {
   if (!CURRENT_USER || !ui) return;
 
-  const FREE_HINTS_TOTAL = 3;
-  const FREE_SKIPS_TOTAL = 3;
-  const FREE_RESTARTS_TOTAL = 3;
+  // Hardcode totals (do NOT rely on global constants)
+  const TOTAL_FREE_HINTS = 3;
+  const TOTAL_FREE_SKIPS = 3;
+  const TOTAL_FREE_RESTARTS = 3;
 
-  const hintsLeft = Math.max(
-    0,
-    FREE_HINTS_TOTAL - Number(CURRENT_USER.free_hints_used || 0)
-  );
+  const hintsLeft =
+    TOTAL_FREE_HINTS - Number(CURRENT_USER.free_hints_used || 0);
 
-  const skipsLeft = Math.max(
-    0,
-    FREE_SKIPS_TOTAL - Number(CURRENT_USER.free_skips_used || 0)
-  );
+  const skipsLeft =
+    TOTAL_FREE_SKIPS - Number(CURRENT_USER.free_skips_used || 0);
 
-  const restartsLeft = Math.max(
-    0,
-    FREE_RESTARTS_TOTAL - Number(CURRENT_USER.free_restarts_used || 0)
-  );
+  const restartsLeft =
+    TOTAL_FREE_RESTARTS - Number(CURRENT_USER.free_restarts_used || 0);
 
-  ui.setHintsBadge?.(hintsLeft);
-  ui.setSkipsBadge?.(skipsLeft);
-  ui.setRestartsBadge?.(restartsLeft);
+  ui.setHintsBadge?.(Math.max(0, hintsLeft));
+  ui.setSkipsBadge?.(Math.max(0, skipsLeft));
+  ui.setRestartsBadge?.(Math.max(0, restartsLeft));
 }
-
 function freeRestartsLeft() {
   const used = Number(CURRENT_USER?.free_restarts_used || 0);
   return Math.max(0, FREE_RESTARTS - used);
