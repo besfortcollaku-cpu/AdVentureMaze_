@@ -41,7 +41,7 @@ let RESUME_SAVE_TIMER = null;
 let LEVEL_START_KEY = null;
 
 function scheduleResumeSave(currentLevelNumber) {
-  if (!CURRENT_USER?.uid) return;
+  if (!CURRENT_ACCESS_TOKEN) return;
   if (!RESUME_ENABLED) return;
   if (RESUME_SAVE_TIMER) return;
 
@@ -616,7 +616,7 @@ winPopup.onNextLevel(() => {
   const nextLevelNumber = levelIndex + 2; // levelIndex is 0-based
 
   // 🔒 Guest limit: require login after level 5
-if (!CURRENT_ACCESS_TOKEN && levelNumber > GUEST_MAX_LEVEL) {  
+if (!CURRENT_ACCESS_TOKEN && nextLevelNumber > GUEST_MAX_LEVEL) {
     winPopup.hide();
     ui.showLoginRequired();
     return;
@@ -869,8 +869,7 @@ ui.onLoginClick(async () => {
     1;
 
   const UNLOCKED_LEVEL = Math.max(1, Number(unlockedLevel) || 1);
-  CURRENT_MAX_UNLOCKED_LEVEL = UNLOCKED_LEVEL;
-levelsUI.setUnlocked?.(UNLOCKED_LEVEL);
+
 
 // 🔓 remove guest cap completely for logged-in users
 window.__maze.guestMaxLevel = Infinity;
