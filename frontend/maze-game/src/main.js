@@ -342,14 +342,15 @@ if (CURRENT_ACCESS_TOKEN) {
     });
 
     if (me?.user) {
-      updateAllBadges();
+      CURRENT_USER = me.user;
+      updateAllBadges(); // 🔥 force correct badge state immediately
     } else {
-      // token invalid → clear it
-      CURRENT_ACCESS_TOKEN = null;
-      localStorage.removeItem("pi_access_token");
+      throw new Error("Invalid session");
     }
-  } catch {
+  } catch (e) {
+    console.warn("Token invalid during boot");
     CURRENT_ACCESS_TOKEN = null;
+    CURRENT_USER = null;
     localStorage.removeItem("pi_access_token");
   }
 }
@@ -539,60 +540,7 @@ if (CURRENT_ACCESS_TOKEN) {
   },
 });
 
-if (CURRENT_ACCESS_TOKEN) {
-  loadMeAndSyncUI({
-    BACKEND,
-    token: CURRENT_ACCESS_TOKEN,
-    ui,
-  })
-    .then((me) => {
-      if (!me?.user) return;
 
-      const unlockedLevel =
-        me?.progress?.level ??
-        me?.progress?.maxLevel ??
-        me?.progress?.highestLevel ??
-        1;
-
-      const UNLOCKED_LEVEL = Math.max(1, Number(unlockedLevel) || 1);
-
-      window.__maze.guestMaxLevel = Infinity;
-      CURRENT_MAX_UNLOCKED_LEVEL = UNLOCKED_LEVEL;
-      levelsUI.setUnlocked?.(UNLOCKED_LEVEL);
-
-      setLevel(Math.max(0, UNLOCKED_LEVEL - 1));
-
-      RESUME_ENABLED = true;
-      RESUME_TILES = new Set();
-      RESUME_POS = null;
-
-      const paintedKeys = me?.progress?.paintedKeys;
-      const resume = me?.progress?.resume;
-
-      if (Array.isArray(paintedKeys)) {
-        for (const k of paintedKeys) RESUME_TILES.add(k);
-      }
-
-      if (resume && resume.x != null && resume.y != null) {
-        RESUME_POS = { x: resume.x, y: resume.y };
-      }
-
-      if (RESUME_TILES.size > 0 || RESUME_POS) {
-        game.applyProgress({
-          paintedKeys: Array.from(RESUME_TILES),
-          player: RESUME_POS,
-        });
-      }
-
-      document.body.classList.add("game-running");
-      ui.hideWelcome();
-        updateAllBadges();
-      if (!game.isRunning?.()) {
-        game.start();
-      }
-    })
-    .catch(() => {});
-}
 function wipeResumeForCurrentLevel() {
   if (!CURRENT_ACCESS_TOKEN) return;
 
