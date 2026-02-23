@@ -342,7 +342,12 @@ if (CURRENT_ACCESS_TOKEN) {
     });
 
     if (me?.user) {
-      CURRENT_USER = me.user;
+      CURRENT_USER = {
+  ...(me.user || {}),
+  ...(me.progress || {}),
+  uid: me?.user?.uid,
+  username: me?.user?.username,
+};
       updateAllBadges(); // 🔥 force correct badge state immediately
     } else {
       throw new Error("Invalid session");
