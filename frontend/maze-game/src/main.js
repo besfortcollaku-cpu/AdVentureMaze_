@@ -202,8 +202,12 @@ async function apiClaimAd50() {
 
 async function loadMeAndSyncUI({ BACKEND, token, ui }) {
   const res = await fetch(`${BACKEND}/api/me`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+  method: "GET",
+  headers: {
+    "Authorization": `Bearer ${token}`,
+    "Content-Type": "application/json"
+  },
+});
 
   if (!res.ok) return null;
 
