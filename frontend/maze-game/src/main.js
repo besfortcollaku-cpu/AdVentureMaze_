@@ -342,13 +342,9 @@ if (CURRENT_ACCESS_TOKEN) {
     });
 
     if (me?.user) {
-      CURRENT_USER = {
-  ...(me.user || {}),
-  ...(me.progress || {}),
-  uid: me?.user?.uid,
-  username: me?.user?.username,
-};
-      updateAllBadges(); // 🔥 force correct badge state immediately
+  // DO NOT overwrite CURRENT_USER again
+  updateAllBadges();
+} // 🔥 force correct badge state immediately
     } else {
       throw new Error("Invalid session");
     }
@@ -809,7 +805,7 @@ restartPopup.onBuyRestart(async () => {
   if (!out?.ok) return alert(out.error);
 
   applyUserPatch(out.user);
-  updateRestartBadge();
+  updateAllBadges();
   wipeResumeForCurrentLevel();
   game.setLevel(levels[levelIndex]);
   restartPopup.hide();
