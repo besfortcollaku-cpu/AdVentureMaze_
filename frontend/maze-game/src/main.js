@@ -241,12 +241,15 @@ async function loadMeAndSyncUI({ BACKEND, token, ui }) {
   const progress = me?.progress || {};
 
   CURRENT_USER = {
-    ...user,
-    ...progress,
-    uid: user.uid,
-    username: user.username,
-  };
+  ...user,
+  ...progress,
+  uid: user.uid,
+  username: user.username,
 
+  free_restarts_used: Number(user.free_restarts_used ?? 0),
+  free_skips_used: Number(user.free_skips_used ?? 0),
+  free_hints_used: Number(user.free_hints_used ?? 0),
+};
   ui.setUser({
     ...CURRENT_USER,
     level: Number(progress.level || 1),
