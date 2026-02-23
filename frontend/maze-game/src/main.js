@@ -261,21 +261,24 @@ async function loadMeAndSyncUI({ BACKEND, token, ui }) {
 }
 
 function updateAllBadges() {
-    console.log("BADGE UPDATE STATE:", CURRENT_USER);
   if (!CURRENT_USER) return;
+  if (!ui) return;
 
   const hintsLeft =
-  Math.max(0, FREE_HINTS - Number(CURRENT_USER?.free_hints_used || 0));
+    Math.max(0, (typeof FREE_HINTS === "number" ? FREE_HINTS : 0) -
+      Number(CURRENT_USER?.free_hints_used || 0));
 
-const skipsLeft =
-  Math.max(0, FREE_SKIPS - Number(CURRENT_USER?.free_skips_used || 0));
+  const skipsLeft =
+    Math.max(0, (typeof FREE_SKIPS === "number" ? FREE_SKIPS : 0) -
+      Number(CURRENT_USER?.free_skips_used || 0));
 
-const restartsLeft =
-  Math.max(0, FREE_RESTARTS - Number(CURRENT_USER?.free_restarts_used || 0));
+  const restartsLeft =
+    Math.max(0, (typeof FREE_RESTARTS === "number" ? FREE_RESTARTS : 0) -
+      Number(CURRENT_USER?.free_restarts_used || 0));
 
-ui.setHintsBadge?.(hintsLeft);
-ui.setSkipsBadge?.(skipsLeft);
-ui.setRestartsBadge?.(restartsLeft);
+  ui?.setHintsBadge?.(hintsLeft);
+  ui?.setSkipsBadge?.(skipsLeft);
+  ui?.setRestartsBadge?.(restartsLeft);
 }
 
 function freeRestartsLeft() {
