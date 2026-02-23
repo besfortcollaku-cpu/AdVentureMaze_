@@ -40,6 +40,23 @@ let RESUME_POS = null;
 let RESUME_SAVE_TIMER = null;
 let LEVEL_START_KEY = null;
 
+
+function applyUserPatch(patch) {
+  if (!patch) return;
+
+  const keepUid = CURRENT_USER?.uid;
+  const keepName = CURRENT_USER?.username;
+
+  CURRENT_USER = { ...CURRENT_USER, ...patch };
+
+  // never allow identity to be wiped by partial backend patches
+  if (!CURRENT_USER?.uid && keepUid) CURRENT_USER.uid = keepUid;
+  if (!CURRENT_USER?.username && keepName) CURRENT_USER.username = keepName;
+
+  // keep header stable
+  ui?.setUser?.(CURRENT_USER);
+  ui?.setCoins?.(CURRENT_USER?.coins ?? 0);
+}
 function scheduleResumeSave(currentLevelNumber) {
   if (!CURRENT_ACCESS_TOKEN) return;
   if (!RESUME_ENABLED) return;
@@ -399,7 +416,7 @@ ui.onRestartClick(async () => {
 
     if (!out?.ok) return;
 
-    CURRENT_USER = { ...CURRENT_USER, ...out.user };
+    applyUserPatch(out.user);
     wipeResumeForCurrentLevel();
     game.setLevel(levels[levelIndex]);
     updateAllBadges();
@@ -419,7 +436,7 @@ const game = createGame({
   getCurrentUser: () => CURRENT_USER ?? { username: "guest", uid: null },
 
   onTilePainted({ key, x, y }) {
-    if (!CURRENT_USER?.uid) return;
+    if (!CURRENT_ACCESS_TOKEN) return;
     if (!RESUME_ENABLED) return;
 
     RESUME_TILES.add(key);
@@ -438,7 +455,7 @@ const game = createGame({
       apiClaimLevelComplete(completedLevel)
         .then((out) => {
           if (out?.user) {
-            CURRENT_USER = { ...CURRENT_USER, ...out.user };
+            applyUserPatch(out.user);
             ui.setCoins(out.user.coins ?? 0);
           }
         })
@@ -542,7 +559,7 @@ if (CURRENT_ACCESS_TOKEN) {
     .catch(() => {});
 }
 function wipeResumeForCurrentLevel() {
-  if (!CURRENT_USER?.uid) return;
+  if (!CURRENT_ACCESS_TOKEN) return;
 
   RESUME_TILES = new Set();
   RESUME_POS = null;
@@ -575,7 +592,7 @@ setTimeout(() => {
   ui.setLevel(selectedLevelNumber);
 
   // Only logged-in users can resume
-  if (!CURRENT_USER?.uid) return;
+  if (!CURRENT_ACCESS_TOKEN) return;
 
   RESUME_ENABLED = true;
 
@@ -670,7 +687,7 @@ ui.onSkipClick(async () => {
       if (!out?.ok) throw new Error(out?.error);
 
       if (out.user) {
-        CURRENT_USER = { ...CURRENT_USER, ...out.user };
+        applyUserPatch(out.user);
         updateAllBadges();
       }
 
@@ -689,7 +706,7 @@ skipPopup.onFreeSkip(async () => {
   const out = await apiSkip({ mode: "free" });
   if (!out.ok) return alert(out.error || "Skip failed");
   if (out.user) {
-    CURRENT_USER = { ...CURRENT_USER, ...out.user };
+    applyUserPatch(out.user);
     ui.setCoins(out.user.coins);
   }
   goNextLevel();
@@ -699,7 +716,7 @@ skipPopup.onBuySkip(async () => {
   const out = await apiSkip({ mode: "coins" });
   if (!out.ok) return alert(out.error || "Skip failed");
   if (out.user) {
-    CURRENT_USER = { ...CURRENT_USER, ...out.user };
+    applyUserPatch(out.user);
     ui.setCoins(out.user.coins);
   }
   goNextLevel();
@@ -724,7 +741,7 @@ ui.onHintClick(async () => {
       if (!out?.ok) throw new Error(out?.error);
 
       if (out.user) {
-        CURRENT_USER = { ...CURRENT_USER, ...out.user };
+        applyUserPatch(out.user);
         updateAllBadges();
       }
 
@@ -752,7 +769,7 @@ restartPopup.onBuyRestart(async () => {
 
   if (!out?.ok) return alert(out.error);
 
-  CURRENT_USER = { ...CURRENT_USER, ...out.user };
+  applyUserPatch(out.user);
   updateRestartBadge();
   wipeResumeForCurrentLevel();
   game.setLevel(levels[levelIndex]);
@@ -792,7 +809,7 @@ restartPopup.onFreeRestart(async () => {
   const out = await res.json();
   if (!out?.ok) return;
 
-  CURRENT_USER = { ...CURRENT_USER, ...out.user };
+  applyUserPatch(out.user);
   updateAllBadges();
   wipeResumeForCurrentLevel();
   game.setLevel(levels[levelIndex]);
@@ -814,7 +831,7 @@ restartPopup.onFreeRestart(async () => {
   ui.hideWelcome();
   game.start();
   // force capture starting tile for resume AFTER login ready
-if (CURRENT_USER?.uid && RESUME_ENABLED) {
+if (CURRENT_ACCESS_TOKEN && RESUME_ENABLED) {
   const state = game.getState();
   const x = state.player.x;
   const y = state.player.y;
@@ -911,7 +928,7 @@ ui.hideWelcome();
 if (!game.isRunning?.()) {
   game.start();
   // force capture starting tile for resume AFTER login ready
-if (CURRENT_USER?.uid && RESUME_ENABLED) {
+if (CURRENT_ACCESS_TOKEN && RESUME_ENABLED) {
   const state = game.getState();
   const x = state.player.x;
   const y = state.player.y;
