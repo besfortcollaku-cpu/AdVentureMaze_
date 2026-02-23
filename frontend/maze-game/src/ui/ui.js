@@ -41,7 +41,7 @@ export function mountUI(root) {
 
 <div class="btn-wrapper">
   <button id="skipBtn" class="icon">${ICONS.skip}</button>
-  <span class="badge Hidden" id="skipCount"></span>
+  <span class="badge hidden" id="skipCount"></span>
 </div>
       </footer>
 
@@ -265,6 +265,50 @@ triggerLogin() {
       accountUI.setCoins(count);
     },
 
+setHintsBadge(count) {
+  const el = document.getElementById("hintCount");
+  if (!el) return;
+
+  const n = Number(count) || 0;
+
+  if (n > 0) {
+    el.textContent = String(n);
+    el.classList.remove("hidden");
+  } else {
+    el.textContent = "";
+    el.classList.add("hidden");
+  }
+},
+
+setSkipsBadge(count) {
+  const el = document.getElementById("skipCount");
+  if (!el) return;
+
+  const n = Number(count) || 0;
+
+  if (n > 0) {
+    el.textContent = String(n);
+    el.classList.remove("hidden");
+  } else {
+    el.textContent = "";
+    el.classList.add("hidden");
+  }
+},
+
+setRestartsBadge(count) {
+  const el = document.getElementById("restartCount");
+  if (!el) return;
+
+  const n = Number(count) || 0;
+
+  if (n > 0) {
+    el.textContent = String(n);
+    el.classList.remove("hidden");
+  } else {
+    el.textContent = "";
+    el.classList.add("hidden");
+  }
+},
     // ---- STUBS (KEEP) ----
     setLevel(levelNumber) {
       const el = root.querySelector(".top .level");
