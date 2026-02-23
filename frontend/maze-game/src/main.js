@@ -40,7 +40,9 @@ let RESUME_POS = null;
 let RESUME_SAVE_TIMER = null;
 let LEVEL_START_KEY = null;
 
-
+function normalizeToken(t) {
+  return String(t || "").replace(/^Bearer\s+/i, "");
+}
 function applyUserPatch(patch) {
   if (!patch) return;
 
@@ -79,8 +81,10 @@ if (LEVEL_START_KEY) {
       RESUME_POS
     );
     
-    apiSetProgress({
-      uid: CURRENT_USER.uid,
+    if (!CURRENT_USER?.uid) return;
+
+apiSetProgress({
+  uid: CURRENT_USER.uid,
       level: safeLevel,
       coins: CURRENT_USER?.coins ?? 0,
       paintedKeys: Array.from(RESUME_TILES),
@@ -113,7 +117,7 @@ async function apiSetProgress({ uid, level, coins, paintedKeys, resume } = {}) {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${CURRENT_ACCESS_TOKEN}`,
+      Authorization: `Bearer ${normalizeToken(CURRENT_ACCESS_TOKEN)}`,
     },
     body: JSON.stringify({
       uid,
@@ -134,7 +138,7 @@ async function apiClaimLevelComplete(levelNumber) {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${CURRENT_ACCESS_TOKEN}`,
+      Authorization: `Bearer ${normalizeToken(CURRENT_ACCESS_TOKEN)}`,
     },
     body: JSON.stringify({
       level: levelNumber,
@@ -168,7 +172,7 @@ async function apiSkip({ mode }) {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${CURRENT_ACCESS_TOKEN}`,
+      Authorization: `Bearer ${normalizeToken(CURRENT_ACCESS_TOKEN)}`,
     },
     body: JSON.stringify({ mode, nonce }),
   });
@@ -184,7 +188,7 @@ async function apiHint({ mode }) {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${CURRENT_ACCESS_TOKEN}`,
+      Authorization: `Bearer ${normalizeToken(CURRENT_ACCESS_TOKEN)}`,
     },
     body: JSON.stringify({ mode, nonce }),
   });
@@ -203,7 +207,7 @@ async function apiClaimAd50() {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${CURRENT_ACCESS_TOKEN}`,
+      Authorization: `Bearer ${normalizeToken(CURRENT_ACCESS_TOKEN)}`,
     },
     body: JSON.stringify({
       nonce: `${Date.now()}-${Math.random()}`,
@@ -221,7 +225,7 @@ async function loadMeAndSyncUI({ BACKEND, token, ui }) {
   const res = await fetch(`${BACKEND}/api/me`, {
   method: "GET",
   headers: {
-    "Authorization": `Bearer ${token}`,
+    "Authorization": `Bearer ${normalizeToken(token)}`,
     "Content-Type": "application/json"
   },
 });
@@ -315,7 +319,7 @@ async function migrateGuestProgress({ BACKEND, token }) {
 async function boot() {
     const storedToken = localStorage.getItem("pi_access_token");
 if (storedToken) {
-  CURRENT_ACCESS_TOKEN = storedToken;
+  CURRENT_ACCESS_TOKEN = normalizeToken(storedToken);
 }
   const root = document.querySelector("#app");
   if (!root) {
@@ -409,7 +413,7 @@ ui.onRestartClick(async () => {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${CURRENT_ACCESS_TOKEN}`,
+        Authorization: `Bearer ${normalizeToken(CURRENT_ACCESS_TOKEN)}`,
       },
       body: JSON.stringify({ mode: "free" }),
     }).then(r => r.json());
@@ -599,7 +603,7 @@ setTimeout(() => {
   // Fetch latest progress from backend memory (already loaded in CURRENT_MAX_UNLOCKED_LEVEL flow)
   fetch(`${BACKEND}/api/me`, {
     headers: {
-      Authorization: `Bearer ${CURRENT_ACCESS_TOKEN}`,
+      Authorization: `Bearer ${normalizeToken(CURRENT_ACCESS_TOKEN)}`,
     },
   })
     .then((r) => (r.ok ? r.json() : null))
@@ -654,7 +658,7 @@ winPopup.onWatchAdClick(async () => {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${CURRENT_ACCESS_TOKEN}`,
+      Authorization: `Bearer ${normalizeToken(CURRENT_ACCESS_TOKEN)}`,
     },
     body: JSON.stringify({ nonce }),
   });
@@ -762,7 +766,7 @@ restartPopup.onBuyRestart(async () => {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${CURRENT_ACCESS_TOKEN}`,
+      Authorization: `Bearer ${normalizeToken(CURRENT_ACCESS_TOKEN)}`,
     },
     body: JSON.stringify({ mode: "coins" }),
   }).then((r) => r.json());
@@ -781,7 +785,7 @@ restartPopup.onWatchAdRestart(async () => {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${CURRENT_ACCESS_TOKEN}`,
+      Authorization: `Bearer ${normalizeToken(CURRENT_ACCESS_TOKEN)}`,
     },
     body: JSON.stringify({
       mode: "ad",
@@ -801,7 +805,7 @@ restartPopup.onFreeRestart(async () => {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${CURRENT_ACCESS_TOKEN}`,
+      Authorization: `Bearer ${normalizeToken(CURRENT_ACCESS_TOKEN)}`,
     },
     body: JSON.stringify({ mode: "free" }),
   });
@@ -854,24 +858,24 @@ ui.onLoginClick(async () => {
     BACKEND,
     ui,
     onLogin: ({ accessToken }) => {
-  CURRENT_ACCESS_TOKEN = accessToken;
-  localStorage.setItem("pi_access_token", accessToken);
+  CURRENT_ACCESS_TOKEN = normalizeToken(accessToken);
+  localStorage.setItem("pi_access_token", CURRENT_ACCESS_TOKEN);
 },
   });
 
   // 🔥 CRITICAL FIX: handle existing session
   if (!CURRENT_ACCESS_TOKEN && result?.accessToken) {
-    CURRENT_ACCESS_TOKEN = result.accessToken;
-  }
+  CURRENT_ACCESS_TOKEN = normalizeToken(result.accessToken);
+}
 
   if (!CURRENT_ACCESS_TOKEN) {
     return;
   }
 
-  await migrateGuestProgress({
-    BACKEND,
-    token: CURRENT_ACCESS_TOKEN,
-  });
+ // await migrateGuestProgress({
+  //  BACKEND,
+  //  token: CURRENT_ACCESS_TOKEN,
+ // });
 
   const me = await loadMeAndSyncUI({
     BACKEND,
