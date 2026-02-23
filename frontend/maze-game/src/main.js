@@ -372,7 +372,7 @@ levelsUI.onSelect((levelNumber) => {
   }
   goToLevel(levelNumber - 1);
 });
-  
+  if (!CURRENT_ACCESS_TOKEN)
   ui.showWelcome();
   
 ui.onRestartClick(async () => {
@@ -874,6 +874,9 @@ levelsUI.setUnlocked?.(UNLOCKED_LEVEL);
 
 // 🔓 remove guest cap completely for logged-in users
 window.__maze.guestMaxLevel = Infinity;
+
+CURRENT_MAX_UNLOCKED_LEVEL = UNLOCKED_LEVEL;
+levelsUI.setUnlocked?.(UNLOCKED_LEVEL);
 
 ui.setUser({
   ...CURRENT_USER,
