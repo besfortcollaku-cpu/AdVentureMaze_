@@ -360,6 +360,8 @@ if (CURRENT_ACCESS_TOKEN) {
     document.body.innerHTML = "<h1>#app not found</h1>";
     return;
   }
+  // Mount UI
+const ui = mountUI(root);
 
   // iOS hard lock
   document.body.style.position = "fixed";
@@ -368,8 +370,6 @@ if (CURRENT_ACCESS_TOKEN) {
   
   
 
-  // Mount UI
-const ui = mountUI(root);
 
 
 
