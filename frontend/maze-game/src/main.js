@@ -264,20 +264,18 @@ function updateAllBadges() {
     console.log("BADGE UPDATE STATE:", CURRENT_USER);
   if (!CURRENT_USER) return;
 
-  updateBadge({
-    badgeId: "restartCount",
-    left: Math.max(0, FREE_RESTARTS - (CURRENT_USER.free_restarts_used || 0)),
-  });
+  const hintsLeft =
+  Math.max(0, FREE_HINTS - Number(CURRENT_USER?.free_hints_used || 0));
 
-  updateBadge({
-    badgeId: "skipCount",
-    left: Math.max(0, FREE_SKIPS - (CURRENT_USER.free_skips_used || 0)),
-  });
+const skipsLeft =
+  Math.max(0, FREE_SKIPS - Number(CURRENT_USER?.free_skips_used || 0));
 
-  updateBadge({
-    badgeId: "hintCount",
-    left: Math.max(0, FREE_HINTS - (CURRENT_USER.free_hints_used || 0)),
-  });
+const restartsLeft =
+  Math.max(0, FREE_RESTARTS - Number(CURRENT_USER?.free_restarts_used || 0));
+
+ui.setHintsBadge?.(hintsLeft);
+ui.setSkipsBadge?.(skipsLeft);
+ui.setRestartsBadge?.(restartsLeft);
 }
 
 function freeRestartsLeft() {
