@@ -272,27 +272,35 @@ return me;
 }
 
 function updateAllBadges() {
-  if (!ui) return;
   if (!CURRENT_USER) return;
 
-  const hintsLeft =
-    Math.max(0, FREE_HINTS - Number(CURRENT_USER.free_hints_used ?? 0));
+  const FREE_SKIP_LIMIT = 3;
+  const FREE_HINT_LIMIT = 3;
+  const FREE_RESTART_LIMIT = 3;
 
-  const skipsLeft =
-    Math.max(0, FREE_SKIPS - Number(CURRENT_USER.free_skips_used ?? 0));
+  const freeSkipsLeft =
+    FREE_SKIP_LIMIT - (CURRENT_USER.free_skips_used ?? 0);
+  const freeHintsLeft =
+    FREE_HINT_LIMIT - (CURRENT_USER.free_hints_used ?? 0);
+  const freeRestartsLeft =
+    FREE_RESTART_LIMIT - (CURRENT_USER.free_restarts_used ?? 0);
 
-  const restartsLeft =
-    Math.max(0, FREE_RESTARTS - Number(CURRENT_USER.free_restarts_used ?? 0));
+  const totalSkips =
+    Math.max(0, freeSkipsLeft) +
+    (CURRENT_USER.skips_balance ?? 0);
 
-  ui.setHintsBadge?.(hintsLeft);
-  ui.setSkipsBadge?.(skipsLeft);
-  ui.setRestartsBadge?.(restartsLeft);
+  const totalHints =
+    Math.max(0, freeHintsLeft) +
+    (CURRENT_USER.hints_balance ?? 0);
+
+  const totalRestarts =
+    Math.max(0, freeRestartsLeft) +
+    (CURRENT_USER.restarts_balance ?? 0);
+
+  ui?.setSkipsBadge?.(totalSkips);
+  ui?.setHintsBadge?.(totalHints);
+  ui?.setRestartsBadge?.(totalRestarts);
 }
-function freeRestartsLeft() {
-  const used = Number(CURRENT_USER?.free_restarts_used || 0);
-  return Math.max(0, FREE_RESTARTS - used);
-}
-
 function freeSkipsLeft() {
   const used = Number(CURRENT_USER?.free_skips_used || 0);
   return Math.max(0, FREE_SKIPS - used);
@@ -454,7 +462,10 @@ ui.onRestartClick(async () => {
 
     if (!out?.ok) return;
 
-    applyUserPatch(out.user);
+    applyUserPatch({
+  free_restarts_used: out.free_restarts_used,
+  restarts_balance: out.restarts_balance,
+});
     wipeResumeForCurrentLevel();
     game.setLevel(levels[levelIndex]);
     updateAllBadges();
@@ -670,8 +681,10 @@ ui.onSkipClick(async () => {
       const out = await apiSkip({ mode: "free" });
       if (!out?.ok) throw new Error(out?.error);
 
-      if (out.user) {
-        applyUserPatch(out.user);
+      applyUserPatch({
+  free_skips_used: out.free_skips_used,
+  skips_balance: out.skips_balance,
+});
         updateAllBadges();
       }
 
@@ -690,8 +703,10 @@ skipPopup.onFreeSkip(async () => {
   const out = await apiSkip({ mode: "free" });
   if (!out.ok) return alert(out.error || "Skip failed");
 
-  if (out.user) {
-    applyUserPatch(out.user);
+applyUserPatch({
+  free_skips_used: out.free_skips_used,
+  skips_balance: out.skips_balance,
+});
     updateAllBadges(); // ✅ ADD THIS
   }
 
@@ -703,8 +718,10 @@ skipPopup.onBuySkip(async () => {
   const out = await apiSkip({ mode: "coins" });
   if (!out.ok) return alert(out.error || "Skip failed");
 
-  if (out.user) {
-    applyUserPatch(out.user);
+applyUserPatch({
+  free_skips_used: out.free_skips_used,
+  skips_balance: out.skips_balance,
+});
     updateAllBadges();
   }
 
@@ -716,8 +733,10 @@ skipPopup.onWatchAdSkip(async () => {
   const out = await apiSkip({ mode: "ad" });
   if (!out.ok) return alert(out.error || "Skip failed");
 
-  if (out.user) {
-    applyUserPatch(out.user);
+applyUserPatch({
+  free_skips_used: out.free_skips_used,
+  skips_balance: out.skips_balance,
+});
     updateAllBadges();
   }
 
@@ -731,8 +750,10 @@ hintPopup.onFreeHint(async () => {
   const out = await apiHint({ mode: "free" });
   if (!out.ok) return alert(out.error || "Hint failed");
 
-  if (out.user) {
-    applyUserPatch(out.user);
+applyUserPatch({
+  free_hints_used: out.free_hints_used,
+  hints_balance: out.hints_balance,
+});
     updateAllBadges();
   }
 
@@ -743,8 +764,10 @@ hintPopup.onBuyHint(async () => {
   const out = await apiHint({ mode: "coins" });
   if (!out.ok) return alert(out.error || "Hint failed");
 
-  if (out.user) {
-    applyUserPatch(out.user);
+applyUserPatch({
+  free_hints_used: out.free_hints_used,
+  hints_balance: out.hints_balance,
+});
     updateAllBadges();
   }
 
@@ -755,8 +778,10 @@ hintPopup.onWatchAdHint(async () => {
   const out = await apiHint({ mode: "ad" });
   if (!out.ok) return alert(out.error || "Hint failed");
 
-  if (out.user) {
-    applyUserPatch(out.user);
+applyUserPatch({
+  free_hints_used: out.free_hints_used,
+  hints_balance: out.hints_balance,
+});
     updateAllBadges();
   }
 
@@ -775,8 +800,10 @@ ui.onHintClick(async () => {
       const out = await apiHint({ mode: "free" });
       if (!out?.ok) throw new Error(out?.error);
 
-      if (out.user) {
-        applyUserPatch(out.user);
+applyUserPatch({
+  free_hints_used: out.free_hints_used,
+  hints_balance: out.hints_balance,
+});
         updateAllBadges();
       }
 
@@ -804,7 +831,10 @@ restartPopup.onBuyRestart(async () => {
 
   if (!out?.ok) return alert(out.error);
 
-  applyUserPatch(out.user);
+  applyUserPatch({
+  free_restarts_used: out.free_restarts_used,
+  restarts_balance: out.restarts_balance,
+});
   updateAllBadges();
   wipeResumeForCurrentLevel();
   game.setLevel(levels[levelIndex]);
@@ -844,7 +874,10 @@ restartPopup.onFreeRestart(async () => {
   const out = await res.json();
   if (!out?.ok) return;
 
-  applyUserPatch(out.user);
+  applyUserPatch({
+  free_restarts_used: out.free_restarts_used,
+  restarts_balance: out.restarts_balance,
+});
   updateAllBadges();
   wipeResumeForCurrentLevel();
   game.setLevel(levels[levelIndex]);
