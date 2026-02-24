@@ -703,13 +703,12 @@ skipPopup.onFreeSkip(async () => {
   const out = await apiSkip({ mode: "free" });
   if (!out.ok) return alert(out.error || "Skip failed");
 
-applyUserPatch({
-  free_skips_used: out.free_skips_used,
-  skips_balance: out.skips_balance,
-});
-    updateAllBadges(); // ✅ ADD THIS
-  
+  applyUserPatch({
+    free_skips_used: out.free_skips_used,
+    skips_balance: out.skips_balance,
+  });
 
+  updateAllBadges();
   skipPopup.hide();
   goNextLevel();
 });
@@ -718,13 +717,12 @@ skipPopup.onBuySkip(async () => {
   const out = await apiSkip({ mode: "coins" });
   if (!out.ok) return alert(out.error || "Skip failed");
 
-applyUserPatch({
-  free_skips_used: out.free_skips_used,
-  skips_balance: out.skips_balance,
-});
-    updateAllBadges();
-  }
+  applyUserPatch({
+    free_skips_used: out.free_skips_used,
+    skips_balance: out.skips_balance,
+  });
 
+  updateAllBadges();
   skipPopup.hide();
   goNextLevel();
 });
@@ -733,13 +731,12 @@ skipPopup.onWatchAdSkip(async () => {
   const out = await apiSkip({ mode: "ad" });
   if (!out.ok) return alert(out.error || "Skip failed");
 
-applyUserPatch({
-  free_skips_used: out.free_skips_used,
-  skips_balance: out.skips_balance,
-});
-    updateAllBadges();
-  }
+  applyUserPatch({
+    free_skips_used: out.free_skips_used,
+    skips_balance: out.skips_balance,
+  });
 
+  updateAllBadges();
   skipPopup.hide();
   goNextLevel();
 });
@@ -750,13 +747,12 @@ hintPopup.onFreeHint(async () => {
   const out = await apiHint({ mode: "free" });
   if (!out.ok) return alert(out.error || "Hint failed");
 
-applyUserPatch({
-  free_hints_used: out.free_hints_used,
-  hints_balance: out.hints_balance,
-});
-    updateAllBadges();
-  }
+  applyUserPatch({
+    free_hints_used: out.free_hints_used,
+    hints_balance: out.hints_balance,
+  });
 
+  updateAllBadges();
   hintPopup.hide();
 });
 
@@ -764,13 +760,12 @@ hintPopup.onBuyHint(async () => {
   const out = await apiHint({ mode: "coins" });
   if (!out.ok) return alert(out.error || "Hint failed");
 
-applyUserPatch({
-  free_hints_used: out.free_hints_used,
-  hints_balance: out.hints_balance,
-});
-    updateAllBadges();
-  }
+  applyUserPatch({
+    free_hints_used: out.free_hints_used,
+    hints_balance: out.hints_balance,
+  });
 
+  updateAllBadges();
   hintPopup.hide();
 });
 
@@ -778,45 +773,13 @@ hintPopup.onWatchAdHint(async () => {
   const out = await apiHint({ mode: "ad" });
   if (!out.ok) return alert(out.error || "Hint failed");
 
-applyUserPatch({
-  free_hints_used: out.free_hints_used,
-  hints_balance: out.hints_balance,
-});
-    updateAllBadges();
-  }
+  applyUserPatch({
+    free_hints_used: out.free_hints_used,
+    hints_balance: out.hints_balance,
+  });
 
+  updateAllBadges();
   hintPopup.hide();
-});
-
-ui.onHintClick(async () => {
-  if (!CURRENT_ACCESS_TOKEN) {
-    ui.showLoginRequired();
-    return;
-  }
-
-  // try FREE hint first (same logic as skip & restart)
-  if (freeHintsLeft() > 0) {
-    try {
-      const out = await apiHint({ mode: "free" });
-      if (!out?.ok) throw new Error(out?.error);
-
-applyUserPatch({
-  free_hints_used: out.free_hints_used,
-  hints_balance: out.hints_balance,
-});
-        updateAllBadges();
-      }
-
-      // show hint effect here (your existing hint reveal logic)
-      hintPopup.showHint?.();
-      return;
-  } catch (e) {
-      // fallback to popup if backend rejects
-    }
-  }
-
-  // no free hints left → popup
-  hintPopup.open({ freeLeft: 0 });
 });
 
 restartPopup.onBuyRestart(async () => {
