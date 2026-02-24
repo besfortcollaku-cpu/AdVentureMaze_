@@ -372,7 +372,7 @@ if (CURRENT_ACCESS_TOKEN) {
 } // 🔥 force correct badge state immediately
      else {
       throw new Error("Invalid session");
-    }
+    
   } catch (e) {
     console.warn("Token invalid during boot");
     CURRENT_ACCESS_TOKEN = null;
