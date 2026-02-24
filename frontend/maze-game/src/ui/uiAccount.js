@@ -79,20 +79,10 @@ export function mountAccountUI(root) {
 const skipsUsedEl = root.querySelector("#accountSkipsUsed");
 const hintsUsedEl = root.querySelector("#accountHintsUsed");
 const restartsUsedEl = root.querySelector("#accountRestartsUsed");
-const statsToggle = root.querySelector("#accountStatsToggle");
-const statsList = root.querySelector("#accountStatsList");
 const inviteLinkEl = root.querySelector("#accountInviteLink");
 const inviteCountEl = root.querySelector("#accountInviteCount");
 const copyInviteBtn = root.querySelector("#accountCopyInvite");
 const inviteSection = root.querySelector("#inviteSection");
-statsToggle?.addEventListener("click", () => {
-  const isHidden = statsList.classList.contains("hidden");
-
-  statsList.classList.toggle("hidden");
-  statsToggle.textContent = isHidden
-    ? "Player Stats ▴"
-    : "Player Stats ▾";
-});
 
   function show() {
     if (!overlay) return;
@@ -129,17 +119,7 @@ statsToggle?.addEventListener("click", () => {
     inviteSection.style.display = user.uid ? "block" : "none";
   }
 }
-if (inviteCountEl) {
-  inviteCountEl.textContent = String(user?.invited_count ?? 0);
-}
 
-if (inviteLinkEl && user?.uid) {
-  inviteLinkEl.value = `${window.location.origin}?ref=${user.uid}`;
-}
-
-if (inviteSection) {
-  inviteSection.style.display = user?.uid ? "block" : "none";
-}
 copyInviteBtn?.addEventListener("click", async () => {
   if (!inviteLinkEl?.value) return;
 
