@@ -860,6 +860,8 @@ restartPopup.onFreeRestart(async () => {
   document.body.classList.add("game-running");
   ui.hideWelcome();
   game.start();
+      updateAllBadges();
+
   // force capture starting tile for resume AFTER login ready
 if (CURRENT_ACCESS_TOKEN && RESUME_ENABLED) {
   const state = game.getState();
