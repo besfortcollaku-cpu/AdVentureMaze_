@@ -265,16 +265,18 @@ return me;
 }
 
 function updateAllBadges() {
+  if (!ui) return;
   if (!CURRENT_USER) return;
 
-  // IMPORTANT: avoid TDZ / "ui is not defined"
-  if (typeof ui === "undefined" || !ui) return;
+  const hintsLeft =
+    Math.max(0, FREE_HINTS - Number(CURRENT_USER.free_hints_used ?? 0));
 
-  const hintsLeft = Math.max(0, FREE_HINTS - Number(CURRENT_USER.free_hints_used ?? 0));
-  const skipsLeft = Math.max(0, FREE_SKIPS - Number(CURRENT_USER.free_skips_used ?? 0));
-  const restartsLeft = Math.max(0, FREE_RESTARTS - Number(CURRENT_USER.free_restarts_used ?? 0));
+  const skipsLeft =
+    Math.max(0, FREE_SKIPS - Number(CURRENT_USER.free_skips_used ?? 0));
 
-  // pass numbers (or String(...) if your badge code expects text)
+  const restartsLeft =
+    Math.max(0, FREE_RESTARTS - Number(CURRENT_USER.free_restarts_used ?? 0));
+
   ui.setHintsBadge?.(hintsLeft);
   ui.setSkipsBadge?.(skipsLeft);
   ui.setRestartsBadge?.(restartsLeft);
