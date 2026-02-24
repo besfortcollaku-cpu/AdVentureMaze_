@@ -708,7 +708,7 @@ applyUserPatch({
   skips_balance: out.skips_balance,
 });
     updateAllBadges(); // ✅ ADD THIS
-  }
+  
 
   skipPopup.hide();
   goNextLevel();
