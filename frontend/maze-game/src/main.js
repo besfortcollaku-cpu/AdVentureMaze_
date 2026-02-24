@@ -14,7 +14,12 @@ import { createRestartPopup } from "./ui/uiRestarts.js";
 const GUEST_PROGRESS_KEY = "guest_progress_v1";
 const GUEST_MAX_LEVEL = 5;
 let CURRENT_USER = null;
-window.__DEBUG_USER = () => CURRENT_USER;
+
+Object.defineProperty(window, "__DEBUG_USER", {
+  get() {
+    return CURRENT_USER;
+  }
+});
 let CURRENT_ACCESS_TOKEN = null;
 let ui = null;
 const BACKEND = "https://triumphant-gentleness-production.up.railway.app";
