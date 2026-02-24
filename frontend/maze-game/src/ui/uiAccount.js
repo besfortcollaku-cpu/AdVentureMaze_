@@ -140,7 +140,6 @@ copyInviteBtn?.addEventListener("click", async () => {
   function setCoins(n) {
     if (coinsEl) coinsEl.textContent = String(n ?? 0);
   }
-editBtn?.addEventListener("click
   closeBtn?.addEventListener("click", hide);
   overlay?.addEventListener("click", (e) => {
     if (e.target === overlay) hide();
