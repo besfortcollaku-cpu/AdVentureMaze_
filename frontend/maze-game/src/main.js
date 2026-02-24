@@ -315,7 +315,7 @@ function loadGuestProgress() {
     const raw = localStorage.getItem(GUEST_PROGRESS_KEY);
     if (!raw) return { maxLevel: 1 };
     return JSON.parse(raw);
-  } catch {
+  } catch (e) {
     return { maxLevel: 1 };
   }
 }
@@ -690,7 +690,7 @@ ui.onSkipClick(async () => {
 
       goNextLevel();
       return;
-    } catch {
+  } catch (e) {
       // fallback to popup if backend rejects
     }
   }
@@ -810,7 +810,7 @@ applyUserPatch({
       // show hint effect here (your existing hint reveal logic)
       hintPopup.showHint?.();
       return;
-    } catch {
+  } catch (e) {
       // fallback to popup if backend rejects
     }
   }
