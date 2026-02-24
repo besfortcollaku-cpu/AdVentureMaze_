@@ -258,7 +258,7 @@ async function loadMeAndSyncUI({ BACKEND, token, ui }) {
 
   ui.setCoins(Number(user.coins ?? progress.coins ?? 0));
   
-
+updateAllBadges();
   return me;
 }
 
@@ -959,10 +959,10 @@ if (Array.isArray(paintedKeys) || (resume && resume.x != null && resume.y != nul
 
 document.body.classList.add("game-running");
 ui.hideWelcome();
+  updateAllBadges();
 
 if (!game.isRunning?.()) {
   game.start();
-      updateAllBadges();
   // force capture starting tile for resume AFTER login ready
 if (CURRENT_ACCESS_TOKEN && RESUME_ENABLED) {
   const state = game.getState();
