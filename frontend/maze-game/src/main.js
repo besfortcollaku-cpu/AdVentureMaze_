@@ -686,7 +686,7 @@ ui.onSkipClick(async () => {
   skips_balance: out.skips_balance,
 });
         updateAllBadges();
-      }
+      
 
       goNextLevel();
       return;
