@@ -1,4 +1,4 @@
-
+console.log("BUILD VERSION TEST 123");
 import "./css/ui.css";
 import { mountLevelsUI } from "./ui/uiLevels.js";
 import { mountUI } from "./ui/ui.js";
