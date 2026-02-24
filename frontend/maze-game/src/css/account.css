@@ -4,7 +4,7 @@
   inset: 0;
   z-index: 1000;
 
-  display: flex;
+  display: none;
   align-items: center;
   justify-content: center;
 
@@ -36,6 +36,7 @@
 }
 
 .accountOverlay.show {
+  display: flex;
   opacity: 1;
   pointer-events: auto;
 }
