@@ -88,7 +88,7 @@ const inviteSection = root.querySelector("#inviteSection");
 
 const editBtn = root.querySelector("#accountEditName");
 let isEditing = false;
-let currentUsername = user.username ?? "guest";
+
 
   function show() {
     if (!overlay) return;
