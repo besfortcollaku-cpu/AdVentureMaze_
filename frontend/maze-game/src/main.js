@@ -258,8 +258,10 @@ async function loadMeAndSyncUI({ BACKEND, token, ui }) {
 
   ui.setCoins(Number(user.coins ?? progress.coins ?? 0));
   
-updateAllBadges();
-  return me;
+setTimeout(() => {
+  updateAllBadges();
+}, 0);
+return me;
 }
 
 function updateAllBadges() {
