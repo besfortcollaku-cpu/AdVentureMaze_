@@ -140,57 +140,7 @@ copyInviteBtn?.addEventListener("click", async () => {
   function setCoins(n) {
     if (coinsEl) coinsEl.textContent = String(n ?? 0);
   }
-editBtn?.addEventListener("click", async () => {
-  if (!usernameEl) return;
-
-  if (!isEditing) {
-    // Switch to input mode
-    const input = document.createElement("input");
-    input.value = usernameEl.textContent;
-    input.className = "accountNameInput";
-    usernameEl.replaceWith(input);
-    input.focus();
-    editBtn.textContent = "✔";
-    isEditing = true;
-  } else {
-    const input = root.querySelector(".accountNameInput");
-    if (!input) return;
-
-    const newName = input.value.trim();
-
-    if (!newName || newName.length < 3) {
-      alert("Username must be at least 3 characters.");
-      return;
-    }
-
-    try {
-      const res = await fetch("/api/user/username", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username: newName }),
-      });
-
-      const data = await res.json();
-
-      if (!data.ok) {
-        alert(data.error || "Failed to update.");
-        return;
-      }
-
-      // Replace input back with span
-      const span = document.createElement("span");
-      span.id = "accountUsername";
-      span.textContent = newName;
-      input.replaceWith(span);
-
-      editBtn.textContent = "✎";
-      isEditing = false;
-
-    } catch {
-      alert("Network error.");
-    }
-  }
-});
+editBtn?.addEventListener("click
   closeBtn?.addEventListener("click", hide);
   overlay?.addEventListener("click", (e) => {
     if (e.target === overlay) hide();
