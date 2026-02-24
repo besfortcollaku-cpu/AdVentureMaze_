@@ -257,15 +257,15 @@ async function loadMeAndSyncUI({ BACKEND, token, ui }) {
   });
 
   ui.setCoins(Number(user.coins ?? progress.coins ?? 0));
-  updateAllBadges();
+  
 
   return me;
 }
 
 function updateAllBadges() {
-  if (!CURRENT_USER || !ui) return;
+  if (!CURRENT_USER?.uid) return;   // 🔥 IMPORTANT FIX
+  if (!ui) return;
 
-  // Hardcode totals (do NOT rely on global constants)
   const TOTAL_FREE_HINTS = 3;
   const TOTAL_FREE_SKIPS = 3;
   const TOTAL_FREE_RESTARTS = 3;
