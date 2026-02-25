@@ -253,15 +253,9 @@ async function loadMeAndSyncUI({ BACKEND, token, ui }) {
   uid: user.uid,
   username: user.username,
 
-  free_restarts_used: Number(
-  progress.free_restarts_used ?? user.free_restarts_used ?? 0
-),
-free_skips_used: Number(
-  progress.free_skips_used ?? user.free_skips_used ?? 0
-),
-free_hints_used: Number(
-  progress.free_hints_used ?? user.free_hints_used ?? 0
-),
+  free_restarts_used: Number(user.free_restarts_used ?? 0),
+free_skips_used: Number(user.free_skips_used ?? 0),
+free_hints_used: Number(user.free_hints_used ?? 0),
 };
   ui.setUser({
     ...CURRENT_USER,
