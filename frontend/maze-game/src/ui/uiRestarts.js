@@ -19,40 +19,23 @@ closeBtn.addEventListener("click", () => {
   api.hide();
 });
 const api = {
-open({ coins, freeLeft }) {
-    el.classList.remove("hidden");
+open({ coins } = {}) {
+  el.classList.remove("hidden");
 
-    const buyBtn = el.querySelector("#buyRestartBtn");
-    const adBtn = el.querySelector("#watchAdRestartBtn");
+  const buyBtn = el.querySelector("#buyRestartBtn");
+  const adBtn = el.querySelector("#watchAdRestartBtn");
 
-    // 50 coin restart
-    if (coins < 50) {
-      buyBtn.disabled = true;
-      buyBtn.textContent = "Not enough coins";
-    } else {
-      buyBtn.disabled = false;
-      buyBtn.textContent = "Restart (50 coins)";
-    }
+  if (coins < 50) {
+    buyBtn.disabled = true;
+    buyBtn.textContent = "Not enough coins";
+  } else {
+    buyBtn.disabled = false;
+    buyBtn.textContent = "Restart (50 coins)";
+  }
 
-    // Ad restart always enabled
-    adBtn.disabled = false;
-    adBtn.textContent = "Watch Ad";
-  },
-
-    // Paid restart
-    if (coins < 50) {
-      buyBtn.disabled = true;
-      buyBtn.textContent = "Not enough coins";
-    } else {
-      buyBtn.disabled = false;
-      buyBtn.textContent = "Restart (50 coins)";
-    }
-
-    // Ad always enabled
-    adBtn.disabled = false;
-    adBtn.textContent = "Watch Ad";
-  },
-
+  adBtn.disabled = false;
+  adBtn.textContent = "Watch Ad";
+},
   hide() {
     el.classList.add("hidden");
   },
