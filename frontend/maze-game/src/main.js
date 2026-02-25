@@ -748,6 +748,7 @@ skipPopup.onBuySkip(async () => {
   skipPopup.hide();
   goNextLevel();
 });
+});
 
 skipPopup.onWatchAdSkip(async () => {
   const out = await apiSkip({ mode: "ad" });
