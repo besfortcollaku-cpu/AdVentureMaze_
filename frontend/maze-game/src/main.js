@@ -722,7 +722,7 @@ skipPopup.open({
 });
 
 skipPopup.onFreeSkip(async () => {
-  const out = await apiSkip({ mode: "free" });
+  const out = await apiSkip({ mode: "free", nonce: crypto.randomUUID() });
   if (!out.ok) return alert(out.error || "Skip failed");
 
   applyUserPatch({
@@ -736,7 +736,7 @@ skipPopup.onFreeSkip(async () => {
 });
 
 skipPopup.onBuySkip(async () => {
-  const out = await apiSkip({ mode: "coins" });
+  const out = await apiSkip({ mode: "coins", nonce: crypto.randomUUID() });
   if (!out.ok) return alert(out.error || "Skip failed");
 
   applyUserPatch({
@@ -751,7 +751,7 @@ skipPopup.onBuySkip(async () => {
 });
 
 skipPopup.onWatchAdSkip(async () => {
-  const out = await apiSkip({ mode: "ad" });
+  const out = await apiSkip({ mode: "ad", nonce: crypto.randomUUID() });
   if (!out.ok) return alert(out.error || "Skip failed");
 
   applyUserPatch({
@@ -795,7 +795,7 @@ ui.onHintClick(async () => {
 // ---- HINT POPUP HANDLERS ----
 
 hintPopup.onFreeHint(async () => {
-  const out = await apiHint({ mode: "free" });
+  const out = await apiHint({ mode: "free", nonce: crypto.randomUUID() });
   if (!out.ok) return alert(out.error || "Hint failed");
 
   applyUserPatch({
@@ -808,7 +808,7 @@ hintPopup.onFreeHint(async () => {
 });
 
 hintPopup.onBuyHint(async () => {
-  const out = await apiHint({ mode: "coins" });
+  const out = await apiHint({ mode: "coins", nonce: crypto.randomUUID() });
   if (!out.ok) return alert(out.error || "Hint failed");
 
   applyUserPatch({
@@ -821,7 +821,7 @@ hintPopup.onBuyHint(async () => {
 });
 
 hintPopup.onWatchAdHint(async () => {
-  const out = await apiHint({ mode: "ad" });
+  const out = await apiHint({ mode: "ad", nonce: crypto.randomUUID() });
   if (!out.ok) return alert(out.error || "Hint failed");
 
   applyUserPatch({
@@ -840,7 +840,10 @@ restartPopup.onBuyRestart(async () => {
       "Content-Type": "application/json",
       Authorization: `Bearer ${normalizeToken(CURRENT_ACCESS_TOKEN)}`,
     },
-    body: JSON.stringify({ mode: "coins" }),
+    body: JSON.stringify({
+      mode: "coins",
+      nonce: crypto.randomUUID(),
+    }),
   }).then((r) => r.json());
 
   if (!out?.ok) return alert(out.error);
@@ -888,7 +891,10 @@ restartPopup.onFreeRestart(async () => {
       "Content-Type": "application/json",
       Authorization: `Bearer ${normalizeToken(CURRENT_ACCESS_TOKEN)}`,
     },
-    body: JSON.stringify({ mode: "free" }),
+    body: JSON.stringify({
+      mode: "free",
+      nonce: crypto.randomUUID(),
+    }),
   });
 
   const out = await res.json();
