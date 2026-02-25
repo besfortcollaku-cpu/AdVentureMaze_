@@ -300,6 +300,21 @@ function updateAllBadges() {
   ui?.setHintsBadge?.(totalHints);
   ui?.setRestartsBadge?.(totalRestarts);
 }
+async function apiRestart({ mode }) {
+  const nonce = crypto.randomUUID?.() || `${Date.now()}-${Math.random()}`;
+  const res = await fetch(`${BACKEND}/api/restart`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${normalizeToken(CURRENT_ACCESS_TOKEN)}`,
+    },
+    body: JSON.stringify({ mode, nonce }),
+  });
+
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok || !data?.ok) throw new Error(data?.error || "Restart failed");
+  return data;
+}
 function freeSkipsLeft() {
   const used = Number(CURRENT_USER?.free_skips_used || 0);
   return Math.max(0, FREE_SKIPS - used);
@@ -448,29 +463,35 @@ ui.onRestartClick(async () => {
     FREE_RESTARTS - (CURRENT_USER.free_restarts_used || 0)
   );
 
-  // 🟢 FREE RESTART → NO POPUP
-  if (freeLeft > 0) {
-    const out = await fetch(`${BACKEND}/api/restart`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${normalizeToken(CURRENT_ACCESS_TOKEN)}`,
-      },
-      body: JSON.stringify({ mode: "free" }),
-    }).then(r => r.json());
+if (freeLeft > 0) {
 
-    if (!out?.ok) return;
+  const nonce = crypto.randomUUID?.() || `${Date.now()}-${Math.random()}`;
 
-    applyUserPatch({
-  free_restarts_used: out.free_restarts_used,
-  restarts_balance: out.restarts_balance,
-});
-    wipeResumeForCurrentLevel();
-    game.setLevel(levels[levelIndex]);
-    updateAllBadges();
+  const res = await fetch(`${BACKEND}/api/restart`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${normalizeToken(CURRENT_ACCESS_TOKEN)}`,
+    },
+    body: JSON.stringify({
+      mode: "free",
+      nonce, // 🔥 THIS WAS MISSING
+    }),
+  });
+
+  const out = await res.json().catch(() => ({}));
+
+  if (!res.ok || !out?.ok) {
+    console.error("FREE RESTART FAILED:", out);
     return;
   }
 
+  applyUserPatch(out.user);   // 🔥 IMPORTANT: use out.user
+  wipeResumeForCurrentLevel();
+  game.setLevel(levels[levelIndex]);
+  updateAllBadges();
+  return;
+}
   // 🔴 NO FREE → POPUP
   restartPopup.open({
     coins: CURRENT_USER?.coins ?? 0,
@@ -695,7 +716,9 @@ ui.onSkipClick(async () => {
   }
 
   // no free skips left → popup
-  skipPopup.open({ freeLeft: 0 });
+skipPopup.open({
+  coins: CURRENT_USER?.coins ?? 0,
+  freeLeft: 0,
 });
 
 skipPopup.onFreeSkip(async () => {
@@ -739,7 +762,35 @@ skipPopup.onWatchAdSkip(async () => {
   skipPopup.hide();
   goNextLevel();
 });
+ui.onHintClick(async () => {
+  if (!CURRENT_ACCESS_TOKEN) {
+    ui.showLoginRequired();
+    return;
+  }
 
+  const freeLeft = Math.max(
+    0,
+    FREE_HINTS - (CURRENT_USER.free_hints_used || 0)
+  );
+
+  if (freeLeft > 0) {
+    const out = await apiHint({ mode: "free" });
+    if (!out?.ok) return alert(out.error);
+
+    applyUserPatch({
+      free_hints_used: out.free_hints_used,
+      hints_balance: out.hints_balance,
+    });
+
+    updateAllBadges();
+    return;
+  }
+
+  hintPopup.open({
+    coins: CURRENT_USER?.coins ?? 0,
+    freeLeft: 0,
+  });
+});
 // ---- HINT POPUP HANDLERS ----
 
 hintPopup.onFreeHint(async () => {
@@ -818,7 +869,13 @@ restartPopup.onWatchAdRestart(async () => {
 
   if (!out?.ok) return alert(out.error);
 
-  updateRestartBadge();
+  applyUserPatch({
+    free_restarts_used: out.free_restarts_used,
+    restarts_balance: out.restarts_balance,
+  });
+
+  updateAllBadges();
+  wipeResumeForCurrentLevel();
   game.setLevel(levels[levelIndex]);
   restartPopup.hide();
 });

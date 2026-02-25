@@ -15,9 +15,19 @@ export function createHintPopup() {
   document.body.appendChild(el);
 
   const api = {
-    show({ freeLeft } = {}) {
-      el.classList.remove("hidden");
-    },
+    show({ coins } = {}) {
+  el.classList.remove("hidden");
+
+  const buyBtn = el.querySelector("#buySkipBtn");
+
+  if (coins < 50) {
+    buyBtn.disabled = true;
+    buyBtn.textContent = "Not enough coins";
+  } else {
+    buyBtn.disabled = false;
+    buyBtn.textContent = "Skip (50 coins)";
+  }
+},
     hide() {
       el.classList.add("hidden");
     },
