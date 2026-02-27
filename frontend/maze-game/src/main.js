@@ -900,6 +900,7 @@ ui.onRestartClick(async () => {
     applyUserPatch({
       free_restarts_used: out.free_restarts_used,
       restarts_balance: out.restarts_balance,
+      coins: out.coins,
     });
 
     updateAllBadges();
