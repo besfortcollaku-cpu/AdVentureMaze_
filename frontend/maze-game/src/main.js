@@ -697,35 +697,40 @@ if (!CURRENT_ACCESS_TOKEN && nextLevelNumber > GUEST_MAX_LEVEL) {
   winPopup.hide();
   goNextLevel();
 });
-winPopup.onWatchAdClick(async () => {
+winPopup.onWatchAdClick(() => {
   if (!CURRENT_ACCESS_TOKEN) {
-  ui.showLoginRequired();
-  return;
-}
-
-  const nonce = crypto.randomUUID();
-
-  const res = await fetch(`${BACKEND}/api/rewards/ad-50`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${normalizeToken(CURRENT_ACCESS_TOKEN)}`,
-    },
-    body: JSON.stringify({ nonce }),
-  });
-
-  const out = await res.json();
-  console.log("AD +50 RESPONSE", out);
-
-  // ⏱️ COOLDOWN HANDLING (THIS WAS MISSING)
-  if (out?.already) {
-    alert("Ad already claimed. Please wait a few minutes.");
+    ui.showLoginRequired();
     return;
   }
 
-  if (out?.user?.coins != null) {
-    ui.setCoins(out.user.coins);
-  }
+  simulateAd(async () => {
+    const nonce = crypto.randomUUID();
+
+    const res = await fetch(`${BACKEND}/api/rewards/ad-50`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${normalizeToken(CURRENT_ACCESS_TOKEN)}`,
+      },
+      body: JSON.stringify({ nonce }),
+    });
+
+    const out = await res.json().catch(() => ({}));
+    console.log("AD +50 RESPONSE", out);
+
+    // ⏱️ cooldown protection
+    if (out?.already) {
+      alert("Ad already claimed. Please wait a few minutes.");
+      return;
+    }
+
+    if (out?.user?.coins != null) {
+      ui.setCoins(out.user.coins);
+      applyUserPatch({ coins: out.user.coins });
+    }
+
+    winPopup.hide();
+  });
 });
 
 // ---- SKIP / HINT buttons (backend-powered) ----
