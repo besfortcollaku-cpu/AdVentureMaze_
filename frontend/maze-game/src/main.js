@@ -658,9 +658,10 @@ ui.onSkipClick(async () => {
     const out = await apiSkip({ mode: "auto" });
 
     applyUserPatch({
-      free_skips_used: out.free_skips_used,
-      skips_balance: out.skips_balance,
-    });
+  free_skips_used: out.free_skips_used,
+  skips_balance: out.skips_balance,
+  coins: out.coins,
+});
 
     updateAllBadges();
     goNextLevel();
@@ -685,9 +686,10 @@ skipPopup.onBuySkip(async () => {
     const out = await apiSkip({ mode: "coins" });
 
     applyUserPatch({
-      free_skips_used: out.free_skips_used,
-      skips_balance: out.skips_balance,
-    });
+  free_skips_used: out.free_skips_used,
+  skips_balance: out.hints_balance,
+  coins: out.coins,
+});
 
     updateAllBadges();
     skipPopup.hide();
@@ -704,9 +706,10 @@ skipPopup.onWatchAdSkip(async () => {
     const out = await apiSkip({ mode: "ad" });
 
     applyUserPatch({
-      free_skips_used: out.free_skips_used,
-      skips_balance: out.skips_balance,
-    });
+  free_skips_used: out.free_skips_used,
+  skips_balance: out.skips_balance,
+  coins: out.coins,
+});
 
     updateAllBadges();
     skipPopup.hide();
@@ -726,9 +729,10 @@ ui.onHintClick(async () => {
     const out = await apiHint({ mode: "auto" });
 
     applyUserPatch({
-      free_hints_used: out.free_hints_used,
-      hints_balance: out.hints_balance,
-    });
+  free_hints_used: out.free_hints_used,
+  hints_balance: out.hints_balance,
+  coins: out.coins,
+});
 
     updateAllBadges();
     return;
@@ -752,9 +756,10 @@ hintPopup.onBuyHint(async () => {
     const out = await apiHint({ mode: "coins" });
 
     applyUserPatch({
-      free_hints_used: out.free_hints_used,
-      hints_balance: out.hints_balance,
-    });
+  free_hints_used: out.free_hints_used,
+  hints_balance: out.hints_balance,
+  coins: out.coins,
+});
 
     updateAllBadges();
     hintPopup.hide();
@@ -770,9 +775,10 @@ hintPopup.onWatchAdHint(async () => {
     const out = await apiHint({ mode: "ad" });
 
     applyUserPatch({
-      free_hints_used: out.free_hints_used,
-      hints_balance: out.hints_balance,
-    });
+  free_skips_used: out.free_skips_used,
+  Skips_balance: out.skips_balance,
+  coins: out.coins,
+});
 
     updateAllBadges();
     hintPopup.hide();
