@@ -266,6 +266,10 @@ async function loadMeAndSyncUI({ BACKEND, token, ui }) {
   free_skips_used: Number(progress.free_skips_used ?? 0),
   free_hints_used: Number(progress.free_hints_used ?? 0),
 };
+// 🔥 restore highest unlocked level from backend
+CURRENT_MAX_UNLOCKED_LEVEL =
+  Number(progress.level ?? CURRENT_MAX_UNLOCKED_LEVEL ?? 1);
+  
   ui.setUser({
     ...CURRENT_USER,
     level: Number(progress.level || 1),
@@ -398,7 +402,38 @@ if (CURRENT_ACCESS_TOKEN) {
     if (me?.user) {
   // DO NOT overwrite CURRENT_USER again
   updateAllBadges();
-} // 🔥 force correct badge state immediately
+
+} 
+// 🔥 restore unlocked level
+const unlockedLevel =
+  me?.progress?.level ?? 1;
+
+CURRENT_MAX_UNLOCKED_LEVEL = Math.max(1, Number(unlockedLevel) || 1);
+
+// go to unlocked level
+setLevel(CURRENT_MAX_UNLOCKED_LEVEL - 1);
+
+// enable resume
+RESUME_ENABLED = true;
+RESUME_TILES = new Set(me?.progress?.paintedKeys || []);
+RESUME_POS = me?.progress?.resume ?? null;
+
+// start game if not running
+if (!game.isRunning?.()) {
+  game.start();
+}
+
+// apply resume after game loads
+setTimeout(() => {
+  if (RESUME_TILES.size > 0 || RESUME_POS) {
+    game.applyProgress({
+      paintedKeys: Array.from(RESUME_TILES),
+      player: RESUME_POS,
+    });
+  }
+}, 50);
+
+// 🔥 force correct badge state immediately
      else {
       throw new Error("Invalid session");
      }
@@ -447,9 +482,7 @@ if (CURRENT_ACCESS_TOKEN) {
   levelsUI.setUnlocked?.(CURRENT_MAX_UNLOCKED_LEVEL || 1);
 } else {
   const guestProgress = loadGuestProgress();
-  const unlocked = Math.min(guestProgress.maxLevel || 1, GUEST_MAX_LEVEL);
-  CURRENT_MAX_UNLOCKED_LEVEL = unlocked;
-  levelsUI.setUnlocked?.(unlocked);
+  const unlocked = Math.min(guestProgress.maxLevel || 1, GUEST_MAX_LEVEL);  levelsUI.setUnlocked?.(unlocked);
 }
 
   levelsUI.open();
