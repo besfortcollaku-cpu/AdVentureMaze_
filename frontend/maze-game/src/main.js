@@ -730,6 +730,7 @@ winPopup.onWatchAdClick(() => {
     }
 
     winPopup.hide();
+    goNextLevel();
   });
 });
 
