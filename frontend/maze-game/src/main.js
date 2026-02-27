@@ -930,10 +930,14 @@ restartPopup.onBuyRestart(async () => {
 });
 
 
-restartPopup.onWatchAdRestart(() => {
-  simulateAd(async () => {
-    await grantRestartAdReward();
+restartPopup.onWatchAdRestart(async () => {
+    simulateAd(() => {
+    grantRestartAdReward();
   });
+    updateAllBadges();
+    wipeResumeForCurrentLevel();
+    game.setLevel(levels[levelIndex]);
+    restartPopup.hide();
 });
   // ---- GUEST ----
   ui.onGuestStart(() => {
