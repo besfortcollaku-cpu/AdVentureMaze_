@@ -432,7 +432,7 @@ setTimeout(() => {
     });
   }
 }, 50);
-
+}
 // 🔥 force correct badge state immediately
      else {
       throw new Error("Invalid session");
