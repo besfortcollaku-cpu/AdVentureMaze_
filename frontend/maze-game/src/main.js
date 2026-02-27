@@ -834,23 +834,7 @@ hintPopup.onBuyHint(async () => {
 });
 
 
-hintPopup.onWatchAdHint(async () => {
-  try {
-    const out = await apiHint({ mode: "ad" });
 
-    applyUserPatch({
-  free_skips_used: out.free_skips_used,
-  Skips_balance: out.skips_balance,
-  coins: out.coins,
-});
-
-    updateAllBadges();
-    hintPopup.hide();
-
-  } catch (e) {
-    alert(e.message || "Hint failed");
-  }
-});
 
 ui.onRestartClick(async () => {
   if (!CURRENT_ACCESS_TOKEN) {
