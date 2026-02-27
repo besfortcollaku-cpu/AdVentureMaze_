@@ -251,12 +251,20 @@ async function loadMeAndSyncUI({ BACKEND, token, ui }) {
   CURRENT_USER = {
   ...user,
   ...progress,
+
   uid: user.uid,
   username: user.username,
 
+  // normalize everything
+  coins: Number(user.coins ?? progress.coins ?? 0),
+
+  restarts_balance: Number(user.restarts_balance ?? 0),
+  skips_balance: Number(user.skips_balance ?? 0),
+  hints_balance: Number(user.hints_balance ?? 0),
+
   free_restarts_used: Number(progress.free_restarts_used ?? 0),
-free_skips_used: Number(progress.free_skips_used ?? 0),
-free_hints_used: Number(progress.free_hints_used ?? 0),
+  free_skips_used: Number(progress.free_skips_used ?? 0),
+  free_hints_used: Number(progress.free_hints_used ?? 0),
 };
   ui.setUser({
     ...CURRENT_USER,
