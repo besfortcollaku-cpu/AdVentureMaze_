@@ -121,6 +121,14 @@ async function fetchAndSetCoins({ BACKEND, token, ui }) {
 async function apiSetProgress({ uid, level, coins, paintedKeys, resume } = {}) {
   if (!CURRENT_ACCESS_TOKEN) return null;
 
+console.log("SET PROGRESS PAYLOAD", {
+  uid,
+  level,
+  coins,
+  paintedKeys,
+  resume,
+});
+
   const res = await fetch(`${BACKEND}/api/progress`, {
     method: "POST",
     headers: {
