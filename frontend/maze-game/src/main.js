@@ -300,6 +300,8 @@ function updateAllBadges() {
   ui?.setHintsBadge?.(totalHints);
   ui?.setRestartsBadge?.(totalRestarts);
 }
+
+
 async function apiRestart({ mode }) {
   const nonce = crypto.randomUUID?.() || `${Date.now()}-${Math.random()}`;
   const res = await fetch(`${BACKEND}/api/restart`, {
@@ -599,7 +601,69 @@ setTimeout(() => {
     })
     .catch(() => {});
 }
+function simulateAd(onFinished) {
+  let seconds = 10;
 
+  const adBox = document.createElement("div");
+  adBox.style.position = "fixed";
+  adBox.style.bottom = "20px";
+  adBox.style.right = "20px";
+  adBox.style.background = "#111";
+  adBox.style.color = "#fff";
+  adBox.style.padding = "15px 20px";
+  adBox.style.borderRadius = "12px";
+  adBox.style.zIndex = "9999";
+  adBox.style.fontSize = "14px";
+  adBox.innerHTML = `Ad ends in <b>${seconds}</b> sec`;
+
+  document.body.appendChild(adBox);
+
+  const interval = setInterval(() => {
+    seconds--;
+    adBox.innerHTML = `Ad ends in <b>${seconds}</b> sec`;
+
+    if (seconds <= 0) {
+      clearInterval(interval);
+
+      adBox.innerHTML = `
+        ✅ Reward granted<br><br>
+        <button id="closeAdBtn">Close</button>
+      `;
+
+      document
+        .getElementById("closeAdBtn")
+        .addEventListener("click", () => {
+          document.body.removeChild(adBox);
+          onFinished();
+        });
+    }
+  }, 1000);
+}
+
+async function grantRestartAdReward() {
+  const out = await fetch(`${BACKEND}/api/restart`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${normalizeToken(CURRENT_ACCESS_TOKEN)}`,
+    },
+    body: JSON.stringify({
+      mode: "ad",
+      nonce: crypto.randomUUID(),
+    }),
+  }).then((r) => r.json());
+
+  if (!out?.ok) return alert(out.error || "Restart failed");
+
+  applyUserPatch({
+    free_restarts_used: out.free_restarts_used,
+    restarts_balance: out.restarts_balance,
+  });
+
+  updateAllBadges();
+  wipeResumeForCurrentLevel();
+  game.setLevel(levels[levelIndex]);
+}
 function goNextLevel() {
   goToLevel(levelIndex + 1);
 }
@@ -867,6 +931,9 @@ restartPopup.onBuyRestart(async () => {
 
 
 restartPopup.onWatchAdRestart(async () => {
+    simulateAd(() => {
+    grantRestartAdReward();
+  });
   try {
     const out = await fetch(`${BACKEND}/api/restart`, {
       method: "POST",
