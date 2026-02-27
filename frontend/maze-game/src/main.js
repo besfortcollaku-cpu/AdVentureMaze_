@@ -834,7 +834,23 @@ hintPopup.onBuyHint(async () => {
 });
 
 
+hintPopup.onWatchAdHint(async () => {
+  try {
+    const out = await apiHint({ mode: "ad" });
 
+    applyUserPatch({
+  free_skips_used: out.free_skips_used,
+  Skips_balance: out.skips_balance,
+  coins: out.coins,
+});
+
+    updateAllBadges();
+    hintPopup.hide();
+
+  } catch (e) {
+    alert(e.message || "Hint failed");
+  }
+});
 
 ui.onRestartClick(async () => {
   if (!CURRENT_ACCESS_TOKEN) {
@@ -914,39 +930,10 @@ restartPopup.onBuyRestart(async () => {
 });
 
 
-restartPopup.onWatchAdRestart(async () => {
-    simulateAd(() => {
-    grantRestartAdReward();
+restartPopup.onWatchAdRestart(() => {
+  simulateAd(async () => {
+    await grantRestartAdReward();
   });
-  try {
-    const out = await fetch(`${BACKEND}/api/restart`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${normalizeToken(CURRENT_ACCESS_TOKEN)}`,
-      },
-      body: JSON.stringify({
-        mode: "ad",
-        nonce: crypto.randomUUID(),
-      }),
-    }).then((r) => r.json());
-
-    if (!out?.ok) throw new Error(out?.error);
-
-    applyUserPatch({
-  free_restarts_used: out.free_restarts_used,
-  restarts_balance: out.restarts_balance,
-  coins: out.coins,
-});
-
-    updateAllBadges();
-    wipeResumeForCurrentLevel();
-    game.setLevel(levels[levelIndex]);
-    restartPopup.hide();
-
-  } catch (e) {
-    alert(e.message || "Restart failed");
-  }
 });
   // ---- GUEST ----
   ui.onGuestStart(() => {
