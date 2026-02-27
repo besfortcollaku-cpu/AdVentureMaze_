@@ -774,7 +774,7 @@ skipPopup.onBuySkip(async () => {
 
     applyUserPatch({
   free_skips_used: out.free_skips_used,
-  skips_balance: out.hints_balance,
+  skips_balance: out.skips_balance,
   coins: out.coins,
 });
 
@@ -955,13 +955,34 @@ restartPopup.onBuyRestart(async () => {
 });
 
 
-restartPopup.onWatchAdRestart(async () => {
-    simulateAd(() => {
-    grantRestartAdReward();
-  });
+restartPopup.onWatchAdRestart(() => {
+  simulateAd(async () => {
+
+    const out = await fetch(`${BACKEND}/api/restart`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${normalizeToken(CURRENT_ACCESS_TOKEN)}`,
+      },
+      body: JSON.stringify({
+        mode: "ad",
+        nonce: crypto.randomUUID(),
+      }),
+    }).then(r => r.json());
+
+    if (!out?.ok) return alert(out.error || "Restart failed");
+
+    applyUserPatch({
+      free_restarts_used: out.free_restarts_used,
+      restarts_balance: out.restarts_balance,
+      coins: out.coins,
+    });
+
     updateAllBadges();
     wipeResumeForCurrentLevel();
+    game.setLevel(levels[levelIndex]);
     restartPopup.hide();
+  });
 });
   // ---- GUEST ----
   ui.onGuestStart(() => {
