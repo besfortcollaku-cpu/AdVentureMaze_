@@ -402,21 +402,6 @@ if (CURRENT_ACCESS_TOKEN) {
     if (me?.user) {
   // DO NOT overwrite CURRENT_USER again
   updateAllBadges();
-
-} 
-
-
-// 🔥 force correct badge state immediately
-     else {
-      throw new Error("Invalid session");
-     }
-  } catch (e) {
-    console.warn("Token invalid during boot");
-    CURRENT_ACCESS_TOKEN = null;
-    CURRENT_USER = null;
-    localStorage.removeItem("pi_access_token");
-  }
-}
 // 🔥 restore unlocked level
 const unlockedLevel =
   me?.progress?.level ?? 1;
@@ -445,6 +430,20 @@ setTimeout(() => {
     });
   }
 }, 50);
+} 
+
+// 🔥 force correct badge state immediately
+     else {
+      throw new Error("Invalid session");
+     }
+  } catch (e) {
+    console.warn("Token invalid during boot");
+    CURRENT_ACCESS_TOKEN = null;
+    CURRENT_USER = null;
+    localStorage.removeItem("pi_access_token");
+  }
+}
+
 // Expose a tiny bridge for UI modules that don't have direct access to `ui`.
 // (Used by the Levels screen to show "Login required" for locked guest levels.)
 window.__maze = window.__maze || {};
