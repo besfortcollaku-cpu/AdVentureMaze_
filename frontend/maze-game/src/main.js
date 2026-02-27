@@ -603,43 +603,105 @@ setTimeout(() => {
 }
 function simulateAd(onFinished) {
   let seconds = 10;
+  let finished = false;
 
-  const adBox = document.createElement("div");
-  adBox.style.position = "fixed";
-  adBox.style.bottom = "200px";
-  adBox.style.right = "200px";
-  adBox.style.background = "#111";
-  adBox.style.color = "#fff";
-  adBox.style.padding = "15px 20px";
-  adBox.style.borderRadius = "12px";
-  adBox.style.zIndex = "9999";
-  adBox.style.fontSize = "14px";
-  adBox.innerHTML = `Ad ends in <b>${seconds}</b> sec`;
+  const overlay = document.createElement("div");
+  overlay.style.position = "fixed";
+  overlay.style.inset = "0";
+  overlay.style.background = "rgba(0,0,0,0.85)";
+  overlay.style.display = "flex";
+  overlay.style.flexDirection = "column";
+  overlay.style.alignItems = "center";
+  overlay.style.justifyContent = "center";
+  overlay.style.zIndex = "99999";
+  overlay.style.color = "#fff";
+  overlay.style.fontFamily = "sans-serif";
 
-  document.body.appendChild(adBox);
+  overlay.innerHTML = `
+    <div style="
+      width: 320px;
+      background:#111;
+      border-radius:16px;
+      padding:20px;
+      text-align:center;
+      box-shadow:0 0 30px rgba(0,0,0,0.6);
+    ">
+      <div style="
+        height:180px;
+        background:#222;
+        border-radius:12px;
+        margin-bottom:15px;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        font-size:18px;
+      ">
+        🎮 Sponsored Ad
+      </div>
+
+      <div id="adCountdown" style="margin-bottom:10px;">
+        Ad ends in <b>${seconds}</b>s
+      </div>
+
+      <div style="
+        height:6px;
+        background:#333;
+        border-radius:6px;
+        overflow:hidden;
+        margin-bottom:15px;
+      ">
+        <div id="adBar" style="
+          height:100%;
+          width:0%;
+          background:#4caf50;
+          transition:width 1s linear;
+        "></div>
+      </div>
+
+      <button id="closeAdBtn"
+        disabled
+        style="
+          padding:8px 18px;
+          border:none;
+          border-radius:8px;
+          background:#555;
+          color:#fff;
+          cursor:not-allowed;
+        ">
+        Close
+      </button>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+
+  const countdownEl = overlay.querySelector("#adCountdown");
+  const bar = overlay.querySelector("#adBar");
+  const closeBtn = overlay.querySelector("#closeAdBtn");
 
   const interval = setInterval(() => {
     seconds--;
-    adBox.innerHTML = `Ad ends in <b>${seconds}</b> sec`;
+
+    countdownEl.innerHTML = `Ad ends in <b>${seconds}</b>s`;
+    bar.style.width = `${(10 - seconds) * 10}%`;
 
     if (seconds <= 0) {
       clearInterval(interval);
+      finished = true;
 
-      adBox.innerHTML = `
-        ✅ Reward granted<br><br>
-        <button id="closeAdBtn">Close</button>
-      `;
-
-      document
-        .getElementById("closeAdBtn")
-        .addEventListener("click", () => {
-          document.body.removeChild(adBox);
-          onFinished();
-        });
+      countdownEl.innerHTML = `✅ Reward Ready`;
+      closeBtn.disabled = false;
+      closeBtn.style.background = "#4caf50";
+      closeBtn.style.cursor = "pointer";
     }
   }, 1000);
-}
 
+  closeBtn.addEventListener("click", () => {
+    if (!finished) return;
+    document.body.removeChild(overlay);
+    onFinished();
+  });
+}
 async function grantRestartAdReward() {
   const out = await fetch(`${BACKEND}/api/restart`, {
     method: "POST",
