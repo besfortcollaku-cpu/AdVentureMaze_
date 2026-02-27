@@ -936,7 +936,6 @@ restartPopup.onWatchAdRestart(async () => {
   });
     updateAllBadges();
     wipeResumeForCurrentLevel();
-    game.setLevel(levels[levelIndex]);
     restartPopup.hide();
 });
   // ---- GUEST ----
