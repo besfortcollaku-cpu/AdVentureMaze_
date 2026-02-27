@@ -1,5 +1,6 @@
 console.log("BUILD VERSION TEST 123");
 import "./css/ui.css";
+import "./css/ads.css";
 import { mountLevelsUI } from "./ui/uiLevels.js";
 import { mountUI } from "./ui/ui.js";
 import { loadProgress } from "./api/loadProgress.js";
@@ -606,68 +607,23 @@ function simulateAd(onFinished) {
   let finished = false;
 
   const overlay = document.createElement("div");
-  overlay.style.position = "fixed";
-  overlay.style.inset = "0";
-  overlay.style.background = "rgba(0,0,0,0.85)";
-  overlay.style.display = "flex";
-  overlay.style.flexDirection = "column";
-  overlay.style.alignItems = "center";
-  overlay.style.justifyContent = "center";
-  overlay.style.zIndex = "99999";
-  overlay.style.color = "#fff";
-  overlay.style.fontFamily = "sans-serif";
+  overlay.className = "ad-overlay";
 
   overlay.innerHTML = `
-    <div style="
-      width: 320px;
-      background:#111;
-      border-radius:16px;
-      padding:20px;
-      text-align:center;
-      box-shadow:0 0 30px rgba(0,0,0,0.6);
-    ">
-      <div style="
-        height:180px;
-        background:#222;
-        border-radius:12px;
-        margin-bottom:15px;
-        display:flex;
-        align-items:center;
-        justify-content:center;
-        font-size:18px;
-      ">
+    <div class="ad-box">
+      <div class="ad-video">
         🎮 Sponsored Ad
       </div>
 
-      <div id="adCountdown" style="margin-bottom:10px;">
+      <div id="adCountdown">
         Ad ends in <b>${seconds}</b>s
       </div>
 
-      <div style="
-        height:6px;
-        background:#333;
-        border-radius:6px;
-        overflow:hidden;
-        margin-bottom:15px;
-      ">
-        <div id="adBar" style="
-          height:100%;
-          width:0%;
-          background:#4caf50;
-          transition:width 1s linear;
-        "></div>
+      <div class="ad-progress-container">
+        <div id="adBar" class="ad-progress-bar"></div>
       </div>
 
-      <button id="closeAdBtn"
-        disabled
-        style="
-          padding:8px 18px;
-          border:none;
-          border-radius:8px;
-          background:#555;
-          color:#fff;
-          cursor:not-allowed;
-        ">
+      <button id="closeAdBtn" class="ad-close-btn" disabled>
         Close
       </button>
     </div>
@@ -691,8 +647,7 @@ function simulateAd(onFinished) {
 
       countdownEl.innerHTML = `✅ Reward Ready`;
       closeBtn.disabled = false;
-      closeBtn.style.background = "#4caf50";
-      closeBtn.style.cursor = "pointer";
+      closeBtn.classList.add("enabled");
     }
   }, 1000);
 
