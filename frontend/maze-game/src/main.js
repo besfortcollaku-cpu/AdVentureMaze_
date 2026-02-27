@@ -249,6 +249,7 @@ async function loadMeAndSyncUI({ BACKEND, token, ui }) {
   const progress = me?.progress || {};
 
   CURRENT_USER = {
+      console.log("BOOT USER:", CURRENT_USER);
   ...user,
   ...progress,
 
