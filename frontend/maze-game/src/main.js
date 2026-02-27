@@ -606,8 +606,8 @@ function simulateAd(onFinished) {
 
   const adBox = document.createElement("div");
   adBox.style.position = "fixed";
-  adBox.style.bottom = "20px";
-  adBox.style.right = "20px";
+  adBox.style.bottom = "200px";
+  adBox.style.right = "200px";
   adBox.style.background = "#111";
   adBox.style.color = "#fff";
   adBox.style.padding = "15px 20px";
