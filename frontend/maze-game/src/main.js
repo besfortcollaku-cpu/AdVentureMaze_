@@ -801,6 +801,36 @@ skipPopup.onWatchAdSkip(() => {
     goNextLevel();
   });
 });
+ui.onHintClick(async () => {
+  if (!CURRENT_ACCESS_TOKEN) {
+    ui.showLoginRequired();
+    return;
+  }
+
+  try {
+    const out = await apiHint({ mode: "auto" });
+
+    applyUserPatch({
+  free_hints_used: out.free_hints_used,
+  hints_balance: out.hints_balance,
+  coins: out.coins,
+});
+
+    updateAllBadges();
+    return;
+
+  } catch (e) {
+    if (e.message === "No hints available") {
+      hintPopup.open({
+        coins: CURRENT_USER?.coins ?? 0,
+        freeLeft: 0,
+      });
+      return;
+    }
+
+    console.error("Hint error:", e);
+  }
+});
 
 hintPopup.onBuyHint(async () => {
   try {
