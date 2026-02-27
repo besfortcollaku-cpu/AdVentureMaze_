@@ -834,22 +834,23 @@ hintPopup.onBuyHint(async () => {
 });
 
 
-hintPopup.onWatchAdHint(async () => {
-  try {
-    const out = await apiHint({ mode: "ad" });
+hintPopup.onWatchAdHint(() => {
+  simulateAd(async () => {
+    const out = await apiHint({
+      mode: "ad",
+      nonce: crypto.randomUUID(),
+    });
+
+    if (!out?.ok) return alert(out.error || "Hint failed");
 
     applyUserPatch({
-  free_skips_used: out.free_skips_used,
-  Skips_balance: out.skips_balance,
-  coins: out.coins,
-});
+      free_hints_used: out.free_hints_used,
+      hints_balance: out.hints_balance,
+    });
 
     updateAllBadges();
     hintPopup.hide();
-
-  } catch (e) {
-    alert(e.message || "Hint failed");
-  }
+  });
 });
 
 ui.onRestartClick(async () => {
