@@ -844,9 +844,10 @@ restartPopup.onBuyRestart(async () => {
     if (!out?.ok) throw new Error(out?.error);
 
     applyUserPatch({
-      free_restarts_used: out.free_restarts_used,
-      restarts_balance: out.restarts_balance,
-    });
+  free_restarts_used: out.free_restarts_used,
+  restarts_balance: out.restarts_balance,
+  coins: out.coins,
+});
 
     updateAllBadges();
     wipeResumeForCurrentLevel();
@@ -876,9 +877,10 @@ restartPopup.onWatchAdRestart(async () => {
     if (!out?.ok) throw new Error(out?.error);
 
     applyUserPatch({
-      free_restarts_used: out.free_restarts_used,
-      restarts_balance: out.restarts_balance,
-    });
+  free_restarts_used: out.free_restarts_used,
+  restarts_balance: out.restarts_balance,
+  coins: out.coins,
+});
 
     updateAllBadges();
     wipeResumeForCurrentLevel();
