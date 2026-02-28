@@ -461,6 +461,9 @@ setTimeout(() => {
     });
   }
 }, 50);
+// 🔥 FIX: switch to game mode automatically
+document.body.classList.add("game-running");
+ui.hideWelcome();
 } 
 
 // 🔥 force correct badge state immediately
