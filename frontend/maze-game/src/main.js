@@ -389,9 +389,29 @@ async function migrateGuestProgress({ BACKEND, token }) {
   localStorage.removeItem(GUEST_PROGRESS_KEY);
 }
 async function boot() {
-    const storedToken = localStorage.getItem("pi_access_token");
+    let storedToken = localStorage.getItem("pi_access_token");
+
 if (storedToken) {
   CURRENT_ACCESS_TOKEN = normalizeToken(storedToken);
+} else {
+  // 🔥 AUTO LOGIN WITH PI IF NO TOKEN
+  try {
+    const result = await ensurePiLogin({
+      BACKEND,
+      ui: null, // no UI interaction
+      onLogin: ({ accessToken }) => {
+        CURRENT_ACCESS_TOKEN = normalizeToken(accessToken);
+        localStorage.setItem("pi_access_token", CURRENT_ACCESS_TOKEN);
+      },
+    });
+
+    if (result?.accessToken) {
+      CURRENT_ACCESS_TOKEN = normalizeToken(result.accessToken);
+      localStorage.setItem("pi_access_token", CURRENT_ACCESS_TOKEN);
+    }
+  } catch (e) {
+    console.log("Auto-login skipped");
+  }
 }
 // 🔥 AUTO-HYDRATE USER IF TOKEN EXISTS
 
@@ -448,12 +468,37 @@ setTimeout(() => {
       throw new Error("Invalid session");
      }
   } catch (e) {
-    console.warn("Token invalid during boot");
-    CURRENT_ACCESS_TOKEN = null;
-    CURRENT_USER = null;
-    localStorage.removeItem("pi_access_token");
-      RESUME_ENABLED = false;
+  console.warn("Token invalid during boot");
+
+  CURRENT_ACCESS_TOKEN = null;
+  CURRENT_USER = null;
+  localStorage.removeItem("pi_access_token");
+  RESUME_ENABLED = false;
+
+  // 🔥 TRY ONE AUTO RE-LOGIN
+  try {
+    const result = await ensurePiLogin({
+      BACKEND,
+      ui: null,
+      onLogin: ({ accessToken }) => {
+        CURRENT_ACCESS_TOKEN = normalizeToken(accessToken);
+        localStorage.setItem("pi_access_token", CURRENT_ACCESS_TOKEN);
+      },
+    });
+
+    if (result?.accessToken) {
+      CURRENT_ACCESS_TOKEN = normalizeToken(result.accessToken);
+      localStorage.setItem("pi_access_token", CURRENT_ACCESS_TOKEN);
+      await loadMeAndSyncUI({
+        BACKEND,
+        token: CURRENT_ACCESS_TOKEN,
+        ui,
+      });
+    }
+  } catch {
+    console.log("Re-login failed");
   }
+}
 }
 
 // Expose a tiny bridge for UI modules that don't have direct access to `ui`.
