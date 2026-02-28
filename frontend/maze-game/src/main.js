@@ -136,12 +136,12 @@ console.log("SET PROGRESS PAYLOAD", {
       Authorization: `Bearer ${normalizeToken(CURRENT_ACCESS_TOKEN)}`,
     },
     body: JSON.stringify({
-      uid,
-      level,
-      coins,
-      paintedKeys,
-      resume,
-    }),
+  uid,
+  level,
+  coins,
+  paintedKeys: paintedKeys ?? [],
+  resume: resume ?? null,
+}),
   });
 
   // never break gameplay
