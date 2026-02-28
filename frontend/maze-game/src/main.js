@@ -119,8 +119,11 @@ async function fetchAndSetCoins({ BACKEND, token, ui }) {
 }
 
 async function apiSetProgress({ uid, level, coins, paintedKeys, resume } = {}) {
-  if (!CURRENT_ACCESS_TOKEN) return null;
-
+    
+if (!CURRENT_ACCESS_TOKEN || !CURRENT_USER?.uid) {
+  console.warn("Skipping progress save — not authenticated");
+  return null;
+}
 console.log("SET PROGRESS PAYLOAD", {
   uid,
   level,
@@ -449,6 +452,7 @@ setTimeout(() => {
     CURRENT_ACCESS_TOKEN = null;
     CURRENT_USER = null;
     localStorage.removeItem("pi_access_token");
+      RESUME_ENABLED = false;
   }
 }
 
