@@ -495,7 +495,7 @@ async function boot() {
     // 🔥 NO TOKEN → SHOW WELCOME
     ui.showWelcome();
   }
-}
+
 
 // Expose a tiny bridge for UI modules that don't have direct access to `ui`.
 // (Used by the Levels screen to show "Login required" for locked guest levels.)
