@@ -48,6 +48,22 @@ let LEVEL_START_KEY = null;
 function normalizeToken(t) {
   return String(t || "").replace(/^Bearer\s+/i, "");
 }
+
+
+let PI_USER_READY = false;
+
+window.addEventListener("message", (event) => {
+  try {
+    const data = typeof event.data === "string"
+      ? JSON.parse(event.data)
+      : event.data;
+
+    if (data?.type === "@pi:app:sdk:set_third_party_app_user") {
+      PI_USER_READY = true;
+      console.log("PI USER READY");
+    }
+  } catch {}
+});
 function applyUserPatch(patch) {
   if (!patch) return;
 
@@ -391,16 +407,13 @@ async function migrateGuestProgress({ BACKEND, token }) {
 async function boot() {
 
   // 🔥 1️⃣ WAIT FOR PI SDK TO BE READY
-  await new Promise((resolve) => {
-    const check = () => {
-      if (window.Pi && window.Pi.authenticate) {
-        resolve();
-      } else {
-        setTimeout(check, 50);
-      }
-    };
-    check();
-  });
+await new Promise((resolve) => {
+  const check = () => {
+    if (PI_USER_READY) resolve();
+    else setTimeout(check, 50);
+  };
+  check();
+});
 
   const root = document.querySelector("#app");
   if (!root) {
