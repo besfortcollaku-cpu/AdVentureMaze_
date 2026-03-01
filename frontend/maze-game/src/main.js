@@ -48,22 +48,6 @@ let LEVEL_START_KEY = null;
 function normalizeToken(t) {
   return String(t || "").replace(/^Bearer\s+/i, "");
 }
-
-
-let PI_USER_READY = false;
-
-window.addEventListener("message", (event) => {
-  try {
-    const data = typeof event.data === "string"
-      ? JSON.parse(event.data)
-      : event.data;
-
-    if (data?.type === "@pi:app:sdk:set_third_party_app_user") {
-      PI_USER_READY = true;
-      console.log("PI USER READY");
-    }
-  } catch {}
-});
 function applyUserPatch(patch) {
   if (!patch) return;
 
@@ -405,99 +389,117 @@ async function migrateGuestProgress({ BACKEND, token }) {
   localStorage.removeItem(GUEST_PROGRESS_KEY);
 }
 async function boot() {
+    let storedToken = localStorage.getItem("pi_access_token");
 
-const root = document.querySelector("#app");
+if (storedToken) {
+  CURRENT_ACCESS_TOKEN = normalizeToken(storedToken);
+} else {
+  // 🔥 AUTO LOGIN WITH PI IF NO TOKEN
+  try {
+    const result = await ensurePiLogin({
+      BACKEND,
+      ui: null, // no UI interaction
+      onLogin: ({ accessToken }) => {
+        CURRENT_ACCESS_TOKEN = normalizeToken(accessToken);
+        localStorage.setItem("pi_access_token", CURRENT_ACCESS_TOKEN);
+      },
+    });
+
+    if (result?.accessToken) {
+      CURRENT_ACCESS_TOKEN = normalizeToken(result.accessToken);
+      localStorage.setItem("pi_access_token", CURRENT_ACCESS_TOKEN);
+    }
+  } catch (e) {
+    console.log("Auto-login skipped");
+  }
+}
+// 🔥 AUTO-HYDRATE USER IF TOKEN EXISTS
+
+  const root = document.querySelector("#app");
   if (!root) {
     document.body.innerHTML = "<h1>#app not found</h1>";
     return;
   }
+  // Mount UI
+     ui = mountUI(root);
+if (CURRENT_ACCESS_TOKEN) {
+  try {
+    const me = await loadMeAndSyncUI({
+      BACKEND,
+      token: CURRENT_ACCESS_TOKEN,
+      ui,
+    });
 
-  ui = mountUI(root);
+    if (me?.user) {
+  // DO NOT overwrite CURRENT_USER again
+  updateAllBadges();
+// 🔥 restore unlocked level
+const unlockedLevel =
+  me?.progress?.level ?? 1;
 
-  // Show welcome by default
-  ui.showWelcome();
+CURRENT_MAX_UNLOCKED_LEVEL = Math.max(1, Number(unlockedLevel) || 1);
 
-  // 🔥 Try silent login in background
-  trySilentLogin();
+// go to unlocked level
+setLevel(CURRENT_MAX_UNLOCKED_LEVEL - 1);
+
+// enable resume
+RESUME_ENABLED = true;
+RESUME_TILES = new Set(me?.progress?.paintedKeys || []);
+RESUME_POS = me?.progress?.resume ?? null;
+
+// start game if not running
+if (!game.isRunning?.()) {
+  game.start();
 }
-  // 🔥 4️⃣ IF NO TOKEN → AUTO LOGIN
-  if (!CURRENT_ACCESS_TOKEN) {
-    try {
-      const result = await ensurePiLogin({
-        BACKEND,
-        ui: null,
-        onLogin: ({ accessToken }) => {
-          CURRENT_ACCESS_TOKEN = normalizeToken(accessToken);
-          localStorage.setItem("pi_access_token", CURRENT_ACCESS_TOKEN);
-        },
-      });
 
-      if (result?.accessToken) {
-        CURRENT_ACCESS_TOKEN = normalizeToken(result.accessToken);
-        localStorage.setItem("pi_access_token", CURRENT_ACCESS_TOKEN);
-      }
-    } catch {
-      console.log("Auto-login skipped");
-    }
+// apply resume after game loads
+setTimeout(() => {
+  if (RESUME_TILES.size > 0 || RESUME_POS) {
+    game.applyProgress({
+      paintedKeys: Array.from(RESUME_TILES),
+      player: RESUME_POS,
+    });
   }
+}, 50);
+} 
 
-  // 🔥 5️⃣ IF WE HAVE TOKEN → LOAD USER
-  if (CURRENT_ACCESS_TOKEN) {
-    try {
-      const me = await loadMeAndSyncUI({
+// 🔥 force correct badge state immediately
+     else {
+      throw new Error("Invalid session");
+     }
+  } catch (e) {
+  console.warn("Token invalid during boot");
+
+  CURRENT_ACCESS_TOKEN = null;
+  CURRENT_USER = null;
+  localStorage.removeItem("pi_access_token");
+  RESUME_ENABLED = false;
+
+  // 🔥 TRY ONE AUTO RE-LOGIN
+  try {
+    const result = await ensurePiLogin({
+      BACKEND,
+      ui: null,
+      onLogin: ({ accessToken }) => {
+        CURRENT_ACCESS_TOKEN = normalizeToken(accessToken);
+        localStorage.setItem("pi_access_token", CURRENT_ACCESS_TOKEN);
+      },
+    });
+
+    if (result?.accessToken) {
+      CURRENT_ACCESS_TOKEN = normalizeToken(result.accessToken);
+      localStorage.setItem("pi_access_token", CURRENT_ACCESS_TOKEN);
+      await loadMeAndSyncUI({
         BACKEND,
         token: CURRENT_ACCESS_TOKEN,
         ui,
       });
-
-      if (!me?.user) throw new Error("Invalid session");
-
-      updateAllBadges();
-
-      // restore unlocked level
-      const unlockedLevel = me?.progress?.level ?? 1;
-      CURRENT_MAX_UNLOCKED_LEVEL = Math.max(1, Number(unlockedLevel) || 1);
-
-      setLevel(CURRENT_MAX_UNLOCKED_LEVEL - 1);
-
-      // enable resume
-      RESUME_ENABLED = true;
-      RESUME_TILES = new Set(me?.progress?.paintedKeys || []);
-      RESUME_POS = me?.progress?.resume ?? null;
-
-      if (!game.isRunning?.()) {
-        game.start();
-      }
-
-      // apply resume
-      setTimeout(() => {
-        if (RESUME_TILES.size > 0 || RESUME_POS) {
-          game.applyProgress({
-            paintedKeys: Array.from(RESUME_TILES),
-            player: RESUME_POS,
-          });
-        }
-      }, 50);
-
-      // 🔥 ENTER GAME MODE
-      document.body.classList.add("game-running");
-      ui.hideWelcome();
-
-    } catch (e) {
-      console.warn("Token invalid during boot");
-
-      CURRENT_ACCESS_TOKEN = null;
-      CURRENT_USER = null;
-      localStorage.removeItem("pi_access_token");
-      RESUME_ENABLED = false;
-
-      ui.showWelcome();
     }
-  } else {
-    // 🔥 NO TOKEN → SHOW WELCOME
-    ui.showWelcome();
+  } catch {
+    console.log("Re-login failed");
   }
-
+}
+}
 
 // Expose a tiny bridge for UI modules that don't have direct access to `ui`.
 // (Used by the Levels screen to show "Login required" for locked guest levels.)
@@ -1237,79 +1239,6 @@ if (RESUME_TILES.size > 0 || RESUME_POS) {
     updateAllBadges();
  
 });
-}
-async function trySilentLogin() {
-
-  let storedToken = localStorage.getItem("pi_access_token");
-
-  if (storedToken) {
-    CURRENT_ACCESS_TOKEN = normalizeToken(storedToken);
-  }
-
-  if (!CURRENT_ACCESS_TOKEN) {
-    try {
-      const result = await ensurePiLogin({
-        BACKEND,
-        ui: null,
-        onLogin: ({ accessToken }) => {
-          CURRENT_ACCESS_TOKEN = normalizeToken(accessToken);
-          localStorage.setItem("pi_access_token", CURRENT_ACCESS_TOKEN);
-        },
-      });
-
-      if (result?.accessToken) {
-        CURRENT_ACCESS_TOKEN = normalizeToken(result.accessToken);
-        localStorage.setItem("pi_access_token", CURRENT_ACCESS_TOKEN);
-      }
-    } catch {
-      return; // silent fail
-    }
-  }
-
-  if (!CURRENT_ACCESS_TOKEN) return;
-
-  try {
-    const me = await loadMeAndSyncUI({
-      BACKEND,
-      token: CURRENT_ACCESS_TOKEN,
-      ui,
-    });
-
-    if (!me?.user) throw new Error("Invalid session");
-
-    updateAllBadges();
-
-    const unlockedLevel = me?.progress?.level ?? 1;
-    CURRENT_MAX_UNLOCKED_LEVEL = Math.max(1, Number(unlockedLevel) || 1);
-
-    setLevel(CURRENT_MAX_UNLOCKED_LEVEL - 1);
-
-    RESUME_ENABLED = true;
-    RESUME_TILES = new Set(me?.progress?.paintedKeys || []);
-    RESUME_POS = me?.progress?.resume ?? null;
-
-    if (!game.isRunning?.()) {
-      game.start();
-    }
-
-    setTimeout(() => {
-      if (RESUME_TILES.size > 0 || RESUME_POS) {
-        game.applyProgress({
-          paintedKeys: Array.from(RESUME_TILES),
-          player: RESUME_POS,
-        });
-      }
-    }, 50);
-
-    // 🔥 Switch to game mode
-    document.body.classList.add("game-running");
-    ui.hideWelcome();
-
-  } catch {
-    CURRENT_ACCESS_TOKEN = null;
-    CURRENT_USER = null;
-    localStorage.removeItem("pi_access_token");
-  }
 }
 
 boot();
