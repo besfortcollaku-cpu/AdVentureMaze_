@@ -1083,8 +1083,11 @@ restartPopup.onWatchAdRestart(() => {
 });
   // ---- GUEST ----
   ui.onGuestStart(() => {
+  localStorage.removeItem("pi_access_token"); // 🔥 important
   CURRENT_USER = { username: "Guest", uid: null };
   CURRENT_ACCESS_TOKEN = null;
+  CURRENT_MAX_UNLOCKED_LEVEL = 1;
+  RESUME_ENABLED = false;
 
   const guestProgress = loadGuestProgress();
   const unlocked = Math.min(guestProgress.maxLevel || 1, GUEST_MAX_LEVEL);
