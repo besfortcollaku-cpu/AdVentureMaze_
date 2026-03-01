@@ -406,31 +406,20 @@ async function migrateGuestProgress({ BACKEND, token }) {
 }
 async function boot() {
 
-  // 🔥 1️⃣ WAIT FOR PI SDK TO BE READY
-await new Promise((resolve) => {
-  const check = () => {
-    if (PI_USER_READY) resolve();
-    else setTimeout(check, 50);
-  };
-  check();
-});
-
-  const root = document.querySelector("#app");
+const root = document.querySelector("#app");
   if (!root) {
     document.body.innerHTML = "<h1>#app not found</h1>";
     return;
   }
 
-  // 🔥 2️⃣ MOUNT UI FIRST
   ui = mountUI(root);
 
-  // 🔥 3️⃣ TRY STORED TOKEN FIRST
-  let storedToken = localStorage.getItem("pi_access_token");
+  // Show welcome by default
+  ui.showWelcome();
 
-  if (storedToken) {
-    CURRENT_ACCESS_TOKEN = normalizeToken(storedToken);
-  }
-
+  // 🔥 Try silent login in background
+  trySilentLogin();
+}
   // 🔥 4️⃣ IF NO TOKEN → AUTO LOGIN
   if (!CURRENT_ACCESS_TOKEN) {
     try {
@@ -1248,6 +1237,79 @@ if (RESUME_TILES.size > 0 || RESUME_POS) {
     updateAllBadges();
  
 });
+}
+async function trySilentLogin() {
+
+  let storedToken = localStorage.getItem("pi_access_token");
+
+  if (storedToken) {
+    CURRENT_ACCESS_TOKEN = normalizeToken(storedToken);
+  }
+
+  if (!CURRENT_ACCESS_TOKEN) {
+    try {
+      const result = await ensurePiLogin({
+        BACKEND,
+        ui: null,
+        onLogin: ({ accessToken }) => {
+          CURRENT_ACCESS_TOKEN = normalizeToken(accessToken);
+          localStorage.setItem("pi_access_token", CURRENT_ACCESS_TOKEN);
+        },
+      });
+
+      if (result?.accessToken) {
+        CURRENT_ACCESS_TOKEN = normalizeToken(result.accessToken);
+        localStorage.setItem("pi_access_token", CURRENT_ACCESS_TOKEN);
+      }
+    } catch {
+      return; // silent fail
+    }
+  }
+
+  if (!CURRENT_ACCESS_TOKEN) return;
+
+  try {
+    const me = await loadMeAndSyncUI({
+      BACKEND,
+      token: CURRENT_ACCESS_TOKEN,
+      ui,
+    });
+
+    if (!me?.user) throw new Error("Invalid session");
+
+    updateAllBadges();
+
+    const unlockedLevel = me?.progress?.level ?? 1;
+    CURRENT_MAX_UNLOCKED_LEVEL = Math.max(1, Number(unlockedLevel) || 1);
+
+    setLevel(CURRENT_MAX_UNLOCKED_LEVEL - 1);
+
+    RESUME_ENABLED = true;
+    RESUME_TILES = new Set(me?.progress?.paintedKeys || []);
+    RESUME_POS = me?.progress?.resume ?? null;
+
+    if (!game.isRunning?.()) {
+      game.start();
+    }
+
+    setTimeout(() => {
+      if (RESUME_TILES.size > 0 || RESUME_POS) {
+        game.applyProgress({
+          paintedKeys: Array.from(RESUME_TILES),
+          player: RESUME_POS,
+        });
+      }
+    }, 50);
+
+    // 🔥 Switch to game mode
+    document.body.classList.add("game-running");
+    ui.hideWelcome();
+
+  } catch {
+    CURRENT_ACCESS_TOKEN = null;
+    CURRENT_USER = null;
+    localStorage.removeItem("pi_access_token");
+  }
 }
 
 boot();
