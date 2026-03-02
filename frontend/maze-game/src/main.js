@@ -68,8 +68,9 @@ function applyUserPatch(patch) {
   updateAllBadges();
 }
 function scheduleResumeSave(currentLevelNumber) {
-  if (!CURRENT_ACCESS_TOKEN) return;
-  if (!RESUME_ENABLED) return;
+if (!CURRENT_ACCESS_TOKEN) return;
+if (!CURRENT_USER || !CURRENT_USER.uid) return;
+if (!CURRENT_MAX_UNLOCKED_LEVEL) return;  if (!RESUME_ENABLED) return;
   if (RESUME_SAVE_TIMER) return;
 
   RESUME_SAVE_TIMER = setTimeout(() => {
@@ -96,7 +97,10 @@ apiSetProgress({
       level: safeLevel,
       coins: CURRENT_USER?.coins ?? 0,
       paintedKeys: Array.from(RESUME_TILES),
-      resume: RESUME_POS,
+resume:
+  RESUME_POS && RESUME_POS.x != null && RESUME_POS.y != null
+    ? { x: RESUME_POS.x, y: RESUME_POS.y }
+    : null,
     }).catch(() => {});
   }, 700);
 }
@@ -394,7 +398,7 @@ if (me?.user) {
     backendLevel
   );
 
-  setLevel(startIndex);
+  goToLevel(startIndex);
 
   RESUME_ENABLED = true;
   RESUME_TILES = new Set(me?.progress?.paintedKeys || []);
@@ -404,13 +408,7 @@ if (me?.user) {
     game.start();
   }
 
-  if (RESUME_TILES.size > 0 || RESUME_POS) {
-    game.applyProgress({
-      paintedKeys: Array.from(RESUME_TILES),
-      player: RESUME_POS,
-    });
-  }
-
+  
   updateAllBadges();
   document.body.classList.remove("welcome-visible");
 }
