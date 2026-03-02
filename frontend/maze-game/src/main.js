@@ -76,9 +76,9 @@ function scheduleResumeSave(currentLevelNumber) {
     RESUME_SAVE_TIMER = null;
 
     const safeLevel = Math.max(
-      Number(CURRENT_MAX_UNLOCKED_LEVEL || 1),
-      Number(currentLevelNumber || 1)
-    );
+  CURRENT_MAX_UNLOCKED_LEVEL,
+  currentLevelNumber || 1
+);
 if (LEVEL_START_KEY) {
   RESUME_TILES.add(LEVEL_START_KEY);
 }
@@ -379,13 +379,36 @@ if (CURRENT_ACCESS_TOKEN) {
       ui,
     });
 
-    if (me?.user) {
-  
+if (me?.user) {
+  document.body.classList.remove("welcome-visible");
   document.body.classList.add("game-running");
 
-  setLevel(0);
+  const backendLevel =
+    me?.progress?.level ??
+    1;
+
+  const startIndex = Math.max(0, Number(backendLevel) - 1);
+
+  CURRENT_MAX_UNLOCKED_LEVEL = Math.max(
+    CURRENT_MAX_UNLOCKED_LEVEL,
+    backendLevel
+  );
+
+  setLevel(startIndex);
+
+  RESUME_ENABLED = true;
+  RESUME_TILES = new Set(me?.progress?.paintedKeys || []);
+  RESUME_POS = me?.progress?.resume || null;
+
   if (!game?.isRunning?.()) {
     game.start();
+  }
+
+  if (RESUME_TILES.size > 0 || RESUME_POS) {
+    game.applyProgress({
+      paintedKeys: Array.from(RESUME_TILES),
+      player: RESUME_POS,
+    });
   }
 
   updateAllBadges();
