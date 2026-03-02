@@ -395,7 +395,19 @@ async function boot() {
     document.body.innerHTML = "<h1>#app not found</h1>";
     return;
   }
+async function startAuthenticatedSession() {
+  const me = await loadMeAndSyncUI({
+    BACKEND,
+    token: CURRENT_ACCESS_TOKEN,
+    ui,
+  });
 
+  if (!me?.user) return;
+
+  document.body.classList.add("game-running");
+  ui.hideWelcome();
+  game.start();
+}
   ui = mountUI(root);
   // 🔥 ALWAYS attach login handlers first
 ui.onLoginClick(handleLogin);
@@ -410,6 +422,7 @@ ui.onGuestClick(handleGuest);
   // ❗ NO AUTO LOGIN HERE
 
   if (!CURRENT_ACCESS_TOKEN) {
+    ui.showWelcome();
     return;
   }
 
