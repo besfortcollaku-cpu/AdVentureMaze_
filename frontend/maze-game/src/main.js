@@ -479,6 +479,9 @@ const restartPopup = createRestartPopup();
     game.setLevel(levels[levelIndex]);
   }
 
+  function goNextLevel() {
+    setLevel(levelIndex + 1);
+  }
 
   // (level-complete reward is handled via global apiClaimLevelComplete)
 
@@ -731,9 +734,7 @@ async function grantRestartAdReward() {
   wipeResumeForCurrentLevel();
   game.setLevel(levels[levelIndex]);
 }
-function goNextLevel() {
-  goToLevel(levelIndex + 1);
-}
+
 winPopup.onNextLevel(() => {
   const nextLevelNumber = levelIndex + 2; // levelIndex is 0-based
 
