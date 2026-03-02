@@ -462,6 +462,9 @@ levelsUI.onSelect((levelNumber) => {
 } else {
   document.body.classList.add("welcome-visible");
   ui.showWelcome();
+  if (!CURRENT_ACCESS_TOKEN) {
+  CURRENT_MAX_UNLOCKED_LEVEL = 1;
+}
 }
   
 
@@ -515,13 +518,18 @@ if (CURRENT_ACCESS_TOKEN) {
   setTimeout(() => levelsUI.setUnlocked?.(CURRENT_MAX_UNLOCKED_LEVEL), 0);
 
   // persist unlocked progress + CLEAR resume
-  apiSetProgress({
-      uid: CURRENT_USER.uid,
-    level: nextUnlocked,
-    coins: CURRENT_USER?.coins ?? 0,
-    paintedKeys: [],
-    resume: null,
-  }).catch(() => {});
+  const safeLevelToSave = Math.max(
+  CURRENT_MAX_UNLOCKED_LEVEL,
+  nextUnlocked
+);
+
+apiSetProgress({
+  uid: CURRENT_USER.uid,
+  level: safeLevelToSave,
+  coins: CURRENT_USER?.coins ?? 0,
+  paintedKeys: [],
+  resume: null,
+}).catch(() => {});
 }
     // 🟡 guest progress is local-only (levels 1..GUEST_MAX_LEVEL)
     if (!CURRENT_ACCESS_TOKEN) {
