@@ -380,11 +380,16 @@ if (CURRENT_ACCESS_TOKEN) {
     });
 
     if (me?.user) {
-        document.body.classList.remove("welcome-visible");
-document.body.classList.add("game-running");
-  // DO NOT overwrite CURRENT_USER again
+  document.body.classList.remove("welcome-visible");
+  document.body.classList.add("game-running");
+
+  setLevel(0);
+  if (!game?.isRunning?.()) {
+    game.start();
+  }
+
   updateAllBadges();
-} // 🔥 force correct badge state immediately
+}
      else {
       throw new Error("Invalid session");
      }
