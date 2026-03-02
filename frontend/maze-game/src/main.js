@@ -380,6 +380,8 @@ if (CURRENT_ACCESS_TOKEN) {
     });
 
     if (me?.user) {
+        document.body.classList.remove("welcome-visible");
+document.body.classList.add("game-running");
   // DO NOT overwrite CURRENT_USER again
   updateAllBadges();
 } // 🔥 force correct badge state immediately
@@ -391,6 +393,7 @@ if (CURRENT_ACCESS_TOKEN) {
     CURRENT_ACCESS_TOKEN = null;
     CURRENT_USER = null;
     localStorage.removeItem("pi_access_token");
+    document.body.classList.add("welcome-visible");
   }
 }
 
@@ -448,8 +451,12 @@ levelsUI.onSelect((levelNumber) => {
   }
   goToLevel(levelNumber - 1);
 });
-  if (!CURRENT_ACCESS_TOKEN)
+  if (CURRENT_ACCESS_TOKEN) {
+  document.body.classList.remove("welcome-visible");
+} else {
+  document.body.classList.add("welcome-visible");
   ui.showWelcome();
+}
   
 
 // Create game (DO NOT START)
