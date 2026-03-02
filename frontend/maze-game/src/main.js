@@ -1191,7 +1191,7 @@ if (RESUME_TILES.size > 0 || RESUME_POS) {
       player: null,
     });
   }
-
+}
 
     updateAllBadges();
  
