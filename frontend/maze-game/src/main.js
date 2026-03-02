@@ -380,7 +380,7 @@ if (CURRENT_ACCESS_TOKEN) {
     });
 
     if (me?.user) {
-  document.body.classList.remove("welcome-visible");
+  
   document.body.classList.add("game-running");
 
   setLevel(0);
@@ -389,6 +389,7 @@ if (CURRENT_ACCESS_TOKEN) {
   }
 
   updateAllBadges();
+  document.body.classList.remove("welcome-visible");
 }
      else {
       throw new Error("Invalid session");
