@@ -397,6 +397,9 @@ async function boot() {
   }
 
   ui = mountUI(root);
+  // 🔥 ALWAYS attach login handlers first
+ui.onLoginClick(handleLogin);
+ui.onGuestClick(handleGuest);
 
   // ✅ Restore stored token only
   const storedToken = localStorage.getItem("pi_access_token");
