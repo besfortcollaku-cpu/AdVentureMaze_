@@ -119,18 +119,7 @@ async function fetchAndSetCoins({ BACKEND, token, ui }) {
 }
 
 async function apiSetProgress({ uid, level, coins, paintedKeys, resume } = {}) {
-    
-if (!CURRENT_ACCESS_TOKEN || !CURRENT_USER?.uid) {
-  console.warn("Skipping progress save — not authenticated");
-  return null;
-}
-console.log("SET PROGRESS PAYLOAD", {
-  uid,
-  level,
-  coins,
-  paintedKeys,
-  resume,
-});
+  if (!CURRENT_ACCESS_TOKEN) return null;
 
   const res = await fetch(`${BACKEND}/api/progress`, {
     method: "POST",
@@ -139,12 +128,12 @@ console.log("SET PROGRESS PAYLOAD", {
       Authorization: `Bearer ${normalizeToken(CURRENT_ACCESS_TOKEN)}`,
     },
     body: JSON.stringify({
-  uid,
-  level,
-  coins,
-  paintedKeys: paintedKeys ?? [],
-  resume: resume ?? null,
-}),
+      uid,
+      level,
+      coins,
+      paintedKeys,
+      resume,
+    }),
   });
 
   // never break gameplay
@@ -277,10 +266,6 @@ async function loadMeAndSyncUI({ BACKEND, token, ui }) {
   free_skips_used: Number(progress.free_skips_used ?? 0),
   free_hints_used: Number(progress.free_hints_used ?? 0),
 };
-// 🔥 restore highest unlocked level from backend
-CURRENT_MAX_UNLOCKED_LEVEL =
-  Number(progress.level ?? CURRENT_MAX_UNLOCKED_LEVEL ?? 1);
-  
   ui.setUser({
     ...CURRENT_USER,
     level: Number(progress.level || 1),
@@ -371,90 +356,60 @@ function saveGuestProgress(maxLevel) {
     JSON.stringify({ maxLevel: capped })
   );
 }
-async function migrateGuestProgress({ BACKEND, token }) {
-  const raw = localStorage.getItem(GUEST_PROGRESS_KEY);
-  if (!raw) return;
 
-  const data = JSON.parse(raw);
+async function boot() {
+    const storedToken = localStorage.getItem("pi_access_token");
+if (storedToken) {
+  CURRENT_ACCESS_TOKEN = normalizeToken(storedToken);
+}
+// 🔥 AUTO-HYDRATE USER IF TOKEN EXISTS
 
-  await fetch(`${BACKEND}/api/progress/migrate`, {
-      // 1. Initialize State
-  const storedToken = localStorage.getItem("pi_access_token");
-  if (storedToken) {
-    CURRENT_ACCESS_TOKEN = normalizeToken(storedToken);
+  const root = document.querySelector("#app");
+  if (!root) {
+    document.body.innerHTML = "<h1>#app not found</h1>";
+    return;
   }
-
-  // 2. Define the UI Logic (Declare handlers before attaching)
-  const startAuthenticatedSession = async () => {
-    try {
-      const me = await loadMeAndSyncUI({ BACKEND, token: CURRENT_ACCESS_TOKEN, ui });
-      if (!me?.user) throw new Error("Invalid session");
-
-      updateAllBadges();
-      const unlockedLevel = me?.progress?.level ?? 1;
-      CURRENT_MAX_UNLOCKED_LEVEL = Math.max(1, Number(unlockedLevel) || 1);
-      
-      setLevel(CURRENT_MAX_UNLOCKED_LEVEL - 1);
-      RESUME_ENABLED = true;
-      
-      if (me?.progress?.paintedKeys || me?.progress?.resume) {
-        RESUME_TILES = new Set(me.progress.paintedKeys || []);
-        RESUME_POS = me.progress.resume || null;
-        game.applyProgress({ paintedKeys: Array.from(RESUME_TILES), player: RESUME_POS });
-      }
-
-      document.body.classList.add("game-running");
-      ui.hideWelcome();
-      if (!game.isRunning?.()) game.start();
-    } catch (e) {
-      console.warn("Session failed:", e);
-      localStorage.removeItem("pi_access_token");
-      CURRENT_ACCESS_TOKEN = null;
-      ui.showWelcome();
-    }
-  };
-
-  // 3. ATTACH LISTENERS (The Fix)
-  ui.onLoginClick(async () => {
-    console.log("Login Clicked");
-    const result = await ensurePiLogin({
+  // Mount UI
+     ui = mountUI(root);
+if (CURRENT_ACCESS_TOKEN) {
+  try {
+    const me = await loadMeAndSyncUI({
       BACKEND,
+      token: CURRENT_ACCESS_TOKEN,
       ui,
-      onLogin: ({ accessToken }) => {
-        CURRENT_ACCESS_TOKEN = normalizeToken(accessToken);
-        localStorage.setItem("pi_access_token", CURRENT_ACCESS_TOKEN);
-      }
     });
 
-    if (CURRENT_ACCESS_TOKEN || result?.accessToken) {
-      if (result?.accessToken) CURRENT_ACCESS_TOKEN = normalizeToken(result.accessToken);
-      window.__maze.guestMaxLevel = Infinity;
-      await startAuthenticatedSession();
-    }
-  });
-
-  ui.onGuestStart(() => {
-    console.log("Guest Clicked");
-    localStorage.removeItem("pi_access_token");
+    if (me?.user) {
+  // DO NOT overwrite CURRENT_USER again
+  updateAllBadges();
+} // 🔥 force correct badge state immediately
+     else {
+      throw new Error("Invalid session");
+     }
+  } catch (e) {
+    console.warn("Token invalid during boot");
     CURRENT_ACCESS_TOKEN = null;
     CURRENT_USER = null;
-    RESUME_ENABLED = false;
-    CURRENT_MAX_UNLOCKED_LEVEL = 1;
-    document.body.classList.add("game-running");
-    ui.hideWelcome();
-    setLevel(0);
-    game.start();
-    updateAllBadges();
-  });
-
-  // 4. Final Initialization Check
-  if (!CURRENT_ACCESS_TOKEN) {
-    ui.showWelcome();
-  } else {
-    startAuthenticatedSession();
+    localStorage.removeItem("pi_access_token");
   }
+}
 
-  // Define Helper Functions used inside
+// Expose a tiny bridge for UI modules that don't have direct access to `ui`.
+// (Used by the Levels screen to show "Login required" for locked guest levels.)
+window.__maze = window.__maze || {};
+window.__maze.guestMaxLevel = GUEST_MAX_LEVEL;
+window.__maze.showLoginRequired = () => ui.showLoginRequired();
+window.__maze.isLoggedIn = () => Boolean(CURRENT_ACCESS_TOKEN);
+
+const winPopup = createWinPopup();
+const skipPopup = createSkipPopup();
+const hintPopup = createHintPopup();
+const restartPopup = createRestartPopup();
+
+
+
+
+
   function setLevel(i) {
     levelIndex = Math.max(0, Math.min(levels.length - 1, i));
     ui.setLevel(levelIndex + 1);
@@ -465,7 +420,720 @@ async function migrateGuestProgress({ BACKEND, token }) {
     setLevel(levelIndex + 1);
   }
 
-  // (Ensure your popups and game logic remain defined within this scope)
+  // (level-complete reward is handled via global apiClaimLevelComplete)
+
+
+const levelsUI = mountLevelsUI(root, { totalLevels: levels.length });  
+ui.levelsBtn.addEventListener("click", () => {
+  // keep levels UI in sync before opening
+if (CURRENT_ACCESS_TOKEN) {
+  // logged-in: NEVER apply guest cap
+  levelsUI.setUnlocked?.(CURRENT_MAX_UNLOCKED_LEVEL || 1);
+} else {
+  const guestProgress = loadGuestProgress();
+  const unlocked = Math.min(guestProgress.maxLevel || 1, GUEST_MAX_LEVEL);
+  CURRENT_MAX_UNLOCKED_LEVEL = unlocked;
+  levelsUI.setUnlocked?.(unlocked);
+}
+
+  levelsUI.open();
+});
+
+// Level select
+levelsUI.onSelect((levelNumber) => {
+  // Guest can only open levels 1..GUEST_MAX_LEVEL
+  if (!CURRENT_ACCESS_TOKEN && levelNumber > GUEST_MAX_LEVEL) {
+    ui.showLoginRequired();
+    return;
+  }
+  goToLevel(levelNumber - 1);
+});
+  if (!CURRENT_ACCESS_TOKEN)
+  ui.showWelcome();
+  
+
+// Create game (DO NOT START)
+const game = createGame({
+  canvas: ui.canvas,
+  level: levels[0],
+  getCurrentUser: () => CURRENT_USER ?? { username: "guest", uid: null },
+
+  onTilePainted({ key, x, y }) {
+    if (!CURRENT_ACCESS_TOKEN) return;
+    if (!RESUME_ENABLED) return;
+
+    RESUME_TILES.add(key);
+    RESUME_POS = { x, y };
+
+    scheduleResumeSave(levelIndex + 1);
+  },
+
+  onLevelComplete({ level }) {
+    RESUME_ENABLED = false;
+
+    const completedLevel = level?.number ?? (levelIndex + 1);
+
+    // ✅ server reward: +1 coin once per level
+    if (CURRENT_ACCESS_TOKEN) {
+      apiClaimLevelComplete(completedLevel)
+        .then((out) => {
+          if (out?.user) {
+            applyUserPatch(out.user);
+            ui.setCoins(out.user.coins ?? 0);
+          }
+        })
+        .catch(() => {});
+    }
+    winPopup.show({
+      levelNumber: completedLevel,
+    });
+
+
+    // ✅ logged-in: unlock next level in UI (old UNLOCKED_LEVEL behavior)
+    // ✅ logged-in: unlock next level + SAVE progress (OLD LOGIC RESTORED)
+if (CURRENT_ACCESS_TOKEN) {
+  const nextUnlocked = Math.min(levels.length, completedLevel + 1);
+
+  CURRENT_MAX_UNLOCKED_LEVEL = Math.max(
+    CURRENT_MAX_UNLOCKED_LEVEL,
+    nextUnlocked
+  );
+
+  setTimeout(() => levelsUI.setUnlocked?.(CURRENT_MAX_UNLOCKED_LEVEL), 0);
+
+  // persist unlocked progress + CLEAR resume
+  apiSetProgress({
+      uid: CURRENT_USER.uid,
+    level: nextUnlocked,
+    coins: CURRENT_USER?.coins ?? 0,
+    paintedKeys: [],
+    resume: null,
+  }).catch(() => {});
+}
+    // 🟡 guest progress is local-only (levels 1..GUEST_MAX_LEVEL)
+    if (!CURRENT_ACCESS_TOKEN) {
+      const nextUnlock = Math.min(GUEST_MAX_LEVEL, completedLevel + 1);
+      const current = loadGuestProgress();
+      const newMax = Math.min(
+        GUEST_MAX_LEVEL,
+        Math.max(current?.maxLevel || 1, nextUnlock)
+      );
+      saveGuestProgress(newMax);
+      CURRENT_MAX_UNLOCKED_LEVEL = newMax;
+      // update Levels UI after popup has been mounted
+      setTimeout(() => levelsUI.setUnlocked?.(newMax), 0);
+    }
+  },
+});
+
+
+function wipeResumeForCurrentLevel() {
+  if (!CURRENT_ACCESS_TOKEN) return;
+
+  RESUME_TILES = new Set();
+  RESUME_POS = null;
+
+  apiSetProgress({
+    uid: CURRENT_USER.uid,
+    level: CURRENT_MAX_UNLOCKED_LEVEL,
+    coins: CURRENT_USER?.coins ?? 0,
+    paintedKeys: [],
+    resume: null,
+  }).catch(() => {});
+}
+
+
+function goToLevel(nextIndex) {
+  levelIndex = Math.max(0, Math.min(levels.length - 1, nextIndex));
+  const lvl = levels[levelIndex];
+
+  const selectedLevelNumber = levelIndex + 1;
+
+  game.setLevel(lvl);
+// ✅ Capture spawn tile AFTER level fully loads
+setTimeout(() => {
+  const p = game.getPlayer?.();
+  if (p) {
+    LEVEL_START_KEY = `${p.x},${p.y}`;
+    console.log("LEVEL_START_KEY =", LEVEL_START_KEY);
+  }
+}, 50);
+  ui.setLevel(selectedLevelNumber);
+
+  // Only logged-in users can resume
+  if (!CURRENT_ACCESS_TOKEN) return;
+
+  RESUME_ENABLED = true;
+
+  // Fetch latest progress from backend memory (already loaded in CURRENT_MAX_UNLOCKED_LEVEL flow)
+  fetch(`${BACKEND}/api/me`, {
+    headers: {
+      Authorization: `Bearer ${normalizeToken(CURRENT_ACCESS_TOKEN)}`,
+    },
+  })
+    .then((r) => (r.ok ? r.json() : null))
+    .then((me) => {
+      const progress = me?.progress;
+      if (!progress) return;
+
+      // Only resume if this level matches saved level
+      if (progress.level !== selectedLevelNumber) return;
+
+      const paintedKeys = progress.paintedKeys;
+      const resume = progress.resume;
+
+      if (Array.isArray(paintedKeys) || resume) {
+        RESUME_TILES = new Set(Array.isArray(paintedKeys) ? paintedKeys : []);
+        RESUME_POS = resume ?? null;
+
+        game.applyProgress({
+          paintedKeys: Array.from(RESUME_TILES),
+          player: RESUME_POS,
+        });
+      }
+    })
+    .catch(() => {});
+}
+function simulateAd(onFinished) {
+  let seconds = 10;
+  let finished = false;
+
+  const overlay = document.createElement("div");
+  overlay.className = "ad-overlay";
+
+  overlay.innerHTML = `
+    <div class="ad-box">
+      <div class="ad-video">
+        🎮 Sponsored Ad
+      </div>
+
+      <div id="adCountdown">
+        Ad ends in <b>${seconds}</b>s
+      </div>
+
+      <div class="ad-progress-container">
+        <div id="adBar" class="ad-progress-bar"></div>
+      </div>
+
+      <button id="closeAdBtn" class="ad-close-btn" disabled>
+        Close
+      </button>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+
+  const countdownEl = overlay.querySelector("#adCountdown");
+  const bar = overlay.querySelector("#adBar");
+  const closeBtn = overlay.querySelector("#closeAdBtn");
+
+  const interval = setInterval(() => {
+    seconds--;
+
+    countdownEl.innerHTML = `Ad ends in <b>${seconds}</b>s`;
+    bar.style.width = `${(10 - seconds) * 10}%`;
+
+    if (seconds <= 0) {
+      clearInterval(interval);
+      finished = true;
+
+      countdownEl.innerHTML = `✅ Reward Ready`;
+      closeBtn.disabled = false;
+      closeBtn.classList.add("enabled");
+    }
+  }, 1000);
+
+  closeBtn.addEventListener("click", () => {
+    if (!finished) return;
+    document.body.removeChild(overlay);
+    onFinished();
+  });
+}
+async function grantRestartAdReward() {
+  const out = await fetch(`${BACKEND}/api/restart`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${normalizeToken(CURRENT_ACCESS_TOKEN)}`,
+    },
+    body: JSON.stringify({
+      mode: "ad",
+      nonce: crypto.randomUUID(),
+    }),
+  }).then((r) => r.json());
+
+  if (!out?.ok) return alert(out.error || "Restart failed");
+
+  applyUserPatch({
+    free_restarts_used: out.free_restarts_used,
+    restarts_balance: out.restarts_balance,
+  });
+
+  updateAllBadges();
+  wipeResumeForCurrentLevel();
+  game.setLevel(levels[levelIndex]);
+}
+function goNextLevel() {
+  goToLevel(levelIndex + 1);
+}
+winPopup.onNextLevel(() => {
+  const nextLevelNumber = levelIndex + 2; // levelIndex is 0-based
+
+  // 🔒 Guest limit: require login after level 5
+if (!CURRENT_ACCESS_TOKEN && nextLevelNumber > GUEST_MAX_LEVEL) {
+    winPopup.hide();
+    ui.showLoginRequired();
+    return;
+  }
+
+  winPopup.hide();
+  goNextLevel();
+});
+winPopup.onWatchAdClick(() => {
+  if (!CURRENT_ACCESS_TOKEN) {
+    ui.showLoginRequired();
+    return;
+  }
+
+  simulateAd(async () => {
+    const nonce = crypto.randomUUID();
+
+    const res = await fetch(`${BACKEND}/api/rewards/ad-50`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${normalizeToken(CURRENT_ACCESS_TOKEN)}`,
+      },
+      body: JSON.stringify({ nonce }),
+    });
+
+    const out = await res.json().catch(() => ({}));
+    console.log("AD +50 RESPONSE", out);
+
+    // ⏱️ cooldown protection
+    if (out?.already) {
+      alert("Ad already claimed. Please wait a few minutes.");
+      return;
+    }
+
+    if (out?.user?.coins != null) {
+      ui.setCoins(out.user.coins);
+      applyUserPatch({ coins: out.user.coins });
+    }
+
+    winPopup.hide();
+    goNextLevel();
+  });
+});
+
+// ---- SKIP / HINT buttons (backend-powered) ----
+ui.onSkipClick(async () => {
+  if (!CURRENT_ACCESS_TOKEN) {
+    ui.showLoginRequired();
+    return;
+  }
+
+  try {
+    const out = await apiSkip({ mode: "auto" });
+
+    applyUserPatch({
+  free_skips_used: out.free_skips_used,
+  skips_balance: out.skips_balance,
+  coins: out.coins,
+});
+
+    updateAllBadges();
+    goNextLevel();
+    return;
+
+  } catch (e) {
+    if (e.message === "No skips available") {
+      skipPopup.open({
+        coins: CURRENT_USER?.coins ?? 0,
+        freeLeft: 0,
+      });
+      return;
+    }
+
+    console.error("Skip error:", e);
+  }
+});
+
+
+skipPopup.onBuySkip(async () => {
+  try {
+    const out = await apiSkip({ mode: "coins" });
+
+    applyUserPatch({
+  free_skips_used: out.free_skips_used,
+  skips_balance: out.skips_balance,
+  coins: out.coins,
+});
+
+    updateAllBadges();
+    skipPopup.hide();
+    goNextLevel();
+
+  } catch (e) {
+    alert(e.message || "Skip failed");
+  }
+});
+
+
+skipPopup.onWatchAdSkip(() => {
+  simulateAd(async () => {
+    const out = await apiSkip({
+      mode: "ad",
+      nonce: crypto.randomUUID(),
+    });
+
+    if (!out?.ok) return alert(out.error || "Skip failed");
+
+    applyUserPatch({
+      free_skips_used: out.free_skips_used,
+      skips_balance: out.skips_balance,
+    });
+
+    updateAllBadges();
+    skipPopup.hide();
+    goNextLevel();
+  });
+});
+ui.onHintClick(async () => {
+  if (!CURRENT_ACCESS_TOKEN) {
+    ui.showLoginRequired();
+    return;
+  }
+
+  try {
+    const out = await apiHint({ mode: "auto" });
+
+    applyUserPatch({
+  free_hints_used: out.free_hints_used,
+  hints_balance: out.hints_balance,
+  coins: out.coins,
+});
+
+    updateAllBadges();
+    return;
+
+  } catch (e) {
+    if (e.message === "No hints available") {
+      hintPopup.open({
+        coins: CURRENT_USER?.coins ?? 0,
+        freeLeft: 0,
+      });
+      return;
+    }
+
+    console.error("Hint error:", e);
+  }
+});
+
+hintPopup.onBuyHint(async () => {
+  try {
+    const out = await apiHint({ mode: "coins" });
+
+    applyUserPatch({
+  free_hints_used: out.free_hints_used,
+  hints_balance: out.hints_balance,
+  coins: out.coins,
+});
+
+    updateAllBadges();
+    hintPopup.hide();
+
+  } catch (e) {
+    alert(e.message || "Hint failed");
+  }
+});
+
+
+hintPopup.onWatchAdHint(() => {
+  simulateAd(async () => {
+    const out = await apiHint({
+      mode: "ad",
+      nonce: crypto.randomUUID(),
+    });
+
+    if (!out?.ok) return alert(out.error || "Hint failed");
+
+    applyUserPatch({
+      free_hints_used: out.free_hints_used,
+      hints_balance: out.hints_balance,
+    });
+
+    updateAllBadges();
+    hintPopup.hide();
+  });
+});
+
+ui.onRestartClick(async () => {
+  if (!CURRENT_ACCESS_TOKEN) {
+    ui.showLoginRequired();
+    return;
+  }
+
+  try {
+    const out = await fetch(`${BACKEND}/api/restart`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${normalizeToken(CURRENT_ACCESS_TOKEN)}`,
+      },
+      body: JSON.stringify({
+        mode: "auto",
+        nonce: crypto.randomUUID?.() || `${Date.now()}-${Math.random()}`,
+      }),
+    }).then((r) => r.json());
+
+    if (!out?.ok) throw new Error(out?.error);
+
+    applyUserPatch({
+      free_restarts_used: out.free_restarts_used,
+      restarts_balance: out.restarts_balance,
+      coins: out.coins,
+    });
+
+    updateAllBadges();
+    wipeResumeForCurrentLevel();
+    game.setLevel(levels[levelIndex]);
+    return;
+
+  } catch (e) {
+    if (e.message === "No restarts available") {
+      restartPopup.open({
+        coins: CURRENT_USER?.coins ?? 0,
+        freeLeft: 0,
+      });
+      return;
+    }
+
+    console.error("Restart error:", e);
+  }
+});
+
+
+restartPopup.onBuyRestart(async () => {
+  try {
+    const out = await fetch(`${BACKEND}/api/restart`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${normalizeToken(CURRENT_ACCESS_TOKEN)}`,
+      },
+      body: JSON.stringify({
+        mode: "coins",
+        nonce: crypto.randomUUID(),
+      }),
+    }).then((r) => r.json());
+
+    if (!out?.ok) throw new Error(out?.error);
+
+    applyUserPatch({
+  free_restarts_used: out.free_restarts_used,
+  restarts_balance: out.restarts_balance,
+  coins: out.coins,
+});
+
+    updateAllBadges();
+    wipeResumeForCurrentLevel();
+    game.setLevel(levels[levelIndex]);
+    restartPopup.hide();
+
+  } catch (e) {
+    alert(e.message || "Restart failed");
+  }
+});
+
+
+restartPopup.onWatchAdRestart(() => {
+  simulateAd(async () => {
+
+    const out = await fetch(`${BACKEND}/api/restart`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${normalizeToken(CURRENT_ACCESS_TOKEN)}`,
+      },
+      body: JSON.stringify({
+        mode: "ad",
+        nonce: crypto.randomUUID(),
+      }),
+    }).then(r => r.json());
+
+    if (!out?.ok) return alert(out.error || "Restart failed");
+
+    applyUserPatch({
+      free_restarts_used: out.free_restarts_used,
+      restarts_balance: out.restarts_balance,
+      coins: out.coins,
+    });
+
+    updateAllBadges();
+    wipeResumeForCurrentLevel();
+    game.setLevel(levels[levelIndex]);
+    restartPopup.hide();
+  });
+});
+  // ---- GUEST ----
+  ui.onGuestStart(() => {
+  CURRENT_USER = { username: "Guest", uid: null };
+  CURRENT_ACCESS_TOKEN = null;
+
+  const guestProgress = loadGuestProgress();
+  const unlocked = Math.min(guestProgress.maxLevel || 1, GUEST_MAX_LEVEL);
+  ui.setUser({
+  ...CURRENT_USER,
+  level: CURRENT_MAX_UNLOCKED_LEVEL,
+});
+
+  document.body.classList.add("game-running");
+  ui.hideWelcome();
+  game.start();
+  // force capture starting tile for resume AFTER login ready
+if (CURRENT_ACCESS_TOKEN && RESUME_ENABLED) {
+  const state = game.getState();
+  const x = state.player.x;
+  const y = state.player.y;
+
+  scheduleResumeSave(levelIndex + 1, {
+    key: `${x},${y}`,
+    x,
+    y,
+  });
+}
+  updateAllBadges();
+});
+   // PROGRES LEVELS
+
+
+
+// ---- PI LOGIN ----
+ui.onLoginClick(async () => {
+  const result = await ensurePiLogin({
+    BACKEND,
+    ui,
+    onLogin: ({ accessToken }) => {
+  CURRENT_ACCESS_TOKEN = normalizeToken(accessToken);
+  localStorage.setItem("pi_access_token", CURRENT_ACCESS_TOKEN);
+},
+  });
+
+  // 🔥 CRITICAL FIX: handle existing session
+  if (!CURRENT_ACCESS_TOKEN && result?.accessToken) {
+  CURRENT_ACCESS_TOKEN = normalizeToken(result.accessToken);
+}
+
+  if (!CURRENT_ACCESS_TOKEN) {
+    return;
+  }
+
+ // await migrateGuestProgress({
+  //  BACKEND,
+  //  token: CURRENT_ACCESS_TOKEN,
+ // });
+
+  const me = await loadMeAndSyncUI({
+    BACKEND,
+    token: CURRENT_ACCESS_TOKEN,
+    ui,
+  });
+  updateAllBadges();
+  if (!me?.user) {
+  console.error("Login succeeded but /api/me failed");
+  return;
+}
+
+  const unlockedLevel =
+    me?.progress?.level ??
+    me?.progress?.maxLevel ??
+    me?.progress?.highestLevel ??
+    1;
+
+  const UNLOCKED_LEVEL = Math.max(1, Number(unlockedLevel) || 1);
+
+
+// 🔓 remove guest cap completely for logged-in users
+window.__maze.guestMaxLevel = Infinity;
+
+CURRENT_MAX_UNLOCKED_LEVEL = UNLOCKED_LEVEL;
+levelsUI.setUnlocked?.(UNLOCKED_LEVEL);
+
+ui.setUser({
+  ...CURRENT_USER,
+  level: CURRENT_MAX_UNLOCKED_LEVEL,
+});
+
+  // start at the unlocked level (or 1)
+  setLevel(Math.max(0, UNLOCKED_LEVEL - 1));
+  // enable in-progress resume only for logged-in users
+  RESUME_ENABLED = true;
+  RESUME_TILES = new Set();
+  RESUME_POS = null;
+
+// restore painted path + position ONLY if backend sent it
+const paintedKeys = me?.progress?.paintedKeys;
+const resume = me?.progress?.resume;
+
+if (Array.isArray(paintedKeys) || (resume && resume.x != null && resume.y != null)) {
+
+  if (Array.isArray(paintedKeys)) {
+    RESUME_TILES.clear();
+    for (const k of paintedKeys) RESUME_TILES.add(k);
+  }
+
+  if (resume && resume.x != null && resume.y != null) {
+    RESUME_POS = { x: resume.x, y: resume.y };
+  }
+}
+
+document.body.classList.add("game-running");
+ui.hideWelcome();
+  updateAllBadges();
+
+if (!game.isRunning?.()) {
+  game.start();
+  // force capture starting tile for resume AFTER login ready
+if (CURRENT_ACCESS_TOKEN && RESUME_ENABLED) {
+  const state = game.getState();
+  const x = state.player.x;
+  const y = state.player.y;
+
+  scheduleResumeSave(levelIndex + 1, {
+    key: `${x},${y}`,
+    x,
+    y,
+  });
+}
+  updateAllBadges();
+  // ✅ capture original spawn tile
+  const p = game.getPlayer?.();
+ 
+}
+
+// ✅ APPLY PROGRESS AFTER GAME STARTS (IMPORTANT)
+if (RESUME_TILES.size > 0 || RESUME_POS) {
+  game.applyProgress({
+    paintedKeys: Array.from(RESUME_TILES),
+    player: RESUME_POS,
+  });
+
+  // ✅ force repaint of current player tile (fix start tile bug)
+  const p = game.getPlayer?.();
+  if (p) {
+    const k = `${p.x},${p.y}`;
+    RESUME_TILES.add(k);
+    game.applyProgress({
+      paintedKeys: [k],
+      player: null,
+    });
+  }
+}
+
+    updateAllBadges();
+ 
+});
 }
 
 boot();
