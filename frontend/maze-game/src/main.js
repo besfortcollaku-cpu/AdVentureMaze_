@@ -479,9 +479,6 @@ const restartPopup = createRestartPopup();
     game.setLevel(levels[levelIndex]);
   }
 
-  function goNextLevel() {
-    setLevel(levelIndex + 1);
-  }
 
   // (level-complete reward is handled via global apiClaimLevelComplete)
 
