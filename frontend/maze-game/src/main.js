@@ -1058,6 +1058,7 @@ restartPopup.onWatchAdRestart(() => {
 
 // ---- PI LOGIN ----
 ui.onLoginClick(async () => {
+    console.log("LOGIN CLICKED");
   const result = await ensurePiLogin({
     BACKEND,
     ui,
