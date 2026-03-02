@@ -1035,34 +1035,21 @@ restartPopup.onWatchAdRestart(() => {
 });
   // ---- GUEST ----
   ui.onGuestStart(() => {
-  localStorage.removeItem("pi_access_token"); // 🔥 important
-  CURRENT_USER = { username: "Guest", uid: null };
-  CURRENT_ACCESS_TOKEN = null;
-  CURRENT_MAX_UNLOCKED_LEVEL = 1;
-  RESUME_ENABLED = false;
+  localStorage.removeItem("pi_access_token");
 
-  const guestProgress = loadGuestProgress();
-  const unlocked = Math.min(guestProgress.maxLevel || 1, GUEST_MAX_LEVEL);
-  ui.setUser({
-  ...CURRENT_USER,
-  level: CURRENT_MAX_UNLOCKED_LEVEL,
-});
+  CURRENT_ACCESS_TOKEN = null;
+  CURRENT_USER = null;
+  RESUME_ENABLED = false;
+  RESUME_TILES = new Set();
+  RESUME_POS = null;
+  CURRENT_MAX_UNLOCKED_LEVEL = 1;
 
   document.body.classList.add("game-running");
   ui.hideWelcome();
-  game.start();
-  // force capture starting tile for resume AFTER login ready
-if (CURRENT_ACCESS_TOKEN && RESUME_ENABLED) {
-  const state = game.getState();
-  const x = state.player.x;
-  const y = state.player.y;
 
-  scheduleResumeSave(levelIndex + 1, {
-    key: `${x},${y}`,
-    x,
-    y,
-  });
-}
+  setLevel(0);
+  game.start();
+
   updateAllBadges();
 });
    // PROGRES LEVELS
