@@ -410,7 +410,6 @@ ui.onGuestClick(handleGuest);
   // ❗ NO AUTO LOGIN HERE
 
   if (!CURRENT_ACCESS_TOKEN) {
-    ui.showWelcome();
     return;
   }
 
