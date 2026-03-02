@@ -509,8 +509,6 @@ levelsUI.onSelect((levelNumber) => {
   }
   goToLevel(levelNumber - 1);
 });
-  if (!CURRENT_ACCESS_TOKEN)
-  ui.showWelcome();
   
 
 // Create game (DO NOT START)
