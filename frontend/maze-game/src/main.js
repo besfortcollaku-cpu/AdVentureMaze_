@@ -40,6 +40,7 @@ document.addEventListener(
 
 let levelIndex = 0;
 let RESUME_ENABLED = false;
+let USER_HYDRATED = false;
 let RESUME_TILES = new Set();
 let RESUME_POS = null;
 let RESUME_SAVE_TIMER = null;
@@ -69,6 +70,7 @@ function applyUserPatch(patch) {
 }
 function scheduleResumeSave(currentLevelNumber) {
 if (!CURRENT_ACCESS_TOKEN) return;
+if (!USER_HYDRATED) return;
 if (!CURRENT_USER || !CURRENT_USER.uid) return;
 if (!CURRENT_MAX_UNLOCKED_LEVEL) return;  if (!RESUME_ENABLED) return;
   if (RESUME_SAVE_TIMER) return;
@@ -382,6 +384,15 @@ if (CURRENT_ACCESS_TOKEN) {
       token: CURRENT_ACCESS_TOKEN,
       ui,
     });
+    const backendUnlocked =
+  me?.progress?.level ??
+  1;
+
+CURRENT_MAX_UNLOCKED_LEVEL = Math.max(
+  CURRENT_MAX_UNLOCKED_LEVEL,
+  Number(backendUnlocked) || 1
+);
+USER_HYDRATED = true;
 
 if (me?.user) {
   document.body.classList.remove("welcome-visible");
