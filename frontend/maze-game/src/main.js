@@ -488,22 +488,29 @@ const game = createGame({
 
     // ✅ server reward: +1 coin once per level
     // ✅ server reward: +1 coin once per level
-if (CURRENT_ACCESS_TOKEN) {
-  try {
-    const out = await apiClaimLevelComplete(completedLevel);
-
-    if (out?.user) {
-      applyUserPatch(out.user);
-      ui.setCoins(out.user.coins ?? 0);
-    }
-  } catch (e) {}
-}
-
 winPopup.show({
   levelNumber: completedLevel,
 });
 
+// ✅ server reward: +1 coin once per level
+if (CURRENT_ACCESS_TOKEN) {
+  (async () => {
+    try {
+      await apiClaimLevelComplete(completedLevel);
 
+      // hard refresh from DB so later UI/state cannot overwrite it
+      const me = await loadMeAndSyncUI({
+        BACKEND,
+        token: CURRENT_ACCESS_TOKEN,
+        ui,
+      });
+
+      if (me?.user) {
+        ui.setCoins(Number(me.user.coins ?? 0));
+      }
+    } catch (e) {}
+  })();
+}
     // ✅ logged-in: unlock next level in UI (old UNLOCKED_LEVEL behavior)
     // ✅ logged-in: unlock next level + SAVE progress (OLD LOGIC RESTORED)
 if (CURRENT_ACCESS_TOKEN) {
