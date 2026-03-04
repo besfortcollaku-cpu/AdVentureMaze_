@@ -359,7 +359,29 @@ function saveGuestProgress(maxLevel) {
 
 async function boot() {
     const storedToken = localStorage.getItem("pi_access_token");
-CURRENT_ACCESS_TOKEN = storedToken ? normalizeToken(storedToken) : null;
+
+if (storedToken) {
+  try {
+    CURRENT_ACCESS_TOKEN = normalizeToken(storedToken);
+
+    // silently validate token with backend
+    const me = await loadMeAndSyncUI({
+      BACKEND,
+      token: CURRENT_ACCESS_TOKEN,
+      ui,
+    });
+
+    if (!me?.user) {
+      throw new Error("session_invalid");
+    }
+
+  } catch (e) {
+    // token expired or invalid → clear session silently
+    CURRENT_ACCESS_TOKEN = null;
+    CURRENT_USER = null;
+    localStorage.removeItem("pi_access_token");
+  }
+}
 
 // never show a "logged-in" user until backend validates token
 CURRENT_USER = null;
