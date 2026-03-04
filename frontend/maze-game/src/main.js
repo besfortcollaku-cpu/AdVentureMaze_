@@ -399,20 +399,22 @@ if (CURRENT_ACCESS_TOKEN) {
       ? { x: resume.x, y: resume.y }
       : null;
 
-  // go to the last unlocked level (where resume is stored)
-  goToLevel(CURRENT_MAX_UNLOCKED_LEVEL - 1);
+if (!game?.isRunning?.()) {
+  game.start();
+}
 
-  if (!game?.isRunning?.()) {
-    game.start();
-  }
+// go to the last unlocked level (where resume is stored)
+goToLevel(CURRENT_MAX_UNLOCKED_LEVEL - 1);
 
-  // ✅ APPLY PROGRESS AFTER GAME STARTS
+// ✅ APPLY PROGRESS AFTER GAME IS RUNNING + LEVEL IS SET
+setTimeout(() => {
   if (RESUME_TILES.size > 0 || RESUME_POS) {
     game.applyProgress({
       paintedKeys: Array.from(RESUME_TILES),
       player: RESUME_POS,
     });
   }
+}, 0);
 
   updateAllBadges();
   document.body.classList.remove("welcome-visible");
