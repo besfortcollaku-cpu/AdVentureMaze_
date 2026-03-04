@@ -481,7 +481,7 @@ const game = createGame({
     scheduleResumeSave(levelIndex + 1);
   },
 
-  onLevelComplete({ level }) {
+  async onLevelComplete({ level }) {
     RESUME_ENABLED = false;
 
     const completedLevel = level?.number ?? (levelIndex + 1);
