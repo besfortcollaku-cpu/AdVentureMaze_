@@ -171,9 +171,11 @@ skipBtn.addEventListener("click", () => onSkipClick());
     guestHandler?.();
   });
 
-  loginBtn.addEventListener("click", async () => {
-    loginHandler?.();
-  });
+  loginBtn.addEventListener("pointerdown", (e) => {
+  e.preventDefault();
+  e.stopPropagation();
+  loginHandler?.(e);
+});
   
 
 
