@@ -175,14 +175,16 @@ skipBtn.addEventListener("click", () => onSkipClick());
 
 loginBtn.addEventListener(
   "touchstart",
-  (e) => {
+(e) => {
     _loginTapFired = true;
     e.preventDefault();
     e.stopPropagation();
+
+    // start Pi auth in the first user gesture
+    window.__maze?.prestartLogin?.();
+
     loginHandler?.(e);
   },
-  { passive: false }
-);
 
 loginBtn.addEventListener("click", (e) => {
   // ignore the synthetic click after touch

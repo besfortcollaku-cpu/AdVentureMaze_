@@ -20,7 +20,7 @@ export async function ensurePiLogin({ BACKEND, ui, onLogin }) {
     // (Pi SDK decides whether popup is needed)
     ui?.showLoginGate?.();
 
-    const result = await piLoginAndVerify(BACKEND);
+    const result = await (ensurePiLogin._prestarted || piLoginAndVerify(BACKEND));
 
     // piAuth.js returns: { auth, verifiedUser }
     const accessToken = result?.auth?.accessToken;
@@ -49,7 +49,14 @@ export async function ensurePiLogin({ BACKEND, ui, onLogin }) {
     console.error("ensurePiLogin error", err);
     ui?.hideLoginGate?.();
     return { ok: false };
-  } finally {
+} finally {
     ensurePiLogin._running = false;
+    ensurePiLogin._prestarted = null;
   }
+}
+// Prestart Pi auth inside the first user gesture (touchstart) to avoid 2-tap on mobile webviews.
+export function prestartPiLogin(BACKEND) {
+  if (ensurePiLogin._prestarted) return ensurePiLogin._prestarted;
+  ensurePiLogin._prestarted = piLoginAndVerify(BACKEND);
+  return ensurePiLogin._prestarted;
 }

@@ -5,7 +5,7 @@ import { mountLevelsUI } from "./ui/uiLevels.js";
 import { mountUI } from "./ui/ui.js";
 import { loadProgress } from "./api/loadProgress.js";
 import { createGame } from "./game/game.js";
-import { ensurePiLogin } from "./pi/piClient.js";
+import { ensurePiLogin, prestartPiLogin } from "./pi/piClient.js";
 import { levels } from "./levels/index.js";
 import { createWinPopup } from "./ui/uiWin.js";
 import { createSkipPopup } from "./ui/uiSkip.js";
@@ -504,6 +504,14 @@ setTimeout(() => {
     document.body.classList.add("welcome-visible");
   }
 }
+// expose a prestart hook so ui.js can start Pi auth on touchstart (fixes 2-tap on mobile)
+window.__maze = window.__maze || {};
+window.__maze.prestartLogin = () => {
+  try {
+    // import at top:  import { ensurePiLogin, prestartPiLogin } from "./pi/piClient.js";
+    prestartPiLogin(BACKEND);
+  } catch {}
+};
 
 // Expose a tiny bridge for UI modules that don't have direct access to `ui`.
 // (Used by the Levels screen to show "Login required" for locked guest levels.)
