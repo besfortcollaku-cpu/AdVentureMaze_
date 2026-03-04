@@ -29,13 +29,20 @@ CURRENT_MAX_UNLOCKED_LEVEL, currentLevelNumber || 1 ); if (LEVEL_START_KEY) { RE
 if (!CURRENT_USER?.uid) return;
 apiSetProgress({ uid: CURRENT_USER.uid, level: safeLevel, coins: CURRENT_USER?.coins ?? 0, paintedKeys: Array.from(RESUME_TILES), resume: RESUME_POS && RESUME_POS.x != null && RESUME_POS.y != null ? { x: RESUME_POS.x, y: RESUME_POS.y } : null, }).catch(() => {}); }, 700); } // Keep the Levels 1screen consistent (guest: localStorage, logged-in: backend) let CURRENT_MAX_UNLOCKED_LEVEL = 1;
 
-async function fetchAndSetCoins({ BACKEND, token, ui }) { if (!token) return;
+async function fetchAndSetCoins({ BACKEND, token, ui }) {
+  if (!token) return;
 
-const res = await fetch(${BACKEND}/me, { headers: { Authorization: Bearer ${token}, }, });
+  const res = await fetch(`${BACKEND}/api/me`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
 
-if (!res.ok) return;
+  if (!res.ok) return;
 
-const data = await res.json(); ui.setCoins(data.coins ?? 0); }
+  const data = await res.json();
+  ui.setCoins(data.coins ?? 0);
+}
 
 async function apiSetProgress({ uid, level, coins, paintedKeys, resume } = {}) { if (!CURRENT_ACCESS_TOKEN) return null;
 
