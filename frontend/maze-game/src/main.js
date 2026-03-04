@@ -1101,9 +1101,12 @@ ui.onLoginClick(async () => {
 }
 
   if (!CURRENT_ACCESS_TOKEN) {
+    // restore welcome overlay if login failed
+    document.body.classList.remove("game-running");
+    document.body.classList.add("welcome-visible");
+    ui.showWelcome();
     return;
   }
-
  // await migrateGuestProgress({
   //  BACKEND,
   //  token: CURRENT_ACCESS_TOKEN,
