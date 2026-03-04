@@ -32,11 +32,7 @@ apiSetProgress({ uid: CURRENT_USER.uid, level: safeLevel, coins: CURRENT_USER?.c
 async function fetchAndSetCoins({ BACKEND, token, ui }) {
   if (!token) return;
 
-  const res = await fetch(`${BACKEND}/api/me`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+  const res = await fetch(`${BACKEND}/api/me`, { headers: { Authorization: `Bearer ${token}` } });
 
   if (!res.ok) return;
 
