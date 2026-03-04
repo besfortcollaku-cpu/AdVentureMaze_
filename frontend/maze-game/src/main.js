@@ -27,7 +27,10 @@ const BACKEND = "https://triumphant-gentleness-production.up.railway.app";
 const FREE_SKIPS = 3;
 const FREE_HINTS = 3;
 const FREE_RESTARTS = 3;
-LOGIN_IN_PROGRESS = false;
+let LOGIN_IN_PROGRESS = false;
+
+document.body.classList.add("login-loading");
+document.body.classList.remove("login-loading");
 // --- LOGIN LOADING OVERLAY (blocks UI until game is ready) ---
 function ensureLoginLoadingOverlay() {
   let el = document.getElementById("loginLoadingOverlay");
@@ -64,13 +67,14 @@ function ensureLoginLoadingOverlay() {
 function showLoginLoading() {
   const el = ensureLoginLoadingOverlay();
   el.style.display = "flex";
-  forceHideWelcomeUI();
+
+  // hide welcome overlay content (buttons/text) while loading
+  document.body.classList.remove("welcome-visible");
 }
 
 function hideLoginLoading() {
   const el = document.getElementById("loginLoadingOverlay");
   if (el) el.style.display = "none";
-  document.body.classList.remove("login-loading");
 }
 
 
@@ -441,12 +445,6 @@ ui?.setCoins?.(0);
   }
   // Mount UI
      ui = mountUI(root);
-     // hard reset: never allow blank screen on refresh
-LOGIN_IN_PROGRESS = false;
-hideLoginLoading();
-document.body.classList.remove("login-loading");
-document.body.classList.add("welcome-visible");
-ui.showWelcome();
 if (CURRENT_ACCESS_TOKEN) {
   try {
     const me = await loadMeAndSyncUI({
@@ -720,32 +718,6 @@ setTimeout(() => {
     })
     .catch(() => {});
 }
-let LOGIN_IN_PROGRESS = false;
-
-function forceHideWelcomeUI() {
-  // Hide anything welcome-related immediately
-  document.body.classList.add("login-loading");
-}
-
-// inject CSS once to hide welcome elements fast while loading
-(function injectLoginLoadingCSSOnce() {
-  if (document.getElementById("loginLoadingCSS")) return;
-  const style = document.createElement("style");
-  style.id = "loginLoadingCSS";
-  style.textContent = `
-    body.login-loading .welcome-overlay,
-    body.login-loading .welcome,
-    body.login-loading #welcome,
-    body.login-loading #welcomeOverlay,
-    body.login-loading .welcome-screen,
-    body.login-loading .welcome-container {
-      opacity: 0 !important;
-      pointer-events: none !important;
-      transition: none !important;
-    }
-  `;
-  document.head.appendChild(style);
-})();
 function simulateAd(onFinished) {
   let seconds = 10;
   let finished = false;
@@ -1162,7 +1134,11 @@ if (CURRENT_ACCESS_TOKEN && RESUME_ENABLED) {
 
 
 // ---- PI LOGIN ----
-ui.onLoginClick(async () => {
+
+ui.onLoginClick(async (e) => {
+  // fix "first tap does nothing" + prevent double taps
+  e?.preventDefault?.();
+  e?.stopPropagation?.();
   if (LOGIN_IN_PROGRESS) return;
   LOGIN_IN_PROGRESS = true;
 
@@ -1178,14 +1154,18 @@ ui.onLoginClick(async () => {
       },
     });
 
-if (!CURRENT_ACCESS_TOKEN) {
-  hideLoginLoading();
-  LOGIN_IN_PROGRESS = false;
-  document.body.classList.remove("game-running");
-  document.body.classList.add("welcome-visible");
-  ui.showWelcome();
-  return;
-}
+    if (!CURRENT_ACCESS_TOKEN && result?.accessToken) {
+      CURRENT_ACCESS_TOKEN = normalizeToken(result.accessToken);
+    }
+
+    if (!CURRENT_ACCESS_TOKEN) {
+      hideLoginLoading();
+      LOGIN_IN_PROGRESS = false;
+      document.body.classList.remove("game-running");
+      document.body.classList.add("welcome-visible");
+      ui.showWelcome();
+      return;
+    }
 
     const me = await loadMeAndSyncUI({
       BACKEND,
@@ -1195,6 +1175,7 @@ if (!CURRENT_ACCESS_TOKEN) {
 
     if (!me?.user) {
       hideLoginLoading();
+      LOGIN_IN_PROGRESS = false;
       CURRENT_ACCESS_TOKEN = null;
       CURRENT_USER = null;
       localStorage.removeItem("pi_access_token");
@@ -1223,6 +1204,7 @@ if (!CURRENT_ACCESS_TOKEN) {
     });
 
     setLevel(Math.max(0, UNLOCKED_LEVEL - 1));
+
     RESUME_ENABLED = true;
     RESUME_TILES = new Set();
     RESUME_POS = null;
@@ -1230,30 +1212,24 @@ if (!CURRENT_ACCESS_TOKEN) {
     const paintedKeys = me?.progress?.paintedKeys;
     const resume = me?.progress?.resume;
 
-    if (Array.isArray(paintedKeys) || (resume && resume.x != null && resume.y != null)) {
-      if (Array.isArray(paintedKeys)) {
-        RESUME_TILES.clear();
-        for (const k of paintedKeys) RESUME_TILES.add(k);
-      }
-      if (resume && resume.x != null && resume.y != null) {
-        RESUME_POS = { x: resume.x, y: resume.y };
-      }
+    if (Array.isArray(paintedKeys)) {
+      for (const k of paintedKeys) RESUME_TILES.add(k);
+    }
+    if (resume && resume.x != null && resume.y != null) {
+      RESUME_POS = { x: resume.x, y: resume.y };
     }
 
     document.body.classList.add("game-running");
 
-    // Start game first, then hide welcome + remove spinner
-    if (!game.isRunning?.()) {
-      game.start();
-    }
+    if (!game.isRunning?.()) game.start();
 
     ui.hideWelcome();
     document.body.classList.remove("welcome-visible");
 
     hideLoginLoading();
     updateAllBadges();
+    LOGIN_IN_PROGRESS = false;
 
-    // Apply resume after game is running
     if (RESUME_TILES.size > 0 || RESUME_POS) {
       setTimeout(() => {
         game.applyProgress({
@@ -1262,14 +1238,13 @@ if (!CURRENT_ACCESS_TOKEN) {
         });
       }, 0);
     }
-} catch (e) {
-  hideLoginLoading();
-  LOGIN_IN_PROGRESS = false;
-  document.body.classList.remove("game-running");
-  document.body.classList.add("welcome-visible");
-  ui.showWelcome();
-}
-  
+  } catch (e) {
+    hideLoginLoading();
+    LOGIN_IN_PROGRESS = false;
+    document.body.classList.remove("game-running");
+    document.body.classList.add("welcome-visible");
+    ui.showWelcome();
+  }
 });
 }
 
