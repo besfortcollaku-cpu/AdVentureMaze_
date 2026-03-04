@@ -407,6 +407,16 @@ function saveGuestProgress(maxLevel) {
 }
 
 async function boot() {
+    // Ensure Pi SDK is initialized before login can happen
+  try {
+    if (window.Pi && !window.__PI_INITIALIZED__) {
+      await window.Pi.init({ version: "2.0" });
+      window.__PI_INITIALIZED__ = true;
+      console.log("Pi SDK initialized");
+    }
+  } catch (e) {
+    console.warn("Pi SDK init failed", e);
+  }
     const storedToken = localStorage.getItem("pi_access_token");
 
 if (storedToken) {
