@@ -171,9 +171,27 @@ skipBtn.addEventListener("click", () => onSkipClick());
     guestHandler?.();
   });
 
-  loginBtn.addEventListener("pointerdown", (e) => {
-  e.preventDefault();
-  e.stopPropagation();
+  let _loginTapFired = false;
+
+loginBtn.addEventListener(
+  "touchstart",
+  (e) => {
+    _loginTapFired = true;
+    e.preventDefault();
+    e.stopPropagation();
+    loginHandler?.(e);
+  },
+  { passive: false }
+);
+
+loginBtn.addEventListener("click", (e) => {
+  // ignore the synthetic click after touch
+  if (_loginTapFired) {
+    _loginTapFired = false;
+    e.preventDefault();
+    e.stopPropagation();
+    return;
+  }
   loginHandler?.(e);
 });
   
