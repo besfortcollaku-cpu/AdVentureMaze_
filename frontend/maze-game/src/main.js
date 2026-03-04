@@ -441,6 +441,12 @@ ui?.setCoins?.(0);
   }
   // Mount UI
      ui = mountUI(root);
+     // hard reset: never allow blank screen on refresh
+LOGIN_IN_PROGRESS = false;
+hideLoginLoading();
+document.body.classList.remove("login-loading");
+document.body.classList.add("welcome-visible");
+ui.showWelcome();
 if (CURRENT_ACCESS_TOKEN) {
   try {
     const me = await loadMeAndSyncUI({
@@ -717,12 +723,8 @@ setTimeout(() => {
 let LOGIN_IN_PROGRESS = false;
 
 function forceHideWelcomeUI() {
-  // Hide anything welcome-related immediately, even if UI module is slow
+  // Hide anything welcome-related immediately
   document.body.classList.add("login-loading");
-
-  // If UI module has these helpers, call them
-  try { ui?.hideWelcome?.(); } catch {}
-  try { ui?.hideLoginGate?.(); } catch {}
 }
 
 // inject CSS once to hide welcome elements fast while loading
