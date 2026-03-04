@@ -359,9 +359,12 @@ function saveGuestProgress(maxLevel) {
 
 async function boot() {
     const storedToken = localStorage.getItem("pi_access_token");
-if (storedToken) {
-  CURRENT_ACCESS_TOKEN = normalizeToken(storedToken);
-}
+CURRENT_ACCESS_TOKEN = storedToken ? normalizeToken(storedToken) : null;
+
+// never show a "logged-in" user until backend validates token
+CURRENT_USER = null;
+ui?.setUser?.({ username: "Guest", uid: null });
+ui?.setCoins?.(0);
 // 🔥 AUTO-HYDRATE USER IF TOKEN EXISTS
 
   const root = document.querySelector("#app");
