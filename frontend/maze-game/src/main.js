@@ -42,7 +42,14 @@ async function fetchAndSetCoins({ BACKEND, token, ui }) {
 
 async function apiSetProgress({ uid, level, coins, paintedKeys, resume } = {}) { if (!CURRENT_ACCESS_TOKEN) return null;
 
-const res = await fetch(${BACKEND}/api/progress, { method: "POST", headers: { "Content-Type": "application/json", Authorization: Bearer ${normalizeToken(CURRENT_ACCESS_TOKEN)}, }, body: JSON.stringify({ uid, level, coins, paintedKeys, resume, }), });
+const res = await fetch(`${BACKEND}/api/progress`, {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${normalizeToken(CURRENT_ACCESS_TOKEN)}`,
+  },
+  body: JSON.stringify({ uid, level, coins, paintedKeys, resume }),
+});
 
 // never break gameplay return res.json().catch(() => ({})); } async function apiClaimLevelComplete(levelNumber) { if (!CURRENT_ACCESS_TOKEN) return null;
 
