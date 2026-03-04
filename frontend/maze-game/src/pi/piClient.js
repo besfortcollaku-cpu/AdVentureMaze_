@@ -27,7 +27,7 @@ export async function ensurePiLogin({ BACKEND, ui, onLogin }) {
     const user = result?.verifiedUser;
 
     if (!accessToken || !user) {
-      ui?.showLoginError?.("Pi login failed");
+      ui?.hideLoginGate?.();
       return { ok: false };
     }
 
@@ -45,9 +45,9 @@ export async function ensurePiLogin({ BACKEND, ui, onLogin }) {
       ok: true,
       accessToken,
     };
-  } catch (err) {
+} catch (err) {
     console.error("ensurePiLogin error", err);
-    ui?.showLoginError?.("Login error");
+    ui?.hideLoginGate?.();
     return { ok: false };
   } finally {
     ensurePiLogin._running = false;
