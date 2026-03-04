@@ -171,16 +171,23 @@ skipBtn.addEventListener("click", () => onSkipClick());
     guestHandler?.();
   });
 
-let _loginTapFired = false;
+// Mobile webviews often require touchend to count as the "activation" tap.
+loginBtn.style.touchAction = "manipulation";
+loginBtn.style.cursor = "pointer";
+loginBtn.style.userSelect = "none";
+loginBtn.style.webkitUserSelect = "none";
+loginBtn.style.webkitTapHighlightColor = "transparent";
+
+let _loginHandled = false;
 
 loginBtn.addEventListener(
-  "touchstart",
+  "touchend",
   (e) => {
-    _loginTapFired = true;
+    _loginHandled = true;
     e.preventDefault();
     e.stopPropagation();
 
-    // start Pi auth in the first user gesture
+    // start Pi auth in the first real activation gesture
     window.__maze?.prestartLogin?.();
 
     loginHandler?.(e);
@@ -189,9 +196,9 @@ loginBtn.addEventListener(
 );
 
 loginBtn.addEventListener("click", (e) => {
-  // ignore the synthetic click after touch
-  if (_loginTapFired) {
-    _loginTapFired = false;
+  // ignore the follow-up synthetic click after touchend
+  if (_loginHandled) {
+    _loginHandled = false;
     e.preventDefault();
     e.stopPropagation();
     return;
