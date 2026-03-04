@@ -490,17 +490,11 @@ const game = createGame({
     // ✅ server reward: +1 coin once per level
 if (CURRENT_ACCESS_TOKEN) {
   try {
-    await apiClaimLevelComplete(completedLevel);
+    const out = await apiClaimLevelComplete(completedLevel);
 
-    // re-sync from DB so UI is always correct (no refresh)
-    const me = await loadMeAndSyncUI({
-      BACKEND,
-      token: CURRENT_ACCESS_TOKEN,
-      ui,
-    });
-
-    if (me?.user) {
-      ui.setCoins(Number(me.user.coins ?? 0));
+    if (out?.user) {
+      applyUserPatch(out.user);
+      ui.setCoins(out.user.coins ?? 0);
     }
   } catch (e) {}
 }
