@@ -171,11 +171,11 @@ skipBtn.addEventListener("click", () => onSkipClick());
     guestHandler?.();
   });
 
-  let _loginTapFired = false;
+let _loginTapFired = false;
 
 loginBtn.addEventListener(
   "touchstart",
-(e) => {
+  (e) => {
     _loginTapFired = true;
     e.preventDefault();
     e.stopPropagation();
@@ -185,6 +185,8 @@ loginBtn.addEventListener(
 
     loginHandler?.(e);
   },
+  { passive: false }
+);
 
 loginBtn.addEventListener("click", (e) => {
   // ignore the synthetic click after touch
@@ -194,6 +196,7 @@ loginBtn.addEventListener("click", (e) => {
     e.stopPropagation();
     return;
   }
+
   loginHandler?.(e);
 });
   
