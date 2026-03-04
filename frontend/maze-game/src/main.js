@@ -380,10 +380,17 @@ if (CURRENT_ACCESS_TOKEN) {
     });
 
     if (me?.user) {
-  
+
   document.body.classList.add("game-running");
 
-  setLevel(0);
+  const unlocked = Number(me?.progress?.level || 1);
+  CURRENT_MAX_UNLOCKED_LEVEL = Math.max(1, unlocked);
+
+  levelsUI.setUnlocked?.(CURRENT_MAX_UNLOCKED_LEVEL);
+
+  // ✅ always jump to last unlocked level (this is where resume is stored)
+  goToLevel(CURRENT_MAX_UNLOCKED_LEVEL - 1);
+
   if (!game?.isRunning?.()) {
     game.start();
   }
