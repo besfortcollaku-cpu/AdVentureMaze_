@@ -27,6 +27,7 @@ const BACKEND = "https://triumphant-gentleness-production.up.railway.app";
 const FREE_SKIPS = 3;
 const FREE_HINTS = 3;
 const FREE_RESTARTS = 3;
+LOGIN_IN_PROGRESS = false;
 // --- LOGIN LOADING OVERLAY (blocks UI until game is ready) ---
 function ensureLoginLoadingOverlay() {
   let el = document.getElementById("loginLoadingOverlay");
@@ -63,14 +64,13 @@ function ensureLoginLoadingOverlay() {
 function showLoginLoading() {
   const el = ensureLoginLoadingOverlay();
   el.style.display = "flex";
-
-  // hide welcome overlay content (buttons/text) while loading
-  document.body.classList.remove("welcome-visible");
+  forceHideWelcomeUI();
 }
 
 function hideLoginLoading() {
   const el = document.getElementById("loginLoadingOverlay");
   if (el) el.style.display = "none";
+  document.body.classList.remove("login-loading");
 }
 
 
@@ -714,6 +714,36 @@ setTimeout(() => {
     })
     .catch(() => {});
 }
+let LOGIN_IN_PROGRESS = false;
+
+function forceHideWelcomeUI() {
+  // Hide anything welcome-related immediately, even if UI module is slow
+  document.body.classList.add("login-loading");
+
+  // If UI module has these helpers, call them
+  try { ui?.hideWelcome?.(); } catch {}
+  try { ui?.hideLoginGate?.(); } catch {}
+}
+
+// inject CSS once to hide welcome elements fast while loading
+(function injectLoginLoadingCSSOnce() {
+  if (document.getElementById("loginLoadingCSS")) return;
+  const style = document.createElement("style");
+  style.id = "loginLoadingCSS";
+  style.textContent = `
+    body.login-loading .welcome-overlay,
+    body.login-loading .welcome,
+    body.login-loading #welcome,
+    body.login-loading #welcomeOverlay,
+    body.login-loading .welcome-screen,
+    body.login-loading .welcome-container {
+      opacity: 0 !important;
+      pointer-events: none !important;
+      transition: none !important;
+    }
+  `;
+  document.head.appendChild(style);
+})();
 function simulateAd(onFinished) {
   let seconds = 10;
   let finished = false;
@@ -1131,6 +1161,9 @@ if (CURRENT_ACCESS_TOKEN && RESUME_ENABLED) {
 
 // ---- PI LOGIN ----
 ui.onLoginClick(async () => {
+  if (LOGIN_IN_PROGRESS) return;
+  LOGIN_IN_PROGRESS = true;
+
   showLoginLoading();
 
   try {
@@ -1143,17 +1176,14 @@ ui.onLoginClick(async () => {
       },
     });
 
-    if (!CURRENT_ACCESS_TOKEN && result?.accessToken) {
-      CURRENT_ACCESS_TOKEN = normalizeToken(result.accessToken);
-    }
-
-    if (!CURRENT_ACCESS_TOKEN) {
-      hideLoginLoading();
-      document.body.classList.remove("game-running");
-      document.body.classList.add("welcome-visible");
-      ui.showWelcome();
-      return;
-    }
+if (!CURRENT_ACCESS_TOKEN) {
+  hideLoginLoading();
+  LOGIN_IN_PROGRESS = false;
+  document.body.classList.remove("game-running");
+  document.body.classList.add("welcome-visible");
+  ui.showWelcome();
+  return;
+}
 
     const me = await loadMeAndSyncUI({
       BACKEND,
@@ -1230,12 +1260,13 @@ ui.onLoginClick(async () => {
         });
       }, 0);
     }
-  } catch (e) {
-    hideLoginLoading();
-    document.body.classList.remove("game-running");
-    document.body.classList.add("welcome-visible");
-    ui.showWelcome();
-  }
+} catch (e) {
+  hideLoginLoading();
+  LOGIN_IN_PROGRESS = false;
+  document.body.classList.remove("game-running");
+  document.body.classList.add("welcome-visible");
+  ui.showWelcome();
+}
   
 });
 }
