@@ -757,3 +757,6 @@ resize();
 
 
   return { resize, render };
+
+}
+
