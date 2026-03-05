@@ -535,6 +535,138 @@ const skipPopup = createSkipPopup();
 const hintPopup = createHintPopup();
 const restartPopup = createRestartPopup();
 
+/* -------------------------------
+   HINT ARROWS OVERLAY (animated)
+-------------------------------- */
+const hintStyle = document.createElement("style");
+hintStyle.textContent = `
+  #hintArrows {
+    position: fixed;
+    left: 50%;
+    top: 52%;
+    transform: translate(-50%, -50%);
+    z-index: 99999;
+    pointer-events: none;
+    display: none;
+  }
+  #hintArrows .stack {
+    position: relative;
+    width: 64px;
+    height: 220px;
+    filter: drop-shadow(0 10px 16px rgba(0,0,0,0.35));
+  }
+  #hintArrows .chev {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 16px solid transparent;
+    border-right: 16px solid transparent;
+    border-bottom: 22px solid rgba(255,255,255,0.92);
+    opacity: 0;
+    animation: hintPulse 1.2s linear infinite;
+  }
+  #hintArrows .chev:nth-child(1) { top: 170px; animation-delay: 0.00s; }
+  #hintArrows .chev:nth-child(2) { top: 135px; animation-delay: 0.12s; }
+  #hintArrows .chev:nth-child(3) { top: 100px; animation-delay: 0.24s; }
+  #hintArrows .chev:nth-child(4) { top: 65px;  animation-delay: 0.36s; }
+  #hintArrows .chev:nth-child(5) { top: 30px;  animation-delay: 0.48s; }
+
+  @keyframes hintPulse {
+    0%   { opacity: 0; transform: translateX(-50%) translateY(18px) scale(0.96); }
+    35%  { opacity: 0.95; }
+    70%  { opacity: 0.15; }
+    100% { opacity: 0; transform: translateX(-50%) translateY(-18px) scale(1.04); }
+  }
+
+  /* rotate the whole stack for direction */
+  #hintArrows.dir-up    { transform: translate(-50%, -50%) rotate(0deg); }
+  #hintArrows.dir-right { transform: translate(-50%, -50%) rotate(90deg); }
+  #hintArrows.dir-down  { transform: translate(-50%, -50%) rotate(180deg); }
+  #hintArrows.dir-left  { transform: translate(-50%, -50%) rotate(270deg); }
+`;
+document.head.appendChild(hintStyle);
+
+const hintArrowsEl = document.createElement("div");
+hintArrowsEl.id = "hintArrows";
+hintArrowsEl.innerHTML = `
+  <div class="stack">
+    <div class="chev"></div>
+    <div class="chev"></div>
+    <div class="chev"></div>
+    <div class="chev"></div>
+    <div class="chev"></div>
+  </div>
+`;
+document.body.appendChild(hintArrowsEl);
+
+let HINT_ACTIVE_FOR_LEVEL = false;
+
+function showHintArrows(dir /* "up"|"down"|"left"|"right" */) {
+  hintArrowsEl.classList.remove("dir-up","dir-down","dir-left","dir-right");
+  hintArrowsEl.classList.add(`dir-${dir}`);
+  hintArrowsEl.style.display = "block";
+  HINT_ACTIVE_FOR_LEVEL = true;
+}
+function hideHintArrows() {
+  hintArrowsEl.style.display = "none";
+  HINT_ACTIVE_FOR_LEVEL = false;
+}
+
+/* -------------------------------
+   SMART NEXT MOVE (best immediate)
+-------------------------------- */
+function _slideTargetAndNewPaintCount(state, dx, dy) {
+  const sx = state.player.x;
+  const sy = state.player.y;
+
+  let x = sx;
+  let y = sy;
+  let newPaint = 0;
+
+  while (true) {
+    const nx = x + dx;
+    const ny = y + dy;
+    if (!state.isWalkable(nx, ny)) break;
+    x = nx;
+    y = ny;
+    const k = `${x},${y}`;
+    if (!state.painted.has(k)) newPaint++;
+  }
+
+  const dist = Math.abs(x - sx) + Math.abs(y - sy);
+  return { dist, newPaint };
+}
+
+function getBestDirection(state) {
+  const options = [
+    { dir: "up", dx: 0, dy: -1 },
+    { dir: "down", dx: 0, dy: 1 },
+    { dir: "left", dx: -1, dy: 0 },
+    { dir: "right", dx: 1, dy: 0 },
+  ].map((d) => {
+    const out = _slideTargetAndNewPaintCount(state, d.dx, d.dy);
+    return { ...d, ...out };
+  }).filter(o => o.dist > 0);
+
+  if (!options.length) return null;
+
+  options.sort((a, b) => {
+    if (b.newPaint !== a.newPaint) return b.newPaint - a.newPaint;
+    return b.dist - a.dist;
+  });
+
+  return options[0].dir;
+}
+
+function applySmartHintArrows(game) {
+  const state = game?.getState?.();
+  if (!state) return;
+  const dir = getBestDirection(state);
+  if (!dir) return;
+  showHintArrows(dir);
+}
 // simple hint overlay (text)
 const hintTextEl = document.createElement("div");
 hintTextEl.id = "hintTextOverlay";
@@ -706,6 +838,7 @@ const game = createGame({
   },
 
   async onLevelComplete({ level }) {
+      hideHintArrows();
     RESUME_ENABLED = false;
 
     const completedLevel = level?.number ?? (levelIndex + 1);
@@ -790,6 +923,7 @@ function wipeResumeForCurrentLevel() {
 
 
 function goToLevel(nextIndex) {
+    hideHintArrows();
   levelIndex = Math.max(0, Math.min(levels.length - 1, nextIndex));
   const lvl = levels[levelIndex];
 
@@ -1061,8 +1195,8 @@ ui.onHintClick(async () => {
 });
 
     updateAllBadges();
-    showSmartHint(game);
-    return;
+applySmartHintArrows(game);
+return;
 
   } catch (e) {
     if (e.message === "No hints available") {
@@ -1089,8 +1223,7 @@ hintPopup.onBuyHint(async () => {
 
     updateAllBadges();
     hintPopup.hide();
-    showSmartHint(game);
-
+applySmartHintArrows(game);
   } catch (e) {
     alert(e.message || "Hint failed");
   }
@@ -1113,8 +1246,8 @@ hintPopup.onWatchAdHint(() => {
 
     updateAllBadges();
     hintPopup.hide();
-    showSmartHint(game);
-  });
+applySmartHintArrows(game);
+});
 });
 
 ui.onRestartClick(async () => {
