@@ -18,6 +18,13 @@ const MAX_TRAIL = 30;
   }
 
   const ctx = canvas.getContext("2d");
+
+  // Offscreen buffers for engraved path mask
+  let maskCanvas = document.createElement("canvas");
+  let maskCtx = maskCanvas.getContext("2d");
+  let blurCanvas = document.createElement("canvas");
+  let blurCtx = blurCanvas.getContext("2d");
+
   
  let shakeTime = 0;      // more frames
  let shakeStrength = 0;
@@ -64,12 +71,13 @@ function applyThemeAssets() {
       ? "/textures/themes/lava/"
       : "/textures/themes/ice/";
 
-  floorReady = floorDoneReady = wallReady = ballReady = false;
+  floorReady = floorDoneReady = wallReady = ballReady = boardReady = false;
 
   floorImg.src = base + "floor.png";
   floorDoneImg.src = base + "floor_done.png";
   wallImg.src = base + "wall.png";
   ballImg.src = base + "ball.png";
+  boardImg.src = base + "board.png";
 }
   // FLOOR TILE
   const floorImg = new Image();
@@ -91,6 +99,12 @@ wallImg.onload = () => (wallReady = true);
 const ballImg = new Image();
 let ballReady = false;
 ballImg.onload = () => (ballReady = true);
+
+// BOARD TEXTURE (UNIFORM)
+const boardImg = new Image();
+let boardReady = false;
+boardImg.onload = () => (boardReady = true);
+
   applyThemeAssets();
   // ======================
   // RESIZE
@@ -136,6 +150,22 @@ ballImg.onload = () => (ballReady = true);
   oy = Math.floor(
     boardPadding + (usableH - state.rows * tile) / 2
   );
+
+  // ── build engraved path mask (updates every level)
+  maskCanvas.width = state.cols * tile;
+  maskCanvas.height = state.rows * tile;
+  blurCanvas.width = maskCanvas.width;
+  blurCanvas.height = maskCanvas.height;
+
+  maskCtx.clearRect(0, 0, maskCanvas.width, maskCanvas.height);
+  maskCtx.fillStyle = "#fff";
+  for (let y = 0; y < state.rows; y++) {
+    for (let x = 0; x < state.cols; x++) {
+      if (!state.isWalkable(x, y)) continue;
+      maskCtx.fillRect(x * tile, y * tile, tile, tile);
+    }
+  }
+}
 }
   // ======================
   // HELPERS
@@ -210,6 +240,76 @@ function drawWallShadow(px, py) {
 
   ctx.restore();
 }
+
+// ======================
+// ENGRAVED PATH RENDERING
+// Full uniform board background + recessed (engraved) walkable path.
+// ======================
+function drawBoardAndEngrave() {
+  const theme = getTheme();
+
+  // 1) Uniform board fill (pattern if board.png exists)
+  ctx.save();
+  if (boardReady) {
+    const pat = ctx.createPattern(boardImg, "repeat");
+    if (pat) ctx.fillStyle = pat;
+    else ctx.fillStyle = "#0b1a12";
+  } else {
+    // fallback solid fills per theme
+    ctx.fillStyle =
+      theme === "lava"
+        ? "#2a0f0b"
+        : theme === "ice"
+        ? "#0b1530"
+        : "#0b1a12";
+  }
+  ctx.fillRect(ox, oy, state.cols * tile, state.rows * tile);
+
+  // theme-tuned carve tint (depth)
+  let carveTint = "rgba(0,0,0,0.22)";
+  if (theme === "forest") carveTint = "rgba(0,20,10,0.28)";
+  if (theme === "lava") carveTint = "rgba(20,0,0,0.30)";
+  if (theme === "ice") carveTint = "rgba(0,0,20,0.25)";
+
+  // 2) Darken inside the path (recess)
+  ctx.save();
+  ctx.translate(ox, oy);
+  ctx.drawImage(maskCanvas, 0, 0);
+  ctx.globalCompositeOperation = "source-in";
+  ctx.fillStyle = carveTint;
+  ctx.fillRect(0, 0, maskCanvas.width, maskCanvas.height);
+  ctx.restore();
+
+  // 3) Ambient occlusion / inner shadow (blurred mask, multiplied, offset)
+  blurCtx.clearRect(0, 0, blurCanvas.width, blurCanvas.height);
+  blurCtx.filter = "blur(10px)";
+  blurCtx.globalAlpha = 1;
+  blurCtx.drawImage(maskCanvas, 0, 0);
+  blurCtx.filter = "none";
+
+  // keep effect inside the mask
+  blurCtx.globalCompositeOperation = "source-in";
+  blurCtx.fillStyle = "rgba(0,0,0,1)";
+  blurCtx.fillRect(0, 0, blurCanvas.width, blurCanvas.height);
+  blurCtx.globalCompositeOperation = "source-over";
+
+  ctx.save();
+  ctx.translate(ox, oy);
+
+  // shadow (light from top-left)
+  ctx.globalAlpha = 0.35;
+  ctx.globalCompositeOperation = "multiply";
+  ctx.drawImage(blurCanvas, 2, 2);
+
+  // rim highlight (opposite offset)
+  ctx.globalAlpha = 0.18;
+  ctx.globalCompositeOperation = "screen";
+  ctx.drawImage(blurCanvas, -2, -2);
+
+  ctx.restore();
+  ctx.restore();
+}
+
 function drawFloor() {
   const grid = state.grid;
   const theme = getTheme();
@@ -633,10 +733,11 @@ resize();
     shakeTime--;
   }
 
-  drawFloor();
+  drawBoardAndEngrave();
   drawBall(playerFloat);
-  drawWallShadow();
-  drawWalls();
+  // Engraved-only style (no block walls). Re-enable if needed:
+  // drawWallShadow();
+  // drawWalls();
 
   if (shakeTime > 0) {
     ctx.restore();
