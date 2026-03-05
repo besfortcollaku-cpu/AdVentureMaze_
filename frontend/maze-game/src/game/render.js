@@ -175,6 +175,7 @@ boardImg.onload = () => (boardReady = true);
     );
   }
 }
+}
 
   // ======================
   // HELPERS
