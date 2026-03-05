@@ -617,12 +617,12 @@ hintArrowsEl.innerHTML = `
 `;
 document.body.appendChild(hintArrowsEl);
 function startRouteHintForLevel(levelNumber) {
-  const route = LEVEL_ROUTES[levelNumber];
+  const route = LEVEL_ROUTES?.[levelNumber];
+
+  // reset previous hint state/timers
+  hideHintArrows();
+
   if (!Array.isArray(route) || route.length === 0) {
-    // no route for this level
-    hideHintArrows();
-    HINT_ROUTE = null;
-    HINT_ROUTE_INDEX = 0;
     return;
   }
 
@@ -630,25 +630,55 @@ function startRouteHintForLevel(levelNumber) {
   HINT_ROUTE = route;
   HINT_ROUTE_INDEX = 0;
 
+  // seed last player key to prevent instant auto-advance
+  const st = game?.getState?.();
+  if (st?.player) {
+    HINT_LAST_PLAYER_KEY = `${st.player.x},${st.player.y}`;
+  }
+
   showHintArrows(route[0]);
 }
 
-function scheduleRouteArrowAdvance() {
+let HINT_LAST_PLAYER_KEY = null;
+let HINT_MOVE_LOCK = false;
+let HINT_STABLE_TIMER = null;
+
+function advanceRouteStep() {
   if (!HINT_ACTIVE_FOR_LEVEL) return;
-  if (!HINT_ROUTE || HINT_ROUTE_INDEX >= HINT_ROUTE.length) return;
+  if (!Array.isArray(HINT_ROUTE) || HINT_ROUTE.length === 0) return;
 
-  // debounce so one swipe advances only once
-  if (HINT_ROUTE_TIMER) return;
-  HINT_ROUTE_TIMER = setTimeout(() => {
-    HINT_ROUTE_TIMER = null;
+  const nextIndex = Math.min(HINT_ROUTE.length - 1, HINT_ROUTE_INDEX + 1);
+  if (nextIndex !== HINT_ROUTE_INDEX) {
+    HINT_ROUTE_INDEX = nextIndex;
+    const dir = HINT_ROUTE[HINT_ROUTE_INDEX];
+    if (dir) showHintArrows(dir);
+  }
+}
 
-    // advance to next step (if any)
-    const nextIndex = Math.min(HINT_ROUTE.length - 1, HINT_ROUTE_INDEX + 1);
-    if (nextIndex !== HINT_ROUTE_INDEX) {
-      HINT_ROUTE_INDEX = nextIndex;
-      showHintArrows(HINT_ROUTE[HINT_ROUTE_INDEX]);
+function onAnyPaintDuringMove() {
+  if (!HINT_ACTIVE_FOR_LEVEL) return;
+  if (!Array.isArray(HINT_ROUTE) || HINT_ROUTE.length === 0) return;
+
+  const st = game?.getState?.();
+  if (!st?.player) return;
+
+  const key = `${st.player.x},${st.player.y}`;
+
+  // lock is released only after player position stays stable for a short time
+  if (key !== HINT_LAST_PLAYER_KEY) {
+    HINT_LAST_PLAYER_KEY = key;
+
+    // first paint of a swipe: start lock
+    if (!HINT_MOVE_LOCK) {
+      HINT_MOVE_LOCK = true;
     }
-  }, 120);
+  }
+
+  clearTimeout(HINT_STABLE_TIMER);
+  HINT_STABLE_TIMER = setTimeout(() => {
+    HINT_MOVE_LOCK = false;
+    advanceRouteStep();
+  }, 160);
 }
 let HINT_RECALC_TIMER = null;
 
@@ -672,8 +702,19 @@ function showHintArrows(dir /* "up"|"down"|"left"|"right" */) {
 function hideHintArrows() {
   hintArrowsEl.style.display = "none";
   HINT_ACTIVE_FOR_LEVEL = false;
-}
 
+  HINT_ROUTE = null;
+  HINT_ROUTE_INDEX = 0;
+
+  clearTimeout(HINT_ROUTE_TIMER);
+  HINT_ROUTE_TIMER = null;
+
+  clearTimeout(HINT_STABLE_TIMER);
+  HINT_STABLE_TIMER = null;
+
+  HINT_LAST_PLAYER_KEY = null;
+  HINT_MOVE_LOCK = false;
+}
 /* -------------------------------
    SMART NEXT MOVE (best immediate)
 -------------------------------- */
@@ -888,8 +929,8 @@ levelsUI.onSelect((levelNumber) => {
   getCurrentUser: () => CURRENT_USER ?? { username: "guest", uid: null },
 
 onTilePainted({ key, x, y }) {
-    if (HINT_ACTIVE_FOR_LEVEL) {
-  scheduleRouteArrowAdvance();
+if (HINT_ACTIVE_FOR_LEVEL) {
+  onAnyPaintDuringMove();
 }
   // resume save is logged-in only
   if (!CURRENT_ACCESS_TOKEN) return;
