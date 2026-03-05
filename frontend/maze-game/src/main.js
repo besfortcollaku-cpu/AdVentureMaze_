@@ -11,7 +11,14 @@ import { createWinPopup } from "./ui/uiWin.js";
 import { createSkipPopup } from "./ui/uiSkip.js";
 import { createHintPopup } from "./ui/uiHints.js";
 import { createRestartPopup } from "./ui/uiRestarts.js";
-
+// DEBUG: show fatal errors on mobile so buttons don't "do nothing"
+window.addEventListener("error", (e) => {
+  alert("JS ERROR: " + (e?.message || "unknown"));
+});
+window.addEventListener("unhandledrejection", (e) => {
+  const msg = e?.reason?.message || String(e?.reason || "unknown");
+  alert("PROMISE ERROR: " + msg);
+});
 const GUEST_PROGRESS_KEY = "guest_progress_v1";
 const GUEST_MAX_LEVEL = 5;
 let CURRENT_USER = null;
@@ -840,11 +847,6 @@ levelsUI.onSelect((levelNumber) => {
   getCurrentUser: () => CURRENT_USER ?? { username: "guest", uid: null },
 
 onTilePainted({ key, x, y }) {
-  // ✅ update hint direction dynamically after moves (logged-in or guest)
-  if (HINT_ACTIVE_FOR_LEVEL) {
-    scheduleHintRecalc();
-  }
-
   // resume save is logged-in only
   if (!CURRENT_ACCESS_TOKEN) return;
   if (!RESUME_ENABLED) return;
