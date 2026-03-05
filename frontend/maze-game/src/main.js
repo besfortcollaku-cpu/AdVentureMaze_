@@ -601,7 +601,17 @@ hintArrowsEl.innerHTML = `
 `;
 document.body.appendChild(hintArrowsEl);
 
-let HINT_ACTIVE_FOR_LEVEL = false;
+let HINT_RECALC_TIMER = null;
+
+function scheduleHintRecalc(game) {
+  if (!HINT_ACTIVE_FOR_LEVEL) return;
+
+  if (HINT_RECALC_TIMER) return;
+  HINT_RECALC_TIMER = setTimeout(() => {
+    HINT_RECALC_TIMER = null;
+    applySmartHintArrows(game);
+  }, 80); // small delay to let the move finish painting
+}
 
 function showHintArrows(dir /* "up"|"down"|"left"|"right" */) {
   hintArrowsEl.classList.remove("dir-up","dir-down","dir-left","dir-right");
@@ -827,15 +837,21 @@ const game = createGame({
   level: levels[0],
   getCurrentUser: () => CURRENT_USER ?? { username: "guest", uid: null },
 
-  onTilePainted({ key, x, y }) {
-    if (!CURRENT_ACCESS_TOKEN) return;
-    if (!RESUME_ENABLED) return;
+onTilePainted({ key, x, y }) {
+  // ✅ update hint direction dynamically after moves (logged-in or guest)
+  if (HINT_ACTIVE_FOR_LEVEL) {
+    scheduleHintRecalc(game);
+  }
 
-    RESUME_TILES.add(key);
-    RESUME_POS = { x, y };
+  // resume save is logged-in only
+  if (!CURRENT_ACCESS_TOKEN) return;
+  if (!RESUME_ENABLED) return;
 
-    scheduleResumeSave(levelIndex + 1);
-  },
+  RESUME_TILES.add(key);
+  RESUME_POS = { x, y };
+
+  scheduleResumeSave(levelIndex + 1);
+},
 
   async onLevelComplete({ level }) {
       hideHintArrows();
@@ -1196,6 +1212,7 @@ ui.onHintClick(async () => {
 
     updateAllBadges();
 applySmartHintArrows(game);
+scheduleHintRecalc(game);
 return;
 
   } catch (e) {
@@ -1224,6 +1241,7 @@ hintPopup.onBuyHint(async () => {
     updateAllBadges();
     hintPopup.hide();
 applySmartHintArrows(game);
+scheduleHintRecalc(game);
   } catch (e) {
     alert(e.message || "Hint failed");
   }
@@ -1247,6 +1265,7 @@ hintPopup.onWatchAdHint(() => {
     updateAllBadges();
     hintPopup.hide();
 applySmartHintArrows(game);
+scheduleHintRecalc(game);
 });
 });
 
