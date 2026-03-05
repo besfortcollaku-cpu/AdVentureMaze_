@@ -534,10 +534,6 @@ const winPopup = createWinPopup();
 const skipPopup = createSkipPopup();
 const hintPopup = createHintPopup();
 const restartPopup = createRestartPopup();
-const winPopup = createWinPopup();
-const skipPopup = createSkipPopup();
-const hintPopup = createHintPopup();
-const restartPopup = createRestartPopup();
 
 // simple hint overlay (text)
 const hintTextEl = document.createElement("div");
