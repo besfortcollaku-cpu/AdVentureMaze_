@@ -920,7 +920,10 @@ levelsUI.onSelect((levelNumber) => {
   document.body.classList.add("welcome-visible");
   ui.showWelcome();
 }
-  
+  if (!CURRENT_ACCESS_TOKEN) {
+  // if guest is already running and on level 1, run tutorial hint once
+  maybeAutoHintTutorial();
+}
 
 // Create game (DO NOT START)
   game = createGame({
@@ -949,6 +952,7 @@ HINT_ROUTE_INDEX = 0;
 HINT_ACTIVE_FOR_LEVEL = false;
 RESUME_ENABLED = false;
 
+const AUTO_HINT_SEEN_KEY = "auto_hint_seen_v1";
     const completedLevel = level?.number ?? (levelIndex + 1);
 
     // ✅ server reward: +1 coin once per level
@@ -1012,7 +1016,20 @@ if (CURRENT_ACCESS_TOKEN) {
     }
   },
 });
+function maybeAutoHintTutorial() {
+  try {
+    if (CURRENT_ACCESS_TOKEN) return; // only guests
+    if ((levelIndex + 1) !== 1) return; // only level 1
+    if (localStorage.getItem(AUTO_HINT_SEEN_KEY) === "1") return;
 
+    localStorage.setItem(AUTO_HINT_SEEN_KEY, "1");
+
+    // ensure the game is running before reading state
+    setTimeout(() => {
+      startRouteHintForLevel(1);
+    }, 200);
+  } catch (_) {}
+}
 
 function wipeResumeForCurrentLevel() {
   if (!CURRENT_ACCESS_TOKEN) return;
@@ -1478,25 +1495,16 @@ restartPopup.onWatchAdRestart(() => {
   const guestProgress = loadGuestProgress();
   const unlocked = Math.min(guestProgress.maxLevel || 1, GUEST_MAX_LEVEL);
   ui.setUser({
-  ...CURRENT_USER,
-  level: CURRENT_MAX_UNLOCKED_LEVEL,
-});
+    ...CURRENT_USER,
+    level: CURRENT_MAX_UNLOCKED_LEVEL,
+  });
 
   document.body.classList.add("game-running");
   ui.hideWelcome();
   game.start();
-  // force capture starting tile for resume AFTER login ready
-if (CURRENT_ACCESS_TOKEN && RESUME_ENABLED) {
-  const state = game.getState();
-  const x = state.player.x;
-  const y = state.player.y;
 
-  scheduleResumeSave(levelIndex + 1, {
-    key: `${x},${y}`,
-    x,
-    y,
-  });
-}
+  maybeAutoHintTutorial(); // ✅ auto hint tutorial (level 1, guest, once)
+
   updateAllBadges();
 });
    // PROGRES LEVELS

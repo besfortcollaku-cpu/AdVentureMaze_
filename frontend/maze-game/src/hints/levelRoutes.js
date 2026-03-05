@@ -2,7 +2,7 @@
 // Directions allowed: "up", "down", "left", "right"
 export const LEVEL_ROUTES = {
   // Example:
-  // 1: ["right", "up", "left", "down"],
+  1: ["up", "right", "down", "left", "up", "right"],
 
   11: ["right", "down", "left", "up", "right", "down"],
 
