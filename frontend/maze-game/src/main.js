@@ -30,7 +30,11 @@ Object.defineProperty(window, "__DEBUG_USER", {
 });
 let CURRENT_ACCESS_TOKEN = null;
 let ui = null;
-let game = null; // ✅ global game reference (avoids boot/runtime issues)
+let game = null;
+
+// hint system state
+let HINT_ACTIVE_FOR_LEVEL = false;
+let HINT_RECALC_TIMER = null;
 const BACKEND = "https://triumphant-gentleness-production.up.railway.app";
 const FREE_SKIPS = 3;
 const FREE_HINTS = 3;
