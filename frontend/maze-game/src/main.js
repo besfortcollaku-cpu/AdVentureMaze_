@@ -1022,12 +1022,14 @@ function maybeAutoHintTutorial() {
     if ((levelIndex + 1) !== 1) return; // only level 1
     if (localStorage.getItem(AUTO_HINT_SEEN_KEY) === "1") return;
 
-    localStorage.setItem(AUTO_HINT_SEEN_KEY, "1");
+    // only start if a route exists for level 1
+    if (!Array.isArray(LEVEL_ROUTES?.[1]) || LEVEL_ROUTES[1].length === 0) return;
 
-    // ensure the game is running before reading state
     setTimeout(() => {
       startRouteHintForLevel(1);
-    }, 200);
+      // mark as seen only after starting
+      localStorage.setItem(AUTO_HINT_SEEN_KEY, "1");
+    }, 250);
   } catch (_) {}
 }
 
@@ -1502,7 +1504,7 @@ restartPopup.onWatchAdRestart(() => {
   document.body.classList.add("game-running");
   ui.hideWelcome();
   game.start();
-
+setLevel(0); // force level 1
   maybeAutoHintTutorial(); // ✅ auto hint tutorial (level 1, guest, once)
 
   updateAllBadges();
