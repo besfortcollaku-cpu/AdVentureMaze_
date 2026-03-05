@@ -161,7 +161,10 @@ boardImg.onload = () => (boardReady = true);
   maskCtx.fillStyle = "#fff";
   for (let y = 0; y < state.rows; y++) {
     for (let x = 0; x < state.cols; x++) {
-      if (!state.isWalkable(x, y)) continue;
+      // Treat any non-wall as walkable for engraving.
+      // In this project, grid cell value 1 represents a wall.
+      const cell = state.grid?.[y]?.[x];
+      if (cell === 1) continue;
       maskCtx.fillRect(x * tile, y * tile, tile, tile);
     }
   }
@@ -271,38 +274,42 @@ function drawBoardAndEngrave() {
   if (theme === "lava") carveTint = "rgba(20,0,0,0.30)";
   if (theme === "ice") carveTint = "rgba(0,0,20,0.25)";
 
-  // 2) Darken inside the path (recess)
+  // Build a *soft* mask once per frame.
+  // This softens blocky tile edges and produces rounded-looking corridors.
+  const blurPx = Math.max(3, Math.round(tile * 0.18));
+  blurCtx.clearRect(0, 0, blurCanvas.width, blurCanvas.height);
+  blurCtx.filter = `blur(${blurPx}px)`;
+  blurCtx.globalAlpha = 1;
+  blurCtx.drawImage(maskCanvas, 0, 0);
+  // boost alpha a bit (firmer interior, still soft edge)
+  blurCtx.drawImage(maskCanvas, 0, 0);
+  blurCtx.filter = "none";
+
+  // 2) Darken inside the path (recess) using the soft mask
   ctx.save();
   ctx.translate(ox, oy);
-  ctx.drawImage(maskCanvas, 0, 0);
+  ctx.drawImage(blurCanvas, 0, 0);
   ctx.globalCompositeOperation = "source-in";
   ctx.fillStyle = carveTint;
   ctx.fillRect(0, 0, maskCanvas.width, maskCanvas.height);
   ctx.restore();
 
-  // 3) Ambient occlusion / inner shadow (blurred mask, multiplied, offset)
-  blurCtx.clearRect(0, 0, blurCanvas.width, blurCanvas.height);
-  blurCtx.filter = "blur(10px)";
-  blurCtx.globalAlpha = 1;
+  // 3) Ambient occlusion / inner shadow (soft mask, multiplied, offset)
+  // Clip the soft mask by the hard mask, so nothing leaks outside corridors.
+  blurCtx.globalCompositeOperation = "destination-in";
   blurCtx.drawImage(maskCanvas, 0, 0);
-  blurCtx.filter = "none";
-
-  // keep effect inside the mask
-  blurCtx.globalCompositeOperation = "source-in";
-  blurCtx.fillStyle = "rgba(0,0,0,1)";
-  blurCtx.fillRect(0, 0, blurCanvas.width, blurCanvas.height);
   blurCtx.globalCompositeOperation = "source-over";
 
   ctx.save();
   ctx.translate(ox, oy);
 
   // shadow (light from top-left)
-  ctx.globalAlpha = 0.35;
+  ctx.globalAlpha = 0.38;
   ctx.globalCompositeOperation = "multiply";
   ctx.drawImage(blurCanvas, 2, 2);
 
   // rim highlight (opposite offset)
-  ctx.globalAlpha = 0.18;
+  ctx.globalAlpha = 0.20;
   ctx.globalCompositeOperation = "screen";
   ctx.drawImage(blurCanvas, -2, -2);
 
@@ -750,4 +757,3 @@ resize();
 
 
   return { resize, render };
-}
