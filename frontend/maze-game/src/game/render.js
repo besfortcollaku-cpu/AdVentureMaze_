@@ -166,7 +166,7 @@ boardImg.onload = () => (boardReady = true);
     }
   }
 }
-}
+
   // ======================
   // HELPERS
   // ======================
@@ -750,3 +750,4 @@ resize();
 
 
   return { resize, render };
+}
