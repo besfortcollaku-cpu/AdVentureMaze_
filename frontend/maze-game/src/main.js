@@ -38,7 +38,6 @@ let HINT_ROUTE_INDEX = 0;
 let HINT_ROUTE_TIMER = null;
 
 // hint system state
-let HINT_ACTIVE_FOR_LEVEL = false;
 let HINT_RECALC_TIMER = null;
 const BACKEND = "https://triumphant-gentleness-production.up.railway.app";
 const FREE_SKIPS = 3;
