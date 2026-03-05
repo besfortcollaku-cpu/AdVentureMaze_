@@ -15,17 +15,39 @@ export function createHintPopup() {
   document.body.appendChild(el);
 
   const api = {
-    show({ coins } = {}) {
+    show({ coins = 0, freeLeft = 0 } = {}) {
   el.classList.remove("hidden");
 
-  const buyBtn = el.querySelector("#buySkipBtn");
+  const freeBtn = el.querySelector("#freeHintBtn");
+  const buyBtn = el.querySelector("#buyHintBtn");
+  const adBtn = el.querySelector("#watchAdHintBtn");
 
-  if (coins < 50) {
-    buyBtn.disabled = true;
-    buyBtn.textContent = "Not enough coins";
-  } else {
-    buyBtn.disabled = false;
-    buyBtn.textContent = "Skip (50 coins)";
+  // Free hint button
+  if (freeBtn) {
+    if (freeLeft > 0) {
+      freeBtn.disabled = false;
+      freeBtn.textContent = `Free Hint (${freeLeft} left)`;
+    } else {
+      freeBtn.disabled = true;
+      freeBtn.textContent = "No free hints";
+    }
+  }
+
+  // Buy hint (50 coins)
+  if (buyBtn) {
+    if (coins < 50) {
+      buyBtn.disabled = true;
+      buyBtn.textContent = "Not enough coins";
+    } else {
+      buyBtn.disabled = false;
+      buyBtn.textContent = "Hint (50 coins)";
+    }
+  }
+
+  // Watch ad is always available (frontend decides)
+  if (adBtn) {
+    adBtn.disabled = false;
+    adBtn.textContent = "Watch Ad";
   }
 },
     hide() {

@@ -7,6 +7,7 @@ import { loadProgress } from "./api/loadProgress.js";
 import { createGame } from "./game/game.js";
 import { ensurePiLogin, prestartPiLogin } from "./pi/piClient.js";
 import { levels } from "./levels/index.js";
+import { LEVEL_ROUTES } from "./hints/levelRoutes.js";
 import { createWinPopup } from "./ui/uiWin.js";
 import { createSkipPopup } from "./ui/uiSkip.js";
 import { createHintPopup } from "./ui/uiHints.js";
@@ -31,6 +32,10 @@ Object.defineProperty(window, "__DEBUG_USER", {
 let CURRENT_ACCESS_TOKEN = null;
 let ui = null;
 let game = null;
+let HINT_ACTIVE_FOR_LEVEL = false;
+let HINT_ROUTE = null;
+let HINT_ROUTE_INDEX = 0;
+let HINT_ROUTE_TIMER = null;
 
 // hint system state
 let HINT_ACTIVE_FOR_LEVEL = false;
@@ -612,7 +617,40 @@ hintArrowsEl.innerHTML = `
   </div>
 `;
 document.body.appendChild(hintArrowsEl);
+function startRouteHintForLevel(levelNumber) {
+  const route = LEVEL_ROUTES[levelNumber];
+  if (!Array.isArray(route) || route.length === 0) {
+    // no route for this level
+    hideHintArrows();
+    HINT_ROUTE = null;
+    HINT_ROUTE_INDEX = 0;
+    return;
+  }
 
+  HINT_ACTIVE_FOR_LEVEL = true;
+  HINT_ROUTE = route;
+  HINT_ROUTE_INDEX = 0;
+
+  showHintArrows(route[0]);
+}
+
+function scheduleRouteArrowAdvance() {
+  if (!HINT_ACTIVE_FOR_LEVEL) return;
+  if (!HINT_ROUTE || HINT_ROUTE_INDEX >= HINT_ROUTE.length) return;
+
+  // debounce so one swipe advances only once
+  if (HINT_ROUTE_TIMER) return;
+  HINT_ROUTE_TIMER = setTimeout(() => {
+    HINT_ROUTE_TIMER = null;
+
+    // advance to next step (if any)
+    const nextIndex = Math.min(HINT_ROUTE.length - 1, HINT_ROUTE_INDEX + 1);
+    if (nextIndex !== HINT_ROUTE_INDEX) {
+      HINT_ROUTE_INDEX = nextIndex;
+      showHintArrows(HINT_ROUTE[HINT_ROUTE_INDEX]);
+    }
+  }, 120);
+}
 let HINT_RECALC_TIMER = null;
 
 function scheduleHintRecalc() {
@@ -851,6 +889,9 @@ levelsUI.onSelect((levelNumber) => {
   getCurrentUser: () => CURRENT_USER ?? { username: "guest", uid: null },
 
 onTilePainted({ key, x, y }) {
+    if (HINT_ACTIVE_FOR_LEVEL) {
+  scheduleRouteArrowAdvance();
+}
   // resume save is logged-in only
   if (!CURRENT_ACCESS_TOKEN) return;
   if (!RESUME_ENABLED) return;
@@ -863,7 +904,10 @@ onTilePainted({ key, x, y }) {
 
   async onLevelComplete({ level }) {
       hideHintArrows();
-    RESUME_ENABLED = false;
+HINT_ROUTE = null;
+HINT_ROUTE_INDEX = 0;
+HINT_ACTIVE_FOR_LEVEL = false;
+RESUME_ENABLED = false;
 
     const completedLevel = level?.number ?? (levelIndex + 1);
 
@@ -948,6 +992,10 @@ function wipeResumeForCurrentLevel() {
 
 function goToLevel(nextIndex) {
     hideHintArrows();
+HINT_ROUTE = null;
+HINT_ROUTE_INDEX = 0;
+HINT_ACTIVE_FOR_LEVEL = false;
+RESUME_ENABLED = false;
   levelIndex = Math.max(0, Math.min(levels.length - 1, nextIndex));
   const lvl = levels[levelIndex];
 
@@ -1219,8 +1267,7 @@ ui.onHintClick(async () => {
 });
 
     updateAllBadges();
-applySmartHintArrows(game);
-scheduleHintRecalc();
+startRouteHintForLevel(levelIndex + 1);
 return;
 
   } catch (e) {
@@ -1248,8 +1295,7 @@ hintPopup.onBuyHint(async () => {
 
     updateAllBadges();
     hintPopup.hide();
-applySmartHintArrows(game);
-scheduleHintRecalc();
+startRouteHintForLevel(levelIndex + 1);
   } catch (e) {
     alert(e.message || "Hint failed");
   }
@@ -1272,8 +1318,7 @@ hintPopup.onWatchAdHint(() => {
 
     updateAllBadges();
     hintPopup.hide();
-applySmartHintArrows(game);
-scheduleHintRecalc();
+startRouteHintForLevel(levelIndex + 1);
 });
 });
 
