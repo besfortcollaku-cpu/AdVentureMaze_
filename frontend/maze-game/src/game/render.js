@@ -285,38 +285,36 @@ function drawBoardAndEngrave() {
   blurCtx.drawImage(maskCanvas, 0, 0);
   blurCtx.filter = "none";
 
-  // 2) Darken inside the path (recess) using the soft mask
+// 2) Darken inside path (recess)
   ctx.save();
   ctx.translate(ox, oy);
-  ctx.drawImage(blurCanvas, 0, 0);
+
+  // IMPORTANT: do NOT "just draw" the mask visibly; use it for compositing
+  ctx.drawImage(maskCanvas, 0, 0);
   ctx.globalCompositeOperation = "source-in";
-  ctx.fillStyle = carveTint;
+  ctx.fillStyle = carveTint; // keep your theme carveTint value
   ctx.fillRect(0, 0, maskCanvas.width, maskCanvas.height);
+
+  // restore normal drawing
+  ctx.globalCompositeOperation = "source-over";
   ctx.restore();
 
-  // 3) Ambient occlusion / inner shadow (soft mask, multiplied, offset)
-  // Clip the soft mask by the hard mask, so nothing leaks outside corridors.
-  blurCtx.globalCompositeOperation = "destination-in";
-  blurCtx.drawImage(maskCanvas, 0, 0);
-  blurCtx.globalCompositeOperation = "source-over";
-
+  // 3) Inner shadow (AO)
+  // build blurred version for shadow/highlight (if you already built blurCanvas earlier, keep that)
   ctx.save();
   ctx.translate(ox, oy);
-
-  // shadow (light from top-left)
-  ctx.globalAlpha = 0.38;
   ctx.globalCompositeOperation = "multiply";
+  ctx.globalAlpha = 0.45;
   ctx.drawImage(blurCanvas, 2, 2);
+  ctx.restore();
 
-  // rim highlight (opposite offset)
-  ctx.globalAlpha = 0.20;
+  // 4) Rim highlight
+  ctx.save();
+  ctx.translate(ox, oy);
   ctx.globalCompositeOperation = "screen";
+  ctx.globalAlpha = 0.12;
   ctx.drawImage(blurCanvas, -2, -2);
-
   ctx.restore();
-  ctx.restore();
-}
-
 function drawFloor() {
   const grid = state.grid;
   const theme = getTheme();
