@@ -160,13 +160,19 @@ boardImg.onload = () => (boardReady = true);
   maskCtx.clearRect(0, 0, maskCanvas.width, maskCanvas.height);
   maskCtx.fillStyle = "#fff";
   for (let y = 0; y < state.rows; y++) {
-    for (let x = 0; x < state.cols; x++) {
-      // Treat any non-wall as walkable for engraving.
-      // In this project, grid cell value 1 represents a wall.
-      const cell = state.grid?.[y]?.[x];
-      if (cell === 1) continue;
-      maskCtx.fillRect(x * tile, y * tile, tile, tile);
-    }
+  for (let x = 0; x < state.cols; x++) {
+
+    const cell = state.grid[y][x];
+
+    // only draw walkable path
+    if (cell !== 0 && cell !== 2) continue;
+
+    maskCtx.fillRect(
+      x * tile,
+      y * tile,
+      tile,
+      tile
+    );
   }
 }
 
