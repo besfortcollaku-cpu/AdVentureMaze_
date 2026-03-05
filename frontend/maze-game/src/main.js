@@ -534,8 +534,116 @@ const winPopup = createWinPopup();
 const skipPopup = createSkipPopup();
 const hintPopup = createHintPopup();
 const restartPopup = createRestartPopup();
+const winPopup = createWinPopup();
+const skipPopup = createSkipPopup();
+const hintPopup = createHintPopup();
+const restartPopup = createRestartPopup();
 
+// simple hint overlay (text)
+const hintTextEl = document.createElement("div");
+hintTextEl.id = "hintTextOverlay";
+hintTextEl.style.cssText = `
+  position: fixed;
+  left: 50%;
+  bottom: 110px;
+  transform: translateX(-50%);
+  max-width: min(92vw, 520px);
+  background: rgba(0,0,0,0.82);
+  color: #fff;
+  padding: 12px 14px;
+  border-radius: 14px;
+  font-size: 14px;
+  line-height: 1.35;
+  z-index: 99999;
+  display: none;
+`;
+document.body.appendChild(hintTextEl);
 
+let hintTextTimer = null;
+function showHintText(msg) {
+  if (!msg) return;
+  hintTextEl.textContent = String(msg);
+  hintTextEl.style.display = "block";
+  clearTimeout(hintTextTimer);
+  hintTextTimer = setTimeout(() => {
+    hintTextEl.style.display = "none";
+  }, 4500);
+}
+
+function _slideTargetAndNewPaintCount(state, dx, dy) {
+  const sx = state.player.x;
+  const sy = state.player.y;
+
+  let x = sx;
+  let y = sy;
+
+  let newPaint = 0;
+
+  // move until wall, counting unpainted walkable tiles passed through
+  while (true) {
+    const nx = x + dx;
+    const ny = y + dy;
+    if (!state.isWalkable(nx, ny)) break;
+
+    x = nx;
+    y = ny;
+
+    const k = `${x},${y}`;
+    if (!state.painted.has(k)) newPaint++;
+  }
+
+  const dist = Math.abs(x - sx) + Math.abs(y - sy);
+  return { tx: x, ty: y, dist, newPaint };
+}
+
+function getSmartHintFromState(state) {
+  if (!state) return null;
+
+  const dirs = [
+    { name: "UP", dx: 0, dy: -1, arrow: "↑" },
+    { name: "DOWN", dx: 0, dy: 1, arrow: "↓" },
+    { name: "LEFT", dx: -1, dy: 0, arrow: "←" },
+    { name: "RIGHT", dx: 1, dy: 0, arrow: "→" },
+  ];
+
+  const options = [];
+
+  for (const d of dirs) {
+    const out = _slideTargetAndNewPaintCount(state, d.dx, d.dy);
+
+    // ignore “no movement”
+    if (out.dist <= 0) continue;
+
+    options.push({
+      ...d,
+      ...out,
+    });
+  }
+
+  if (options.length === 0) return null;
+
+  // Prefer: paints the most new tiles
+  // Tie-break: longer slide distance (usually better reposition)
+  options.sort((a, b) => {
+    if (b.newPaint !== a.newPaint) return b.newPaint - a.newPaint;
+    return b.dist - a.dist;
+  });
+
+  return options[0];
+}
+
+function showSmartHint(game) {
+  const state = game?.getState?.();
+  const best = getSmartHintFromState(state);
+
+  if (!best) {
+    showHintText("No hint available.");
+    return;
+  }
+
+  // short, actionable hint
+  showHintText(`Swipe ${best.name} ${best.arrow}`);
+}
 
 
 
@@ -957,6 +1065,7 @@ ui.onHintClick(async () => {
 });
 
     updateAllBadges();
+    showSmartHint(game);
     return;
 
   } catch (e) {
@@ -984,6 +1093,7 @@ hintPopup.onBuyHint(async () => {
 
     updateAllBadges();
     hintPopup.hide();
+    showSmartHint(game);
 
   } catch (e) {
     alert(e.message || "Hint failed");
@@ -1007,6 +1117,7 @@ hintPopup.onWatchAdHint(() => {
 
     updateAllBadges();
     hintPopup.hide();
+    showSmartHint(game);
   });
 });
 
