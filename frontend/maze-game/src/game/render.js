@@ -226,86 +226,56 @@ function drawEngravedTile(px, py, done = false) {
   ctx.strokeRect(px + 1, py + 1, tile - 2, tile - 2);
 }
 function drawEngravedPath() {
-  const r = tile * 0.44;
-
   ctx.save();
 
-  // Build one connected path shape
-  for (let y = 0; y < state.grid.length; y++) {
-    for (let x = 0; x < state.grid[y].length; x++) {
-      const cell = state.grid[y][x];
-      if (cell !== 0 && cell !== 2) continue;
+  // build path shape
+  buildPathShape();
 
-      const px = ox + x * tile;
-      const py = oy + y * tile;
-      const cx = px + tile / 2;
-      const cy = py + tile / 2;
+  // base trench color
+  ctx.fillStyle = "rgba(0,0,0,0.42)";
+  ctx.fill();
 
-      // node
-      ctx.beginPath();
-      ctx.arc(cx, cy, r, 0, Math.PI * 2);
-      ctx.fillStyle = "rgba(0,0,0,0.22)";
-      ctx.fill();
+  // clip so effects affect ONLY the path
+  buildPathShape();
+  ctx.clip();
 
-      // connect right
-      if (x < state.grid[y].length - 1) {
-        const right = state.grid[y][x + 1];
-        if (right === 0 || right === 2) {
-          ctx.fillRect(cx, cy - r, tile, r * 2);
-        }
-      }
+  // top highlight
+  const hi = ctx.createLinearGradient(0, oy, 0, oy + tile * 0.8);
+  hi.addColorStop(0, "rgba(255,255,255,0.18)");
+  hi.addColorStop(1, "rgba(255,255,255,0)");
+  ctx.fillStyle = hi;
+  ctx.fillRect(ox, oy, state.cols * tile, state.rows * tile);
 
-      // connect down
-      if (y < state.grid.length - 1) {
-        const down = state.grid[y + 1][x];
-        if (down === 0 || down === 2) {
-          ctx.fillRect(cx - r, cy, r * 2, tile);
-        }
-      }
-    }
-  }
+  // left highlight
+  const hi2 = ctx.createLinearGradient(ox, 0, ox + tile * 0.8, 0);
+  hi2.addColorStop(0, "rgba(255,255,255,0.12)");
+  hi2.addColorStop(1, "rgba(255,255,255,0)");
+  ctx.fillStyle = hi2;
+  ctx.fillRect(ox, oy, state.cols * tile, state.rows * tile);
 
-  // bevel highlight
-  ctx.globalCompositeOperation = "screen";
-  ctx.strokeStyle = "rgba(255,255,255,0.12)";
-  ctx.lineWidth = Math.max(1.5, tile * 0.08);
+  // bottom shadow
+  const sh = ctx.createLinearGradient(
+    0,
+    oy + state.rows * tile - tile * 0.8,
+    0,
+    oy + state.rows * tile
+  );
+  sh.addColorStop(0, "rgba(0,0,0,0)");
+  sh.addColorStop(1, "rgba(0,0,0,0.35)");
+  ctx.fillStyle = sh;
+  ctx.fillRect(ox, oy, state.cols * tile, state.rows * tile);
 
-  for (let y = 0; y < state.grid.length; y++) {
-    for (let x = 0; x < state.grid[y].length; x++) {
-      const cell = state.grid[y][x];
-      if (cell !== 0 && cell !== 2) continue;
-
-      const px = ox + x * tile;
-      const py = oy + y * tile;
-      const cx = px + tile / 2;
-      const cy = py + tile / 2;
-
-      ctx.beginPath();
-      ctx.arc(cx, cy, r, Math.PI, Math.PI * 1.5);
-      ctx.stroke();
-    }
-  }
-
-  // shadow edge
-  ctx.globalCompositeOperation = "multiply";
-  ctx.strokeStyle = "rgba(0,0,0,0.28)";
-  ctx.lineWidth = Math.max(2, tile * 0.1);
-
-  for (let y = 0; y < state.grid.length; y++) {
-    for (let x = 0; x < state.grid[y].length; x++) {
-      const cell = state.grid[y][x];
-      if (cell !== 0 && cell !== 2) continue;
-
-      const px = ox + x * tile;
-      const py = oy + y * tile;
-      const cx = px + tile / 2;
-      const cy = py + tile / 2;
-
-      ctx.beginPath();
-      ctx.arc(cx, cy, r, 0, Math.PI * 0.5);
-      ctx.stroke();
-    }
-  }
+  // right shadow
+  const sh2 = ctx.createLinearGradient(
+    ox + state.cols * tile - tile * 0.8,
+    0,
+    ox + state.cols * tile,
+    0
+  );
+  sh2.addColorStop(0, "rgba(0,0,0,0)");
+  sh2.addColorStop(1, "rgba(0,0,0,0.28)");
+  ctx.fillStyle = sh2;
+  ctx.fillRect(ox, oy, state.cols * tile, state.rows * tile);
 
   ctx.restore();
 }
