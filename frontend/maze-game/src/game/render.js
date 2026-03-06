@@ -56,13 +56,24 @@ const pathImgs = {};
 const pathReady = {};
 
 const PATH_NAMES = [
-  "h", "v",
-  "corner_tr", "corner_tl", "corner_br", "corner_bl",
-  "cap_up", "cap_down", "cap_left", "cap_right",
-  "tee_up", "tee_down", "tee_left", "tee_right",
+  "h_top",
+  "h_bottom",
+  "v_left",
+  "v_right",
+  "corner_tr",
+  "corner_tl",
+  "corner_br",
+  "corner_bl",
+  "cap_up",
+  "cap_down",
+  "cap_left",
+  "cap_right",
+  "tee_up",
+  "tee_down",
+  "tee_left",
+  "tee_right",
   "cross"
 ];
-
 for (const name of PATH_NAMES) {
   pathImgs[name] = new Image();
   pathReady[name] = false;
@@ -257,16 +268,16 @@ function drawEngravedMaze() {
 
   ctx.restore();
 }
-function isWalkable(x, y) {
+function isPath(x, y) {
   if (x < 0 || y < 0 || x >= state.cols || y >= state.rows) return false;
-  return state.grid[y][x] !== 1;
+  return state.grid[y][x] === 1;
 }
 
 function getPathSpriteName(x, y) {
-  const up = isWalkable(x, y - 1);
-  const down = isWalkable(x, y + 1);
-  const left = isWalkable(x - 1, y);
-  const right = isWalkable(x + 1, y);
+  const up = isPath(x, y - 1);
+  const down = isPath(x, y + 1);
+  const left = isPath(x - 1, y);
+  const right = isPath(x + 1, y);
 
   const count = [up, down, left, right].filter(Boolean).length;
 
@@ -280,8 +291,14 @@ function getPathSpriteName(x, y) {
   }
 
   if (count === 2) {
-    if (left && right) return "h";
-    if (up && down) return "v";
+    if (left && right) {
+      return up ? "h_top" : "h_bottom";
+    }
+
+    if (up && down) {
+      return left ? "v_left" : "v_right";
+    }
+
     if (up && right) return "corner_tr";
     if (up && left) return "corner_tl";
     if (down && right) return "corner_br";
@@ -295,7 +312,6 @@ function getPathSpriteName(x, y) {
     if (right) return "cap_right";
   }
 
-  // isolated single cell fallback
   return "cross";
 }
 function drawFloor() {
