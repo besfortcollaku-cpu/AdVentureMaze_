@@ -74,11 +74,6 @@ const PATH_NAMES = [
   "tee_right",
   "cross"
 ];
-for (const name of PATH_NAMES) {
-  pathImgs[name] = new Image();
-  pathReady[name] = false;
-  pathImgs[name].onload = () => (pathReady[name] = true);
-}
 
 for (const name of PATH_NAMES) {
   pathImgs[name] = new Image();
@@ -289,6 +284,34 @@ function getPathSpriteName(x, y) {
     if (!left) return "tee_left";
     if (!right) return "tee_right";
   }
+
+  if (count === 2) {
+    // straight horizontal
+    if (left && right) {
+      return down ? "h_top" : "h_bottom";
+    }
+
+    // straight vertical
+    if (up && down) {
+      return right ? "v_left" : "v_right";
+    }
+
+    // corners: named by OUTSIDE stone corner
+    if (right && down) return "corner_tl";
+    if (left && down) return "corner_tr";
+    if (right && up) return "corner_bl";
+    if (left && up) return "corner_br";
+  }
+
+  if (count === 1) {
+    if (up) return "cap_up";
+    if (down) return "cap_down";
+    if (left) return "cap_left";
+    if (right) return "cap_right";
+  }
+
+  return "cross";
+}
 
   if (count === 2) {
     if (left && right) {
