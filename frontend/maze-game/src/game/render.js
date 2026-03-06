@@ -851,7 +851,7 @@ resize();
   drawBoardAndEngrave();
   drawBall(playerFloat);
 drawEngravedOverlay();
-drawBall(...);
+drawBall();
 drawWallShadow();
 drawWalls();
   // Engraved-only style (no block walls). Re-enable if needed:
