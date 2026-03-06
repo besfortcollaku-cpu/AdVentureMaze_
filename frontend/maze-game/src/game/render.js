@@ -279,6 +279,99 @@ function drawEngravedPath() {
 
   ctx.restore();
 }
+function buildMazePath() {
+  const r = tile * 0.42;
+
+  ctx.beginPath();
+
+  for (let y = 0; y < state.grid.length; y++) {
+    for (let x = 0; x < state.grid[y].length; x++) {
+      const cell = state.grid[y][x];
+
+      // 1 = wall, everything else = walkable path
+      if (cell === 1) continue;
+
+      const px = ox + x * tile;
+      const py = oy + y * tile;
+      const cx = px + tile / 2;
+      const cy = py + tile / 2;
+
+      // rounded node
+      ctx.moveTo(cx + r, cy);
+      ctx.arc(cx, cy, r, 0, Math.PI * 2);
+
+      // connect to right neighbor
+      if (x < state.grid[y].length - 1 && state.grid[y][x + 1] !== 1) {
+        ctx.rect(cx, cy - r, tile, r * 2);
+      }
+
+      // connect to bottom neighbor
+      if (y < state.grid.length - 1 && state.grid[y + 1][x] !== 1) {
+        ctx.rect(cx - r, cy, r * 2, tile);
+      }
+    }
+  }
+}
+function drawEngravedMaze() {
+  const boardW = state.grid[0].length * tile;
+  const boardH = state.grid.length * tile;
+
+  ctx.save();
+
+  // base trench
+  buildMazePath();
+  ctx.fillStyle = "rgba(0,0,0,0.32)";
+  ctx.fill();
+
+  // clip everything else to path only
+  buildMazePath();
+  ctx.clip();
+
+  // cavity shadow
+  const cavity = ctx.createRadialGradient(
+    ox + boardW * 0.45,
+    oy + boardH * 0.42,
+    tile * 0.2,
+    ox + boardW * 0.5,
+    oy + boardH * 0.5,
+    Math.max(boardW, boardH) * 0.8
+  );
+  cavity.addColorStop(0, "rgba(0,0,0,0)");
+  cavity.addColorStop(0.65, "rgba(0,0,0,0.10)");
+  cavity.addColorStop(1, "rgba(0,0,0,0.28)");
+  ctx.fillStyle = cavity;
+  ctx.fillRect(ox, oy, boardW, boardH);
+
+  // top highlight
+  const hiTop = ctx.createLinearGradient(0, oy, 0, oy + tile);
+  hiTop.addColorStop(0, "rgba(255,255,255,0.18)");
+  hiTop.addColorStop(1, "rgba(255,255,255,0)");
+  ctx.fillStyle = hiTop;
+  ctx.fillRect(ox, oy, boardW, boardH);
+
+  // left highlight
+  const hiLeft = ctx.createLinearGradient(ox, 0, ox + tile, 0);
+  hiLeft.addColorStop(0, "rgba(255,255,255,0.10)");
+  hiLeft.addColorStop(1, "rgba(255,255,255,0)");
+  ctx.fillStyle = hiLeft;
+  ctx.fillRect(ox, oy, boardW, boardH);
+
+  // bottom shadow
+  const shBottom = ctx.createLinearGradient(0, oy + boardH - tile, 0, oy + boardH);
+  shBottom.addColorStop(0, "rgba(0,0,0,0)");
+  shBottom.addColorStop(1, "rgba(0,0,0,0.30)");
+  ctx.fillStyle = shBottom;
+  ctx.fillRect(ox, oy, boardW, boardH);
+
+  // right shadow
+  const shRight = ctx.createLinearGradient(ox + boardW - tile, 0, ox + boardW, 0);
+  shRight.addColorStop(0, "rgba(0,0,0,0)");
+  shRight.addColorStop(1, "rgba(0,0,0,0.24)");
+  ctx.fillStyle = shRight;
+  ctx.fillRect(ox, oy, boardW, boardH);
+
+  ctx.restore();
+}
 function buildPathShape() {
   const r = tile * 0.42;
 
@@ -386,33 +479,7 @@ function drawEngravedPath() {
   ctx.restore();
 }
 function drawFloor() {
-  drawEngravedPath();
-
-  if (contactFlash) {
-    const age = performance.now() - contactFlash.time;
-
-    if (age < 220) {
-      const cx = ox + contactFlash.x * tile + tile / 2;
-      const cy = oy + contactFlash.y * tile + tile / 2;
-
-      let color = "rgba(160,220,255,";
-      const theme = getTheme();
-      if (theme === "forest") color = "rgba(140,255,180,";
-      else if (theme === "lava") color = "rgba(255,170,120,";
-
-      const alpha = 0.35 * (1 - age / 220);
-
-      ctx.save();
-      ctx.globalCompositeOperation = "lighter";
-      ctx.fillStyle = `${color}${alpha})`;
-      ctx.beginPath();
-      ctx.arc(cx, cy, tile * 0.35, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.restore();
-    } else {
-      contactFlash = null;
-    }
-  }
+  drawEngravedMaze();
 }
 function drawCrystalShard(x, y, angle, size, alpha, hueShift = 0) {
   ctx.save();
@@ -703,31 +770,12 @@ window.addEventListener("resize", resize);
 resize();
 
   function render(playerFloat) {
-  ctx.clearRect(0, 0, w, h);
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // ── CAMERA SHAKE APPLY
-  if (shakeTime > 0) {
-    const sx = (Math.random() - 0.5) * shakeStrength;
-    const sy = (Math.random() - 0.5) * shakeStrength;
-    ctx.save();
-    ctx.translate(sx, sy);
-    shakeTime--;
-  }
-
+  drawBackground();
   drawFloor();
-  drawEngravedPath();
   drawBall(playerFloat);
-  //drawWallShadow();
-  //drawWalls();
-
-  if (shakeTime > 0) {
-    ctx.restore();
-  }
-
-  }
-  onThemeChange(() => {
-    applyThemeAssets();
-  });
+}
 
 
   return { resize, render };
