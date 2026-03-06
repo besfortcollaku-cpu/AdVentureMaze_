@@ -151,288 +151,85 @@ ballImg.onload = () => (ballReady = true);
   // DRAW
   // ======================
   
+
 function buildPathShape() {
-  const r = tile * 0.42;
-  const grid = state.grid;
-
-  ctx.beginPath();
-
-  for (let y = 0; y < grid.length; y++) {
-    for (let x = 0; x < grid[y].length; x++) {
-      if (grid[y][x] === 1) continue;
-
-      const px = ox + x * tile;
-      const py = oy + y * tile;
-      const cx = px + tile / 2;
-      const cy = py + tile / 2;
-
-      ctx.moveTo(cx + r, cy);
-      ctx.arc(cx, cy, r, 0, Math.PI * 2);
-
-      if (x < grid[y].length - 1 && grid[y][x + 1] !== 1) {
-        ctx.rect(cx, cy - r, tile, r * 2);
-      }
-
-      if (y < grid.length - 1 && grid[y + 1][x] !== 1) {
-        ctx.rect(cx - r, cy, r * 2, tile);
-      }
-    }
-  }
-}
-
-function drawEngravedPath() {
-  ctx.save();
-
-  // build path shape
-  buildPathShape();
-
-  // base trench color
-  ctx.fillStyle = "rgba(0,0,0,0.42)";
-  ctx.fill();
-
-  // clip so effects affect ONLY the path
-  buildPathShape();
-  ctx.clip();
-
-  // top highlight
-  const hi = ctx.createLinearGradient(0, oy, 0, oy + tile * 0.8);
-  hi.addColorStop(0, "rgba(255,255,255,0.18)");
-  hi.addColorStop(1, "rgba(255,255,255,0)");
-  ctx.fillStyle = hi;
-  ctx.fillRect(ox, oy, state.cols * tile, state.rows * tile);
-
-  // left highlight
-  const hi2 = ctx.createLinearGradient(ox, 0, ox + tile * 0.8, 0);
-  hi2.addColorStop(0, "rgba(255,255,255,0.12)");
-  hi2.addColorStop(1, "rgba(255,255,255,0)");
-  ctx.fillStyle = hi2;
-  ctx.fillRect(ox, oy, state.cols * tile, state.rows * tile);
-
-  // bottom shadow
-  const sh = ctx.createLinearGradient(
-    0,
-    oy + state.rows * tile - tile * 0.8,
-    0,
-    oy + state.rows * tile
-  );
-  sh.addColorStop(0, "rgba(0,0,0,0)");
-  sh.addColorStop(1, "rgba(0,0,0,0.35)");
-  ctx.fillStyle = sh;
-  ctx.fillRect(ox, oy, state.cols * tile, state.rows * tile);
-
-  // right shadow
-  const sh2 = ctx.createLinearGradient(
-    ox + state.cols * tile - tile * 0.8,
-    0,
-    ox + state.cols * tile,
-    0
-  );
-  sh2.addColorStop(0, "rgba(0,0,0,0)");
-  sh2.addColorStop(1, "rgba(0,0,0,0.28)");
-  ctx.fillStyle = sh2;
-  ctx.fillRect(ox, oy, state.cols * tile, state.rows * tile);
-
-  ctx.restore();
-}
-function buildMazePath() {
-  const r = tile * 0.42;
+  const r = tile * 0.38;
 
   ctx.beginPath();
 
   for (let y = 0; y < state.grid.length; y++) {
     for (let x = 0; x < state.grid[y].length; x++) {
-      const cell = state.grid[y][x];
+      if (state.grid[y][x] === 1) continue;
 
-      // 1 = wall, everything else = walkable path
-      if (cell === 1) continue;
+      const cx = ox + x * tile + tile / 2;
+      const cy = oy + y * tile + tile / 2;
 
-      const px = ox + x * tile;
-      const py = oy + y * tile;
-      const cx = px + tile / 2;
-      const cy = py + tile / 2;
-
-      // rounded node
       ctx.moveTo(cx + r, cy);
       ctx.arc(cx, cy, r, 0, Math.PI * 2);
 
-      // connect to right neighbor
-      if (x < state.grid[y].length - 1 && state.grid[y][x + 1] !== 1) {
+      if (x < state.cols - 1 && state.grid[y][x + 1] !== 1) {
         ctx.rect(cx, cy - r, tile, r * 2);
       }
 
-      // connect to bottom neighbor
-      if (y < state.grid.length - 1 && state.grid[y + 1][x] !== 1) {
+      if (y < state.rows - 1 && state.grid[y + 1][x] !== 1) {
         ctx.rect(cx - r, cy, r * 2, tile);
       }
     }
   }
 }
+
 function drawEngravedMaze() {
   const boardW = state.cols * tile;
   const boardH = state.rows * tile;
 
   ctx.save();
 
-  // base trench
   buildPathShape();
-  ctx.fillStyle = "rgba(0,0,0,0.34)";
+  ctx.fillStyle = "rgba(0,0,0,0.28)";
   ctx.fill();
 
-  // clip all lighting to trench only
   buildPathShape();
   ctx.clip();
 
-  // cavity shadow
-  const cavity = ctx.createRadialGradient(
-    ox + boardW * 0.45,
-    oy + boardH * 0.42,
+  const shadow = ctx.createRadialGradient(
+    ox + boardW * 0.5,
+    oy + boardH * 0.45,
     tile * 0.2,
     ox + boardW * 0.5,
     oy + boardH * 0.5,
-    Math.max(boardW, boardH) * 0.8
+    boardW
   );
-  cavity.addColorStop(0, "rgba(0,0,0,0)");
-  cavity.addColorStop(0.65, "rgba(0,0,0,0.10)");
-  cavity.addColorStop(1, "rgba(0,0,0,0.28)");
-  ctx.fillStyle = cavity;
+
+  shadow.addColorStop(0, "rgba(0,0,0,0)");
+  shadow.addColorStop(0.7, "rgba(0,0,0,0.12)");
+  shadow.addColorStop(1, "rgba(0,0,0,0.25)");
+
+  ctx.fillStyle = shadow;
   ctx.fillRect(ox, oy, boardW, boardH);
 
-  // top highlight
-  const hiTop = ctx.createLinearGradient(0, oy, 0, oy + tile);
-  hiTop.addColorStop(0, "rgba(255,255,255,0.18)");
-  hiTop.addColorStop(1, "rgba(255,255,255,0)");
-  ctx.fillStyle = hiTop;
+  const topLight = ctx.createLinearGradient(0, oy, 0, oy + tile);
+  topLight.addColorStop(0, "rgba(255,255,255,0.15)");
+  topLight.addColorStop(1, "rgba(255,255,255,0)");
+
+  ctx.fillStyle = topLight;
   ctx.fillRect(ox, oy, boardW, boardH);
 
-  // left highlight
-  const hiLeft = ctx.createLinearGradient(ox, 0, ox + tile, 0);
-  hiLeft.addColorStop(0, "rgba(255,255,255,0.10)");
-  hiLeft.addColorStop(1, "rgba(255,255,255,0)");
-  ctx.fillStyle = hiLeft;
-  ctx.fillRect(ox, oy, boardW, boardH);
-
-  // bottom shadow
-  const shBottom = ctx.createLinearGradient(0, oy + boardH - tile, 0, oy + boardH);
-  shBottom.addColorStop(0, "rgba(0,0,0,0)");
-  shBottom.addColorStop(1, "rgba(0,0,0,0.30)");
-  ctx.fillStyle = shBottom;
-  ctx.fillRect(ox, oy, boardW, boardH);
-
-  // right shadow
-  const shRight = ctx.createLinearGradient(ox + boardW - tile, 0, ox + boardW, 0);
-  shRight.addColorStop(0, "rgba(0,0,0,0)");
-  shRight.addColorStop(1, "rgba(0,0,0,0.24)");
-  ctx.fillStyle = shRight;
-  ctx.fillRect(ox, oy, boardW, boardH);
-
-  ctx.restore();
-}
-function buildPathShape() {
-  const r = tile * 0.42;
-
-  ctx.beginPath();
-
-  for (let y = 0; y < state.grid.length; y++) {
-    for (let x = 0; x < state.grid[y].length; x++) {
-      const cell = state.grid[y][x];
-      if (cell === 1) continue;
-
-      const px = ox + x * tile;
-      const py = oy + y * tile;
-      const cx = px + tile / 2;
-      const cy = py + tile / 2;
-
-      ctx.moveTo(cx + r, cy);
-      ctx.arc(cx, cy, r, 0, Math.PI * 2);
-
-      if (x < state.grid[y].length - 1 && state.grid[y][x + 1] !== 1) {
-        ctx.rect(cx, cy - r, tile, r * 2);
-      }
-
-      if (y < state.grid.length - 1 && state.grid[y + 1][x] !== 1) {
-        ctx.rect(cx - r, cy, r * 2, tile);
-      }
-    }
-  }
-}
-
-function drawEngravedPath() {
-  ctx.save();
-
-  // 1) Base trench fill
-  buildPathShape();
-  ctx.fillStyle = "rgba(0,0,0,0.34)";
-  ctx.fill();
-
-  // 2) Clip all next effects to path only
-  buildPathShape();
-  ctx.clip();
-
-  const boardW = state.cols * tile;
-  const boardH = state.rows * tile;
-
-  // 3) Soft ambient cavity shadow
-  const cavity = ctx.createRadialGradient(
-    ox + boardW * 0.45,
-    oy + boardH * 0.40,
-    tile * 0.2,
-    ox + boardW * 0.5,
-    oy + boardH * 0.5,
-    Math.max(boardW, boardH) * 0.75
-  );
-  cavity.addColorStop(0, "rgba(0,0,0,0)");
-  cavity.addColorStop(0.65, "rgba(0,0,0,0.08)");
-  cavity.addColorStop(1, "rgba(0,0,0,0.22)");
-  ctx.fillStyle = cavity;
-  ctx.fillRect(ox, oy, boardW, boardH);
-
-  // 4) Top highlight
-  const hiTop = ctx.createLinearGradient(0, oy, 0, oy + tile * 0.9);
-  hiTop.addColorStop(0, "rgba(255,255,255,0.22)");
-  hiTop.addColorStop(0.6, "rgba(255,255,255,0.07)");
-  hiTop.addColorStop(1, "rgba(255,255,255,0)");
-  ctx.fillStyle = hiTop;
-  ctx.fillRect(ox, oy, boardW, boardH);
-
-  // 5) Left highlight
-  const hiLeft = ctx.createLinearGradient(ox, 0, ox + tile * 0.9, 0);
-  hiLeft.addColorStop(0, "rgba(255,255,255,0.14)");
-  hiLeft.addColorStop(1, "rgba(255,255,255,0)");
-  ctx.fillStyle = hiLeft;
-  ctx.fillRect(ox, oy, boardW, boardH);
-
-  // 6) Bottom shadow
-  const shBot = ctx.createLinearGradient(
+  const bottomShadow = ctx.createLinearGradient(
     0,
-    oy + boardH - tile * 0.9,
+    oy + boardH - tile,
     0,
     oy + boardH
   );
-  shBot.addColorStop(0, "rgba(0,0,0,0)");
-  shBot.addColorStop(1, "rgba(0,0,0,0.34)");
-  ctx.fillStyle = shBot;
-  ctx.fillRect(ox, oy, boardW, boardH);
 
-  // 7) Right shadow
-  const shRight = ctx.createLinearGradient(
-    ox + boardW - tile * 0.9,
-    0,
-    ox + boardW,
-    0
-  );
-  shRight.addColorStop(0, "rgba(0,0,0,0)");
-  shRight.addColorStop(1, "rgba(0,0,0,0.28)");
-  ctx.fillStyle = shRight;
-  ctx.fillRect(ox, oy, boardW, boardH);
+  bottomShadow.addColorStop(0, "rgba(0,0,0,0)");
+  bottomShadow.addColorStop(1, "rgba(0,0,0,0.28)");
 
-  // 8) Subtle inner glossy line to sharpen bevel
-  buildPathShape();
-  ctx.strokeStyle = "rgba(255,255,255,0.08)";
-  ctx.lineWidth = Math.max(1, tile * 0.04);
-  ctx.stroke();
+  ctx.fillStyle = bottomShadow;
+  ctx.fillRect(ox, oy, boardW, boardH);
 
   ctx.restore();
 }
+
 function drawFloor() {
   drawEngravedMaze();
 
