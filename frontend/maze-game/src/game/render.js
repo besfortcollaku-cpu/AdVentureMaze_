@@ -265,7 +265,7 @@ function drawEngravedMaze() {
 }
 function isPath(x, y) {
   if (x < 0 || y < 0 || x >= state.cols || y >= state.rows) return false;
-  return state.grid[y][x] === 1;
+  return state.grid[y][x] === 0;
 }
 
 function getPathSpriteName(x, y) {
@@ -313,10 +313,11 @@ function getPathSpriteName(x, y) {
   return "cross";
 }
 
+  if
 function drawFloor() {
   for (let y = 0; y < state.rows; y++) {
     for (let x = 0; x < state.cols; x++) {
-      if (!isPath(x, y)) continue;
+      if (state.grid[y][x] === 1) continue;
 
       const px = ox + x * tile;
       const py = oy + y * tile;
