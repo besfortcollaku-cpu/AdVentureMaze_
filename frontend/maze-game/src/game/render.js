@@ -463,6 +463,10 @@ if (contactFlash) {
 }
 
 function buildEngraveMask() {
+    if (!state || !state.grid || !state.rows || !state.cols) {
+  engraveDirty = false;
+  return;
+}
   engraveCtx.clearRect(0, 0, engraveMask.width, engraveMask.height);
   engraveCtx.fillStyle = "#fff";
 
@@ -514,11 +518,13 @@ function drawEngravedOverlay() {
   if (engraveDirty) buildEngraveMask();
 
   // Tune per theme if you want
-  const theme = getTheme();
-  let carveTint = "rgba(0,0,0,0.28)";
-  if (theme === "forest") carveTint = "rgba(0,0,0,0.25)";
-  if (theme === "lava") carveTint = "rgba(0,0,0,0.32)";
-  if (theme === "ice") carveTint = "rgba(0,0,0,0.22)";
+  let carveTint = "rgba(0,0,0,0.28)"; // default
+const theme =
+  (state && (state.theme || state.currentTheme || state.themeName)) || "forest";
+
+if (theme === "forest") carveTint = "rgba(0,0,0,0.25)";
+if (theme === "lava")   carveTint = "rgba(0,0,0,0.32)";
+if (theme === "ice")    carveTint = "rgba(0,0,0,0.22)";
 
   // 1) Recess darkening (masked)
   ctx.save();
@@ -850,10 +856,13 @@ resize();
   drawFloor();
   drawBoardAndEngrave();
   drawBall(playerFloat);
-drawEngravedOverlay();
-drawBall();
-drawWallShadow();
-drawWalls();
+try {
+  drawEngravedOverlay();
+} catch (e) {
+  // prevent renderer errors from crashing the whole app
+  // optional: console.error(e);
+}  drawWallShadow();
+  drawWalls();
   // Engraved-only style (no block walls). Re-enable if needed:
   // drawWallShadow();
   // drawWalls();
