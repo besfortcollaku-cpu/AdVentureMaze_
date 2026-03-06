@@ -74,12 +74,12 @@ const PATH_NAMES = [
   "tee_right",
   "cross"
 ];
-
 for (const name of PATH_NAMES) {
   pathImgs[name] = new Image();
   pathReady[name] = false;
   pathImgs[name].onload = () => (pathReady[name] = true);
 }
+
 
 function applyThemeAssets() {
   const theme = getTheme();
