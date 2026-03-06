@@ -167,55 +167,63 @@ function drawWallShadow(px, py) {
   ctx.restore();
 }
 function drawEngravedTile(px, py, done = false) {
-  const inset = tile * 0.08;
+  const bevel = Math.max(2, tile * 0.12);
 
-  // deeper recessed fill
-  const fill = ctx.createLinearGradient(px, py, px, py + tile);
-  fill.addColorStop(0, done ? "rgba(180,255,210,0.18)" : "rgba(255,255,255,0.06)");
-  fill.addColorStop(0.35, done ? "rgba(40,120,70,0.35)" : "rgba(0,0,0,0.28)");
-  fill.addColorStop(1, done ? "rgba(0,0,0,0.45)" : "rgba(0,0,0,0.40)");
-
-  ctx.fillStyle = fill;
+  // 1) Deep recessed base
+  const base = ctx.createLinearGradient(px, py, px, py + tile);
+  base.addColorStop(0, done ? "rgba(90,170,110,0.20)" : "rgba(70,90,70,0.18)");
+  base.addColorStop(0.35, done ? "rgba(25,55,30,0.48)" : "rgba(15,20,15,0.50)");
+  base.addColorStop(1, done ? "rgba(0,0,0,0.72)" : "rgba(0,0,0,0.78)");
+  ctx.fillStyle = base;
   ctx.fillRect(px, py, tile, tile);
 
-  // strong highlight edge
-  ctx.strokeStyle = done
-    ? "rgba(200,255,220,0.45)"
-    : "rgba(255,255,255,0.28)";
-  ctx.lineWidth = Math.max(1.5, tile * 0.09);
-  ctx.beginPath();
-  ctx.moveTo(px + inset, py + tile - inset);
-  ctx.lineTo(px + inset, py + inset);
-  ctx.lineTo(px + tile - inset, py + inset);
-  ctx.stroke();
+  // 2) Strong top-left bevel highlight
+  const topGrad = ctx.createLinearGradient(px, py, px, py + bevel);
+  topGrad.addColorStop(0, done ? "rgba(220,255,230,0.42)" : "rgba(255,255,255,0.30)");
+  topGrad.addColorStop(1, "rgba(255,255,255,0)");
+  ctx.fillStyle = topGrad;
+  ctx.fillRect(px, py, tile, bevel);
 
-  // strong shadow edge
-  ctx.strokeStyle = done
-    ? "rgba(0,30,15,0.65)"
-    : "rgba(0,0,0,0.55)";
-  ctx.beginPath();
-  ctx.moveTo(px + tile - inset, py + inset);
-  ctx.lineTo(px + tile - inset, py + tile - inset);
-  ctx.lineTo(px + inset, py + tile - inset);
-  ctx.stroke();
+  const leftGrad = ctx.createLinearGradient(px, py, px + bevel, py);
+  leftGrad.addColorStop(0, done ? "rgba(220,255,230,0.36)" : "rgba(255,255,255,0.24)");
+  leftGrad.addColorStop(1, "rgba(255,255,255,0)");
+  ctx.fillStyle = leftGrad;
+  ctx.fillRect(px, py, bevel, tile);
 
-  // deeper center shadow
-  const inner = ctx.createRadialGradient(
-    px + tile * 0.5,
-    py + tile * 0.45,
-    tile * 0.1,
+  // 3) Strong bottom-right shadow bevel
+  const bottomGrad = ctx.createLinearGradient(px, py + tile - bevel, px, py + tile);
+  bottomGrad.addColorStop(0, "rgba(0,0,0,0)");
+  bottomGrad.addColorStop(1, done ? "rgba(0,20,10,0.55)" : "rgba(0,0,0,0.60)");
+  ctx.fillStyle = bottomGrad;
+  ctx.fillRect(px, py + tile - bevel, tile, bevel);
+
+  const rightGrad = ctx.createLinearGradient(px + tile - bevel, py, px + tile, py);
+  rightGrad.addColorStop(0, "rgba(0,0,0,0)");
+  rightGrad.addColorStop(1, done ? "rgba(0,20,10,0.50)" : "rgba(0,0,0,0.58)");
+  ctx.fillStyle = rightGrad;
+  ctx.fillRect(px + tile - bevel, py, bevel, tile);
+
+  // 4) Soft inner cavity shadow
+  const cavity = ctx.createRadialGradient(
+    px + tile * 0.42,
+    py + tile * 0.40,
+    tile * 0.08,
     px + tile * 0.5,
     py + tile * 0.5,
-    tile * 0.7
+    tile * 0.72
   );
-
-  inner.addColorStop(0, "rgba(0,0,0,0)");
-  inner.addColorStop(1, done ? "rgba(0,0,0,0.35)" : "rgba(0,0,0,0.45)");
-
-  ctx.fillStyle = inner;
+  cavity.addColorStop(0, "rgba(0,0,0,0)");
+  cavity.addColorStop(0.7, "rgba(0,0,0,0.10)");
+  cavity.addColorStop(1, done ? "rgba(0,0,0,0.26)" : "rgba(0,0,0,0.34)");
+  ctx.fillStyle = cavity;
   ctx.fillRect(px, py, tile, tile);
-  ctx.fillStyle = "rgba(0,0,0,0.25)";
-ctx.fillRect(px, py + tile * 0.75, tile, tile * 0.25);
+
+  // 5) Very subtle glossy rim to sell depth
+  ctx.strokeStyle = done
+    ? "rgba(210,255,225,0.18)"
+    : "rgba(255,255,255,0.12)";
+  ctx.lineWidth = Math.max(1, tile * 0.035);
+  ctx.strokeRect(px + 1, py + 1, tile - 2, tile - 2);
 }
 function drawEngravedPath() {
   const r = tile * 0.34;
@@ -304,7 +312,7 @@ function drawEngravedPath() {
 function drawFloor() {
   const grid = state.grid;
   const theme = getTheme();
-    const now = performance.now();
+  const now = performance.now();
 
   let tint = null;
   if (theme === "forest") {
@@ -314,117 +322,103 @@ function drawFloor() {
   }
 
   for (let y = 0; y < grid.length; y++) {
-  for (let x = 0; x < grid[y].length; x++) {
-    // make walls fully transparent
-    if (grid[y][x] === 1) continue;
+    for (let x = 0; x < grid[y].length; x++) {
+      // walls fully transparent
+      if (grid[y][x] === 1) continue;
 
-    const px = ox + x * tile;
-    const py = oy + y * tile;
+      const px = ox + x * tile;
+      const py = oy + y * tile;
+      const done = state.isPainted(x, y);
 
-      // base fallback
-      ctx.fillStyle = "#0f1c33";
-      ctx.fillRect(px, py, tile, tile);
+      // draw carved / beveled tile instead of floor image
+      drawEngravedTile(px, py, done);
 
-      // choose image based on path state
-      if (state.isPainted(x, y)) {
-        // 🔹 PATH COMPLETED TILE
-        if (floorDoneReady) {
-  //ctx.drawImage(floorDoneImg, px, py, tile, tile);
-  // ── subtle done-floor glow animation
-  const pulse =
-    0.12 + Math.sin(now * 0.002 + x * 0.4 + y * 0.4) * 0.06;
+      // optional theme tint on top of bevel
+      if (tint) {
+        ctx.save();
+        ctx.globalCompositeOperation = "multiply";
+        ctx.fillStyle = tint;
+        ctx.fillRect(px, py, tile, tile);
+        ctx.restore();
+      }
 
-  ctx.save();
-  ctx.globalCompositeOperation = "screen";
-  ctx.fillStyle = `rgba(255,255,255,${pulse})`;
-  ctx.fillRect(px, py, tile, tile);
-  ctx.restore();
-}
-         else if (floorReady) {
-         // ctx.drawImage(floorImg, px, py, tile, tile);
-          if (tint) {
-  ctx.save();
-  ctx.globalCompositeOperation = "multiply";
-  ctx.fillStyle = tint;
-  ctx.fillRect(px, py, tile, tile);
-  ctx.restore();
-}   }
+      if (done) {
+        // subtle completed-tile glow
+        const pulse =
+          0.12 + Math.sin(now * 0.002 + x * 0.4 + y * 0.4) * 0.06;
+
+        ctx.save();
+        ctx.globalCompositeOperation = "screen";
+        ctx.fillStyle = `rgba(255,255,255,${pulse})`;
+        ctx.fillRect(px, py, tile, tile);
+        ctx.restore();
       } else {
-        // 🔹 NORMAL TILE
-        if (floorReady) {
-          ctx.drawImage(floorImg, px, py, tile, tile);
-          if (tint) {
-  ctx.fillStyle = tint;
-  ctx.fillRect(px, py, tile, tile);
-}
-          // ── CRYSTAL SUBSURFACE LIGHT (cheap + elegant)
-const t = performance.now() * 0.001;
-const pulse = 0.5 + Math.sin(t + x * 0.8 + y * 0.6) * 0.5;
+        // crystal/light effect for normal walkable tile
+        const t = now * 0.001;
+        const pulse = 0.5 + Math.sin(t + x * 0.8 + y * 0.6) * 0.5;
 
-ctx.fillStyle = `rgba(120,200,255,${0.06 + pulse * 0.04})`;
-ctx.fillRect(
-  px + tile * 0.18,
-  py + tile * 0.18,
-  tile * 0.64,
-  tile * 0.64
-);
-// ── CRYSTAL FRACTURE LINES (static, elegant)
-ctx.save();
-ctx.globalAlpha = 0.18;
-ctx.strokeStyle = "rgba(220,240,255,0.8)";
-ctx.lineWidth = 1;
+        ctx.fillStyle = `rgba(120,200,255,${0.06 + pulse * 0.04})`;
+        ctx.fillRect(
+          px + tile * 0.18,
+          py + tile * 0.18,
+          tile * 0.64,
+          tile * 0.64
+        );
 
-ctx.beginPath();
+        // fracture lines
+        ctx.save();
+        ctx.globalAlpha = 0.18;
+        ctx.strokeStyle = "rgba(220,240,255,0.8)";
+        ctx.lineWidth = 1;
 
-// pseudo-random but stable per tile
-const seed = (x * 928371 + y * 123457) % 1000;
-const fx = px + tile * (0.2 + (seed % 7) * 0.08);
-const fy = py + tile * (0.2 + ((seed >> 3) % 7) * 0.08);
+        ctx.beginPath();
 
-ctx.moveTo(fx, fy);
-ctx.lineTo(
-  fx + tile * (0.25 + ((seed >> 1) % 5) * 0.08),
-  fy + tile * (0.15 + ((seed >> 2) % 5) * 0.08)
-);
+        const seed = (x * 928371 + y * 123457) % 1000;
+        const fx = px + tile * (0.2 + (seed % 7) * 0.08);
+        const fy = py + tile * (0.2 + ((seed >> 3) % 7) * 0.08);
 
-ctx.stroke();
-ctx.restore();
-        }
+        ctx.moveTo(fx, fy);
+        ctx.lineTo(
+          fx + tile * (0.25 + ((seed >> 1) % 5) * 0.08),
+          fy + tile * (0.15 + ((seed >> 2) % 5) * 0.08)
+        );
+
+        ctx.stroke();
+        ctx.restore();
       }
     }
   }
-  // ── CONTACT FLASH RENDER
-if (contactFlash) {
-  const age = performance.now() - contactFlash.time;
 
-  if (age < 220) {
-    const cx = ox + contactFlash.x * tile + tile / 2;
-    const cy = oy + contactFlash.y * tile + tile / 2;
+  // contact flash render
+  if (contactFlash) {
+    const age = performance.now() - contactFlash.time;
 
-    const theme = getTheme();
+    if (age < 220) {
+      const cx = ox + contactFlash.x * tile + tile / 2;
+      const cy = oy + contactFlash.y * tile + tile / 2;
 
-    let color = "rgba(160,220,255,"; // ice
-    if (theme === "forest") {
-      color = "rgba(140,255,180,";
-    } else if (theme === "lava") {
-      color = "rgba(255,170,120,";
+      let color = "rgba(160,220,255,"; // ice
+      if (theme === "forest") {
+        color = "rgba(140,255,180,";
+      } else if (theme === "lava") {
+        color = "rgba(255,170,120,";
+      }
+
+      const alpha = 0.35 * (1 - age / 220);
+
+      ctx.save();
+      ctx.globalCompositeOperation = "lighter";
+      ctx.fillStyle = `${color}${alpha})`;
+
+      ctx.beginPath();
+      ctx.arc(cx, cy, tile * 0.35, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.restore();
+    } else {
+      contactFlash = null;
     }
-
-    const alpha = 0.35 * (1 - age / 220);
-
-    ctx.save();
-    ctx.globalCompositeOperation = "lighter";
-    ctx.fillStyle = `${color}${alpha})`;
-
-    ctx.beginPath();
-    ctx.arc(cx, cy, tile * 0.35, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.restore();
-  } else {
-    contactFlash = null;
   }
-}
 }
 function drawCrystalShard(x, y, angle, size, alpha, hueShift = 0) {
   ctx.save();
