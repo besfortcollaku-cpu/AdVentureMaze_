@@ -69,6 +69,12 @@ for (const name of PATH_NAMES) {
   pathImgs[name].onload = () => (pathReady[name] = true);
 }
 
+for (const name of PATH_NAMES) {
+  pathImgs[name] = new Image();
+  pathReady[name] = false;
+  pathImgs[name].onload = () => (pathReady[name] = true);
+}
+
 function applyThemeAssets() {
   const theme = getTheme();
 
@@ -86,19 +92,12 @@ function applyThemeAssets() {
   wallImg.src = base + "";
   ballImg.src = base + "ball.png";
 
-  // PATH SPRITES
   const pathBase = base + "path/";
 
   for (const name of PATH_NAMES) {
     pathReady[name] = false;
     pathImgs[name].src = pathBase + name + ".png";
   }
-
-const pathBase = base + "path/";
-for (const name of PATH_NAMES) {
-  pathReady[name] = false;
-  pathImgs[name].src = pathBase + name + ".png";
-}
 }
   // FLOOR TILE
   const floorImg = new Image();
