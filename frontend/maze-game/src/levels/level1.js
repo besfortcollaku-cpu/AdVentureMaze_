@@ -8,7 +8,7 @@ export const level1 = {
 
   zoom: 0.92, // slightly zoomed-out (bigger maze feel)
 
-  start: { x: 1, y: 1 },
+  start: { x: 0, y: 0 },
 
 
 
@@ -18,7 +18,7 @@ export const level1 = {
 
 
 [0,0,0,0,0,0,0],
-[0,0,1,1,1,1,0],
+[0,1,1,1,1,1,0],
 [0,1,1,1,1,1,0],
 [0,1,1,1,1,1,0],
 [0,1,1,1,1,1,0],
