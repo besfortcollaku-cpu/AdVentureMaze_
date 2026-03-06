@@ -329,7 +329,7 @@ function drawFloor() {
       if (state.isPainted(x, y)) {
         // 🔹 PATH COMPLETED TILE
         if (floorDoneReady) {
-  ctx.drawImage(floorDoneImg, px, py, tile, tile);
+  //ctx.drawImage(floorDoneImg, px, py, tile, tile);
   // ── subtle done-floor glow animation
   const pulse =
     0.12 + Math.sin(now * 0.002 + x * 0.4 + y * 0.4) * 0.06;
@@ -341,7 +341,7 @@ function drawFloor() {
   ctx.restore();
 }
          else if (floorReady) {
-          ctx.drawImage(floorImg, px, py, tile, tile);
+         // ctx.drawImage(floorImg, px, py, tile, tile);
           if (tint) {
   ctx.save();
   ctx.globalCompositeOperation = "multiply";
