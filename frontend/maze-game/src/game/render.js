@@ -313,7 +313,6 @@ function getPathSpriteName(x, y) {
   return "cross";
 }
 
-  if
 function drawFloor() {
   for (let y = 0; y < state.rows; y++) {
     for (let x = 0; x < state.cols; x++) {
