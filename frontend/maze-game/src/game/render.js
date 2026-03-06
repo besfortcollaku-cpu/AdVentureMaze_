@@ -166,6 +166,54 @@ function drawWallShadow(px, py) {
 
   ctx.restore();
 }
+function drawEngravedTile(px, py, done = false) {
+  const inset = tile * 0.08;
+
+  // darker recessed fill
+  const fill = ctx.createLinearGradient(px, py, px, py + tile);
+  fill.addColorStop(0, done ? "rgba(120,255,170,0.10)" : "rgba(255,255,255,0.03)");
+  fill.addColorStop(0.45, done ? "rgba(30,120,70,0.18)" : "rgba(0,0,0,0.10)");
+  fill.addColorStop(1, done ? "rgba(0,0,0,0.20)" : "rgba(0,0,0,0.18)");
+
+  ctx.fillStyle = fill;
+  ctx.fillRect(px, py, tile, tile);
+
+  // inner top-left highlight
+  ctx.strokeStyle = done
+    ? "rgba(180,255,210,0.18)"
+    : "rgba(255,255,255,0.10)";
+  ctx.lineWidth = Math.max(1, tile * 0.06);
+  ctx.beginPath();
+  ctx.moveTo(px + inset, py + tile - inset);
+  ctx.lineTo(px + inset, py + inset);
+  ctx.lineTo(px + tile - inset, py + inset);
+  ctx.stroke();
+
+  // inner bottom-right shadow
+  ctx.strokeStyle = done
+    ? "rgba(0,40,20,0.35)"
+    : "rgba(0,0,0,0.28)";
+  ctx.beginPath();
+  ctx.moveTo(px + tile - inset, py + inset);
+  ctx.lineTo(px + tile - inset, py + tile - inset);
+  ctx.lineTo(px + inset, py + tile - inset);
+  ctx.stroke();
+
+  // soft center shadow for carved depth
+  const inner = ctx.createRadialGradient(
+    px + tile * 0.5,
+    py + tile * 0.45,
+    tile * 0.12,
+    px + tile * 0.5,
+    py + tile * 0.5,
+    tile * 0.6
+  );
+  inner.addColorStop(0, "rgba(0,0,0,0)");
+  inner.addColorStop(1, done ? "rgba(0,0,0,0.14)" : "rgba(0,0,0,0.20)");
+
+  ctx.fillStyle = inner;
+  ctx.fillRect(px, py, tile, tile);
+}
 function drawFloor() {
   const grid = state.grid;
   const theme = getTheme();
@@ -195,6 +243,7 @@ function drawFloor() {
         // 🔹 PATH COMPLETED TILE
         if (floorDoneReady) {
   ctx.drawImage(floorDoneImg, px, py, tile, tile);
+  drawEngravedTile(px, py, true);
 
   // ── subtle done-floor glow animation
   const pulse =
@@ -208,6 +257,7 @@ function drawFloor() {
 }
          else if (floorReady) {
           ctx.drawImage(floorImg, px, py, tile, tile);
+          drawEngravedTile(px, py, false);
           if (tint) {
   ctx.save();
   ctx.globalCompositeOperation = "multiply";
