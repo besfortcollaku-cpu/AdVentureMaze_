@@ -861,8 +861,8 @@ try {
   // prevent renderer errors from crashing the whole app
   // optional: console.error(e);
 }    drawBall(playerFloat);
-drawWallShadow();
-  drawWalls();
+//drawWallShadow();
+  //drawWalls();
   // Engraved-only style (no block walls). Re-enable if needed:
   // drawWallShadow();
   // drawWalls();
