@@ -52,7 +52,22 @@ state.onMoveFinished = () => {
   let tile = 48;
   let ox = 0;
   let oy = 0;
+const pathImgs = {};
+const pathReady = {};
 
+const PATH_NAMES = [
+  "h", "v",
+  "corner_tr", "corner_tl", "corner_br", "corner_bl",
+  "cap_up", "cap_down", "cap_left", "cap_right",
+  "tee_up", "tee_down", "tee_left", "tee_right",
+  "cross"
+];
+
+for (const name of PATH_NAMES) {
+  pathImgs[name] = new Image();
+  pathReady[name] = false;
+  pathImgs[name].onload = () => (pathReady[name] = true);
+}
 
 function applyThemeAssets() {
   const theme = getTheme();
@@ -70,6 +85,11 @@ function applyThemeAssets() {
   floorDoneImg.src = base + "floor_done.png";
   wallImg.src = base + "";
   ballImg.src = base + "ball.png";
+}
+const pathBase = base + "path/";
+for (const name of PATH_NAMES) {
+  pathReady[name] = false;
+  pathImgs[name].src = pathBase + name + ".png";
 }
   // FLOOR TILE
   const floorImg = new Image();
@@ -229,9 +249,67 @@ function drawEngravedMaze() {
 
   ctx.restore();
 }
+function isWalkable(x, y) {
+  if (x < 0 || y < 0 || x >= state.cols || y >= state.rows) return false;
+  return state.grid[y][x] !== 1;
+}
 
+function getPathSpriteName(x, y) {
+  const up = isWalkable(x, y - 1);
+  const down = isWalkable(x, y + 1);
+  const left = isWalkable(x - 1, y);
+  const right = isWalkable(x + 1, y);
+
+  const count = [up, down, left, right].filter(Boolean).length;
+
+  if (count === 4) return "cross";
+
+  if (count === 3) {
+    if (!up) return "tee_up";
+    if (!down) return "tee_down";
+    if (!left) return "tee_left";
+    if (!right) return "tee_right";
+  }
+
+  if (count === 2) {
+    if (left && right) return "h";
+    if (up && down) return "v";
+    if (up && right) return "corner_tr";
+    if (up && left) return "corner_tl";
+    if (down && right) return "corner_br";
+    if (down && left) return "corner_bl";
+  }
+
+  if (count === 1) {
+    if (up) return "cap_up";
+    if (down) return "cap_down";
+    if (left) return "cap_left";
+    if (right) return "cap_right";
+  }
+
+  // isolated single cell fallback
+  return "cross";
+}
 function drawFloor() {
-  drawEngravedMaze();
+  for (let y = 0; y < state.rows; y++) {
+    for (let x = 0; x < state.cols; x++) {
+      if (state.grid[y][x] === 1) continue;
+
+      const px = ox + x * tile;
+      const py = oy + y * tile;
+
+      const spriteName = getPathSpriteName(x, y);
+      const img = pathImgs[spriteName];
+
+      if (img && pathReady[spriteName]) {
+        ctx.drawImage(img, px, py, tile, tile);
+      } else {
+        // fallback if image not loaded yet
+        ctx.fillStyle = "rgba(0,0,0,0.25)";
+        ctx.fillRect(px, py, tile, tile);
+      }
+    }
+  }
 
   if (contactFlash) {
     const age = performance.now() - contactFlash.time;
