@@ -214,6 +214,92 @@ function drawEngravedTile(px, py, done = false) {
 
   ctx.fillStyle = inner;
   ctx.fillRect(px, py, tile, tile);
+  ctx.fillStyle = "rgba(0,0,0,0.25)";
+ctx.fillRect(px, py + tile * 0.75, tile, tile * 0.25);
+}
+function drawEngravedPath() {
+  const r = tile * 0.34;
+
+  ctx.save();
+
+  // Build one connected path shape
+  for (let y = 0; y < state.grid.length; y++) {
+    for (let x = 0; x < state.grid[y].length; x++) {
+      const cell = state.grid[y][x];
+      if (cell !== 0 && cell !== 2) continue;
+
+      const px = ox + x * tile;
+      const py = oy + y * tile;
+      const cx = px + tile / 2;
+      const cy = py + tile / 2;
+
+      // node
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, 0, Math.PI * 2);
+      ctx.fillStyle = "rgba(0,0,0,0.22)";
+      ctx.fill();
+
+      // connect right
+      if (x < state.grid[y].length - 1) {
+        const right = state.grid[y][x + 1];
+        if (right === 0 || right === 2) {
+          ctx.fillRect(cx, cy - r, tile, r * 2);
+        }
+      }
+
+      // connect down
+      if (y < state.grid.length - 1) {
+        const down = state.grid[y + 1][x];
+        if (down === 0 || down === 2) {
+          ctx.fillRect(cx - r, cy, r * 2, tile);
+        }
+      }
+    }
+  }
+
+  // bevel highlight
+  ctx.globalCompositeOperation = "screen";
+  ctx.strokeStyle = "rgba(255,255,255,0.12)";
+  ctx.lineWidth = Math.max(1.5, tile * 0.08);
+
+  for (let y = 0; y < state.grid.length; y++) {
+    for (let x = 0; x < state.grid[y].length; x++) {
+      const cell = state.grid[y][x];
+      if (cell !== 0 && cell !== 2) continue;
+
+      const px = ox + x * tile;
+      const py = oy + y * tile;
+      const cx = px + tile / 2;
+      const cy = py + tile / 2;
+
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, Math.PI, Math.PI * 1.5);
+      ctx.stroke();
+    }
+  }
+
+  // shadow edge
+  ctx.globalCompositeOperation = "multiply";
+  ctx.strokeStyle = "rgba(0,0,0,0.28)";
+  ctx.lineWidth = Math.max(2, tile * 0.1);
+
+  for (let y = 0; y < state.grid.length; y++) {
+    for (let x = 0; x < state.grid[y].length; x++) {
+      const cell = state.grid[y][x];
+      if (cell !== 0 && cell !== 2) continue;
+
+      const px = ox + x * tile;
+      const py = oy + y * tile;
+      const cx = px + tile / 2;
+      const cy = py + tile / 2;
+
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, 0, Math.PI * 0.5);
+      ctx.stroke();
+    }
+  }
+
+  ctx.restore();
 }
 function drawFloor() {
   const grid = state.grid;
@@ -244,8 +330,6 @@ function drawFloor() {
         // 🔹 PATH COMPLETED TILE
         if (floorDoneReady) {
   ctx.drawImage(floorDoneImg, px, py, tile, tile);
-  drawEngravedTile(px, py, true);
-
   // ── subtle done-floor glow animation
   const pulse =
     0.12 + Math.sin(now * 0.002 + x * 0.4 + y * 0.4) * 0.06;
@@ -258,7 +342,6 @@ function drawFloor() {
 }
          else if (floorReady) {
           ctx.drawImage(floorImg, px, py, tile, tile);
-          drawEngravedTile(px, py, false);
           if (tint) {
   ctx.save();
   ctx.globalCompositeOperation = "multiply";
@@ -644,6 +727,7 @@ resize();
   }
 
   drawFloor();
+  drawEngravedPath();
   drawBall(playerFloat);
   //drawWallShadow();
   //drawWalls();
