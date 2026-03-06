@@ -85,6 +85,14 @@ function applyThemeAssets() {
   floorDoneImg.src = base + "floor_done.png";
   wallImg.src = base + "";
   ballImg.src = base + "ball.png";
+
+  // PATH SPRITES
+  const pathBase = base + "path/";
+
+  for (const name of PATH_NAMES) {
+    pathReady[name] = false;
+    pathImgs[name].src = pathBase + name + ".png";
+  }
 }
 const pathBase = base + "path/";
 for (const name of PATH_NAMES) {
