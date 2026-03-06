@@ -226,7 +226,7 @@ function drawEngravedTile(px, py, done = false) {
   ctx.strokeRect(px + 1, py + 1, tile - 2, tile - 2);
 }
 function drawEngravedPath() {
-  const r = tile * 0.34;
+  const r = tile * 0.44;
 
   ctx.save();
 
@@ -349,7 +349,7 @@ function drawEngravedPath() {
   const base = ctx.createLinearGradient(0, oy, 0, oy + state.rows * tile);
   base.addColorStop(0, "rgba(255,255,255,0.04)");
   base.addColorStop(0.25, "rgba(20,35,20,0.20)");
-  base.addColorStop(1, "rgba(0,0,0,0.58)");
+  base.addColorStop(1, "rgba(0,0,0,0.72)");
   ctx.fillStyle = base;
   ctx.fill();
 
