@@ -18,21 +18,6 @@ const MAX_TRAIL = 30;
   }
 
   const ctx = canvas.getContext("2d");
-  // --- Engraved path buffers (overlay, does NOT replace your renderer) ---
-const engraveMask = document.createElement("canvas");
-const engraveCtx = engraveMask.getContext("2d");
-
-const engraveBlur = document.createElement("canvas");
-const engraveBlurCtx = engraveBlur.getContext("2d");
-
-let engraveDirty = true; // rebuild when level changes / resize 
-
-  // Offscreen buffers for engraved path mask
-  let maskCanvas = document.createElement("canvas");
-  let maskCtx = maskCanvas.getContext("2d");
-  let blurCanvas = document.createElement("canvas");
-  let blurCtx = blurCanvas.getContext("2d");
-
   
  let shakeTime = 0;      // more frames
  let shakeStrength = 0;
@@ -79,13 +64,12 @@ function applyThemeAssets() {
       ? "/textures/themes/lava/"
       : "/textures/themes/ice/";
 
-  floorReady = floorDoneReady = wallReady = ballReady = boardReady = false;
+  floorReady = floorDoneReady = wallReady = ballReady = false;
 
   floorImg.src = base + "floor.png";
   floorDoneImg.src = base + "floor_done.png";
   wallImg.src = base + "wall.png";
   ballImg.src = base + "ball.png";
-  boardImg.src = base + "board.png";
 }
   // FLOOR TILE
   const floorImg = new Image();
@@ -107,12 +91,6 @@ wallImg.onload = () => (wallReady = true);
 const ballImg = new Image();
 let ballReady = false;
 ballImg.onload = () => (ballReady = true);
-
-// BOARD TEXTURE (UNIFORM)
-const boardImg = new Image();
-let boardReady = false;
-boardImg.onload = () => (boardReady = true);
-
   applyThemeAssets();
   // ======================
   // RESIZE
@@ -158,39 +136,7 @@ boardImg.onload = () => (boardReady = true);
   oy = Math.floor(
     boardPadding + (usableH - state.rows * tile) / 2
   );
-engraveMask.width = state.cols * tile;
-engraveMask.height = state.rows * tile;
-
-engraveBlur.width = engraveMask.width;
-engraveBlur.height = engraveMask.height;
-
-engraveDirty = true;
-  // ── build engraved path mask (updates every level)
-  maskCanvas.width = state.cols * tile;
-  maskCanvas.height = state.rows * tile;
-  blurCanvas.width = maskCanvas.width;
-  blurCanvas.height = maskCanvas.height;
-
-  maskCtx.clearRect(0, 0, maskCanvas.width, maskCanvas.height);
-  maskCtx.fillStyle = "#fff";
-  for (let y = 0; y < state.rows; y++) {
-  for (let x = 0; x < state.cols; x++) {
-
-    const cell = state.grid[y][x];
-
-    // only draw walkable path
-    if (cell !== 0 && cell !== 2) continue;
-
-    maskCtx.fillRect(
-      x * tile,
-      y * tile,
-      tile,
-      tile
-    );
-  }
 }
-}
-
   // ======================
   // HELPERS
   // ======================
@@ -264,80 +210,6 @@ function drawWallShadow(px, py) {
 
   ctx.restore();
 }
-
-// ======================
-// ENGRAVED PATH RENDERING
-// Full uniform board background + recessed (engraved) walkable path.
-// ======================
-function drawBoardAndEngrave() {
-  const theme = getTheme();
-
-  // 1) Uniform board fill (pattern if board.png exists)
-  ctx.save();
-  if (boardReady) {
-    const pat = ctx.createPattern(boardImg, "repeat");
-    if (pat) ctx.fillStyle = pat;
-    else ctx.fillStyle = "#0b1a12";
-  } else {
-    // fallback solid fills per theme
-    ctx.fillStyle =
-      theme === "lava"
-        ? "#2a0f0b"
-        : theme === "ice"
-        ? "#0b1530"
-        : "#0b1a12";
-  }
-  ctx.fillRect(ox, oy, state.cols * tile, state.rows * tile);
-
-  // theme-tuned carve tint (depth)
-  let carveTint = "rgba(0,0,0,0.22)";
-  if (theme === "forest") carveTint = "rgba(0,20,10,0.28)";
-  if (theme === "lava") carveTint = "rgba(20,0,0,0.30)";
-  if (theme === "ice") carveTint = "rgba(0,0,20,0.25)";
-
-  // Build a *soft* mask once per frame.
-  // This softens blocky tile edges and produces rounded-looking corridors.
-  const blurPx = Math.max(3, Math.round(tile * 0.18));
-  blurCtx.clearRect(0, 0, blurCanvas.width, blurCanvas.height);
-  blurCtx.filter = `blur(${blurPx}px)`;
-  blurCtx.globalAlpha = 1;
-  blurCtx.drawImage(maskCanvas, 0, 0);
-  // boost alpha a bit (firmer interior, still soft edge)
-  blurCtx.drawImage(maskCanvas, 0, 0);
-  blurCtx.filter = "none";
-
-// 2) Darken inside path (recess)
-  ctx.save();
-  ctx.translate(ox, oy);
-
-  // IMPORTANT: do NOT "just draw" the mask visibly; use it for compositing
-  ctx.drawImage(maskCanvas, 0, 0);
-  ctx.globalCompositeOperation = "source-in";
-  ctx.fillStyle = carveTint; // keep your theme carveTint value
-  ctx.fillRect(0, 0, maskCanvas.width, maskCanvas.height);
-
-  // restore normal drawing
-  ctx.globalCompositeOperation = "source-over";
-  ctx.restore();
-
-  // 3) Inner shadow (AO)
-  // build blurred version for shadow/highlight (if you already built blurCanvas earlier, keep that)
-  ctx.save();
-  ctx.translate(ox, oy);
-  ctx.globalCompositeOperation = "multiply";
-  ctx.globalAlpha = 0.45;
-  ctx.drawImage(blurCanvas, 2, 2);
-  ctx.restore();
-
-  // 4) Rim highlight
-  ctx.save();
-  ctx.translate(ox, oy);
-  ctx.globalCompositeOperation = "screen";
-  ctx.globalAlpha = 0.12;
-  ctx.drawImage(blurCanvas, -2, -2);
-  ctx.restore();
-}
-
 function drawFloor() {
   const grid = state.grid;
   const theme = getTheme();
@@ -460,96 +332,6 @@ if (contactFlash) {
     contactFlash = null;
   }
 }
-}
-
-function buildEngraveMask() {
-    if (!state || !state.grid || !state.rows || !state.cols) {
-  engraveDirty = false;
-  return;
-}
-  engraveCtx.clearRect(0, 0, engraveMask.width, engraveMask.height);
-  engraveCtx.fillStyle = "#fff";
-
-  // Rounded corridor style
-  const r = tile * 0.42;
-
-  for (let y = 0; y < state.rows; y++) {
-    for (let x = 0; x < state.cols; x++) {
-      const cell = state.grid[y][x];
-
-      // IMPORTANT: corridor only
-      if (cell !== 0 && cell !== 2) continue;
-
-      const cx = x * tile + tile / 2;
-      const cy = y * tile + tile / 2;
-
-      // node
-      engraveCtx.beginPath();
-      engraveCtx.arc(cx, cy, r, 0, Math.PI * 2);
-      engraveCtx.fill();
-
-      // connect right
-      if (x < state.cols - 1) {
-        const right = state.grid[y][x + 1];
-        if (right === 0 || right === 2) {
-          engraveCtx.fillRect(cx, cy - r, tile, r * 2);
-        }
-      }
-
-      // connect down
-      if (y < state.rows - 1) {
-        const down = state.grid[y + 1][x];
-        if (down === 0 || down === 2) {
-          engraveCtx.fillRect(cx - r, cy, r * 2, tile);
-        }
-      }
-    }
-  }
-
-  // Precompute blurred version (AO + highlight)
-  engraveBlurCtx.clearRect(0, 0, engraveBlur.width, engraveBlur.height);
-  engraveBlurCtx.filter = "blur(10px)";
-  engraveBlurCtx.drawImage(engraveMask, 0, 0);
-  engraveBlurCtx.filter = "none";
-
-  engraveDirty = false;
-}
-function drawEngravedOverlay() {
-  if (engraveDirty) buildEngraveMask();
-
-  // Tune per theme if you want
-  let carveTint = "rgba(0,0,0,0.28)"; // default
-const theme =
-  (state && (state.theme || state.currentTheme || state.themeName)) || "forest";
-
-if (theme === "forest") carveTint = "rgba(0,0,0,0.25)";
-if (theme === "lava")   carveTint = "rgba(0,0,0,0.32)";
-if (theme === "ice")    carveTint = "rgba(0,0,0,0.22)";
-
-  // 1) Recess darkening (masked)
-  ctx.save();
-  ctx.translate(ox, oy);
-  ctx.drawImage(engraveMask, 0, 0);
-  ctx.globalCompositeOperation = "source-in";
-  ctx.fillStyle = carveTint;
-  ctx.fillRect(0, 0, engraveMask.width, engraveMask.height);
-  ctx.restore();
-
-  // 2) Inner shadow / AO
-  ctx.save();
-  ctx.translate(ox, oy);
-  ctx.globalCompositeOperation = "multiply";
-  ctx.globalAlpha = 0.45;
-  ctx.drawImage(engraveBlur, 2, 2); // light direction
-  ctx.restore();
-
-  // 3) Rim highlight
-  ctx.save();
-  ctx.translate(ox, oy);
-  ctx.globalCompositeOperation = "screen";
-  ctx.globalAlpha = 0.12;
-  ctx.drawImage(engraveBlur, -2, -2);
-  ctx.restore();
 }
 function drawCrystalShard(x, y, angle, size, alpha, hueShift = 0) {
   ctx.save();
@@ -850,22 +632,11 @@ resize();
     ctx.translate(sx, sy);
     shakeTime--;
   }
-  
-  
-  //drawBackground();
+
   drawFloor();
-  drawBoardAndEngrave();
-try {
-  drawEngravedOverlay();
-} catch (e) {
-  // prevent renderer errors from crashing the whole app
-  // optional: console.error(e);
-}    drawBall(playerFloat);
-//drawWallShadow();
-  //drawWalls();
-  // Engraved-only style (no block walls). Re-enable if needed:
-  // drawWallShadow();
-  // drawWalls();
+  drawBall(playerFloat);
+  drawWallShadow();
+  drawWalls();
 
   if (shakeTime > 0) {
     ctx.restore();
@@ -878,5 +649,4 @@ try {
 
 
   return { resize, render };
-
 }
