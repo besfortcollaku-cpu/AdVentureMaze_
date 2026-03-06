@@ -151,80 +151,35 @@ ballImg.onload = () => (ballReady = true);
   // DRAW
   // ======================
   
-function drawWallShadow(px, py) {
-  ctx.save();
+function buildPathShape() {
+  const r = tile * 0.42;
+  const grid = state.grid;
 
-  ctx.filter = "blur(1px)";
-  ctx.fillStyle = "rgba(0,0,0,0.15)";
+  ctx.beginPath();
 
-  ctx.fillRect(
-    px + tile * 0.01,  // right
-    py - tile * 0.01,  // up (light from bottom-left)
-    tile,
-    tile
-  );
+  for (let y = 0; y < grid.length; y++) {
+    for (let x = 0; x < grid[y].length; x++) {
+      if (grid[y][x] === 1) continue;
 
-  ctx.restore();
+      const px = ox + x * tile;
+      const py = oy + y * tile;
+      const cx = px + tile / 2;
+      const cy = py + tile / 2;
+
+      ctx.moveTo(cx + r, cy);
+      ctx.arc(cx, cy, r, 0, Math.PI * 2);
+
+      if (x < grid[y].length - 1 && grid[y][x + 1] !== 1) {
+        ctx.rect(cx, cy - r, tile, r * 2);
+      }
+
+      if (y < grid.length - 1 && grid[y + 1][x] !== 1) {
+        ctx.rect(cx - r, cy, r * 2, tile);
+      }
+    }
+  }
 }
-function drawEngravedTile(px, py, done = false) {
-  const bevel = Math.max(2, tile * 0.12);
 
-  // 1) Deep recessed base
-  const base = ctx.createLinearGradient(px, py, px, py + tile);
-  base.addColorStop(0, done ? "rgba(90,170,110,0.20)" : "rgba(70,90,70,0.18)");
-  base.addColorStop(0.35, done ? "rgba(25,55,30,0.48)" : "rgba(15,20,15,0.50)");
-  base.addColorStop(1, done ? "rgba(0,0,0,0.72)" : "rgba(0,0,0,0.78)");
-  ctx.fillStyle = base;
-  ctx.fillRect(px, py, tile, tile);
-
-  // 2) Strong top-left bevel highlight
-  const topGrad = ctx.createLinearGradient(px, py, px, py + bevel);
-  topGrad.addColorStop(0, done ? "rgba(220,255,230,0.42)" : "rgba(255,255,255,0.30)");
-  topGrad.addColorStop(1, "rgba(255,255,255,0)");
-  ctx.fillStyle = topGrad;
-  ctx.fillRect(px, py, tile, bevel);
-
-  const leftGrad = ctx.createLinearGradient(px, py, px + bevel, py);
-  leftGrad.addColorStop(0, done ? "rgba(220,255,230,0.36)" : "rgba(255,255,255,0.24)");
-  leftGrad.addColorStop(1, "rgba(255,255,255,0)");
-  ctx.fillStyle = leftGrad;
-  ctx.fillRect(px, py, bevel, tile);
-
-  // 3) Strong bottom-right shadow bevel
-  const bottomGrad = ctx.createLinearGradient(px, py + tile - bevel, px, py + tile);
-  bottomGrad.addColorStop(0, "rgba(0,0,0,0)");
-  bottomGrad.addColorStop(1, done ? "rgba(0,20,10,0.55)" : "rgba(0,0,0,0.60)");
-  ctx.fillStyle = bottomGrad;
-  ctx.fillRect(px, py + tile - bevel, tile, bevel);
-
-  const rightGrad = ctx.createLinearGradient(px + tile - bevel, py, px + tile, py);
-  rightGrad.addColorStop(0, "rgba(0,0,0,0)");
-  rightGrad.addColorStop(1, done ? "rgba(0,20,10,0.50)" : "rgba(0,0,0,0.58)");
-  ctx.fillStyle = rightGrad;
-  ctx.fillRect(px + tile - bevel, py, bevel, tile);
-
-  // 4) Soft inner cavity shadow
-  const cavity = ctx.createRadialGradient(
-    px + tile * 0.42,
-    py + tile * 0.40,
-    tile * 0.08,
-    px + tile * 0.5,
-    py + tile * 0.5,
-    tile * 0.72
-  );
-  cavity.addColorStop(0, "rgba(0,0,0,0)");
-  cavity.addColorStop(0.7, "rgba(0,0,0,0.10)");
-  cavity.addColorStop(1, done ? "rgba(0,0,0,0.26)" : "rgba(0,0,0,0.34)");
-  ctx.fillStyle = cavity;
-  ctx.fillRect(px, py, tile, tile);
-
-  // 5) Very subtle glossy rim to sell depth
-  ctx.strokeStyle = done
-    ? "rgba(210,255,225,0.18)"
-    : "rgba(255,255,255,0.12)";
-  ctx.lineWidth = Math.max(1, tile * 0.035);
-  ctx.strokeRect(px + 1, py + 1, tile - 2, tile - 2);
-}
 function drawEngravedPath() {
   ctx.save();
 
@@ -313,18 +268,18 @@ function buildMazePath() {
   }
 }
 function drawEngravedMaze() {
-  const boardW = state.grid[0].length * tile;
-  const boardH = state.grid.length * tile;
+  const boardW = state.cols * tile;
+  const boardH = state.rows * tile;
 
   ctx.save();
 
   // base trench
-  buildMazePath();
-  ctx.fillStyle = "rgba(0,0,0,0.32)";
+  buildPathShape();
+  ctx.fillStyle = "rgba(0,0,0,0.34)";
   ctx.fill();
 
-  // clip everything else to path only
-  buildMazePath();
+  // clip all lighting to trench only
+  buildPathShape();
   ctx.clip();
 
   // cavity shadow
@@ -480,6 +435,32 @@ function drawEngravedPath() {
 }
 function drawFloor() {
   drawEngravedMaze();
+
+  if (contactFlash) {
+    const age = performance.now() - contactFlash.time;
+
+    if (age < 220) {
+      const cx = ox + contactFlash.x * tile + tile / 2;
+      const cy = oy + contactFlash.y * tile + tile / 2;
+
+      const theme = getTheme();
+      let color = "rgba(160,220,255,";
+      if (theme === "forest") color = "rgba(140,255,180,";
+      else if (theme === "lava") color = "rgba(255,170,120,";
+
+      const alpha = 0.35 * (1 - age / 220);
+
+      ctx.save();
+      ctx.globalCompositeOperation = "lighter";
+      ctx.fillStyle = `${color}${alpha})`;
+      ctx.beginPath();
+      ctx.arc(cx, cy, tile * 0.35, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    } else {
+      contactFlash = null;
+    }
+  }
 }
 function drawCrystalShard(x, y, angle, size, alpha, hueShift = 0) {
   ctx.save();
@@ -768,10 +749,27 @@ ctx.fillRect(
 }
 window.addEventListener("resize", resize);
 resize();
-
-  function render(playerFloat) {
+function drawBackground() {
+  // keep canvas transparent so page background shows through
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+  // subtle vignette only
+  const g = ctx.createRadialGradient(
+    w * 0.5,
+    h * 0.45,
+    h * 0.08,
+    w * 0.5,
+    h * 0.5,
+    h * 0.75
+  );
+  g.addColorStop(0, "rgba(0,0,0,0)");
+  g.addColorStop(1, "rgba(0,0,0,0.12)");
+
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, w, h);
+}
+
+  function render(playerFloat) {
   drawBackground();
   drawFloor();
   drawBall(playerFloat);
