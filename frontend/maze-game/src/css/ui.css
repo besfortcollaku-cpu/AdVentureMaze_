@@ -595,7 +595,7 @@ body.theme-lava {
 
 /* Forest */
 body.theme-forest .board {
-  background-image: url("/textures/ui/background/bg_game_forest.png");
+  background-image:none;
   background-size: contain;
   background-position: center;
   background-repeat: no-repeat;
