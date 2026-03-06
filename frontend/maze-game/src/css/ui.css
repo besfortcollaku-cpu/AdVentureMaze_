@@ -215,14 +215,19 @@ body.theme-ice .iconBtn {
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 0;
 }
 
 canvas#game {
-  width: 90vw;
+  position: relative;
+  z-index: 1;
+  width: 100%;
   max-width: 360px;
   aspect-ratio: 1 / 1;
-    background: transparent;
-
+  background: transparent;
+  border-radius: 0;
+  box-shadow: none;
+}
 /* =========================
    BOTTOM BAR
 ========================= */
