@@ -107,7 +107,7 @@ ballImg.onload = () => (ballReady = true);
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
   // ── board padding (visible gap around maze)
-  const boardPadding = 17;
+  //const boardPadding = 17;
 
   // usable area inside canvas
   const usableW = w - boardPadding * 2;
@@ -179,9 +179,12 @@ function drawFloor() {
   }
 
   for (let y = 0; y < grid.length; y++) {
-    for (let x = 0; x < grid[y].length; x++) {
-      const px = ox + x * tile;
-      const py = oy + y * tile;
+  for (let x = 0; x < grid[y].length; x++) {
+    // make walls fully transparent
+    if (grid[y][x] === 1) continue;
+
+    const px = ox + x * tile;
+    const py = oy + y * tile;
 
       // base fallback
       ctx.fillStyle = "#0f1c33";
