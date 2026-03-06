@@ -215,7 +215,6 @@ body.theme-ice .iconBtn {
   display: flex;
   align-items: center;
   justify-content: center;
-    padding: 24px;              /* ← more background visible */
 }
 
 canvas#game {
@@ -223,11 +222,6 @@ canvas#game {
   max-width: 360px;
   aspect-ratio: 1 / 1;
     background: transparent;
-    box-shadow:
-    0 12px 40px rgba(0,0,0,0.55),
-    inset 0 0 0 2px rgba(255,255,255,0.06),
-    inset 0 0 30px rgba(120,255,180,0.15);
-}
 
 /* =========================
    BOTTOM BAR
