@@ -93,11 +93,12 @@ function applyThemeAssets() {
     pathReady[name] = false;
     pathImgs[name].src = pathBase + name + ".png";
   }
-}
+
 const pathBase = base + "path/";
 for (const name of PATH_NAMES) {
   pathReady[name] = false;
   pathImgs[name].src = pathBase + name + ".png";
+}
 }
   // FLOOR TILE
   const floorImg = new Image();
