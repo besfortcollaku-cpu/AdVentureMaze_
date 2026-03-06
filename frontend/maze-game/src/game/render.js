@@ -855,13 +855,13 @@ resize();
   drawBackground();
   drawFloor();
   drawBoardAndEngrave();
-  drawBall(playerFloat);
 try {
   drawEngravedOverlay();
 } catch (e) {
   // prevent renderer errors from crashing the whole app
   // optional: console.error(e);
-}  drawWallShadow();
+}    drawBall(playerFloat);
+drawWallShadow();
   drawWalls();
   // Engraved-only style (no block walls). Re-enable if needed:
   // drawWallShadow();
