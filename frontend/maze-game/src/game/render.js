@@ -313,30 +313,6 @@ function getPathSpriteName(x, y) {
   return "cross";
 }
 
-  if (count === 2) {
-    if (left && right) {
-      return up ? "h_top" : "h_bottom";
-    }
-
-    if (up && down) {
-      return left ? "v_left" : "v_right";
-    }
-
-    if (up && right) return "corner_tr";
-    if (up && left) return "corner_tl";
-    if (down && right) return "corner_br";
-    if (down && left) return "corner_bl";
-  }
-
-  if (count === 1) {
-    if (up) return "cap_up";
-    if (down) return "cap_down";
-    if (left) return "cap_left";
-    if (right) return "cap_right";
-  }
-
-  return "cross";
-}
 function drawFloor() {
   for (let y = 0; y < state.rows; y++) {
     for (let x = 0; x < state.cols; x++) {
