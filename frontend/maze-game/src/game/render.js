@@ -309,77 +309,117 @@ function drawEngravedPath() {
 
   ctx.restore();
 }
-function drawFloor() {
-  const grid = state.grid;
-  const theme = getTheme();
-  const now = performance.now();
+function buildPathShape() {
+  const r = tile * 0.34;
 
-  let tint = null;
-  if (theme === "forest") {
-    tint = "rgba(60, 120, 80, 0.18)";
-  } else if (theme === "lava") {
-    tint = "rgba(160, 60, 30, 0.18)";
-  }
+  ctx.beginPath();
 
-  for (let y = 0; y < grid.length; y++) {
-    for (let x = 0; x < grid[y].length; x++) {
-      // walls fully transparent
-      if (grid[y][x] === 1) continue;
+  for (let y = 0; y < state.grid.length; y++) {
+    for (let x = 0; x < state.grid[y].length; x++) {
+      const cell = state.grid[y][x];
+      if (cell === 1) continue;
 
       const px = ox + x * tile;
       const py = oy + y * tile;
-      const done = state.isPainted(x, y);
+      const cx = px + tile / 2;
+      const cy = py + tile / 2;
 
-      // draw carved / beveled tile instead of floor image
-      drawEngravedTile(px, py, done);
+      // round node
+      ctx.moveTo(cx + r, cy);
+      ctx.arc(cx, cy, r, 0, Math.PI * 2);
 
-      // optional theme tint on top of bevel
-      if (tint) {
-        ctx.save();
-        ctx.globalCompositeOperation = "multiply";
-        ctx.fillStyle = tint;
-        ctx.fillRect(px, py, tile, tile);
-        ctx.restore();
+      // connect right
+      if (x < state.grid[y].length - 1 && state.grid[y][x + 1] !== 1) {
+        ctx.rect(cx, cy - r, tile, r * 2);
       }
 
-      if (done) {
-        // subtle completed-tile glow
-        const pulse =
-          0.12 + Math.sin(now * 0.002 + x * 0.4 + y * 0.4) * 0.06;
-
-        ctx.save();
-        ctx.globalCompositeOperation = "screen";
-        ctx.fillStyle = `rgba(255,255,255,${pulse})`;
-        ctx.fillRect(px, py, tile, tile);
-        ctx.restore();
-      } else {
-    
-
-        // fracture lines
-        ctx.save();
-        ctx.globalAlpha = 0.18;
-        ctx.strokeStyle = "rgba(220,240,255,0.8)";
-        ctx.lineWidth = 1;
-
-        ctx.beginPath();
-
-        const seed = (x * 928371 + y * 123457) % 1000;
-        const fx = px + tile * (0.2 + (seed % 7) * 0.08);
-        const fy = py + tile * (0.2 + ((seed >> 3) % 7) * 0.08);
-
-        ctx.moveTo(fx, fy);
-        ctx.lineTo(
-          fx + tile * (0.25 + ((seed >> 1) % 5) * 0.08),
-          fy + tile * (0.15 + ((seed >> 2) % 5) * 0.08)
-        );
-
-        ctx.stroke();
-        ctx.restore();
+      // connect down
+      if (y < state.grid.length - 1 && state.grid[y + 1][x] !== 1) {
+        ctx.rect(cx - r, cy, r * 2, tile);
       }
     }
   }
+}
 
-  // contact flash render
+function drawEngravedPath() {
+  ctx.save();
+
+  // 1) trench base
+  buildPathShape();
+  const base = ctx.createLinearGradient(0, oy, 0, oy + state.rows * tile);
+  base.addColorStop(0, "rgba(255,255,255,0.04)");
+  base.addColorStop(0.25, "rgba(20,35,20,0.20)");
+  base.addColorStop(1, "rgba(0,0,0,0.58)");
+  ctx.fillStyle = base;
+  ctx.fill();
+
+  // 2) top-left bevel highlight
+  buildPathShape();
+  ctx.save();
+  ctx.clip();
+  const hiTop = ctx.createLinearGradient(0, oy, 0, oy + tile * 0.25);
+  hiTop.addColorStop(0, "rgba(255,255,255,0.22)");
+  hiTop.addColorStop(1, "rgba(255,255,255,0)");
+  ctx.fillStyle = hiTop;
+  ctx.fillRect(ox, oy, state.cols * tile, tile * 0.35);
+
+  const hiLeft = ctx.createLinearGradient(ox, 0, ox + tile * 0.25, 0);
+  hiLeft.addColorStop(0, "rgba(255,255,255,0.18)");
+  hiLeft.addColorStop(1, "rgba(255,255,255,0)");
+  ctx.fillStyle = hiLeft;
+  ctx.fillRect(ox, oy, tile * 0.35, state.rows * tile);
+  ctx.restore();
+
+  // 3) bottom-right shadow bevel
+  buildPathShape();
+  ctx.save();
+  ctx.clip();
+  const shBot = ctx.createLinearGradient(
+    0,
+    oy + state.rows * tile - tile * 0.25,
+    0,
+    oy + state.rows * tile
+  );
+  shBot.addColorStop(0, "rgba(0,0,0,0)");
+  shBot.addColorStop(1, "rgba(0,0,0,0.36)");
+  ctx.fillStyle = shBot;
+  ctx.fillRect(ox, oy, state.cols * tile, state.rows * tile);
+
+  const shRight = ctx.createLinearGradient(
+    ox + state.cols * tile - tile * 0.25,
+    0,
+    ox + state.cols * tile,
+    0
+  );
+  shRight.addColorStop(0, "rgba(0,0,0,0)");
+  shRight.addColorStop(1, "rgba(0,0,0,0.30)");
+  ctx.fillStyle = shRight;
+  ctx.fillRect(ox, oy, state.cols * tile, state.rows * tile);
+  ctx.restore();
+
+  // 4) inner cavity shadow
+  buildPathShape();
+  ctx.save();
+  ctx.clip();
+  const cavity = ctx.createRadialGradient(
+    ox + state.cols * tile * 0.45,
+    oy + state.rows * tile * 0.40,
+    tile * 0.4,
+    ox + state.cols * tile * 0.5,
+    oy + state.rows * tile * 0.5,
+    state.cols * tile * 0.7
+  );
+  cavity.addColorStop(0, "rgba(0,0,0,0)");
+  cavity.addColorStop(1, "rgba(0,0,0,0.18)");
+  ctx.fillStyle = cavity;
+  ctx.fillRect(ox, oy, state.cols * tile, state.rows * tile);
+  ctx.restore();
+
+  ctx.restore();
+}
+function drawFloor() {
+  drawEngravedPath();
+
   if (contactFlash) {
     const age = performance.now() - contactFlash.time;
 
@@ -387,23 +427,19 @@ function drawFloor() {
       const cx = ox + contactFlash.x * tile + tile / 2;
       const cy = oy + contactFlash.y * tile + tile / 2;
 
-      let color = "rgba(160,220,255,"; // ice
-      if (theme === "forest") {
-        color = "rgba(140,255,180,";
-      } else if (theme === "lava") {
-        color = "rgba(255,170,120,";
-      }
+      let color = "rgba(160,220,255,";
+      const theme = getTheme();
+      if (theme === "forest") color = "rgba(140,255,180,";
+      else if (theme === "lava") color = "rgba(255,170,120,";
 
       const alpha = 0.35 * (1 - age / 220);
 
       ctx.save();
       ctx.globalCompositeOperation = "lighter";
       ctx.fillStyle = `${color}${alpha})`;
-
       ctx.beginPath();
       ctx.arc(cx, cy, tile * 0.35, 0, Math.PI * 2);
       ctx.fill();
-
       ctx.restore();
     } else {
       contactFlash = null;
