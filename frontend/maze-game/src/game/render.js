@@ -852,7 +852,7 @@ resize();
   }
   
   
-  drawBackground();
+  //drawBackground();
   drawFloor();
   drawBoardAndEngrave();
 try {
