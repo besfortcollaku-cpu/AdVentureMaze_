@@ -353,17 +353,7 @@ function drawFloor() {
         ctx.fillRect(px, py, tile, tile);
         ctx.restore();
       } else {
-        // crystal/light effect for normal walkable tile
-        const t = now * 0.001;
-        const pulse = 0.5 + Math.sin(t + x * 0.8 + y * 0.6) * 0.5;
-
-        ctx.fillStyle = `rgba(120,200,255,${0.06 + pulse * 0.04})`;
-        ctx.fillRect(
-          px + tile * 0.18,
-          py + tile * 0.18,
-          tile * 0.64,
-          tile * 0.64
-        );
+    
 
         // fracture lines
         ctx.save();
