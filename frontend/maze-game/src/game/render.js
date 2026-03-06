@@ -316,7 +316,7 @@ function getPathSpriteName(x, y) {
 function drawFloor() {
   for (let y = 0; y < state.rows; y++) {
     for (let x = 0; x < state.cols; x++) {
-      if (state.grid[y][x] === 1) continue;
+      if (!isPath(x, y)) continue;
 
       const px = ox + x * tile;
       const py = oy + y * tile;
