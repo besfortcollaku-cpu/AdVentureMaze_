@@ -280,7 +280,7 @@ function drawEngravedPath() {
   ctx.restore();
 }
 function buildPathShape() {
-  const r = tile * 0.34;
+  const r = tile * 0.42;
 
   ctx.beginPath();
 
@@ -294,16 +294,13 @@ function buildPathShape() {
       const cx = px + tile / 2;
       const cy = py + tile / 2;
 
-      // round node
       ctx.moveTo(cx + r, cy);
       ctx.arc(cx, cy, r, 0, Math.PI * 2);
 
-      // connect right
       if (x < state.grid[y].length - 1 && state.grid[y][x + 1] !== 1) {
         ctx.rect(cx, cy - r, tile, r * 2);
       }
 
-      // connect down
       if (y < state.grid.length - 1 && state.grid[y + 1][x] !== 1) {
         ctx.rect(cx - r, cy, r * 2, tile);
       }
@@ -314,76 +311,77 @@ function buildPathShape() {
 function drawEngravedPath() {
   ctx.save();
 
-  // 1) trench base
+  // 1) Base trench fill
   buildPathShape();
-  const base = ctx.createLinearGradient(0, oy, 0, oy + state.rows * tile);
-  base.addColorStop(0, "rgba(255,255,255,0.04)");
-  base.addColorStop(0.25, "rgba(20,35,20,0.20)");
-  base.addColorStop(1, "rgba(0,0,0,0.72)");
-  ctx.fillStyle = base;
+  ctx.fillStyle = "rgba(0,0,0,0.34)";
   ctx.fill();
 
-  // 2) top-left bevel highlight
+  // 2) Clip all next effects to path only
   buildPathShape();
-  ctx.save();
   ctx.clip();
-  const hiTop = ctx.createLinearGradient(0, oy, 0, oy + tile * 0.25);
+
+  const boardW = state.cols * tile;
+  const boardH = state.rows * tile;
+
+  // 3) Soft ambient cavity shadow
+  const cavity = ctx.createRadialGradient(
+    ox + boardW * 0.45,
+    oy + boardH * 0.40,
+    tile * 0.2,
+    ox + boardW * 0.5,
+    oy + boardH * 0.5,
+    Math.max(boardW, boardH) * 0.75
+  );
+  cavity.addColorStop(0, "rgba(0,0,0,0)");
+  cavity.addColorStop(0.65, "rgba(0,0,0,0.08)");
+  cavity.addColorStop(1, "rgba(0,0,0,0.22)");
+  ctx.fillStyle = cavity;
+  ctx.fillRect(ox, oy, boardW, boardH);
+
+  // 4) Top highlight
+  const hiTop = ctx.createLinearGradient(0, oy, 0, oy + tile * 0.9);
   hiTop.addColorStop(0, "rgba(255,255,255,0.22)");
+  hiTop.addColorStop(0.6, "rgba(255,255,255,0.07)");
   hiTop.addColorStop(1, "rgba(255,255,255,0)");
   ctx.fillStyle = hiTop;
-  ctx.fillRect(ox, oy, state.cols * tile, tile * 0.35);
+  ctx.fillRect(ox, oy, boardW, boardH);
 
-  const hiLeft = ctx.createLinearGradient(ox, 0, ox + tile * 0.25, 0);
-  hiLeft.addColorStop(0, "rgba(255,255,255,0.18)");
+  // 5) Left highlight
+  const hiLeft = ctx.createLinearGradient(ox, 0, ox + tile * 0.9, 0);
+  hiLeft.addColorStop(0, "rgba(255,255,255,0.14)");
   hiLeft.addColorStop(1, "rgba(255,255,255,0)");
   ctx.fillStyle = hiLeft;
-  ctx.fillRect(ox, oy, tile * 0.35, state.rows * tile);
-  ctx.restore();
+  ctx.fillRect(ox, oy, boardW, boardH);
 
-  // 3) bottom-right shadow bevel
-  buildPathShape();
-  ctx.save();
-  ctx.clip();
+  // 6) Bottom shadow
   const shBot = ctx.createLinearGradient(
     0,
-    oy + state.rows * tile - tile * 0.25,
+    oy + boardH - tile * 0.9,
     0,
-    oy + state.rows * tile
+    oy + boardH
   );
   shBot.addColorStop(0, "rgba(0,0,0,0)");
-  shBot.addColorStop(1, "rgba(0,0,0,0.36)");
+  shBot.addColorStop(1, "rgba(0,0,0,0.34)");
   ctx.fillStyle = shBot;
-  ctx.fillRect(ox, oy, state.cols * tile, state.rows * tile);
+  ctx.fillRect(ox, oy, boardW, boardH);
 
+  // 7) Right shadow
   const shRight = ctx.createLinearGradient(
-    ox + state.cols * tile - tile * 0.25,
+    ox + boardW - tile * 0.9,
     0,
-    ox + state.cols * tile,
+    ox + boardW,
     0
   );
   shRight.addColorStop(0, "rgba(0,0,0,0)");
-  shRight.addColorStop(1, "rgba(0,0,0,0.30)");
+  shRight.addColorStop(1, "rgba(0,0,0,0.28)");
   ctx.fillStyle = shRight;
-  ctx.fillRect(ox, oy, state.cols * tile, state.rows * tile);
-  ctx.restore();
+  ctx.fillRect(ox, oy, boardW, boardH);
 
-  // 4) inner cavity shadow
+  // 8) Subtle inner glossy line to sharpen bevel
   buildPathShape();
-  ctx.save();
-  ctx.clip();
-  const cavity = ctx.createRadialGradient(
-    ox + state.cols * tile * 0.45,
-    oy + state.rows * tile * 0.40,
-    tile * 0.4,
-    ox + state.cols * tile * 0.5,
-    oy + state.rows * tile * 0.5,
-    state.cols * tile * 0.7
-  );
-  cavity.addColorStop(0, "rgba(0,0,0,0)");
-  cavity.addColorStop(1, "rgba(0,0,0,0.18)");
-  ctx.fillStyle = cavity;
-  ctx.fillRect(ox, oy, state.cols * tile, state.rows * tile);
-  ctx.restore();
+  ctx.strokeStyle = "rgba(255,255,255,0.08)";
+  ctx.lineWidth = Math.max(1, tile * 0.04);
+  ctx.stroke();
 
   ctx.restore();
 }
