@@ -1523,13 +1523,14 @@ ui.onGuestStart(() => {
   });
 
   document.body.classList.add("game-running");
-  ui.hideWelcome();
-  game.start();
+ui.hideWelcome();
+game.start();
 
+setTimeout(() => {
   maybeAutoHintTutorial();
+}, 400);
 
-  updateAllBadges();
-});
+updateAllBadges();
 // ---- PI LOGIN ----
 
 ui.onLoginClick(async (e) => {
