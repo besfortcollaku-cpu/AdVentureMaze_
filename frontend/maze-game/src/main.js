@@ -1337,7 +1337,7 @@ ui.onHintClick(async () => {
     }
 
     console.error("Hint error:", e);
-  }
+  
 });
 
 hintPopup.onBuyHint(async () => {
