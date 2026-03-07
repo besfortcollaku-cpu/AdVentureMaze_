@@ -48,6 +48,43 @@ let LOGIN_IN_PROGRESS = false;
 const AUTO_HINT_SEEN_KEY = "auto_hint_seen_v1";
 const AD_COOLDOWN_MS = 30_000;
 const AD_LAST_CLAIM_KEY = "ad_last_claim_at_v1";
+let adToastTimer = null;
+
+function showAdCooldownToast(message) {
+  let el = document.getElementById("adCooldownToast");
+
+  if (!el) {
+    el = document.createElement("div");
+    el.id = "adCooldownToast";
+    el.style.cssText = `
+      position: fixed;
+      left: 50%;
+      bottom: 120px;
+      transform: translateX(-50%);
+      z-index: 99999;
+      background: rgba(0,0,0,0.88);
+      color: #fff;
+      padding: 10px 14px;
+      border-radius: 12px;
+      font-size: 14px;
+      line-height: 1.3;
+      max-width: 80vw;
+      text-align: center;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+    `;
+    document.body.appendChild(el);
+  }
+
+  el.textContent = message;
+  el.style.display = "block";
+
+  clearTimeout(adToastTimer);
+  adToastTimer = setTimeout(() => {
+    el.style.display = "none";
+  }, 1800);
+}
+
+
 
 function getRemainingAdCooldownMs() {
   const last = Number(localStorage.getItem(AD_LAST_CLAIM_KEY) || 0);
@@ -64,7 +101,7 @@ function guardAdCooldownBeforeWatching() {
   if (remaining <= 0) return true;
 
   const seconds = Math.ceil(remaining / 1000);
-  alert(`Ad already claimed. Please wait ${seconds}s.`);
+  showAdCooldownToast(`Ad available in ${seconds}s`);
   return false;
 }
 
@@ -1315,16 +1352,22 @@ skipPopup.onBuySkip(async () => {
 
 
 skipPopup.onWatchAdSkip(() => {
-    if (!guardAdCooldownBeforeWatching()) {
-  return;
-}
+  if (!guardAdCooldownBeforeWatching()) {
+    return;
+  }
+
   simulateAd(async () => {
     const out = await apiSkip({
       mode: "ad",
       nonce: crypto.randomUUID(),
     });
 
-    if (!out?.ok) return alert(out.error || "Skip failed");
+    if (!out?.ok) {
+      showAdCooldownToast(out.error || "Skip failed");
+      return;
+    }
+
+    markAdClaimedNow();
 
     applyUserPatch({
       free_skips_used: out.free_skips_used,
@@ -1391,16 +1434,22 @@ hintPopup.onBuyHint(async () => {
 });
 
 hintPopup.onWatchAdHint(() => {
-    if (!guardAdCooldownBeforeWatching()) {
-  return;
-}
+  if (!guardAdCooldownBeforeWatching()) {
+    return;
+  }
+
   simulateAd(async () => {
     const out = await apiHint({
       mode: "ad",
       nonce: crypto.randomUUID(),
     });
 
-    if (!out?.ok) return alert(out.error || "Hint failed");
+    if (!out?.ok) {
+      showAdCooldownToast(out.error || "Hint failed");
+      return;
+    }
+
+    markAdClaimedNow();
 
     applyUserPatch({
       free_hints_used: out.free_hints_used,
@@ -1495,11 +1544,11 @@ restartPopup.onBuyRestart(async () => {
 
 
 restartPopup.onWatchAdRestart(() => {
-    if (!guardAdCooldownBeforeWatching()) {
-  return;
-}
-  simulateAd(async () => {
+  if (!guardAdCooldownBeforeWatching()) {
+    return;
+  }
 
+  simulateAd(async () => {
     const out = await fetch(`${BACKEND}/api/restart`, {
       method: "POST",
       headers: {
@@ -1512,7 +1561,12 @@ restartPopup.onWatchAdRestart(() => {
       }),
     }).then(r => r.json());
 
-    if (!out?.ok) return alert(out.error || "Restart failed");
+    if (!out?.ok) {
+      showAdCooldownToast(out.error || "Restart failed");
+      return;
+    }
+
+    markAdClaimedNow();
 
     applyUserPatch({
       free_restarts_used: out.free_restarts_used,
