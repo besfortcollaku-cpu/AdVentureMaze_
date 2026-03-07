@@ -1036,7 +1036,22 @@ function wipeResumeForCurrentLevel() {
   }).catch(() => {});
 }
 
+function restartLevelForHint() {
+  hideHintArrows();
 
+  // clear saved in-level progress for logged-in users
+  if (CURRENT_ACCESS_TOKEN) {
+    wipeResumeForCurrentLevel();
+  }
+
+  // restart current level locally without consuming restart resource
+  game.setLevel(levels[levelIndex]);
+
+  // reset route-hint state so arrows start from step 1
+  HINT_ROUTE = null;
+  HINT_ROUTE_INDEX = 0;
+  HINT_ACTIVE_FOR_LEVEL = false;
+}
 function goToLevel(nextIndex) {
     hideHintArrows();
 HINT_ROUTE = null;
@@ -1314,16 +1329,11 @@ ui.onHintClick(async () => {
 });
 
     updateAllBadges();
-startRouteHintForLevel(levelIndex + 1);
-return;
 
-  } catch (e) {
-    if (e.message === "No hints available") {
-      hintPopup.open({
-        coins: CURRENT_USER?.coins ?? 0,
-        freeLeft: 0,
-      });
-      return;
+    restartLevelForHint();
+    startRouteHintForLevel(levelIndex + 1);
+
+    return;
     }
 
     console.error("Hint error:", e);
@@ -1342,7 +1352,9 @@ hintPopup.onBuyHint(async () => {
 
     updateAllBadges();
     hintPopup.hide();
-startRouteHintForLevel(levelIndex + 1);
+
+    restartLevelForHint();
+    startRouteHintForLevel(levelIndex + 1);
   } catch (e) {
     alert(e.message || "Hint failed");
   }
@@ -1365,7 +1377,9 @@ hintPopup.onWatchAdHint(() => {
 
     updateAllBadges();
     hintPopup.hide();
-startRouteHintForLevel(levelIndex + 1);
+
+    restartLevelForHint();
+    startRouteHintForLevel(levelIndex + 1);
 });
 });
 
