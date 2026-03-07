@@ -211,15 +211,24 @@ body.theme-ice .iconBtn {
    GAME BOARD
 ========================= */
 .board {
-  padding: 0;
-  background-image: none;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+    padding: 24px;              /* ← more background visible */
 }
 
 canvas#game {
-  background: transparent;
-  box-shadow: none;
-  border-radius: 0;
+  width: 90vw;
+  max-width: 360px;
+  aspect-ratio: 1 / 1;
+    background: transparent;
+    box-shadow:
+    0 12px 40px rgba(0,0,0,0.55),
+    inset 0 0 0 2px rgba(255,255,255,0.06),
+    inset 0 0 30px rgba(120,255,180,0.15);
 }
+
 /* =========================
    BOTTOM BAR
 ========================= */
@@ -586,7 +595,7 @@ body.theme-lava {
 
 /* Forest */
 body.theme-forest .board {
-  background-image:none;
+  background-image: url("/textures/ui/background/bg_game_forest.png");
   background-size: contain;
   background-position: center;
   background-repeat: no-repeat;

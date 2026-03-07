@@ -52,33 +52,6 @@ state.onMoveFinished = () => {
   let tile = 48;
   let ox = 0;
   let oy = 0;
-const pathImgs = {};
-const pathReady = {};
-
-const PATH_NAMES = [
-  "h_top",
-  "h_bottom",
-  "v_left",
-  "v_right",
-  "corner_tr",
-  "corner_tl",
-  "corner_br",
-  "corner_bl",
-  "cap_up",
-  "cap_down",
-  "cap_left",
-  "cap_right",
-  "tee_up",
-  "tee_down",
-  "tee_left",
-  "tee_right",
-  "cross"
-];
-for (const name of PATH_NAMES) {
-  pathImgs[name] = new Image();
-  pathReady[name] = false;
-  pathImgs[name].onload = () => (pathReady[name] = true);
-}
 
 
 function applyThemeAssets() {
@@ -95,15 +68,8 @@ function applyThemeAssets() {
 
   floorImg.src = base + "floor.png";
   floorDoneImg.src = base + "floor_done.png";
-  wallImg.src = base + "";
+  wallImg.src = base + "wall.png";
   ballImg.src = base + "ball.png";
-
-  const pathBase = base + "path/";
-
-  for (const name of PATH_NAMES) {
-    pathReady[name] = false;
-    pathImgs[name].src = pathBase + name + ".png";
-  }
 }
   // FLOOR TILE
   const floorImg = new Image();
@@ -141,7 +107,7 @@ ballImg.onload = () => (ballReady = true);
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
   // ── board padding (visible gap around maze)
-  const boardPadding = 0;
+  const boardPadding = 17;
 
   // usable area inside canvas
   const usableW = w - boardPadding * 2;
@@ -184,181 +150,188 @@ ballImg.onload = () => (ballReady = true);
   // ======================
   // DRAW
   // ======================
-  
+  function drawBackground() {
+  const theme = getTheme();
 
-function buildPathShape() {
-  const r = tile * 0.38;
+  let grad = ctx.createLinearGradient(0, 0, 0, h);
 
-  ctx.beginPath();
-
-  for (let y = 0; y < state.grid.length; y++) {
-    for (let x = 0; x < state.grid[y].length; x++) {
-      if (state.grid[y][x] === 1) continue;
-
-      const cx = ox + x * tile + tile / 2;
-      const cy = oy + y * tile + tile / 2;
-
-      ctx.moveTo(cx + r, cy);
-      ctx.arc(cx, cy, r, 0, Math.PI * 2);
-
-      if (x < state.cols - 1 && state.grid[y][x + 1] !== 1) {
-        ctx.rect(cx, cy - r, tile, r * 2);
-      }
-
-      if (y < state.rows - 1 && state.grid[y + 1][x] !== 1) {
-        ctx.rect(cx - r, cy, r * 2, tile);
-      }
-    }
+  if (theme === "forest") {
+    grad.addColorStop(0, "#06140d");
+    grad.addColorStop(0.5, "#0e2b1c");
+    grad.addColorStop(1, "#06140d");
+  } else if (theme === "lava") {
+    grad.addColorStop(0, "#120302");
+    grad.addColorStop(0.5, "#2a0b06");
+    grad.addColorStop(1, "#120302");
+  } else {
+    // ice
+    grad.addColorStop(0, "#090f2a");
+    grad.addColorStop(0.5, "#141e42");
+    grad.addColorStop(1, "#090f2a");
   }
+
+  // base gradient
+  ctx.fillStyle = grad;
+  ctx.fillRect(-w, -h, w * 3, h * 3);
+
+  // ── VIGNETTE (visible but clean)
+  const vg = ctx.createRadialGradient(
+    w / 2, h / 2, tile,
+    w / 2, h / 2, Math.max(w, h)
+  );
+
+  vg.addColorStop(0, "rgba(0,0,0,0)");
+  vg.addColorStop(1, "rgba(0,0,0,0.55)");
+
+  ctx.fillStyle = vg;
+  ctx.fillRect(-w, -h, w * 3, h * 3);
+  // ── SOFT TOP/BOTTOM BLEND INTO UI (very subtle)
+const edgeFade = ctx.createLinearGradient(0, 0, 0, h);
+edgeFade.addColorStop(0, "rgba(0,0,0,0.45)");
+edgeFade.addColorStop(0.12, "rgba(0,0,0,0)");
+edgeFade.addColorStop(0.88, "rgba(0,0,0,0)");
+edgeFade.addColorStop(1, "rgba(0,0,0,0.45)");
+
+ctx.fillStyle = edgeFade;
+ctx.fillRect(-w, -h, w * 3, h * 3);
 }
-
-function drawEngravedMaze() {
-  const boardW = state.cols * tile;
-  const boardH = state.rows * tile;
-
+function drawWallShadow(px, py) {
   ctx.save();
 
-  buildPathShape();
-  ctx.fillStyle = "rgba(0,0,0,0.28)";
-  ctx.fill();
+  ctx.filter = "blur(1px)";
+  ctx.fillStyle = "rgba(0,0,0,0.15)";
 
-  buildPathShape();
-  ctx.clip();
-
-  const shadow = ctx.createRadialGradient(
-    ox + boardW * 0.5,
-    oy + boardH * 0.45,
-    tile * 0.2,
-    ox + boardW * 0.5,
-    oy + boardH * 0.5,
-    boardW
+  ctx.fillRect(
+    px + tile * 0.01,  // right
+    py - tile * 0.01,  // up (light from bottom-left)
+    tile,
+    tile
   );
-
-  shadow.addColorStop(0, "rgba(0,0,0,0)");
-  shadow.addColorStop(0.7, "rgba(0,0,0,0.12)");
-  shadow.addColorStop(1, "rgba(0,0,0,0.25)");
-
-  ctx.fillStyle = shadow;
-  ctx.fillRect(ox, oy, boardW, boardH);
-
-  const topLight = ctx.createLinearGradient(0, oy, 0, oy + tile);
-  topLight.addColorStop(0, "rgba(255,255,255,0.15)");
-  topLight.addColorStop(1, "rgba(255,255,255,0)");
-
-  ctx.fillStyle = topLight;
-  ctx.fillRect(ox, oy, boardW, boardH);
-
-  const bottomShadow = ctx.createLinearGradient(
-    0,
-    oy + boardH - tile,
-    0,
-    oy + boardH
-  );
-
-  bottomShadow.addColorStop(0, "rgba(0,0,0,0)");
-  bottomShadow.addColorStop(1, "rgba(0,0,0,0.28)");
-
-  ctx.fillStyle = bottomShadow;
-  ctx.fillRect(ox, oy, boardW, boardH);
 
   ctx.restore();
 }
-function isPath(x, y) {
-  if (x < 0 || y < 0 || x >= state.cols || y >= state.rows) return false;
-  return state.grid[y][x] === 0;
-}
-
-function getPathSpriteName(x, y) {
-  const up = isPath(x, y - 1);
-  const down = isPath(x, y + 1);
-  const left = isPath(x - 1, y);
-  const right = isPath(x + 1, y);
-
-  const count = [up, down, left, right].filter(Boolean).length;
-
-  if (count === 4) return "cross";
-
-  if (count === 3) {
-    if (!up) return "tee_up";
-    if (!down) return "tee_down";
-    if (!left) return "tee_left";
-    if (!right) return "tee_right";
-  }
-
-  if (count === 2) {
-    // straight horizontal
-    if (left && right) {
-      return down ? "h_top" : "h_bottom";
-    }
-
-    // straight vertical
-    if (up && down) {
-      return right ? "v_left" : "v_right";
-    }
-
-    // corners: named by OUTSIDE stone corner
-    if (right && down) return "corner_tl";
-    if (left && down) return "corner_tr";
-    if (right && up) return "corner_bl";
-    if (left && up) return "corner_br";
-  }
-
-  if (count === 1) {
-    if (up) return "cap_up";
-    if (down) return "cap_down";
-    if (left) return "cap_left";
-    if (right) return "cap_right";
-  }
-
-  return "cross";
-}
-
 function drawFloor() {
-  for (let y = 0; y < state.rows; y++) {
-    for (let x = 0; x < state.cols; x++) {
-      if (state.grid[y][x] === 1) continue;
+  const grid = state.grid;
+  const theme = getTheme();
+    const now = performance.now();
 
+  let tint = null;
+  if (theme === "forest") {
+    tint = "rgba(60, 120, 80, 0.18)";
+  } else if (theme === "lava") {
+    tint = "rgba(160, 60, 30, 0.18)";
+  }
+
+  for (let y = 0; y < grid.length; y++) {
+    for (let x = 0; x < grid[y].length; x++) {
       const px = ox + x * tile;
       const py = oy + y * tile;
 
-      const spriteName = getPathSpriteName(x, y);
-      const img = pathImgs[spriteName];
+      // base fallback
+      ctx.fillStyle = "#0f1c33";
+      ctx.fillRect(px, py, tile, tile);
 
-      if (img && pathReady[spriteName]) {
-        ctx.drawImage(img, px, py, tile, tile);
+      // choose image based on path state
+      if (state.isPainted(x, y)) {
+        // 🔹 PATH COMPLETED TILE
+        if (floorDoneReady) {
+  ctx.drawImage(floorDoneImg, px, py, tile, tile);
+
+  // ── subtle done-floor glow animation
+  const pulse =
+    0.12 + Math.sin(now * 0.002 + x * 0.4 + y * 0.4) * 0.06;
+
+  ctx.save();
+  ctx.globalCompositeOperation = "screen";
+  ctx.fillStyle = `rgba(255,255,255,${pulse})`;
+  ctx.fillRect(px, py, tile, tile);
+  ctx.restore();
+}
+         else if (floorReady) {
+          ctx.drawImage(floorImg, px, py, tile, tile);
+          if (tint) {
+  ctx.save();
+  ctx.globalCompositeOperation = "multiply";
+  ctx.fillStyle = tint;
+  ctx.fillRect(px, py, tile, tile);
+  ctx.restore();
+}   }
       } else {
-        // fallback if image not loaded yet
-        ctx.fillStyle = "rgba(0,0,0,0.25)";
-        ctx.fillRect(px, py, tile, tile);
+        // 🔹 NORMAL TILE
+        if (floorReady) {
+          ctx.drawImage(floorImg, px, py, tile, tile);
+          if (tint) {
+  ctx.fillStyle = tint;
+  ctx.fillRect(px, py, tile, tile);
+}
+          // ── CRYSTAL SUBSURFACE LIGHT (cheap + elegant)
+const t = performance.now() * 0.001;
+const pulse = 0.5 + Math.sin(t + x * 0.8 + y * 0.6) * 0.5;
+
+ctx.fillStyle = `rgba(120,200,255,${0.06 + pulse * 0.04})`;
+ctx.fillRect(
+  px + tile * 0.18,
+  py + tile * 0.18,
+  tile * 0.64,
+  tile * 0.64
+);
+// ── CRYSTAL FRACTURE LINES (static, elegant)
+ctx.save();
+ctx.globalAlpha = 0.18;
+ctx.strokeStyle = "rgba(220,240,255,0.8)";
+ctx.lineWidth = 1;
+
+ctx.beginPath();
+
+// pseudo-random but stable per tile
+const seed = (x * 928371 + y * 123457) % 1000;
+const fx = px + tile * (0.2 + (seed % 7) * 0.08);
+const fy = py + tile * (0.2 + ((seed >> 3) % 7) * 0.08);
+
+ctx.moveTo(fx, fy);
+ctx.lineTo(
+  fx + tile * (0.25 + ((seed >> 1) % 5) * 0.08),
+  fy + tile * (0.15 + ((seed >> 2) % 5) * 0.08)
+);
+
+ctx.stroke();
+ctx.restore();
+        }
       }
     }
   }
+  // ── CONTACT FLASH RENDER
+if (contactFlash) {
+  const age = performance.now() - contactFlash.time;
 
-  if (contactFlash) {
-    const age = performance.now() - contactFlash.time;
+  if (age < 220) {
+    const cx = ox + contactFlash.x * tile + tile / 2;
+    const cy = oy + contactFlash.y * tile + tile / 2;
 
-    if (age < 220) {
-      const cx = ox + contactFlash.x * tile + tile / 2;
-      const cy = oy + contactFlash.y * tile + tile / 2;
+    const theme = getTheme();
 
-      const theme = getTheme();
-      let color = "rgba(160,220,255,";
-      if (theme === "forest") color = "rgba(140,255,180,";
-      else if (theme === "lava") color = "rgba(255,170,120,";
-
-      const alpha = 0.35 * (1 - age / 220);
-
-      ctx.save();
-      ctx.globalCompositeOperation = "lighter";
-      ctx.fillStyle = `${color}${alpha})`;
-      ctx.beginPath();
-      ctx.arc(cx, cy, tile * 0.35, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.restore();
-    } else {
-      contactFlash = null;
+    let color = "rgba(160,220,255,"; // ice
+    if (theme === "forest") {
+      color = "rgba(140,255,180,";
+    } else if (theme === "lava") {
+      color = "rgba(255,170,120,";
     }
+
+    const alpha = 0.35 * (1 - age / 220);
+
+    ctx.save();
+    ctx.globalCompositeOperation = "lighter";
+    ctx.fillStyle = `${color}${alpha})`;
+
+    ctx.beginPath();
+    ctx.arc(cx, cy, tile * 0.35, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.restore();
+  } else {
+    contactFlash = null;
   }
+}
 }
 function drawCrystalShard(x, y, angle, size, alpha, hueShift = 0) {
   ctx.save();
@@ -647,31 +620,32 @@ ctx.fillRect(
 }
 window.addEventListener("resize", resize);
 resize();
-function drawBackground() {
-  // keep canvas transparent so page background shows through
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  // subtle vignette only
-  const g = ctx.createRadialGradient(
-    w * 0.5,
-    h * 0.45,
-    h * 0.08,
-    w * 0.5,
-    h * 0.5,
-    h * 0.75
-  );
-  g.addColorStop(0, "rgba(0,0,0,0)");
-  g.addColorStop(1, "rgba(0,0,0,0.12)");
-
-  ctx.fillStyle = g;
-  ctx.fillRect(0, 0, w, h);
-}
 
   function render(playerFloat) {
-  drawBackground();
+  ctx.clearRect(0, 0, w, h);
+
+  // ── CAMERA SHAKE APPLY
+  if (shakeTime > 0) {
+    const sx = (Math.random() - 0.5) * shakeStrength;
+    const sy = (Math.random() - 0.5) * shakeStrength;
+    ctx.save();
+    ctx.translate(sx, sy);
+    shakeTime--;
+  }
+
   drawFloor();
   drawBall(playerFloat);
-}
+  drawWallShadow();
+  drawWalls();
+
+  if (shakeTime > 0) {
+    ctx.restore();
+  }
+
+  }
+  onThemeChange(() => {
+    applyThemeAssets();
+  });
 
 
   return { resize, render };
