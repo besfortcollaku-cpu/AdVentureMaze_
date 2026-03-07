@@ -1323,10 +1323,10 @@ ui.onHintClick(async () => {
     const out = await apiHint({ mode: "auto" });
 
     applyUserPatch({
-  free_hints_used: out.free_hints_used,
-  hints_balance: out.hints_balance,
-  coins: out.coins,
-});
+      free_hints_used: out.free_hints_used,
+      hints_balance: out.hints_balance,
+      coins: out.coins,
+    });
 
     updateAllBadges();
 
@@ -1334,10 +1334,17 @@ ui.onHintClick(async () => {
     startRouteHintForLevel(levelIndex + 1);
 
     return;
+  } catch (e) {
+    if (e.message === "No hints available") {
+      hintPopup.open({
+        coins: CURRENT_USER?.coins ?? 0,
+        freeLeft: 0,
+      });
+      return;
     }
 
     console.error("Hint error:", e);
-  
+  }
 });
 
 hintPopup.onBuyHint(async () => {
@@ -1345,10 +1352,10 @@ hintPopup.onBuyHint(async () => {
     const out = await apiHint({ mode: "coins" });
 
     applyUserPatch({
-  free_hints_used: out.free_hints_used,
-  hints_balance: out.hints_balance,
-  coins: out.coins,
-});
+      free_hints_used: out.free_hints_used,
+      hints_balance: out.hints_balance,
+      coins: out.coins,
+    });
 
     updateAllBadges();
     hintPopup.hide();
@@ -1359,7 +1366,6 @@ hintPopup.onBuyHint(async () => {
     alert(e.message || "Hint failed");
   }
 });
-
 
 hintPopup.onWatchAdHint(() => {
   simulateAd(async () => {
@@ -1380,7 +1386,7 @@ hintPopup.onWatchAdHint(() => {
 
     restartLevelForHint();
     startRouteHintForLevel(levelIndex + 1);
-});
+  });
 });
 
 ui.onRestartClick(async () => {
