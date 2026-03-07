@@ -161,7 +161,6 @@ if (LEVEL_START_KEY) {
 apiSetProgress({
   uid: CURRENT_USER.uid,
       level: safeLevel,
-      coins: CURRENT_USER?.coins ?? 0,
       paintedKeys: Array.from(RESUME_TILES),
       resume: RESUME_POS,
     }).catch(() => {});
@@ -185,7 +184,7 @@ async function fetchAndSetCoins({ BACKEND, token, ui }) {
   ui.setCoins(data.coins ?? 0);
 }
 
-async function apiSetProgress({ uid, level, coins, paintedKeys, resume } = {}) {
+async function apiSetProgress({ uid, level, paintedKeys, resume } = {}) {
   if (!CURRENT_ACCESS_TOKEN) return null;
 
   const res = await fetch(`${BACKEND}/api/progress`, {
@@ -197,13 +196,11 @@ async function apiSetProgress({ uid, level, coins, paintedKeys, resume } = {}) {
     body: JSON.stringify({
       uid,
       level,
-      coins,
       paintedKeys,
       resume,
     }),
   });
 
-  // never break gameplay
   return res.json().catch(() => ({}));
 }
 async function apiClaimLevelComplete(levelNumber) {
@@ -998,7 +995,6 @@ if (CURRENT_ACCESS_TOKEN) {
   apiSetProgress({
       uid: CURRENT_USER.uid,
     level: nextUnlocked,
-    coins: CURRENT_USER?.coins ?? 0,
     paintedKeys: [],
     resume: null,
   }).catch(() => {});
@@ -1030,7 +1026,6 @@ function wipeResumeForCurrentLevel() {
   apiSetProgress({
     uid: CURRENT_USER.uid,
     level: CURRENT_MAX_UNLOCKED_LEVEL,
-    coins: CURRENT_USER?.coins ?? 0,
     paintedKeys: [],
     resume: null,
   }).catch(() => {});
