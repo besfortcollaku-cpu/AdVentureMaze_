@@ -44,6 +44,8 @@ const FREE_SKIPS = 3;
 const FREE_HINTS = 3;
 const FREE_RESTARTS = 3;
 let LOGIN_IN_PROGRESS = false;
+// tutorial hint flag
+const AUTO_HINT_SEEN_KEY = "auto_hint_seen_v1";
 
 document.body.classList.add("login-loading");
 document.body.classList.remove("login-loading");
