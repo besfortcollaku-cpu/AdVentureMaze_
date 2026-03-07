@@ -1044,13 +1044,14 @@ function restartLevelForHint() {
     wipeResumeForCurrentLevel();
   }
 
-  // restart current level locally without consuming restart resource
-  game.setLevel(levels[levelIndex]);
 
   // reset route-hint state so arrows start from step 1
   HINT_ROUTE = null;
   HINT_ROUTE_INDEX = 0;
   HINT_ACTIVE_FOR_LEVEL = false;
+    // restart current level locally without consuming restart resource
+  game.setLevel(levels[levelIndex]);
+
 }
 function goToLevel(nextIndex) {
     hideHintArrows();
