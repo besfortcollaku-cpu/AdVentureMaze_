@@ -1531,6 +1531,7 @@ setTimeout(() => {
 }, 400);
 
 updateAllBadges();
+});
 // ---- PI LOGIN ----
 
 ui.onLoginClick(async (e) => {
