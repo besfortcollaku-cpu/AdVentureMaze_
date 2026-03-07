@@ -1017,37 +1017,8 @@ if (CURRENT_ACCESS_TOKEN) {
   },
 });
 function maybeAutoHintTutorial() {
-  try {
-    if (CURRENT_ACCESS_TOKEN) return; // guests only
-    if ((levelIndex + 1) !== 1) return; // level 1 only
-    if (localStorage.getItem(AUTO_HINT_SEEN_KEY) === "1") return;
-
-    const route = LEVEL_ROUTES?.[1];
-    if (!Array.isArray(route) || route.length === 0) return;
-
-    let tries = 0;
-
-    const tryStart = () => {
-      tries++;
-
-      const st = game?.getState?.();
-      const playerReady = !!st?.player;
-
-      if (playerReady && (levelIndex + 1) === 1) {
-        startRouteHintForLevel(1);
-        localStorage.setItem(AUTO_HINT_SEEN_KEY, "1");
-        return;
-      }
-
-      if (tries < 12) {
-        setTimeout(tryStart, 150);
-      }
-    };
-
-    setTimeout(tryStart, 150);
-  } catch (_) {}
+  // no-op; tutorial is started directly inside ui.onGuestStart
 }
-
 function wipeResumeForCurrentLevel() {
   if (!CURRENT_ACCESS_TOKEN) return;
 
@@ -1509,12 +1480,8 @@ ui.onGuestStart(() => {
   CURRENT_USER = { username: "Guest", uid: null };
   CURRENT_ACCESS_TOKEN = null;
 
-  const guestProgress = loadGuestProgress();
-  const unlocked = Math.min(guestProgress.maxLevel || 1, GUEST_MAX_LEVEL);
+  CURRENT_MAX_UNLOCKED_LEVEL = 1;
 
-  CURRENT_MAX_UNLOCKED_LEVEL = unlocked;
-
-  // force tutorial to start on level 1
   setLevel(0);
 
   ui.setUser({
@@ -1523,14 +1490,23 @@ ui.onGuestStart(() => {
   });
 
   document.body.classList.add("game-running");
-ui.hideWelcome();
-game.start();
+  ui.hideWelcome();
 
-setTimeout(() => {
-  maybeAutoHintTutorial();
-}, 400);
+  if (!game.isRunning?.()) {
+    game.start();
+  }
 
-updateAllBadges();
+  updateAllBadges();
+
+  // tutorial hint: level 1 guest only, once
+  if (localStorage.getItem(AUTO_HINT_SEEN_KEY) !== "1") {
+    setTimeout(() => {
+      if ((levelIndex + 1) !== 1) return;
+
+      startRouteHintForLevel(1);
+      localStorage.setItem(AUTO_HINT_SEEN_KEY, "1");
+    }, 600);
+  }
 });
 // ---- PI LOGIN ----
 
