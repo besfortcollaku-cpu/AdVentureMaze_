@@ -46,6 +46,27 @@ const FREE_RESTARTS = 3;
 let LOGIN_IN_PROGRESS = false;
 // tutorial hint flag
 const AUTO_HINT_SEEN_KEY = "auto_hint_seen_v1";
+const AD_COOLDOWN_MS = 30_000;
+const AD_LAST_CLAIM_KEY = "ad_last_claim_at_v1";
+
+function getRemainingAdCooldownMs() {
+  const last = Number(localStorage.getItem(AD_LAST_CLAIM_KEY) || 0);
+  const remaining = AD_COOLDOWN_MS - (Date.now() - last);
+  return Math.max(0, remaining);
+}
+
+function markAdClaimedNow() {
+  localStorage.setItem(AD_LAST_CLAIM_KEY, String(Date.now()));
+}
+
+function guardAdCooldownBeforeWatching() {
+  const remaining = getRemainingAdCooldownMs();
+  if (remaining <= 0) return true;
+
+  const seconds = Math.ceil(remaining / 1000);
+  alert(`Ad already claimed. Please wait ${seconds}s.`);
+  return false;
+}
 
 document.body.classList.add("login-loading");
 document.body.classList.remove("login-loading");
@@ -1205,6 +1226,9 @@ winPopup.onWatchAdClick(() => {
     return;
   }
 
+  if (!guardAdCooldownBeforeWatching()) {
+    return;
+  }
   simulateAd(async () => {
     const nonce = crypto.randomUUID();
 
@@ -1220,13 +1244,13 @@ winPopup.onWatchAdClick(() => {
     const out = await res.json().catch(() => ({}));
     console.log("AD +50 RESPONSE", out);
 
-    // ⏱️ cooldown protection
     if (out?.already) {
       alert("Ad already claimed. Please wait a few minutes.");
       return;
     }
 
     if (out?.user?.coins != null) {
+      markAdClaimedNow();
       ui.setCoins(out.user.coins);
       applyUserPatch({ coins: out.user.coins });
     }
@@ -1291,6 +1315,9 @@ skipPopup.onBuySkip(async () => {
 
 
 skipPopup.onWatchAdSkip(() => {
+    if (!guardAdCooldownBeforeWatching()) {
+  return;
+}
   simulateAd(async () => {
     const out = await apiSkip({
       mode: "ad",
@@ -1364,6 +1391,9 @@ hintPopup.onBuyHint(async () => {
 });
 
 hintPopup.onWatchAdHint(() => {
+    if (!guardAdCooldownBeforeWatching()) {
+  return;
+}
   simulateAd(async () => {
     const out = await apiHint({
       mode: "ad",
@@ -1465,6 +1495,9 @@ restartPopup.onBuyRestart(async () => {
 
 
 restartPopup.onWatchAdRestart(() => {
+    if (!guardAdCooldownBeforeWatching()) {
+  return;
+}
   simulateAd(async () => {
 
     const out = await fetch(`${BACKEND}/api/restart`, {
