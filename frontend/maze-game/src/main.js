@@ -1018,18 +1018,33 @@ if (CURRENT_ACCESS_TOKEN) {
 });
 function maybeAutoHintTutorial() {
   try {
-    if (CURRENT_ACCESS_TOKEN) return; // only guests
-    if ((levelIndex + 1) !== 1) return; // only level 1
+    if (CURRENT_ACCESS_TOKEN) return; // guests only
+    if ((levelIndex + 1) !== 1) return; // level 1 only
     if (localStorage.getItem(AUTO_HINT_SEEN_KEY) === "1") return;
 
-    // only start if a route exists for level 1
-    if (!Array.isArray(LEVEL_ROUTES?.[1]) || LEVEL_ROUTES[1].length === 0) return;
+    const route = LEVEL_ROUTES?.[1];
+    if (!Array.isArray(route) || route.length === 0) return;
 
-    setTimeout(() => {
-      startRouteHintForLevel(1);
-      // mark as seen only after starting
-      localStorage.setItem(AUTO_HINT_SEEN_KEY, "1");
-    }, 250);
+    let tries = 0;
+
+    const tryStart = () => {
+      tries++;
+
+      const st = game?.getState?.();
+      const playerReady = !!st?.player;
+
+      if (playerReady && (levelIndex + 1) === 1) {
+        startRouteHintForLevel(1);
+        localStorage.setItem(AUTO_HINT_SEEN_KEY, "1");
+        return;
+      }
+
+      if (tries < 12) {
+        setTimeout(tryStart, 150);
+      }
+    };
+
+    setTimeout(tryStart, 150);
   } catch (_) {}
 }
 
@@ -1490,26 +1505,31 @@ restartPopup.onWatchAdRestart(() => {
   });
 });
   // ---- GUEST ----
-  ui.onGuestStart(() => {
+ui.onGuestStart(() => {
   CURRENT_USER = { username: "Guest", uid: null };
   CURRENT_ACCESS_TOKEN = null;
 
   const guestProgress = loadGuestProgress();
   const unlocked = Math.min(guestProgress.maxLevel || 1, GUEST_MAX_LEVEL);
+
+  CURRENT_MAX_UNLOCKED_LEVEL = unlocked;
+
+  // force tutorial to start on level 1
+  setLevel(0);
+
   ui.setUser({
     ...CURRENT_USER,
-    level: CURRENT_MAX_UNLOCKED_LEVEL,
+    level: 1,
   });
 
   document.body.classList.add("game-running");
   ui.hideWelcome();
   game.start();
-setLevel(1); // force level 1
-  maybeAutoHintTutorial(); // ✅ auto hint tutorial (level 1, guest, once)
+
+  maybeAutoHintTutorial();
 
   updateAllBadges();
 });
-  
 // ---- PI LOGIN ----
 
 ui.onLoginClick(async (e) => {
