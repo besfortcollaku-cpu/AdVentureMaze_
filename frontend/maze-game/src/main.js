@@ -46,7 +46,7 @@ const FREE_RESTARTS = 3;
 let LOGIN_IN_PROGRESS = false;
 // tutorial hint flag
 const AUTO_HINT_SEEN_KEY = "auto_hint_seen_v1";
-const AD_COOLDOWN_MS = 30_000;
+const AD_COOLDOWN_MS = 180_000;
 const AD_LAST_CLAIM_KEY = "ad_last_claim_at_v1";
 let adToastTimer = null;
 
@@ -84,7 +84,17 @@ function showAdCooldownToast(message) {
   }, 1800);
 }
 
+const AUTO_AD_COOLDOWN_MS = 180000;
+const AUTO_AD_LAST_KEY = "auto_ad_last";
 
+function shouldShowAutoAd() {
+  const last = Number(localStorage.getItem(AUTO_AD_LAST_KEY) || 0);
+  return Date.now() - last > AUTO_AD_COOLDOWN_MS;
+}
+
+function markAutoAdShown() {
+  localStorage.setItem(AUTO_AD_LAST_KEY, Date.now());
+}
 
 function getRemainingAdCooldownMs() {
   const last = Number(localStorage.getItem(AD_LAST_CLAIM_KEY) || 0);
@@ -1014,7 +1024,7 @@ const AUTO_HINT_SEEN_KEY = "auto_hint_seen_v1";
 
     // ✅ server reward: +1 coin once per level
     // ✅ server reward: +1 coin once per level
-winPopup.show({
+afterLevelCompleteShowAdOrWin({
   levelNumber: completedLevel,
 });
 
@@ -1162,6 +1172,59 @@ setTimeout(() => {
     })
     .catch(() => {});
 }
+function simulateInterstitialAd(onFinish) {
+
+  const overlay = document.createElement("div");
+  overlay.style.cssText = `
+    position:fixed;
+    inset:0;
+    background:#000;
+    z-index:999999;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    color:white;
+    font-size:20px;
+  `;
+
+  const skip = document.createElement("button");
+  skip.textContent = "Skip Ad";
+  skip.style.marginTop = "20px";
+
+  overlay.innerHTML = "<div>Advertisement</div>";
+  overlay.appendChild(skip);
+
+  document.body.appendChild(overlay);
+
+  skip.onclick = () => {
+    overlay.remove();
+    onFinish();
+  };
+
+  setTimeout(() => {
+    overlay.remove();
+    onFinish();
+  }, 5000);
+}
+function afterLevelCompleteShowAdOrWin({ levelNumber }) {
+  // Optional: do not show auto ads on the first few levels
+  if (levelNumber <= 2) {
+    winPopup.show({ levelNumber });
+    return;
+  }
+
+  if (shouldShowAutoAd()) {
+    markAutoAdShown();
+
+    simulateInterstitialAd(() => {
+      winPopup.show({ levelNumber });
+    });
+  } else {
+    winPopup.show({ levelNumber });
+  }
+}
+
 function simulateAd(onFinished) {
   let seconds = 10;
   let finished = false;
