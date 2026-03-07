@@ -1504,15 +1504,12 @@ restartPopup.onWatchAdRestart(() => {
   document.body.classList.add("game-running");
   ui.hideWelcome();
   game.start();
-setLevel(0); // force level 1
+setLevel(1); // force level 1
   maybeAutoHintTutorial(); // ✅ auto hint tutorial (level 1, guest, once)
 
   updateAllBadges();
 });
-   // PROGRES LEVELS
-
-
-
+  
 // ---- PI LOGIN ----
 
 ui.onLoginClick(async (e) => {
