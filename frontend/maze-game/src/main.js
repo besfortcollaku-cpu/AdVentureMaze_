@@ -589,7 +589,8 @@ setTimeout(() => {
   dailyRewardPopup.show({
   day: me?.dailyReward?.day ?? 3,
   coins: me?.dailyReward?.coins ?? 10,
-  missedDays: me?.dailyReward?.missedDays ?? [4],
+  days: me?.dailyReward?.days ?? [],
+  bonusState: me?.dailyReward?.bonusState ?? "locked",
 });
   if (me?.mysteryChest) {
   mysteryChestPopup.show();
