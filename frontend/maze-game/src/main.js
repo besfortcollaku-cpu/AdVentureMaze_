@@ -104,9 +104,6 @@ const missedRewardPopup = createMissedRewardPopup();
 const AUTO_AD_COOLDOWN_MS = 180000;
 const AUTO_AD_LAST_KEY = "auto_ad_last";
 const mysteryChestPopup = createMysteryChestPopup();
-setTimeout(() => {
-  mysteryChestPopup.show();
-}, 2000);
 function shouldShowAutoAd() {
   const last = Number(localStorage.getItem(AUTO_AD_LAST_KEY) || 0);
   return Date.now() - last > AUTO_AD_COOLDOWN_MS;
@@ -1392,8 +1389,8 @@ async function grantRestartAdReward() {
 }
 
 dailyRewardPopup.onClaim(async () => {
+
   const out = await apiClaimDailyReward();
-  console.log("DAILY CLAIM OUT", out);
 
   if (!out?.ok) {
     dailyRewardPopup.hide();
@@ -1407,7 +1404,10 @@ dailyRewardPopup.onClaim(async () => {
 
   dailyRewardPopup.hide();
 
-  mysteryChestPopup.show();
+  if (Number(out?.day) >= 7) {
+    mysteryChestPopup.show();
+  }
+
 });
 function goNextLevel() {
   goToLevel(levelIndex + 1);
