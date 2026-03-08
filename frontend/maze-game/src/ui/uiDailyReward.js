@@ -9,15 +9,21 @@ export function createDailyRewardPopup() {
 
       <div id="dailyRewardGrid" class="daily-reward-grid"></div>
 
-      <div class="daily-reward-claim-wrap">
-        <div class="daily-reward-coins">
-          +<b id="dailyRewardCoins">5</b> coins
-        </div>
+    <div class="daily-reward-claim-wrap">
 
-        <button id="dailyRewardClaimBtn" class="daily-reward-btn">
-          Claim
-        </button>
-      </div>
+  <div class="daily-reward-coins">
+    +<b id="dailyRewardCoins">5</b> coins
+  </div>
+
+  <div class="daily-reward-tomorrow">
+    Tomorrow: <b id="dailyRewardTomorrow">7</b> coins
+  </div>
+
+  <button id="dailyRewardClaimBtn" class="daily-reward-btn">
+    Claim
+  </button>
+
+</div>
     </div>
   `;
 
@@ -25,6 +31,7 @@ export function createDailyRewardPopup() {
 
   const gridEl = el.querySelector("#dailyRewardGrid");
   const coinsEl = el.querySelector("#dailyRewardCoins");
+  const tomorrowEl = el.querySelector("#dailyRewardTomorrow");
   const claimBtn = el.querySelector("#dailyRewardClaimBtn");
 
   let claimHandler = null;
@@ -73,10 +80,20 @@ export function createDailyRewardPopup() {
 
   return {
     show({ day = 1, coins = 5 } = {}) {
-      renderDays(day);
-      coinsEl.textContent = String(coins);
-      el.classList.remove("hidden");
-    },
+
+  renderDays(day);
+
+  coinsEl.textContent = String(coins);
+
+  const rewards = [5,7,10,15,20,30,50];
+
+  const tomorrowCoins = rewards[Math.min(day, rewards.length - 1)];
+
+  tomorrowEl.textContent = tomorrowCoins;
+
+  el.classList.remove("hidden");
+
+}
 
     hide() {
       el.classList.add("hidden");
