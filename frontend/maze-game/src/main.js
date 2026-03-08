@@ -3,7 +3,6 @@ import "./css/dailyReward.css";
 import { createDailyRewardPopup } from "./ui/uiDailyReward.js";
 import "./css/ui.css";
 import "./css/ads.css";
-import "./css/mysteryChest.css";
 import { mountLevelsUI } from "./ui/uiLevels.js";
 import { mountUI } from "./ui/ui.js";
 import { loadProgress } from "./api/loadProgress.js";
@@ -105,6 +104,9 @@ const missedRewardPopup = createMissedRewardPopup();
 const AUTO_AD_COOLDOWN_MS = 180000;
 const AUTO_AD_LAST_KEY = "auto_ad_last";
 const mysteryChestPopup = createMysteryChestPopup();
+setTimeout(() => {
+  mysteryChestPopup.show();
+}, 2000);
 function shouldShowAutoAd() {
   const last = Number(localStorage.getItem(AUTO_AD_LAST_KEY) || 0);
   return Date.now() - last > AUTO_AD_COOLDOWN_MS;

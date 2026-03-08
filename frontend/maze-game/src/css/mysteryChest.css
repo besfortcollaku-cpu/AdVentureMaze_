@@ -1,28 +1,28 @@
-.chest-box {
-  text-align:center;
+..chest-box {
+  text-align: center;
 }
 
 .chest-icon {
-  font-size:70px;
-  margin:20px 0;
+  font-size: 70px;
+  margin: 20px 0;
 }
 
 .chest-open {
-  font-size:60px;
-  margin:20px 0;
+  font-size: 60px;
+  margin: 20px 0;
 }
 
 .spin {
-  animation:spin 1s linear infinite;
+  animation: spin 1s linear infinite;
 }
 
 .reward-coins {
-  font-size:24px;
-  font-weight:bold;
-  color:#ffd700;
+  font-size: 24px;
+  font-weight: 800;
+  color: #ffd700;
 }
 
 @keyframes spin {
-  from { transform:rotate(0deg); }
-  to { transform:rotate(360deg); }
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
