@@ -526,7 +526,12 @@ if (storedToken) {
       token: CURRENT_ACCESS_TOKEN,
       ui,
     });
-
+if (me?.dailyReward?.canClaim) {
+  dailyRewardPopup.show({
+    day: me.dailyReward.day,
+    coins: me.dailyReward.coins
+  });
+}
     if (!me?.user) {
       throw new Error("session_invalid");
     }
