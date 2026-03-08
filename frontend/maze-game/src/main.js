@@ -3,7 +3,7 @@ import "./css/dailyReward.css";
 import { createDailyRewardPopup } from "./ui/uiDailyReward.js";
 import "./css/ui.css";
 import "./css/ads.css";
-import "./css/mysteryChest.js";
+import "./css/mysteryChest.css";
 import { mountLevelsUI } from "./ui/uiLevels.js";
 import { mountUI } from "./ui/ui.js";
 import { loadProgress } from "./api/loadProgress.js";
