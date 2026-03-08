@@ -14,6 +14,8 @@ import { createWinPopup } from "./ui/uiWin.js";
 import { createSkipPopup } from "./ui/uiSkip.js";
 import { createHintPopup } from "./ui/uiHints.js";
 import { createRestartPopup } from "./ui/uiRestarts.js";
+import { createMissedRewardPopup } from "./ui/uiMissedReward.js";
+import { createMysteryChestPopup } from "./ui/uiMysteryChest.js";
 // DEBUG: show fatal errors on mobile so buttons don't "do nothing"
 window.addEventListener("error", (e) => {
   alert("JS ERROR: " + (e?.message || "unknown"));
@@ -97,10 +99,10 @@ function showAdCooldownToast(message) {
     el.style.display = "none";
   }, 1800);
 }
-
+const missedRewardPopup = createMissedRewardPopup();
 const AUTO_AD_COOLDOWN_MS = 180000;
 const AUTO_AD_LAST_KEY = "auto_ad_last";
-
+const mysteryChestPopup = createMysteryChestPopup();
 function shouldShowAutoAd() {
   const last = Number(localStorage.getItem(AUTO_AD_LAST_KEY) || 0);
   return Date.now() - last > AUTO_AD_COOLDOWN_MS;
@@ -587,6 +589,17 @@ setTimeout(() => {
     day: me.dailyReward.day,
     coins: me.dailyReward.coins,
   });
+  if (me?.mysteryChest) {
+  mysteryChestPopup.show();
+}
+  if (me?.missedDay) {
+
+  missedRewardPopup.show({
+    day: me.missedDay.day,
+    coins: me.missedDay.coins
+  });
+
+}
 }
 }
      else {
@@ -766,6 +779,26 @@ dailyRewardPopup.onClaim(async () => {
   }
 
   dailyRewardPopup.hide();
+});
+
+mysteryChestPopup.onOpen(async () => {
+
+  const res = await fetch(`${BACKEND}/api/rewards/mystery-chest`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${normalizeToken(CURRENT_ACCESS_TOKEN)}`
+    }
+  });
+
+  const out = await res.json().catch(() => ({}));
+
+  if (!out?.ok) return;
+
+  applyUserPatch({ coins: out.user.coins });
+  ui.setCoins(out.user.coins);
+
+  mysteryChestPopup.hide();
 });
 function onAnyPaintDuringMove() {
   if (!HINT_ACTIVE_FOR_LEVEL) return;
@@ -1424,6 +1457,34 @@ winPopup.onWatchAdClick(() => {
 });
 });
 
+
+missedRewardPopup.onRecover(() => {
+
+  simulateAd(async () => {
+
+    const res = await fetch(`${BACKEND}/api/rewards/recover-day`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${normalizeToken(CURRENT_ACCESS_TOKEN)}`
+      },
+      body: JSON.stringify({
+        day: CURRENT_MISSED_DAY
+      })
+    });
+
+    const out = await res.json().catch(() => ({}));
+
+    if (!out?.ok) return;
+
+    applyUserPatch({ coins: out.user.coins });
+    ui.setCoins(out.user.coins);
+
+    missedRewardPopup.hide();
+  });
+
+});
+
 // ---- SKIP / HINT buttons (backend-powered) ----
 ui.onSkipClick(async () => {
   if (!CURRENT_ACCESS_TOKEN) {
@@ -1848,6 +1909,14 @@ if (me?.dailyReward?.canClaim) {
     day: me.dailyReward.day,
     coins: me.dailyReward.coins,
   });
+  if (me?.missedDay) {
+
+  missedRewardPopup.show({
+    day: me.missedDay.day,
+    coins: me.missedDay.coins
+  });
+
+}
 }
 
     if (RESUME_TILES.size > 0 || RESUME_POS) {
