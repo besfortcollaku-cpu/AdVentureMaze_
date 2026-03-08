@@ -7,52 +7,42 @@ export function createDailyRewardPopup() {
       <div class="daily-reward-title">Daily Reward</div>
       <div class="daily-reward-subtitle">Come back every day to keep your streak.</div>
 
-      <div class="daily-reward-streak">
-        <span>Day</span>
-        <b id="dailyRewardDay">1</b>
-      </div>
+      <div id="dailyRewardGrid" class="daily-reward-grid"></div>
 
-      <div class="daily-reward-coins">
-        +<b id="dailyRewardCoins">5</b> coins
-      </div>
+      <div class="daily-reward-claim-wrap">
+        <div class="daily-reward-coins">
+          +<b id="dailyRewardCoins">5</b> coins
+        </div>
 
-      <button id="dailyRewardClaimBtn" class="daily-reward-btn">
-        Claim
-      </button>
+        <button id="dailyRewardClaimBtn" class="daily-reward-btn">
+          Claim
+        </button>
+      </div>
     </div>
   `;
 
   document.body.appendChild(el);
 
-  const dayEl = el.querySelector("#dailyRewardDay");
+  const gridEl = el.querySelector("#dailyRewardGrid");
   const coinsEl = el.querySelector("#dailyRewardCoins");
   const claimBtn = el.querySelector("#dailyRewardClaimBtn");
 
   let claimHandler = null;
 
-  claimBtn.addEventListener("click", async () => {
-    if (claimBtn.disabled) return;
-    claimBtn.disabled = true;
-    try {
-      await claimHandler?.();
-    } finally {
-      claimBtn.disabled = false;
-    }
-  });
+  const REWARDS = [5, 7, 10, 15, 20, 30, 50];
 
-  return {
-    show({ day = 1, coins = 5 } = {}) {
-      dayEl.textContent = String(day);
-      coinsEl.textContent = String(coins);
-      el.classList.remove("hidden");
-    },
+  function renderDays(activeDay = 1) {
+    gridEl.innerHTML = "";
 
-    hide() {
-      el.classList.add("hidden");
-    },
+    REWARDS.forEach((coins, i) => {
+      const day = i + 1;
+      const item = document.createElement("div");
+      item.className = "daily-reward-day";
+      if (day === activeDay) item.classList.add("active");
 
-    onClaim(fn) {
-      claimHandler = fn;
-    },
-  };
-}
+      item.innerHTML = `
+        <div class="daily-reward-day-label">Day ${day}</div>
+        <div class="daily-reward-day-coins">${coins}</div>
+      `;
+
+      gridEl
