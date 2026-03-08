@@ -747,7 +747,7 @@ function onAnyPaintDuringMove() {
     advanceRouteStep();
   }, 160);
 }
-let HINT_RECALC_TIMER = null;
+
 
 function scheduleHintRecalc() {
   if (!HINT_ACTIVE_FOR_LEVEL) return;
@@ -1019,7 +1019,6 @@ HINT_ROUTE_INDEX = 0;
 HINT_ACTIVE_FOR_LEVEL = false;
 RESUME_ENABLED = false;
 
-const AUTO_HINT_SEEN_KEY = "auto_hint_seen_v1";
     const completedLevel = level?.number ?? (levelIndex + 1);
 
     // ✅ server reward: +1 coin once per level
@@ -1412,28 +1411,29 @@ skipPopup.onWatchAdSkip(() => {
     return;
   }
 
-  simulateAd(async () => {
-    const out = await apiSkip({
-      mode: "ad",
-      nonce: crypto.randomUUID(),
-    });
+  simulateAd({
+    onFinished: async () => {
+      const out = await apiSkip({
+        mode: "ad",
+        nonce: crypto.randomUUID(),
+      });
 
-    if (!out?.ok) {
-      showAdCooldownToast(out.error || "Skip failed");
-      return;
-    }
+      if (!out?.ok) {
+        showAdCooldownToast(out.error || "Skip failed");
+        return;
+      }
 
-    markAdClaimedNow();
+      markAdClaimedNow();
 
-    applyUserPatch({
-      free_skips_used: out.free_skips_used,
-      skips_balance: out.skips_balance,
-    });
+      applyUserPatch({
+        free_skips_used: out.free_skips_used,
+        skips_balance: out.skips_balance,
+      });
 
-    updateAllBadges();
-    skipPopup.hide();
-    goNextLevel();
-  }
+      updateAllBadges();
+      skipPopup.hide();
+      goNextLevel();
+    },
   });
 });
 ui.onHintClick(async () => {
@@ -1495,30 +1495,31 @@ hintPopup.onWatchAdHint(() => {
     return;
   }
 
-  simulateAd(async () => {
-    const out = await apiHint({
-      mode: "ad",
-      nonce: crypto.randomUUID(),
-    });
+  simulateAd({
+    onFinished: async () => {
+      const out = await apiHint({
+        mode: "ad",
+        nonce: crypto.randomUUID(),
+      });
 
-    if (!out?.ok) {
-      showAdCooldownToast(out.error || "Hint failed");
-      return;
-    }
+      if (!out?.ok) {
+        showAdCooldownToast(out.error || "Hint failed");
+        return;
+      }
 
-    markAdClaimedNow();
+      markAdClaimedNow();
 
-    applyUserPatch({
-      free_hints_used: out.free_hints_used,
-      hints_balance: out.hints_balance,
-    });
+      applyUserPatch({
+        free_hints_used: out.free_hints_used,
+        hints_balance: out.hints_balance,
+      });
 
-    updateAllBadges();
-    hintPopup.hide();
+      updateAllBadges();
+      hintPopup.hide();
 
-    restartLevelForHint();
-    startRouteHintForLevel(levelIndex + 1);
-  }
+      restartLevelForHint();
+      startRouteHintForLevel(levelIndex + 1);
+    },
   });
 });
 
@@ -1606,36 +1607,38 @@ restartPopup.onWatchAdRestart(() => {
     return;
   }
 
-  simulateAd(async () => {
-    const out = await fetch(`${BACKEND}/api/restart`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${normalizeToken(CURRENT_ACCESS_TOKEN)}`,
-      },
-      body: JSON.stringify({
-        mode: "ad",
-        nonce: crypto.randomUUID(),
-      }),
-    }).then(r => r.json());
+  simulateAd({
+    onFinished: async () => {
+      const out = await fetch(`${BACKEND}/api/restart`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${normalizeToken(CURRENT_ACCESS_TOKEN)}`,
+        },
+        body: JSON.stringify({
+          mode: "ad",
+          nonce: crypto.randomUUID(),
+        }),
+      }).then(r => r.json());
 
-    if (!out?.ok) {
-      showAdCooldownToast(out.error || "Restart failed");
-      return;
-    }
+      if (!out?.ok) {
+        showAdCooldownToast(out.error || "Restart failed");
+        return;
+      }
 
-    markAdClaimedNow();
+      markAdClaimedNow();
 
-    applyUserPatch({
-      free_restarts_used: out.free_restarts_used,
-      restarts_balance: out.restarts_balance,
-      coins: out.coins,
-    });
+      applyUserPatch({
+        free_restarts_used: out.free_restarts_used,
+        restarts_balance: out.restarts_balance,
+        coins: out.coins,
+      });
 
-    updateAllBadges();
-    wipeResumeForCurrentLevel();
-    game.setLevel(levels[levelIndex]);
-    restartPopup.hide();
+      updateAllBadges();
+      wipeResumeForCurrentLevel();
+      game.setLevel(levels[levelIndex]);
+      restartPopup.hide();
+    },
   });
 });
   // ---- GUEST ----
