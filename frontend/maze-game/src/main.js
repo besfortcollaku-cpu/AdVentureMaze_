@@ -1403,6 +1403,11 @@ dailyRewardPopup.onClaim(async () => {
   }
 
   dailyRewardPopup.hide();
+
+  // ✅ open bonus chest immediately after Day 7 claim
+  if (Number(out?.day) === 7) {
+    mysteryChestPopup.show();
+  }
 });
 
 function goNextLevel() {
