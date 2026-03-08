@@ -1412,14 +1412,12 @@ skipPopup.onWatchAdSkip(() => {
     return;
   }
 
-  simulateAd({
-    onFinished: async () => {
-      const out = await apiSkip({
-        mode: "ad",
-        nonce: crypto.randomUUID(),
-      });
-},
-});
+  simulateAd(async () => {
+    const out = await apiSkip({
+      mode: "ad",
+      nonce: crypto.randomUUID(),
+    });
+
     if (!out?.ok) {
       showAdCooldownToast(out.error || "Skip failed");
       return;
@@ -1435,6 +1433,7 @@ skipPopup.onWatchAdSkip(() => {
     updateAllBadges();
     skipPopup.hide();
     goNextLevel();
+  }
   });
 });
 ui.onHintClick(async () => {
@@ -1496,14 +1495,12 @@ hintPopup.onWatchAdHint(() => {
     return;
   }
 
-  simulateAd({
-    onFinished: async () => {
-      const out = await apiSkip({
-        mode: "ad",
-        nonce: crypto.randomUUID(),
-      });
-},
-});
+  simulateAd(async () => {
+    const out = await apiHint({
+      mode: "ad",
+      nonce: crypto.randomUUID(),
+    });
+
     if (!out?.ok) {
       showAdCooldownToast(out.error || "Hint failed");
       return;
@@ -1521,6 +1518,7 @@ hintPopup.onWatchAdHint(() => {
 
     restartLevelForHint();
     startRouteHintForLevel(levelIndex + 1);
+  }
   });
 });
 
@@ -1602,43 +1600,42 @@ restartPopup.onBuyRestart(async () => {
   }
 });
 
+
 restartPopup.onWatchAdRestart(() => {
   if (!guardAdCooldownBeforeWatching()) {
     return;
   }
 
-  simulateAd({
-    onFinished: async () => {
-      const out = await fetch(`${BACKEND}/api/restart`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${normalizeToken(CURRENT_ACCESS_TOKEN)}`,
-        },
-        body: JSON.stringify({
-          mode: "ad",
-          nonce: crypto.randomUUID(),
-        }),
-      }).then(r => r.json());
+  simulateAd(async () => {
+    const out = await fetch(`${BACKEND}/api/restart`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${normalizeToken(CURRENT_ACCESS_TOKEN)}`,
+      },
+      body: JSON.stringify({
+        mode: "ad",
+        nonce: crypto.randomUUID(),
+      }),
+    }).then(r => r.json());
 
-      if (!out?.ok) {
-        showAdCooldownToast(out.error || "Restart failed");
-        return;
-      }
+    if (!out?.ok) {
+      showAdCooldownToast(out.error || "Restart failed");
+      return;
+    }
 
-      markAdClaimedNow();
+    markAdClaimedNow();
 
-      applyUserPatch({
-        free_restarts_used: out.free_restarts_used,
-        restarts_balance: out.restarts_balance,
-        coins: out.coins,
-      });
+    applyUserPatch({
+      free_restarts_used: out.free_restarts_used,
+      restarts_balance: out.restarts_balance,
+      coins: out.coins,
+    });
 
-      updateAllBadges();
-      wipeResumeForCurrentLevel();
-      game.setLevel(levels[levelIndex]);
-      restartPopup.hide();
-    },
+    updateAllBadges();
+    wipeResumeForCurrentLevel();
+    game.setLevel(levels[levelIndex]);
+    restartPopup.hide();
   });
 });
   // ---- GUEST ----
