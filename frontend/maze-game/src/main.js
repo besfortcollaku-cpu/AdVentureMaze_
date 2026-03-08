@@ -3,6 +3,7 @@ import "./css/dailyReward.css";
 import { createDailyRewardPopup } from "./ui/uiDailyReward.js";
 import "./css/ui.css";
 import "./css/ads.css";
+import "./css/mysteryChest.js";
 import { mountLevelsUI } from "./ui/uiLevels.js";
 import { mountUI } from "./ui/ui.js";
 import { loadProgress } from "./api/loadProgress.js";
@@ -16,6 +17,7 @@ import { createHintPopup } from "./ui/uiHints.js";
 import { createRestartPopup } from "./ui/uiRestarts.js";
 import { createMissedRewardPopup } from "./ui/uiMissedReward.js";
 import { createMysteryChestPopup } from "./ui/uiMysteryChest.js";
+
 // DEBUG: show fatal errors on mobile so buttons don't "do nothing"
 window.addEventListener("error", (e) => {
   alert("JS ERROR: " + (e?.message || "unknown"));
@@ -784,21 +786,24 @@ dailyRewardPopup.onClaim(async () => {
 mysteryChestPopup.onOpen(async () => {
 
   const res = await fetch(`${BACKEND}/api/rewards/mystery-chest`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${normalizeToken(CURRENT_ACCESS_TOKEN)}`
+    method:"POST",
+    headers:{
+      "Content-Type":"application/json",
+      Authorization:`Bearer ${normalizeToken(CURRENT_ACCESS_TOKEN)}`
     }
   });
 
-  const out = await res.json().catch(() => ({}));
+  const out = await res.json().catch(()=>({}));
 
-  if (!out?.ok) return;
+  if(!out?.ok) return null;
 
   applyUserPatch({ coins: out.user.coins });
   ui.setCoins(out.user.coins);
 
   mysteryChestPopup.hide();
+
+  return out.reward;
+
 });
 function onAnyPaintDuringMove() {
   if (!HINT_ACTIVE_FOR_LEVEL) return;

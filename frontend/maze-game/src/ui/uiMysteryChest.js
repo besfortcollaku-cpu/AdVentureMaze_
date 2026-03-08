@@ -4,25 +4,46 @@ export function createMysteryChestPopup(){
   overlay.className = "daily-overlay hidden";
 
   overlay.innerHTML = `
-    <div class="daily-box">
-      <h2>Mystery Chest</h2>
+  <div class="daily-box chest-box">
 
-      <div class="daily-text">
-        Perfect 7-day streak!
-      </div>
+    <h2>Perfect Week!</h2>
 
-      <button id="openChest">Open Chest</button>
+    <div id="chestClosed" class="chest-icon">
+      🎁
     </div>
-  `;
 
+    <div id="chestOpen" class="chest-open hidden">
+      <div class="spin">✨</div>
+      <div id="rewardCoins" class="reward-coins"></div>
+    </div>
+
+    <button id="openChest">Open Chest</button>
+
+  </div>
+`;
   document.body.appendChild(overlay);
 
   const btn = overlay.querySelector("#openChest");
+  const chestClosed = overlay.querySelector("#chestClosed");
+const chestOpen = overlay.querySelector("#chestOpen");
+const rewardCoins = overlay.querySelector("#rewardCoins");
 
   let handler = null;
 
-  btn.onclick = ()=>handler?.();
+btn.onclick = async () => {
 
+  btn.disabled = true;
+
+  chestClosed.classList.add("hidden");
+  chestOpen.classList.remove("hidden");
+
+  const reward = await handler?.();
+
+  if (reward) {
+    rewardCoins.textContent = `+${reward} coins`;
+  }
+
+};
   return {
 
     show(){ overlay.classList.remove("hidden"); },
