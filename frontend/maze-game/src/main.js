@@ -1418,7 +1418,8 @@ skipPopup.onWatchAdSkip(() => {
         mode: "ad",
         nonce: crypto.randomUUID(),
       });
-
+},
+});
     if (!out?.ok) {
       showAdCooldownToast(out.error || "Skip failed");
       return;
