@@ -111,3 +111,33 @@
   opacity:0.85;
   margin-bottom:12px;
 }
+
+.daily-reward-day-status {
+  font-size: 11px;
+  margin-top: 6px;
+  opacity: 0.9;
+}
+
+.daily-reward-day.claimed {
+  background: rgba(80, 200, 120, 0.16);
+  border-color: rgba(80, 200, 120, 0.45);
+}
+
+.daily-reward-day.claimed .daily-reward-day-status {
+  color: #7dff9b;
+  font-weight: 700;
+}
+
+.daily-reward-day.missed {
+  background: rgba(255, 90, 90, 0.12);
+  border-color: rgba(255, 90, 90, 0.4);
+}
+
+.daily-reward-day.missed .daily-reward-day-status {
+  color: #ff8f8f;
+  font-weight: 700;
+}
+
+.daily-reward-day.upcoming .daily-reward-day-status {
+  opacity: 0.55;
+}

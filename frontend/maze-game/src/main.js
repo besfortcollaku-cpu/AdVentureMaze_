@@ -588,9 +588,10 @@ setTimeout(() => {
   document.body.classList.remove("welcome-visible");
   if (me?.dailyReward?.canClaim) {
   dailyRewardPopup.show({
-    day: me.dailyReward.day,
-    coins: me.dailyReward.coins,
-  });
+  day: me?.dailyReward?.day ?? 3,
+  coins: me?.dailyReward?.coins ?? 10,
+  missedDays: me?.dailyReward?.missedDays ?? [4],
+});
   if (me?.mysteryChest) {
   mysteryChestPopup.show();
 }
@@ -1911,9 +1912,10 @@ ui.onLoginClick(async (e) => {
     
 if (me?.dailyReward?.canClaim) {
   dailyRewardPopup.show({
-    day: me.dailyReward.day,
-    coins: me.dailyReward.coins,
-  });
+  day: me?.dailyReward?.day ?? 3,
+  coins: me?.dailyReward?.coins ?? 10,
+  missedDays: me?.dailyReward?.missedDays ?? [4],
+});
   if (me?.missedDay) {
 
   missedRewardPopup.show({

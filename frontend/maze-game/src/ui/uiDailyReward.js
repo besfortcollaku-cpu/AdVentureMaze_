@@ -38,35 +38,54 @@ export function createDailyRewardPopup() {
 
   const REWARDS = [5, 7, 10, 15, 20, 30, 50];
 
-  function renderDays(activeDay = 1) {
-    gridEl.innerHTML = "";
+  function renderDays({ activeDay = 1, missedDays = [] } = {}) {
+  gridEl.innerHTML = "";
 
-    REWARDS.forEach((coins, i) => {
-      const day = i + 1;
-      const item = document.createElement("div");
-      item.className = "daily-reward-day";
+  REWARDS.forEach((coins, i) => {
+    const day = i + 1;
+    const item = document.createElement("div");
+    item.className = "daily-reward-day";
 
-      if (day === activeDay) {
-        item.classList.add("active");
-      }
+    let status = String(coins);
 
-      item.innerHTML = `
-        <div class="daily-reward-day-label">Day ${day}</div>
-        <div class="daily-reward-day-coins">${coins}</div>
-      `;
+    if (missedDays.includes(day)) {
+      item.classList.add("missed");
+      status = "Missed";
+    } else if (day < activeDay) {
+      item.classList.add("claimed");
+      status = "Claimed";
+    } else if (day === activeDay) {
+      item.classList.add("active");
+      status = "Today";
+    } else {
+      item.classList.add("upcoming");
+      status = String(coins);
+    }
 
-      gridEl.appendChild(item);
-    });
-
-    const chest = document.createElement("div");
-    chest.className = "daily-reward-day chest-day";
-    chest.innerHTML = `
-      <div class="daily-reward-day-label">Bonus</div>
-      <div class="daily-reward-day-chest">🎁</div>
+    item.innerHTML = `
+      <div class="daily-reward-day-label">Day ${day}</div>
+      <div class="daily-reward-day-coins">${coins}</div>
+      <div class="daily-reward-day-status">${status}</div>
     `;
-    gridEl.appendChild(chest);
+
+    gridEl.appendChild(item);
+  });
+
+  const chest = document.createElement("div");
+  chest.className = "daily-reward-day chest-day";
+
+  if (activeDay > 7 && missedDays.length === 0) {
+    chest.classList.add("active");
   }
 
+  chest.innerHTML = `
+    <div class="daily-reward-day-label">Bonus</div>
+    <div class="daily-reward-day-chest">🎁</div>
+    <div class="daily-reward-day-status">Bonus</div>
+  `;
+
+  gridEl.appendChild(chest);
+}
   claimBtn.addEventListener("click", async () => {
     if (claimBtn.disabled) return;
     claimBtn.disabled = true;
@@ -80,21 +99,23 @@ export function createDailyRewardPopup() {
 
   return {
 
-  show({ day = 1, coins = 5 } = {}) {
+show({ day = 1, coins = 5, missedDays = [] } = {}) {
 
-    renderDays(day);
+  renderDays({
+    activeDay: day,
+    missedDays,
+  });
 
-    coinsEl.textContent = String(coins);
+  coinsEl.textContent = String(coins);
 
-    const rewards = [5,7,10,15,20,30,50];
+  const rewards = [5,7,10,15,20,30,50];
+  const tomorrowCoins = rewards[Math.min(day, rewards.length - 1)];
 
-    const tomorrowCoins = rewards[Math.min(day, rewards.length - 1)];
+  tomorrowEl.textContent = tomorrowCoins;
 
-    tomorrowEl.textContent = tomorrowCoins;
+  el.classList.remove("hidden");
 
-    el.classList.remove("hidden");
-
-  },
+},
 
   hide() {
     el.classList.add("hidden");
