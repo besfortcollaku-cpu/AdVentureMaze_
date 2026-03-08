@@ -1501,7 +1501,8 @@ hintPopup.onWatchAdHint(() => {
         mode: "ad",
         nonce: crypto.randomUUID(),
       });
-
+},
+});
     if (!out?.ok) {
       showAdCooldownToast(out.error || "Hint failed");
       return;
