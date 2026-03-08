@@ -738,6 +738,35 @@ async function apiClaimDailyReward() {
   return res.json().catch(() => ({}));
 }
 
+dailyRewardPopup.onClaim(async () => {
+
+  const res = await fetch(`${BACKEND}/api/rewards/daily-claim`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${normalizeToken(CURRENT_ACCESS_TOKEN)}`
+    }
+  });
+
+  const out = await res.json().catch(() => ({}));
+
+  if (!out?.ok) {
+    console.warn("Daily reward failed", out);
+    return;
+  }
+
+  if (out?.already) {
+    dailyRewardPopup.hide();
+    return;
+  }
+
+  if (out?.user?.coins != null) {
+    applyUserPatch({ coins: out.user.coins });
+    ui.setCoins(out.user.coins);
+  }
+
+  dailyRewardPopup.hide();
+});
 function onAnyPaintDuringMove() {
   if (!HINT_ACTIVE_FOR_LEVEL) return;
   if (!Array.isArray(HINT_ROUTE) || HINT_ROUTE.length === 0) return;
