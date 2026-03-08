@@ -1172,40 +1172,14 @@ setTimeout(() => {
     })
     .catch(() => {});
 }
-function simulateInterstitialAd(onFinish) {
-
-  const overlay = document.createElement("div");
-  overlay.style.cssText = `
-    position:fixed;
-    inset:0;
-    background:#000;
-    z-index:999999;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    justify-content:center;
-    color:white;
-    font-size:20px;
-  `;
-
-  const skip = document.createElement("button");
-  skip.textContent = "Skip Ad";
-  skip.style.marginTop = "20px";
-
-  overlay.innerHTML = "<div>Advertisement</div>";
-  overlay.appendChild(skip);
-
-  document.body.appendChild(overlay);
-
-  skip.onclick = () => {
-    overlay.remove();
-    onFinish();
-  };
-
-  setTimeout(() => {
-    overlay.remove();
-    onFinish();
-  }, 5000);
+function simulateInterstitialAd(onFinished) {
+  simulateAd({
+    onFinished,
+    duration: 20,
+    skipAfter: 5,
+    buttonLabel: "Skip Ad",
+    rewardReadyText: "✅ Ad Finished",
+  });
 }
 function afterLevelCompleteShowAdOrWin({ levelNumber }) {
   // Optional: do not show auto ads on the first few levels
@@ -1224,9 +1198,14 @@ function afterLevelCompleteShowAdOrWin({ levelNumber }) {
     winPopup.show({ levelNumber });
   }
 }
-
-function simulateAd(onFinished) {
-  let seconds = 10;
+function simulateAd({
+  onFinished,
+  duration = 10,
+  skipAfter = 10,
+  buttonLabel = "Close",
+} = {}) {
+  let seconds = duration;
+  let skipUnlock = skipAfter;
   let finished = false;
 
   const overlay = document.createElement("div");
@@ -1247,7 +1226,7 @@ function simulateAd(onFinished) {
       </div>
 
       <button id="closeAdBtn" class="ad-close-btn" disabled>
-        Close
+        ${skipUnlock > 0 ? `${buttonLabel} in ${skipUnlock}s` : buttonLabel}
       </button>
     </div>
   `;
@@ -1258,26 +1237,38 @@ function simulateAd(onFinished) {
   const bar = overlay.querySelector("#adBar");
   const closeBtn = overlay.querySelector("#closeAdBtn");
 
+  const total = duration;
+
   const interval = setInterval(() => {
-    seconds--;
+    seconds -= 1;
+    if (skipUnlock > 0) skipUnlock -= 1;
 
     countdownEl.innerHTML = `Ad ends in <b>${seconds}</b>s`;
-    bar.style.width = `${(10 - seconds) * 10}%`;
+    bar.style.width = `${((total - seconds) / total) * 100}%`;
+
+    if (skipUnlock > 0) {
+      closeBtn.textContent = `${buttonLabel} in ${skipUnlock}s`;
+      closeBtn.disabled = true;
+      closeBtn.classList.remove("enabled");
+    } else {
+      closeBtn.textContent = buttonLabel;
+      closeBtn.disabled = false;
+      closeBtn.classList.add("enabled");
+    }
 
     if (seconds <= 0) {
       clearInterval(interval);
       finished = true;
-
-      countdownEl.innerHTML = `✅ Reward Ready`;
+      closeBtn.textContent = "Close";
       closeBtn.disabled = false;
       closeBtn.classList.add("enabled");
     }
   }, 1000);
 
   closeBtn.addEventListener("click", () => {
-    if (!finished) return;
+    if (!finished && skipUnlock > 0) return;
     document.body.removeChild(overlay);
-    onFinished();
+    onFinished?.();
   });
 }
 async function grantRestartAdReward() {
@@ -1329,7 +1320,8 @@ winPopup.onWatchAdClick(() => {
   if (!guardAdCooldownBeforeWatching()) {
     return;
   }
-  simulateAd(async () => {
+ simulateAd({
+  onFinished: async () => {
     const nonce = crypto.randomUUID();
 
     const res = await fetch(`${BACKEND}/api/rewards/ad-50`, {
@@ -1345,7 +1337,7 @@ winPopup.onWatchAdClick(() => {
     console.log("AD +50 RESPONSE", out);
 
     if (out?.already) {
-      alert("Ad already claimed. Please wait a few minutes.");
+      showAdCooldownToast("Ad already claimed. Please wait a few minutes.");
       return;
     }
 
@@ -1357,7 +1349,8 @@ winPopup.onWatchAdClick(() => {
 
     winPopup.hide();
     goNextLevel();
-  });
+  },
+});
 });
 
 // ---- SKIP / HINT buttons (backend-powered) ----
@@ -1419,11 +1412,12 @@ skipPopup.onWatchAdSkip(() => {
     return;
   }
 
-  simulateAd(async () => {
-    const out = await apiSkip({
-      mode: "ad",
-      nonce: crypto.randomUUID(),
-    });
+  simulateAd({
+    onFinished: async () => {
+      const out = await apiSkip({
+        mode: "ad",
+        nonce: crypto.randomUUID(),
+      });
 
     if (!out?.ok) {
       showAdCooldownToast(out.error || "Skip failed");
@@ -1501,11 +1495,12 @@ hintPopup.onWatchAdHint(() => {
     return;
   }
 
-  simulateAd(async () => {
-    const out = await apiHint({
-      mode: "ad",
-      nonce: crypto.randomUUID(),
-    });
+  simulateAd({
+    onFinished: async () => {
+      const out = await apiSkip({
+        mode: "ad",
+        nonce: crypto.randomUUID(),
+      });
 
     if (!out?.ok) {
       showAdCooldownToast(out.error || "Hint failed");
@@ -1605,42 +1600,43 @@ restartPopup.onBuyRestart(async () => {
   }
 });
 
-
 restartPopup.onWatchAdRestart(() => {
   if (!guardAdCooldownBeforeWatching()) {
     return;
   }
 
-  simulateAd(async () => {
-    const out = await fetch(`${BACKEND}/api/restart`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${normalizeToken(CURRENT_ACCESS_TOKEN)}`,
-      },
-      body: JSON.stringify({
-        mode: "ad",
-        nonce: crypto.randomUUID(),
-      }),
-    }).then(r => r.json());
+  simulateAd({
+    onFinished: async () => {
+      const out = await fetch(`${BACKEND}/api/restart`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${normalizeToken(CURRENT_ACCESS_TOKEN)}`,
+        },
+        body: JSON.stringify({
+          mode: "ad",
+          nonce: crypto.randomUUID(),
+        }),
+      }).then(r => r.json());
 
-    if (!out?.ok) {
-      showAdCooldownToast(out.error || "Restart failed");
-      return;
-    }
+      if (!out?.ok) {
+        showAdCooldownToast(out.error || "Restart failed");
+        return;
+      }
 
-    markAdClaimedNow();
+      markAdClaimedNow();
 
-    applyUserPatch({
-      free_restarts_used: out.free_restarts_used,
-      restarts_balance: out.restarts_balance,
-      coins: out.coins,
-    });
+      applyUserPatch({
+        free_restarts_used: out.free_restarts_used,
+        restarts_balance: out.restarts_balance,
+        coins: out.coins,
+      });
 
-    updateAllBadges();
-    wipeResumeForCurrentLevel();
-    game.setLevel(levels[levelIndex]);
-    restartPopup.hide();
+      updateAllBadges();
+      wipeResumeForCurrentLevel();
+      game.setLevel(levels[levelIndex]);
+      restartPopup.hide();
+    },
   });
 });
   // ---- GUEST ----
