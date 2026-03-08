@@ -23,6 +23,7 @@ window.addEventListener("unhandledrejection", (e) => {
 const GUEST_PROGRESS_KEY = "guest_progress_v1";
 const GUEST_MAX_LEVEL = 5;
 let CURRENT_USER = null;
+let AD_OVERLAY_ACTIVE = false;
 
 Object.defineProperty(window, "__DEBUG_USER", {
   get() {
@@ -49,7 +50,18 @@ const AUTO_HINT_SEEN_KEY = "auto_hint_seen_v1";
 const AD_COOLDOWN_MS = 180_000;
 const AD_LAST_CLAIM_KEY = "ad_last_claim_at_v1";
 let adToastTimer = null;
+const adPlayingStyle = document.createElement("style");
+adPlayingStyle.textContent = `
+  body.ad-playing #app {
+    pointer-events: none !important;
+  }
 
+  body.ad-playing .ad-overlay,
+  body.ad-playing .ad-overlay * {
+    pointer-events: auto !important;
+  }
+`;
+document.head.appendChild(adPlayingStyle);
 function showAdCooldownToast(message) {
   let el = document.getElementById("adCooldownToast");
 
@@ -1187,6 +1199,11 @@ function afterLevelCompleteShowAdOrWin({ levelNumber }) {
     return;
   }
 
+  // never stack a second ad on top of an existing one
+  if (AD_OVERLAY_ACTIVE) {
+    return;
+  }
+
   if (shouldShowAutoAd()) {
     markAutoAdShown();
 
@@ -1203,6 +1220,10 @@ function simulateAd({
   skipAfter = 10,
   buttonLabel = "Close",
 } = {}) {
+  if (AD_OVERLAY_ACTIVE) return;
+  AD_OVERLAY_ACTIVE = true;
+  document.body.classList.add("ad-playing");
+
   let seconds = duration;
   let skipUnlock = skipAfter;
   let finished = false;
@@ -1267,7 +1288,8 @@ function simulateAd({
   closeBtn.addEventListener("click", () => {
     if (!finished && skipUnlock > 0) return;
     document.body.removeChild(overlay);
-    onFinished?.();
+    AD_OVERLAY_ACTIVE = false;
+onFinished?.();
   });
 }
 async function grantRestartAdReward() {
