@@ -526,7 +526,7 @@ if (storedToken) {
       token: CURRENT_ACCESS_TOKEN,
       ui,
     });
-
+const FORCE_DAILY_REWARD_POPUP = true;
 
 if (me?.dailyReward?.canClaim || FORCE_DAILY_REWARD_POPUP) {
   dailyRewardPopup.show({
@@ -606,10 +606,10 @@ setTimeout(() => {
 
   updateAllBadges();
   document.body.classList.remove("welcome-visible");
-if (me?.dailyReward?.canClaim || FORCE_DAILY_REWARD_POPUP) {
+  if (me?.dailyReward?.canClaim) {
   dailyRewardPopup.show({
-    day: me?.dailyReward?.day ?? 3,
-    coins: me?.dailyReward?.coins ?? 10,
+    day: me.dailyReward.day,
+    coins: me.dailyReward.coins,
   });
 }
 }
@@ -1838,10 +1838,10 @@ ui.onLoginClick(async (e) => {
     updateAllBadges();
     LOGIN_IN_PROGRESS = false;
     
-if (me?.dailyReward?.canClaim || FORCE_DAILY_REWARD_POPUP) {
+if (me?.dailyReward?.canClaim) {
   dailyRewardPopup.show({
-    day: me?.dailyReward?.day ?? 3,
-    coins: me?.dailyReward?.coins ?? 10,
+    day: me.dailyReward.day,
+    coins: me.dailyReward.coins,
   });
 }
 
