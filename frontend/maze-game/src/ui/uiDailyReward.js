@@ -79,28 +79,29 @@ export function createDailyRewardPopup() {
   });
 
   return {
-    show({ day = 1, coins = 5 } = {}) {
 
-  renderDays(day);
+  show({ day = 1, coins = 5 } = {}) {
 
-  coinsEl.textContent = String(coins);
+    renderDays(day);
 
-  const rewards = [5,7,10,15,20,30,50];
+    coinsEl.textContent = String(coins);
 
-  const tomorrowCoins = rewards[Math.min(day, rewards.length - 1)];
+    const rewards = [5,7,10,15,20,30,50];
 
-  tomorrowEl.textContent = tomorrowCoins;
+    const tomorrowCoins = rewards[Math.min(day, rewards.length - 1)];
 
-  el.classList.remove("hidden");
+    tomorrowEl.textContent = tomorrowCoins;
 
-}
+    el.classList.remove("hidden");
 
-    hide() {
-      el.classList.add("hidden");
-    },
+  },
 
-    onClaim(fn) {
-      claimHandler = fn;
-    },
-  };
-}
+  hide() {
+    el.classList.add("hidden");
+  },
+
+  onClaim(fn) {
+    claimHandler = fn;
+  },
+
+};
