@@ -1,4 +1,6 @@
 console.log("BUILD VERSION TEST 123");
+import "./css/dailyReward.css";
+import { createDailyRewardPopup } from "./ui/uiDailyReward.js";
 import "./css/ui.css";
 import "./css/ads.css";
 import { mountLevelsUI } from "./ui/uiLevels.js";
@@ -597,6 +599,12 @@ setTimeout(() => {
 
   updateAllBadges();
   document.body.classList.remove("welcome-visible");
+  if (me?.dailyReward?.canClaim) {
+  dailyRewardPopup.show({
+    day: me.dailyReward.day,
+    coins: me.dailyReward.coins,
+  });
+}
 }
      else {
       throw new Error("Invalid session");
@@ -629,7 +637,7 @@ const winPopup = createWinPopup();
 const skipPopup = createSkipPopup();
 const hintPopup = createHintPopup();
 const restartPopup = createRestartPopup();
-
+const dailyRewardPopup = createDailyRewardPopup();
 /* -------------------------------
    HINT ARROWS OVERLAY (animated)
 -------------------------------- */
@@ -732,6 +740,19 @@ function advanceRouteStep() {
     const dir = HINT_ROUTE[HINT_ROUTE_INDEX];
     if (dir) showHintArrows(dir);
   }
+}
+async function apiClaimDailyReward() {
+  if (!CURRENT_ACCESS_TOKEN) return null;
+
+  const res = await fetch(`${BACKEND}/api/daily-reward/claim`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${normalizeToken(CURRENT_ACCESS_TOKEN)}`,
+    },
+  });
+
+  return res.json().catch(() => ({}));
 }
 
 function onAnyPaintDuringMove() {
@@ -1316,6 +1337,23 @@ async function grantRestartAdReward() {
   wipeResumeForCurrentLevel();
   game.setLevel(levels[levelIndex]);
 }
+
+dailyRewardPopup.onClaim(async () => {
+  const out = await apiClaimDailyReward();
+
+  if (!out?.ok) {
+    dailyRewardPopup.hide();
+    return;
+  }
+
+  if (out?.user) {
+    applyUserPatch(out.user);
+    ui.setCoins(out.user.coins ?? 0);
+  }
+
+  dailyRewardPopup.hide();
+});
+
 function goNextLevel() {
   goToLevel(levelIndex + 1);
 }
@@ -1792,6 +1830,13 @@ ui.onLoginClick(async (e) => {
     hideLoginLoading();
     updateAllBadges();
     LOGIN_IN_PROGRESS = false;
+    
+if (me?.dailyReward?.canClaim) {
+  dailyRewardPopup.show({
+    day: me.dailyReward.day,
+    coins: me.dailyReward.coins,
+  });
+}
 
     if (RESUME_TILES.size > 0 || RESUME_POS) {
       setTimeout(() => {
