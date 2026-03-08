@@ -1391,6 +1391,7 @@ async function grantRestartAdReward() {
 
 dailyRewardPopup.onClaim(async () => {
   const out = await apiClaimDailyReward();
+  console.log("DAILY CLAIM OUT", out);
 
   if (!out?.ok) {
     dailyRewardPopup.hide();
@@ -1404,12 +1405,8 @@ dailyRewardPopup.onClaim(async () => {
 
   dailyRewardPopup.hide();
 
-  // ✅ open bonus chest immediately after Day 7 claim
-  if (Number(out?.day) === 7) {
-    mysteryChestPopup.show();
-  }
+  mysteryChestPopup.show();
 });
-
 function goNextLevel() {
   goToLevel(levelIndex + 1);
 }
