@@ -40,42 +40,4 @@ export function createDailyRewardPopup() {
       item.className = "daily-reward-day";
 
       if (day === activeDay) {
-        item.classList.add("active");
-      }
-
-      item.innerHTML = `
-        <div class="daily-reward-day-label">Day ${day}</div>
-        <div class="daily-reward-day-coins">${coins}</div>
-      `;
-
-      gridEl.appendChild(item);
-    });
-  }
-
-  claimBtn.addEventListener("click", async () => {
-    if (claimBtn.disabled) return;
-    claimBtn.disabled = true;
-
-    try {
-      await claimHandler?.();
-    } finally {
-      claimBtn.disabled = false;
-    }
-  });
-
-  return {
-    show({ day = 1, coins = 5 } = {}) {
-      renderDays(day);
-      coinsEl.textContent = String(coins);
-      el.classList.remove("hidden");
-    },
-
-    hide() {
-      el.classList.add("hidden");
-    },
-
-    onClaim(fn) {
-      claimHandler = fn;
-    },
-  };
-}
+        item.classList.add("active
