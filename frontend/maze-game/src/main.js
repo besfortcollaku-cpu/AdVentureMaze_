@@ -526,10 +526,12 @@ if (storedToken) {
       token: CURRENT_ACCESS_TOKEN,
       ui,
     });
-if (me?.dailyReward?.canClaim) {
+const FORCE_DAILY_REWARD_POPUP = true;
+
+if (me?.dailyReward?.canClaim || FORCE_DAILY_REWARD_POPUP) {
   dailyRewardPopup.show({
-    day: me.dailyReward.day,
-    coins: me.dailyReward.coins
+    day: me?.dailyReward?.day ?? 3,
+    coins: me?.dailyReward?.coins ?? 10,
   });
 }
     if (!me?.user) {
