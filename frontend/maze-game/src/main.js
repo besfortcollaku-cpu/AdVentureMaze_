@@ -585,28 +585,15 @@ setTimeout(() => {
 
   updateAllBadges();
   document.body.classList.remove("welcome-visible");
-  const meFresh = await apiMe();
-
-if (meFresh?.dailyReward?.canClaim) {
+  if (me?.dailyReward?.canClaim) {
   dailyRewardPopup.show({
-    day: meFresh.dailyReward.day,
-    coins: meFresh.dailyReward.coins,
-    days: meFresh.dailyReward.days,
-    bonusState: meFresh.dailyReward.bonusState
+    day: me.dailyReward.day,
+    coins: me.dailyReward.coins,
+    days: me.dailyReward.days,
+    bonusState: me.dailyReward.bonusState
   });
 }
-
-if (meFresh?.missedDay) {
-  missedRewardPopup.show({
-    day: meFresh.missedDay.day,
-    coins: meFresh.missedDay.coins
-  });
-}
-
-if (meFresh?.mysteryChest) {
-  mysteryChestPopup.show();
-}
-
+console.log("WHO OPENED DAILY POPUP", me?.dailyReward);
 
 if (me?.missedDay) {
   missedRewardPopup.show(me.missedDay);
@@ -1900,28 +1887,23 @@ ui.onLoginClick(async (e) => {
     updateAllBadges();
     LOGIN_IN_PROGRESS = false;
     
-const meFresh = await apiMe();
-
-if (meFresh?.dailyReward?.canClaim) {
+if (me?.dailyReward?.canClaim) {
   dailyRewardPopup.show({
-    day: meFresh.dailyReward.day,
-    coins: meFresh.dailyReward.coins,
-    days: meFresh.dailyReward.days,
-    bonusState: meFresh.dailyReward.bonusState
+    day: me.dailyReward.day,
+    coins: me.dailyReward.coins,
+    days: me.dailyReward.days,
+    bonusState: me.dailyReward.bonusState
   });
 }
+console.log("WHO OPENED DAILY POPUP", me?.dailyReward);
 
-if (meFresh?.missedDay) {
-  missedRewardPopup.show({
-    day: meFresh.missedDay.day,
-    coins: meFresh.missedDay.coins
-  });
+if (me?.missedDay) {
+  missedRewardPopup.show(me.missedDay);
 }
 
-if (meFresh?.mysteryChest) {
+if (me?.mysteryChest) {
   mysteryChestPopup.show();
 }
-
 
     if (RESUME_TILES.size > 0 || RESUME_POS) {
       setTimeout(() => {
