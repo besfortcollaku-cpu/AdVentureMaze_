@@ -585,7 +585,22 @@ setTimeout(() => {
 
   updateAllBadges();
   document.body.classList.remove("welcome-visible");
-  
+  if (me?.dailyReward?.canClaim) {
+  dailyRewardPopup.show({
+    day: me.dailyReward.day,
+    coins: me.dailyReward.coins,
+    days: me.dailyReward.days,
+    bonusState: me.dailyReward.bonusState
+  });
+}
+
+if (me?.missedDay) {
+  missedRewardPopup.show(me.missedDay);
+}
+
+if (me?.mysteryChest) {
+  mysteryChestPopup.show();
+}
 }
      else {
       throw new Error("Invalid session");
@@ -736,35 +751,7 @@ async function apiClaimDailyReward() {
   return res.json().catch(() => ({}));
 }
 
-dailyRewardPopup.onClaim(async () => {
 
-  const res = await fetch(`${BACKEND}/api/rewards/daily-claim`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${normalizeToken(CURRENT_ACCESS_TOKEN)}`
-    }
-  });
-
-  const out = await res.json().catch(() => ({}));
-
-  if (!out?.ok) {
-    console.warn("Daily reward failed", out);
-    return;
-  }
-
-  if (out?.already) {
-    dailyRewardPopup.hide();
-    return;
-  }
-
-  if (out?.user?.coins != null) {
-    applyUserPatch({ coins: out.user.coins });
-    ui.setCoins(out.user.coins);
-  }
-
-  dailyRewardPopup.hide();
-});
 
 mysteryChestPopup.onOpen(async () => {
 
@@ -1458,30 +1445,29 @@ winPopup.onWatchAdClick(() => {
 
 
 missedRewardPopup.onRecover(() => {
+  simulateAd({
+    onFinished: async () => {
+      const res = await fetch(`${BACKEND}/api/rewards/recover-day`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${normalizeToken(CURRENT_ACCESS_TOKEN)}`
+        },
+        body: JSON.stringify({
+          day: CURRENT_MISSED_DAY
+        })
+      });
 
-  simulateAd(async () => {
+      const out = await res.json().catch(() => ({}));
 
-    const res = await fetch(`${BACKEND}/api/rewards/recover-day`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${normalizeToken(CURRENT_ACCESS_TOKEN)}`
-      },
-      body: JSON.stringify({
-        day: CURRENT_MISSED_DAY
-      })
-    });
+      if (!out?.ok) return;
 
-    const out = await res.json().catch(() => ({}));
+      applyUserPatch({ coins: out.user.coins });
+      ui.setCoins(out.user.coins);
 
-    if (!out?.ok) return;
-
-    applyUserPatch({ coins: out.user.coins });
-    ui.setCoins(out.user.coins);
-
-    missedRewardPopup.hide();
+      missedRewardPopup.hide();
+    },
   });
-
 });
 
 // ---- SKIP / HINT buttons (backend-powered) ----
