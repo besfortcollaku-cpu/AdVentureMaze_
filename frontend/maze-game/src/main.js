@@ -585,25 +585,7 @@ setTimeout(() => {
 
   updateAllBadges();
   document.body.classList.remove("welcome-visible");
-  if (me?.dailyReward?.canClaim) {
-  dailyRewardPopup.show({
-  day: me?.dailyReward?.day ?? 3,
-  coins: me?.dailyReward?.coins ?? 10,
-  days: me?.dailyReward?.days ?? [],
-  bonusState: me?.dailyReward?.bonusState ?? "locked",
-});
-  if (me?.mysteryChest) {
-  mysteryChestPopup.show();
-}
-  if (me?.missedDay) {
-
-  missedRewardPopup.show({
-    day: me.missedDay.day,
-    coins: me.missedDay.coins
-  });
-
-}
-}
+  
 }
      else {
       throw new Error("Invalid session");
@@ -1917,18 +1899,19 @@ ui.onLoginClick(async (e) => {
     
 if (me?.dailyReward?.canClaim) {
   dailyRewardPopup.show({
-  day: me?.dailyReward?.day ?? 3,
-  coins: me?.dailyReward?.coins ?? 10,
-  missedDays: me?.dailyReward?.missedDays ?? [4],
-});
-  if (me?.missedDay) {
-
-  missedRewardPopup.show({
-    day: me.missedDay.day,
-    coins: me.missedDay.coins
+    day: me.dailyReward.day,
+    coins: me.dailyReward.coins,
+    days: me.dailyReward.days,
+    bonusState: me.dailyReward.bonusState
   });
-
 }
+
+if (me?.missedDay) {
+  missedRewardPopup.show(me.missedDay);
+}
+
+if (me?.mysteryChest) {
+  mysteryChestPopup.show();
 }
 
     if (RESUME_TILES.size > 0 || RESUME_POS) {
