@@ -1491,10 +1491,14 @@ missedRewardPopup.onRecover(() => {
 
       if (!out?.ok) {
         showAdCooldownToast(out?.error || "Recover failed");
-        missedRewardPopup.show({
-          day: CURRENT_MISSED_DAY,
-          coins: CURRENT_MISSED_COINS,
-        });
+
+        if (CURRENT_MISSED_DAY != null && CURRENT_MISSED_COINS != null) {
+          missedRewardPopup.show({
+            day: CURRENT_MISSED_DAY,
+            coins: CURRENT_MISSED_COINS,
+          });
+        }
+
         return;
       }
 
@@ -1511,7 +1515,6 @@ missedRewardPopup.onRecover(() => {
     },
   });
 });
-
 // ---- SKIP / HINT buttons (backend-powered) ----
 ui.onSkipClick(async () => {
   if (!CURRENT_ACCESS_TOKEN) {
