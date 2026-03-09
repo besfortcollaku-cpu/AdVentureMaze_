@@ -593,6 +593,7 @@ setTimeout(() => {
     bonusState: me.dailyReward.bonusState
   });
 }
+console.log("WHO OPENED DAILY POPUP", me?.dailyReward);
 
 if (me?.missedDay) {
   missedRewardPopup.show(me.missedDay);
@@ -1894,6 +1895,7 @@ if (me?.dailyReward?.canClaim) {
     bonusState: me.dailyReward.bonusState
   });
 }
+console.log("WHO OPENED DAILY POPUP", me?.dailyReward);
 
 if (me?.missedDay) {
   missedRewardPopup.show(me.missedDay);
