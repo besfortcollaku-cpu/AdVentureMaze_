@@ -585,21 +585,23 @@ setTimeout(() => {
 
   updateAllBadges();
   document.body.classList.remove("welcome-visible");
-  if (me?.dailyReward?.canClaim) {
+  const meFresh = await apiMe();
+console.log("WHO OPENED DAILY POPUP", meFresh?.dailyReward);
+
+if (meFresh?.dailyReward?.canClaim) {
   dailyRewardPopup.show({
-    day: me.dailyReward.day,
-    coins: me.dailyReward.coins,
-    days: me.dailyReward.days,
-    bonusState: me.dailyReward.bonusState
+    day: meFresh.dailyReward.day,
+    coins: meFresh.dailyReward.coins,
+    days: meFresh.dailyReward.days,
+    bonusState: meFresh.dailyReward.bonusState,
   });
 }
-console.log("WHO OPENED DAILY POPUP", me?.dailyReward);
 
-if (me?.missedDay) {
-  missedRewardPopup.show(me.missedDay);
+if (meFresh?.missedDay) {
+  missedRewardPopup.show(meFresh.missedDay);
 }
 
-if (me?.mysteryChest) {
+if (meFresh?.mysteryChest) {
   mysteryChestPopup.show();
 }
 }
@@ -752,7 +754,19 @@ async function apiClaimDailyReward() {
   return res.json().catch(() => ({}));
 }
 
+async function apiMe() {
+  if (!CURRENT_ACCESS_TOKEN) return null;
 
+  const res = await fetch(`${BACKEND}/api/me`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${normalizeToken(CURRENT_ACCESS_TOKEN)}`,
+    },
+  });
+
+  return res.json().catch(() => ({}));
+}
 
 mysteryChestPopup.onOpen(async () => {
 
@@ -1887,21 +1901,23 @@ ui.onLoginClick(async (e) => {
     updateAllBadges();
     LOGIN_IN_PROGRESS = false;
     
-if (me?.dailyReward?.canClaim) {
+const meFresh = await apiMe();
+console.log("WHO OPENED DAILY POPUP", meFresh?.dailyReward);
+
+if (meFresh?.dailyReward?.canClaim) {
   dailyRewardPopup.show({
-    day: me.dailyReward.day,
-    coins: me.dailyReward.coins,
-    days: me.dailyReward.days,
-    bonusState: me.dailyReward.bonusState
+    day: meFresh.dailyReward.day,
+    coins: meFresh.dailyReward.coins,
+    days: meFresh.dailyReward.days,
+    bonusState: meFresh.dailyReward.bonusState,
   });
 }
-console.log("WHO OPENED DAILY POPUP", me?.dailyReward);
 
-if (me?.missedDay) {
-  missedRewardPopup.show(me.missedDay);
+if (meFresh?.missedDay) {
+  missedRewardPopup.show(meFresh.missedDay);
 }
 
-if (me?.mysteryChest) {
+if (meFresh?.mysteryChest) {
   mysteryChestPopup.show();
 }
 
