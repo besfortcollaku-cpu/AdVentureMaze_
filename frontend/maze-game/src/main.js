@@ -1477,17 +1477,22 @@ missedRewardPopup.onRecover(() => {
     return;
   }
 
+  missedRewardPopup.hide();
+
   simulateAd({
     onFinished: async () => {
       const out = await apiRecoverDailyReward();
 
       if (!out?.ok) {
         showAdCooldownToast(out?.error || "Recover failed");
+        missedRewardPopup.show({
+          day: CURRENT_MISSED_DAY,
+          coins: CURRENT_MISSED_COINS,
+        });
         return;
       }
 
       if (out?.already) {
-        missedRewardPopup.hide();
         return;
       }
 
@@ -1497,8 +1502,6 @@ missedRewardPopup.onRecover(() => {
         applyUserPatch(out.user);
         ui.setCoins(out.user.coins ?? 0);
       }
-
-      missedRewardPopup.hide();
     },
   });
 });
