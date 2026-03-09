@@ -459,6 +459,19 @@ function updateAllBadges() {
   ui?.setRestartsBadge?.(totalRestarts);
 }
 
+async function apiRecoverDailyReward() {
+  if (!CURRENT_ACCESS_TOKEN) return null;
+
+  const res = await fetch(`${BACKEND}/api/daily-reward/recover`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${normalizeToken(CURRENT_ACCESS_TOKEN)}`,
+    },
+  });
+
+  return res.json().catch(() => ({}));
+}
 
 async function apiRestart({ mode }) {
   const nonce = crypto.randomUUID?.() || `${Date.now()}-${Math.random()}`;
@@ -1460,25 +1473,30 @@ winPopup.onWatchAdClick(() => {
 
 
 missedRewardPopup.onRecover(() => {
+  if (!guardAdCooldownBeforeWatching()) {
+    return;
+  }
+
   simulateAd({
     onFinished: async () => {
-      const res = await fetch(`${BACKEND}/api/rewards/recover-day`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${normalizeToken(CURRENT_ACCESS_TOKEN)}`
-        },
-        body: JSON.stringify({
-          day: CURRENT_MISSED_DAY
-        })
-      });
+      const out = await apiRecoverDailyReward();
 
-      const out = await res.json().catch(() => ({}));
+      if (!out?.ok) {
+        showAdCooldownToast(out?.error || "Recover failed");
+        return;
+      }
 
-      if (!out?.ok) return;
+      if (out?.already) {
+        missedRewardPopup.hide();
+        return;
+      }
 
-      applyUserPatch({ coins: out.user.coins });
-      ui.setCoins(out.user.coins);
+      markAdClaimedNow();
+
+      if (out?.user) {
+        applyUserPatch(out.user);
+        ui.setCoins(out.user.coins ?? 0);
+      }
 
       missedRewardPopup.hide();
     },

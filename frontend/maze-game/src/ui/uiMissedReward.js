@@ -1,41 +1,51 @@
 export function createMissedRewardPopup() {
-
   const overlay = document.createElement("div");
-  overlay.className = "daily-overlay hidden";
+  overlay.className = "daily-reward-overlay hidden";
 
   overlay.innerHTML = `
-    <div class="daily-box">
-      <h2>Missed Reward</h2>
+    <div class="daily-reward-box">
+      <div class="daily-reward-title">Missed Reward</div>
+      <div class="daily-reward-subtitle">You can recover one missed day by watching an ad.</div>
 
-      <div class="daily-text">
-        You missed <b id="missedDay"></b><br>
-        <span id="missedCoins"></span> coins
+      <div class="daily-reward-coins">
+        Day <b id="missedRewardDay">2</b>
       </div>
 
-      <div class="daily-buttons">
-        <button id="recoverBtn">Recover via Ad</button>
-        <button id="ignoreBtn">Ignore</button>
+      <div class="daily-reward-tomorrow">
+        Reward: <b id="missedRewardCoins">7</b> coins
       </div>
+
+      <button id="missedRecoverBtn" class="daily-reward-btn">
+        Recover via Ad
+      </button>
+
+      <button id="missedIgnoreBtn" class="daily-reward-btn" style="margin-top:10px; opacity:.85;">
+        Ignore
+      </button>
     </div>
   `;
 
   document.body.appendChild(overlay);
 
-  const dayEl = overlay.querySelector("#missedDay");
-  const coinsEl = overlay.querySelector("#missedCoins");
-  const recoverBtn = overlay.querySelector("#recoverBtn");
-  const ignoreBtn = overlay.querySelector("#ignoreBtn");
+  const dayEl = overlay.querySelector("#missedRewardDay");
+  const coinsEl = overlay.querySelector("#missedRewardCoins");
+  const recoverBtn = overlay.querySelector("#missedRecoverBtn");
+  const ignoreBtn = overlay.querySelector("#missedIgnoreBtn");
 
   let recoverHandler = null;
 
-  recoverBtn.onclick = () => recoverHandler?.();
-  ignoreBtn.onclick = () => overlay.classList.add("hidden");
+  recoverBtn.addEventListener("click", () => {
+    recoverHandler?.();
+  });
+
+  ignoreBtn.addEventListener("click", () => {
+    overlay.classList.add("hidden");
+  });
 
   return {
-
     show({ day, coins }) {
-      dayEl.textContent = `Day ${day}`;
-      coinsEl.textContent = `${coins}`;
+      dayEl.textContent = String(day);
+      coinsEl.textContent = String(coins);
       overlay.classList.remove("hidden");
     },
 
@@ -45,7 +55,6 @@ export function createMissedRewardPopup() {
 
     onRecover(fn) {
       recoverHandler = fn;
-    }
-
+    },
   };
 }
