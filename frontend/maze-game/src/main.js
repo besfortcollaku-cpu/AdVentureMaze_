@@ -2077,6 +2077,6 @@ ui.onLoginClick(async (e) => {
     ui.showWelcome();
   }
 });
-}
+
 
 boot();
