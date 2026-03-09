@@ -141,3 +141,14 @@
 .daily-reward-day.upcoming .daily-reward-day-status {
   opacity: 0.55;
 }
+
+
+.daily-reward-day.recovered {
+  background: rgba(80, 170, 255, 0.14);
+  border-color: rgba(80, 170, 255, 0.45);
+}
+
+.daily-reward-day.recovered .daily-reward-day-status {
+  color: #8fc7ff;
+  font-weight: 700;
+}

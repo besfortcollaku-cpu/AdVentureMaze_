@@ -48,18 +48,21 @@ export function createDailyRewardPopup() {
     let status = String(entry.coins);
 
     if (entry.state === "claimed") {
-      item.classList.add("claimed");
-      status = "Claimed";
-    } else if (entry.state === "today") {
-      item.classList.add("active");
-      status = "Today";
-    } else if (entry.state === "missed") {
-      item.classList.add("missed");
-      status = "Missed";
-    } else {
-      item.classList.add("upcoming");
-      status = String(entry.coins);
-    }
+  item.classList.add("claimed");
+  status = "Claimed";
+} else if (entry.state === "today") {
+  item.classList.add("active");
+  status = "Today";
+} else if (entry.state === "missed") {
+  item.classList.add("missed");
+  status = "Missed";
+} else if (entry.state === "recovered") {
+  item.classList.add("recovered");
+  status = "Recovered";
+} else {
+  item.classList.add("upcoming");
+  status = String(entry.coins);
+}
 
     item.innerHTML = `
       <div class="daily-reward-day-label">Day ${entry.day}</div>

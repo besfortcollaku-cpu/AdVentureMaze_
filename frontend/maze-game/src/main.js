@@ -42,6 +42,8 @@ let HINT_ACTIVE_FOR_LEVEL = false;
 let HINT_ROUTE = null;
 let HINT_ROUTE_INDEX = 0;
 let HINT_ROUTE_TIMER = null;
+let CURRENT_MISSED_DAY = null;
+let CURRENT_MISSED_COINS = null;
 
 // hint system state
 let HINT_RECALC_TIMER = null;
@@ -599,7 +601,6 @@ setTimeout(() => {
   updateAllBadges();
   document.body.classList.remove("welcome-visible");
   const meFresh = await apiMe();
-console.log("WHO OPENED DAILY POPUP", meFresh?.dailyReward);
 
 if (meFresh?.dailyReward?.canClaim) {
   dailyRewardPopup.show({
@@ -611,7 +612,12 @@ if (meFresh?.dailyReward?.canClaim) {
 }
 
 if (meFresh?.missedDay) {
+
+  CURRENT_MISSED_DAY = meFresh.missedDay.day;
+  CURRENT_MISSED_COINS = meFresh.missedDay.coins;
+
   missedRewardPopup.show(meFresh.missedDay);
+}
 }
 
 if (meFresh?.mysteryChest) {
@@ -1935,7 +1941,12 @@ if (meFresh?.dailyReward?.canClaim) {
 }
 
 if (meFresh?.missedDay) {
+
+  CURRENT_MISSED_DAY = meFresh.missedDay.day;
+  CURRENT_MISSED_COINS = meFresh.missedDay.coins;
+
   missedRewardPopup.show(meFresh.missedDay);
+}
 }
 
 if (meFresh?.mysteryChest) {
