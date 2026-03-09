@@ -732,7 +732,7 @@ setTimeout(() => {
     ui.showWelcome();
   }
 });
-}
+
      else {
       throw new Error("Invalid session");
      }
