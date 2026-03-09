@@ -1351,6 +1351,7 @@ closeBtn.addEventListener("click", () => {
   document.body.classList.remove("ad-playing");
   onFinished?.();
 });
+}
 async function grantRestartAdReward() {
   const out = await fetch(`${BACKEND}/api/restart`, {
     method: "POST",
