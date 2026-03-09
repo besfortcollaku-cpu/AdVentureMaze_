@@ -1921,15 +1921,7 @@ if (meFresh?.missedDay) {
 if (meFresh?.mysteryChest) {
   mysteryChestPopup.show();
 }
-console.log("WHO OPENED DAILY POPUP", me?.dailyReward);
 
-if (me?.missedDay) {
-  missedRewardPopup.show(me.missedDay);
-}
-
-if (me?.mysteryChest) {
-  mysteryChestPopup.show();
-}
 
     if (RESUME_TILES.size > 0 || RESUME_POS) {
       setTimeout(() => {
