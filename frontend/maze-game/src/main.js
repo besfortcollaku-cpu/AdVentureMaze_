@@ -600,29 +600,138 @@ setTimeout(() => {
 
   updateAllBadges();
   document.body.classList.remove("welcome-visible");
-  const meFresh = await apiMe();
+  ui.onLoginClick(async (e) => {
+  e?.preventDefault?.();
+  e?.stopPropagation?.();
+  if (LOGIN_IN_PROGRESS) return;
+  LOGIN_IN_PROGRESS = true;
 
-if (meFresh?.dailyReward?.canClaim) {
-  dailyRewardPopup.show({
-    day: meFresh.dailyReward.day,
-    coins: meFresh.dailyReward.coins,
-    days: meFresh.dailyReward.days,
-    bonusState: meFresh.dailyReward.bonusState,
-  });
-}
+  showLoginLoading();
 
-if (meFresh?.missedDay) {
+  try {
+    const result = await ensurePiLogin({
+      BACKEND,
+      ui,
+      onLogin: ({ accessToken }) => {
+        CURRENT_ACCESS_TOKEN = normalizeToken(accessToken);
+        localStorage.setItem("pi_access_token", CURRENT_ACCESS_TOKEN);
+      },
+    });
 
-  CURRENT_MISSED_DAY = meFresh.missedDay.day;
-  CURRENT_MISSED_COINS = meFresh.missedDay.coins;
+    if (!CURRENT_ACCESS_TOKEN && result?.accessToken) {
+      CURRENT_ACCESS_TOKEN = normalizeToken(result.accessToken);
+    }
 
-  missedRewardPopup.show(meFresh.missedDay);
-}
+    if (!CURRENT_ACCESS_TOKEN) {
+      hideLoginLoading();
+      LOGIN_IN_PROGRESS = false;
+      document.body.classList.remove("game-running");
+      document.body.classList.add("welcome-visible");
+      ui.showWelcome();
+      return;
+    }
 
+    const me = await loadMeAndSyncUI({
+      BACKEND,
+      token: CURRENT_ACCESS_TOKEN,
+      ui,
+    });
 
-if (meFresh?.mysteryChest) {
-  mysteryChestPopup.show();
-}
+    if (!me?.user) {
+      hideLoginLoading();
+      LOGIN_IN_PROGRESS = false;
+      CURRENT_ACCESS_TOKEN = null;
+      CURRENT_USER = null;
+      localStorage.removeItem("pi_access_token");
+      document.body.classList.remove("game-running");
+      document.body.classList.add("welcome-visible");
+      ui.showWelcome();
+      return;
+    }
+
+    const unlockedLevel =
+      me?.progress?.level ??
+      me?.progress?.maxLevel ??
+      me?.progress?.highestLevel ??
+      1;
+
+    const UNLOCKED_LEVEL = Math.max(1, Number(unlockedLevel) || 1);
+
+    window.__maze.guestMaxLevel = Infinity;
+
+    CURRENT_MAX_UNLOCKED_LEVEL = UNLOCKED_LEVEL;
+    levelsUI.setUnlocked?.(UNLOCKED_LEVEL);
+
+    ui.setUser({
+      ...CURRENT_USER,
+      level: CURRENT_MAX_UNLOCKED_LEVEL,
+    });
+
+    setLevel(Math.max(0, UNLOCKED_LEVEL - 1));
+
+    RESUME_ENABLED = true;
+    RESUME_TILES = new Set();
+    RESUME_POS = null;
+
+    const paintedKeys = me?.progress?.paintedKeys;
+    const resume = me?.progress?.resume;
+
+    if (Array.isArray(paintedKeys)) {
+      for (const k of paintedKeys) RESUME_TILES.add(k);
+    }
+    if (resume && resume.x != null && resume.y != null) {
+      RESUME_POS = { x: resume.x, y: resume.y };
+    }
+
+    document.body.classList.add("game-running");
+
+    if (!game.isRunning?.()) game.start();
+
+    ui.hideWelcome();
+    document.body.classList.remove("welcome-visible");
+
+    hideLoginLoading();
+    updateAllBadges();
+    LOGIN_IN_PROGRESS = false;
+
+    const meFresh = await apiMe();
+    console.log("WHO OPENED DAILY POPUP", meFresh?.dailyReward);
+
+    if (meFresh?.dailyReward?.canClaim) {
+      dailyRewardPopup.show({
+        day: meFresh.dailyReward.day,
+        coins: meFresh.dailyReward.coins,
+        days: meFresh.dailyReward.days,
+        bonusState: meFresh.dailyReward.bonusState,
+      });
+    }
+
+    if (meFresh?.missedDay) {
+      CURRENT_MISSED_DAY = meFresh.missedDay.day;
+      CURRENT_MISSED_COINS = meFresh.missedDay.coins;
+      missedRewardPopup.show(meFresh.missedDay);
+    }
+
+    if (meFresh?.mysteryChest) {
+      mysteryChestPopup.show();
+    }
+
+    if (RESUME_TILES.size > 0 || RESUME_POS) {
+      setTimeout(() => {
+        game.applyProgress({
+          paintedKeys: Array.from(RESUME_TILES),
+          player: RESUME_POS,
+        });
+      }, 0);
+    }
+  } catch (e) {
+    hideLoginLoading();
+    LOGIN_IN_PROGRESS = false;
+    document.body.classList.remove("game-running");
+    document.body.classList.add("welcome-visible");
+    ui.showWelcome();
+  }
+});
 }
      else {
       throw new Error("Invalid session");
