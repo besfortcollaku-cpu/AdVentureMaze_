@@ -1409,6 +1409,16 @@ dailyRewardPopup.onClaim(async () => {
     applyUserPatch(out.user);
     ui.setCoins(out.user.coins ?? 0);
   }
+  const meFresh = await apiMe();
+
+if (meFresh?.dailyReward?.canClaim) {
+  dailyRewardPopup.show({
+    day: meFresh.dailyReward.day,
+    coins: meFresh.dailyReward.coins,
+    days: meFresh.dailyReward.days,
+    bonusState: meFresh.dailyReward.bonusState,
+  });
+}
 
   dailyRewardPopup.hide();
 
@@ -1489,14 +1499,20 @@ missedRewardPopup.onRecover(() => {
 
       if (!out?.ok) {
         showAdCooldownToast(out?.error || "Recover failed");
-        missedRewardPopup.show({
-          day: CURRENT_MISSED_DAY,
-          coins: CURRENT_MISSED_COINS,
-        });
         return;
       }
 
       if (out?.already) {
+        const meFresh = await apiMe();
+
+        if (meFresh?.dailyReward?.canClaim) {
+          dailyRewardPopup.show({
+            day: meFresh.dailyReward.day,
+            coins: meFresh.dailyReward.coins,
+            days: meFresh.dailyReward.days,
+            bonusState: meFresh.dailyReward.bonusState,
+          });
+        }
         return;
       }
 
@@ -1506,10 +1522,20 @@ missedRewardPopup.onRecover(() => {
         applyUserPatch(out.user);
         ui.setCoins(out.user.coins ?? 0);
       }
+
+      const meFresh = await apiMe();
+
+      if (meFresh?.dailyReward?.canClaim) {
+        dailyRewardPopup.show({
+          day: meFresh.dailyReward.day,
+          coins: meFresh.dailyReward.coins,
+          days: meFresh.dailyReward.days,
+          bonusState: meFresh.dailyReward.bonusState,
+        });
+      }
     },
   });
 });
-
 // ---- SKIP / HINT buttons (backend-powered) ----
 ui.onSkipClick(async () => {
   if (!CURRENT_ACCESS_TOKEN) {
