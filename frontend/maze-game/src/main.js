@@ -1306,6 +1306,7 @@ function simulateAd({
   `;
 
   document.body.appendChild(overlay);
+  
 
   const countdownEl = overlay.querySelector("#adCountdown");
   const bar = overlay.querySelector("#adBar");
@@ -1339,13 +1340,17 @@ function simulateAd({
     }
   }, 1000);
 
-  closeBtn.addEventListener("click", () => {
-    if (!finished && skipUnlock > 0) return;
-    document.body.removeChild(overlay);
-    AD_OVERLAY_ACTIVE = false;
-onFinished?.();
-  });
-}
+closeBtn.addEventListener("click", () => {
+  if (!finished && skipUnlock > 0) return;
+
+  if (overlay.parentNode) {
+    overlay.parentNode.removeChild(overlay);
+  }
+
+  AD_OVERLAY_ACTIVE = false;
+  document.body.classList.remove("ad-playing");
+  onFinished?.();
+});
 async function grantRestartAdReward() {
   const out = await fetch(`${BACKEND}/api/restart`, {
     method: "POST",
