@@ -618,7 +618,7 @@ if (meFresh?.missedDay) {
 
   missedRewardPopup.show(meFresh.missedDay);
 }
-}
+
 
 if (meFresh?.mysteryChest) {
   mysteryChestPopup.show();
