@@ -731,7 +731,6 @@ setTimeout(() => {
     document.body.classList.add("welcome-visible");
     ui.showWelcome();
   }
-});
 
      else {
       throw new Error("Invalid session");
@@ -2077,6 +2076,6 @@ ui.onLoginClick(async (e) => {
     ui.showWelcome();
   }
 });
-
+}
 
 boot();
