@@ -1796,15 +1796,12 @@ ui.onGuestStart(() => {
 
   updateAllBadges();
 
-  // tutorial hint: level 1 guest only, once
-  if (localStorage.getItem(AUTO_HINT_SEEN_KEY) !== "1") {
-    setTimeout(() => {
-      if ((levelIndex + 1) !== 1) return;
+// tutorial hint: always show for guest on level 1
+  setTimeout(() => {
+    if ((levelIndex + 1) !== 1) return;
 
-      startRouteHintForLevel(1);
-      localStorage.setItem(AUTO_HINT_SEEN_KEY, "1");
-    }, 600);
-  }
+    startRouteHintForLevel(1);
+  }, 600);
 });
 // ---- PI LOGIN ----
 
