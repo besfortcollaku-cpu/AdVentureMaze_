@@ -460,20 +460,22 @@ function updateAllBadges() {
   ui?.setRestartsBadge?.(totalRestarts);
 }
 
-async function apiRecoverDailyReward() {
+async function apiRecoverDailyReward({ day }) {
   if (!CURRENT_ACCESS_TOKEN) return null;
 
-  const res = await fetch(`${BACKEND}/api/daily-reward/recover`, {
+  const res = await fetch(`${BACKEND}/api/rewards/recover-day`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${normalizeToken(CURRENT_ACCESS_TOKEN)}`,
     },
+    body: JSON.stringify({
+      day,
+    }),
   });
 
   return res.json().catch(() => ({}));
 }
-
 async function apiRestart({ mode }) {
   const nonce = crypto.randomUUID?.() || `${Date.now()}-${Math.random()}`;
   const res = await fetch(`${BACKEND}/api/restart`, {
