@@ -640,6 +640,40 @@ const skipPopup = createSkipPopup();
 const hintPopup = createHintPopup();
 const restartPopup = createRestartPopup();
 const dailyRewardPopup = createDailyRewardPopup();
+window.onRecoverMissedDay = (day) => {
+  if (!guardAdCooldownBeforeWatching()) {
+    return;
+  }
+
+  simulateAd({
+    onFinished: async () => {
+      const out = await apiRecoverDailyReward({ day });
+
+      if (!out?.ok) {
+        showAdCooldownToast(out?.error || "Recover failed");
+        return;
+      }
+
+      markAdClaimedNow();
+
+      if (out?.user) {
+        applyUserPatch(out.user);
+        ui.setCoins(out.user.coins ?? 0);
+      }
+
+      const meFresh = await apiMe();
+
+      if (meFresh?.dailyReward) {
+        dailyRewardPopup.show({
+          day: meFresh.dailyReward.day,
+          coins: meFresh.dailyReward.coins,
+          days: meFresh.dailyReward.days,
+          bonusState: meFresh.dailyReward.bonusState,
+        });
+      }
+    },
+  });
+};
 /* -------------------------------
    HINT ARROWS OVERLAY (animated)
 -------------------------------- */

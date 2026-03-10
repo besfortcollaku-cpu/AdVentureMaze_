@@ -55,7 +55,8 @@ export function createDailyRewardPopup() {
   status = "Today";
 } else if (entry.state === "missed") {
   item.classList.add("missed");
-  status = "Missed";
+  status = "Recover";
+  item.dataset.recoverDay = entry.day;
 } else if (entry.state === "recovered") {
   item.classList.add("recovered");
   status = "Recovered";
@@ -70,8 +71,17 @@ export function createDailyRewardPopup() {
       <div class="daily-reward-day-status">${status}</div>
     `;
 
-    gridEl.appendChild(item);
+if (entry.state === "missed") {
+  item.addEventListener("click", () => {
+    const day = Number(item.dataset.recoverDay || 0);
+    if (day > 0 && window.onRecoverMissedDay) {
+      window.onRecoverMissedDay(day);
+    }
   });
+}
+
+gridEl.appendChild(item); 
+});
 
   const chest = document.createElement("div");
   chest.className = "daily-reward-day chest-day";
@@ -95,15 +105,22 @@ export function createDailyRewardPopup() {
   gridEl.appendChild(chest);
 }
   claimBtn.addEventListener("click", async () => {
-    if (claimBtn.disabled) return;
-    claimBtn.disabled = true;
+  if (claimBtn.disabled) return;
 
-    try {
+  const isClaim = claimBtn.textContent === "Claim";
+
+  claimBtn.disabled = true;
+
+  try {
+    if (isClaim) {
       await claimHandler?.();
-    } finally {
-      claimBtn.disabled = false;
+    } else {
+      el.classList.add("hidden");
     }
-  });
+  } finally {
+    claimBtn.disabled = false;
+  }
+});
 
   return {
 
