@@ -598,7 +598,7 @@ setTimeout(() => {
 
   updateAllBadges();
   document.body.classList.remove("welcome-visible");
-  const meFresh = await apiMe();
+  
 
 if (meFresh?.mysteryChest) {
   mysteryChestPopup.show();
@@ -1944,8 +1944,6 @@ ui.onLoginClick(async (e) => {
     updateAllBadges();
     LOGIN_IN_PROGRESS = false;
     
-const meFresh = await apiMe();
-console.log("WHO OPENED DAILY POPUP", meFresh?.dailyReward);
 
 if (meFresh?.mysteryChest) {
   mysteryChestPopup.show();
