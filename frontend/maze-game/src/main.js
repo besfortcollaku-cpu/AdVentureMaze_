@@ -645,20 +645,34 @@ window.onRecoverMissedDay = (day) => {
     return;
   }
 
+  dailyRewardPopup.hide();
+
   simulateAd({
     onFinished: async () => {
       const out = await apiRecoverDailyReward({ day });
 
       if (!out?.ok) {
         showAdCooldownToast(out?.error || "Recover failed");
+
+        const meFresh = await apiMe();
+        if (meFresh?.dailyReward) {
+          dailyRewardPopup.show({
+            day: meFresh.dailyReward.day,
+            coins: meFresh.dailyReward.coins,
+            days: meFresh.dailyReward.days,
+            bonusState: meFresh.dailyReward.bonusState,
+          });
+        }
         return;
       }
 
-      markAdClaimedNow();
+      if (!out?.already) {
+        markAdClaimedNow();
 
-      if (out?.user) {
-        applyUserPatch(out.user);
-        ui.setCoins(out.user.coins ?? 0);
+        if (out?.user) {
+          applyUserPatch(out.user);
+          ui.setCoins(out.user.coins ?? 0);
+        }
       }
 
       const meFresh = await apiMe();
@@ -674,6 +688,8 @@ window.onRecoverMissedDay = (day) => {
     },
   });
 };
+
+
 /* -------------------------------
    HINT ARROWS OVERLAY (animated)
 -------------------------------- */
