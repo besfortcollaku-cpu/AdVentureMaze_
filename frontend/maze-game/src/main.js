@@ -601,25 +601,19 @@ setTimeout(() => {
   const meFresh = await apiMe();
 console.log("WHO OPENED DAILY POPUP", meFresh?.dailyReward);
 
-if (meFresh?.dailyReward?.canClaim) {
+if (meFresh?.mysteryChest) {
+  mysteryChestPopup.show();
+} else if (meFresh?.missedDay) {
+  CURRENT_MISSED_DAY = meFresh.missedDay.day;
+  CURRENT_MISSED_COINS = meFresh.missedDay.coins;
+  missedRewardPopup.show(meFresh.missedDay);
+} else if (meFresh?.dailyReward?.canClaim) {
   dailyRewardPopup.show({
     day: meFresh.dailyReward.day,
     coins: meFresh.dailyReward.coins,
     days: meFresh.dailyReward.days,
     bonusState: meFresh.dailyReward.bonusState,
   });
-}
-
-if (meFresh?.missedDay) {
-
-  CURRENT_MISSED_DAY = meFresh.missedDay.day;
-  CURRENT_MISSED_COINS = meFresh.missedDay.coins;
-
-  missedRewardPopup.show(meFresh.missedDay);
-}
-
-if (meFresh?.mysteryChest) {
-  mysteryChestPopup.show();
 }
 }
      else {
@@ -1955,25 +1949,19 @@ ui.onLoginClick(async (e) => {
 const meFresh = await apiMe();
 console.log("WHO OPENED DAILY POPUP", meFresh?.dailyReward);
 
-if (meFresh?.dailyReward?.canClaim) {
+if (meFresh?.mysteryChest) {
+  mysteryChestPopup.show();
+} else if (meFresh?.missedDay) {
+  CURRENT_MISSED_DAY = meFresh.missedDay.day;
+  CURRENT_MISSED_COINS = meFresh.missedDay.coins;
+  missedRewardPopup.show(meFresh.missedDay);
+} else if (meFresh?.dailyReward?.canClaim) {
   dailyRewardPopup.show({
     day: meFresh.dailyReward.day,
     coins: meFresh.dailyReward.coins,
     days: meFresh.dailyReward.days,
     bonusState: meFresh.dailyReward.bonusState,
   });
-}
-
-if (meFresh?.missedDay) {
-
-  CURRENT_MISSED_DAY = meFresh.missedDay.day;
-  CURRENT_MISSED_COINS = meFresh.missedDay.coins;
-
-  missedRewardPopup.show(meFresh.missedDay);
-}
-
-if (meFresh?.mysteryChest) {
-  mysteryChestPopup.show();
 }
 
     if (RESUME_TILES.size > 0 || RESUME_POS) {
