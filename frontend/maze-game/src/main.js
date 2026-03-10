@@ -599,7 +599,6 @@ setTimeout(() => {
   updateAllBadges();
   document.body.classList.remove("welcome-visible");
   const meFresh = await apiMe();
-console.log("WHO OPENED DAILY POPUP", meFresh?.dailyReward);
 
 if (meFresh?.mysteryChest) {
   mysteryChestPopup.show();
@@ -1403,7 +1402,6 @@ dailyRewardPopup.onClaim(async () => {
     applyUserPatch(out.user);
     ui.setCoins(out.user.coins ?? 0);
   }
-  const meFresh = await apiMe();
 
 if (meFresh?.dailyReward?.canClaim) {
   dailyRewardPopup.show({
@@ -1497,7 +1495,7 @@ missedRewardPopup.onRecover(() => {
       }
 
       if (out?.already) {
-        const meFresh = await apiMe();
+        
 
         if (meFresh?.dailyReward?.canClaim) {
           dailyRewardPopup.show({
@@ -1517,7 +1515,7 @@ missedRewardPopup.onRecover(() => {
         ui.setCoins(out.user.coins ?? 0);
       }
 
-      const meFresh = await apiMe();
+      
 
       if (meFresh?.dailyReward?.canClaim) {
         dailyRewardPopup.show({
