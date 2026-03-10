@@ -650,6 +650,8 @@ window.onRecoverMissedDay = (day) => {
 
   simulateAd({
     onFinished: async () => {
+      let meFresh = null;
+
       try {
         const out = await apiRecoverDailyReward({ day });
 
@@ -666,45 +668,38 @@ window.onRecoverMissedDay = (day) => {
           }
         }
 
-        const meFresh = await fetch(`${BACKEND}/api/me?t=${Date.now()}`, {
-  method: "GET",
-  headers: {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${normalizeToken(CURRENT_ACCESS_TOKEN)}`,
-    "Cache-Control": "no-store",
-    Pragma: "no-cache",
-  },
-}).then((r) => r.json()).catch(() => null);
-
-if (meFresh?.dailyReward) {
-  dailyRewardPopup.show({
-    day: meFresh.dailyReward.day,
-    coins: meFresh.dailyReward.coins,
-    days: meFresh.dailyReward.days,
-    bonusState: meFresh.dailyReward.bonusState,
-  });
-}
+        meFresh = await fetch(`${BACKEND}/api/me?t=${Date.now()}`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${normalizeToken(CURRENT_ACCESS_TOKEN)}`,
+            "Cache-Control": "no-store",
+            Pragma: "no-cache",
+          },
+        }).then((r) => r.json()).catch(() => null);
       } catch (e) {
         showAdCooldownToast("Recover failed");
 
-        const meFresh = await fetch(`${BACKEND}/api/me?t=${Date.now()}`, {
-  method: "GET",
-  headers: {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${normalizeToken(CURRENT_ACCESS_TOKEN)}`,
-    "Cache-Control": "no-store",
-    Pragma: "no-cache",
-  },
-}).then((r) => r.json()).catch(() => null);
+        meFresh = await fetch(`${BACKEND}/api/me?t=${Date.now()}`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${normalizeToken(CURRENT_ACCESS_TOKEN)}`,
+            "Cache-Control": "no-store",
+            Pragma: "no-cache",
+          },
+        }).then((r) => r.json()).catch(() => null);
+      }
 
-if (meFresh?.dailyReward) {
-  dailyRewardPopup.show({
-    day: meFresh.dailyReward.day,
-    coins: meFresh.dailyReward.coins,
-    days: meFresh.dailyReward.days,
-    bonusState: meFresh.dailyReward.bonusState,
-  });
-}
+      if (meFresh?.dailyReward) {
+        setTimeout(() => {
+          dailyRewardPopup.show({
+            day: meFresh.dailyReward.day,
+            coins: meFresh.dailyReward.coins,
+            days: meFresh.dailyReward.days,
+            bonusState: meFresh.dailyReward.bonusState,
+          });
+        }, 120);
       }
     },
   });
