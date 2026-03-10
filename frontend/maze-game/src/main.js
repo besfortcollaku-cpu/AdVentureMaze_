@@ -1453,12 +1453,13 @@ dailyRewardPopup.onClaim(async () => {
 
   dailyRewardPopup.hide();
 
-  if (Number(out?.day) >= 7) {
+  const meFresh = await apiMe();
+
+  if (meFresh?.mysteryChest) {
     mysteryChestPopup.show();
   }
 
-});
-function goNextLevel() {
+});function goNextLevel() {
   goToLevel(levelIndex + 1);
 }
 winPopup.onNextLevel(() => {
