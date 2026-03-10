@@ -34,14 +34,7 @@ export function createDailyRewardPopup() {
   const tomorrowEl = el.querySelector("#dailyRewardTomorrow");
   const claimBtn = el.querySelector("#dailyRewardClaimBtn");
 
-let claimHandler = null;
-
-let currentModel = {
-  day: 1,
-  coins: 5,
-  days: [],
-  bonusState: "locked",
-};  
+  let claimHandler = null;
 
   const REWARDS = [5, 7, 10, 15, 20, 30, 50];
 
@@ -133,28 +126,19 @@ gridEl.appendChild(item);
 
 show({ day = 1, coins = 5, days = [], bonusState = "locked" } = {}) {
 
-  currentModel = {
-    day,
-    coins,
-    days: Array.isArray(days) ? days.map((d) => ({ ...d })) : [],
-    bonusState,
-  };
-
   renderDays({
-    days: currentModel.days,
-    bonusState: currentModel.bonusState,
+    days,
+    bonusState,
   });
 
-  coinsEl.textContent = String(currentModel.coins);
+  coinsEl.textContent = String(coins);
 
   const tomorrowCoins =
-    currentModel.day >= 7
-      ? "Chest"
-      : String(REWARDS[Math.min(currentModel.day, REWARDS.length - 1)]);
+    day >= 7 ? "Chest" : String(REWARDS[Math.min(day, REWARDS.length - 1)]);
 
   tomorrowEl.textContent = tomorrowCoins;
 
-  if (currentModel.days.some((d) => d.state === "today")) {
+  if (days.some((d) => d.state === "today")) {
     claimBtn.textContent = "Claim";
   } else {
     claimBtn.textContent = "Play";
@@ -163,38 +147,9 @@ show({ day = 1, coins = 5, days = [], bonusState = "locked" } = {}) {
   el.classList.remove("hidden");
 
 },
-hide() {
+
+  hide() {
     el.classList.add("hidden");
-  },
-
-  markRecovered(day) {
-    currentModel.days = currentModel.days.map((entry) =>
-      Number(entry.day) === Number(day)
-        ? { ...entry, state: "recovered" }
-        : entry
-    );
-
-    renderDays({
-      days: currentModel.days,
-      bonusState: currentModel.bonusState,
-    });
-
-    coinsEl.textContent = String(currentModel.coins);
-
-    const tomorrowCoins =
-      currentModel.day >= 7
-        ? "Chest"
-        : String(REWARDS[Math.min(currentModel.day, REWARDS.length - 1)]);
-
-    tomorrowEl.textContent = tomorrowCoins;
-
-    if (currentModel.days.some((d) => d.state === "today")) {
-      claimBtn.textContent = "Claim";
-    } else {
-      claimBtn.textContent = "Play";
-    }
-
-    el.classList.remove("hidden");
   },
 
   onClaim(fn) {

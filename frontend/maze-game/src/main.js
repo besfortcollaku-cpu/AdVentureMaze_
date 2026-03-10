@@ -599,6 +599,7 @@ setTimeout(() => {
   }
 }, 0);
 const meFresh = await apiMe();
+console.log("WHO OPENED DAILY POPUP", meFresh?.dailyReward);
 
 if (meFresh?.dailyReward) {
   dailyRewardPopup.show({
@@ -650,8 +651,6 @@ window.onRecoverMissedDay = (day) => {
 
   simulateAd({
     onFinished: async () => {
-      let meFresh = null;
-
       try {
         const out = await apiRecoverDailyReward({ day });
 
@@ -668,22 +667,30 @@ window.onRecoverMissedDay = (day) => {
           }
         }
 
-        meFresh = await fetch(`${BACKEND}/api/me?t=${Date.now()}`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${normalizeToken(CURRENT_ACCESS_TOKEN)}`,
-            "Cache-Control": "no-store",
-            Pragma: "no-cache",
-          },
-        }).then((r) => r.json()).catch(() => null);
+        const meFresh = await apiMe();
+
+        if (meFresh?.dailyReward) {
+          dailyRewardPopup.show({
+            day: meFresh.dailyReward.day,
+            coins: meFresh.dailyReward.coins,
+            days: meFresh.dailyReward.days,
+            bonusState: meFresh.dailyReward.bonusState,
+          });
+        }
       } catch (e) {
         showAdCooldownToast("Recover failed");
 
-        setTimeout(() => {
-          dailyRewardPopup.markRecovered(day);
-        }, 120);
-      
+        const meFresh = await apiMe();
+
+        if (meFresh?.dailyReward) {
+          dailyRewardPopup.show({
+            day: meFresh.dailyReward.day,
+            coins: meFresh.dailyReward.coins,
+            days: meFresh.dailyReward.days,
+            bonusState: meFresh.dailyReward.bonusState,
+          });
+        }
+      }
     },
   });
 };
@@ -818,6 +825,7 @@ async function apiMe() {
 
   return res.json().catch(() => ({}));
 }
+
 mysteryChestPopup.onOpen(async () => {
 
   const res = await fetch(`${BACKEND}/api/rewards/mystery-chest`, {
@@ -1988,6 +1996,7 @@ ui.onLoginClick(async (e) => {
     LOGIN_IN_PROGRESS = false;
     
 const meFresh = await apiMe();
+console.log("WHO OPENED DAILY POPUP", meFresh?.dailyReward);
 
 if (meFresh?.dailyReward) {
   dailyRewardPopup.show({
