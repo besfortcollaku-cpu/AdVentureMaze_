@@ -42,7 +42,6 @@ let HINT_ACTIVE_FOR_LEVEL = false;
 let HINT_ROUTE = null;
 let HINT_ROUTE_INDEX = 0;
 let HINT_ROUTE_TIMER = null;
-let CURRENT_MISSED_DAY =0;
 let CURRENT_MISSED_DAY = null;
 let CURRENT_MISSED_COINS = null;
 // hint system state
