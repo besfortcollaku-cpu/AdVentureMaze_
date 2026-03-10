@@ -815,17 +815,19 @@ async function apiClaimDailyReward() {
 async function apiMe() {
   if (!CURRENT_ACCESS_TOKEN) return null;
 
-  const res = await fetch(`${BACKEND}/api/me`, {
+  const res = await fetch(`${BACKEND}/api/me?t=${Date.now()}`, {
     method: "GET",
+    cache: "no-store",
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${normalizeToken(CURRENT_ACCESS_TOKEN)}`,
+      "Cache-Control": "no-store",
+      Pragma: "no-cache",
     },
   });
 
   return res.json().catch(() => ({}));
 }
-
 mysteryChestPopup.onOpen(async () => {
 
   const res = await fetch(`${BACKEND}/api/rewards/mystery-chest`, {
