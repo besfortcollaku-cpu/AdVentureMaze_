@@ -43,6 +43,8 @@ let HINT_ROUTE = null;
 let HINT_ROUTE_INDEX = 0;
 let HINT_ROUTE_TIMER = null;
 let CURRENT_MISSED_DAY =0;
+let CURRENT_MISSED_DAY = null;
+let CURRENT_MISSED_COINS = null;
 // hint system state
 let HINT_RECALC_TIMER = null;
 const BACKEND = "https://triumphant-gentleness-production.up.railway.app";
@@ -611,6 +613,8 @@ if (meFresh?.dailyReward?.canClaim) {
 }
 
 if (meFresh?.missedDay) {
+  CURRENT_MISSED_DAY = meFresh.missedDay.day;
+  CURRENT_MISSED_COINS = meFresh.missedDay.coins;
   missedRewardPopup.show(meFresh.missedDay);
 }
 
@@ -1485,10 +1489,6 @@ missedRewardPopup.onRecover(() => {
 
       if (!out?.ok) {
         showAdCooldownToast(out?.error || "Recover failed");
-        missedRewardPopup.show({
-          day: CURRENT_MISSED_DAY,
-          coins: CURRENT_MISSED_COINS,
-        });
         return;
       }
 
@@ -1505,7 +1505,6 @@ missedRewardPopup.onRecover(() => {
     },
   });
 });
-
 // ---- SKIP / HINT buttons (backend-powered) ----
 ui.onSkipClick(async () => {
   if (!CURRENT_ACCESS_TOKEN) {
@@ -1935,9 +1934,10 @@ if (meFresh?.dailyReward?.canClaim) {
 }
 
 if (meFresh?.missedDay) {
+  CURRENT_MISSED_DAY = meFresh.missedDay.day;
+  CURRENT_MISSED_COINS = meFresh.missedDay.coins;
   missedRewardPopup.show(meFresh.missedDay);
 }
-
 if (meFresh?.mysteryChest) {
   mysteryChestPopup.show();
 }
