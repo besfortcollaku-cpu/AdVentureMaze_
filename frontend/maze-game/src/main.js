@@ -651,12 +651,24 @@ window.onRecoverMissedDay = (day) => {
 
   simulateAd({
     onFinished: async () => {
-      const out = await apiRecoverDailyReward({ day });
+      try {
+        const out = await apiRecoverDailyReward({ day });
 
-      if (!out?.ok) {
-        showAdCooldownToast(out?.error || "Recover failed");
+        if (!out?.ok) {
+          showAdCooldownToast(out?.error || "Recover failed");
+        } else {
+          if (!out?.already) {
+            markAdClaimedNow();
+
+            if (out?.user) {
+              applyUserPatch(out.user);
+              ui.setCoins(out.user.coins ?? 0);
+            }
+          }
+        }
 
         const meFresh = await apiMe();
+
         if (meFresh?.dailyReward) {
           dailyRewardPopup.show({
             day: meFresh.dailyReward.day,
@@ -665,32 +677,23 @@ window.onRecoverMissedDay = (day) => {
             bonusState: meFresh.dailyReward.bonusState,
           });
         }
-        return;
-      }
+      } catch (e) {
+        showAdCooldownToast("Recover failed");
 
-      if (!out?.already) {
-        markAdClaimedNow();
+        const meFresh = await apiMe();
 
-        if (out?.user) {
-          applyUserPatch(out.user);
-          ui.setCoins(out.user.coins ?? 0);
+        if (meFresh?.dailyReward) {
+          dailyRewardPopup.show({
+            day: meFresh.dailyReward.day,
+            coins: meFresh.dailyReward.coins,
+            days: meFresh.dailyReward.days,
+            bonusState: meFresh.dailyReward.bonusState,
+          });
         }
-      }
-
-      const meFresh = await apiMe();
-
-      if (meFresh?.dailyReward) {
-        dailyRewardPopup.show({
-          day: meFresh.dailyReward.day,
-          coins: meFresh.dailyReward.coins,
-          days: meFresh.dailyReward.days,
-          bonusState: meFresh.dailyReward.bonusState,
-        });
       }
     },
   });
 };
-
 
 /* -------------------------------
    HINT ARROWS OVERLAY (animated)
