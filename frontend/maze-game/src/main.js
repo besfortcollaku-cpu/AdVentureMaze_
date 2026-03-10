@@ -680,27 +680,10 @@ window.onRecoverMissedDay = (day) => {
       } catch (e) {
         showAdCooldownToast("Recover failed");
 
-        meFresh = await fetch(`${BACKEND}/api/me?t=${Date.now()}`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${normalizeToken(CURRENT_ACCESS_TOKEN)}`,
-            "Cache-Control": "no-store",
-            Pragma: "no-cache",
-          },
-        }).then((r) => r.json()).catch(() => null);
-      }
-
-      if (meFresh?.dailyReward) {
         setTimeout(() => {
-          dailyRewardPopup.show({
-            day: meFresh.dailyReward.day,
-            coins: meFresh.dailyReward.coins,
-            days: meFresh.dailyReward.days,
-            bonusState: meFresh.dailyReward.bonusState,
-          });
+          dailyRewardPopup.markRecovered(day);
         }, 120);
-      }
+      
     },
   });
 };
