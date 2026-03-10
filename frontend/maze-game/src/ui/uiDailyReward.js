@@ -121,6 +121,12 @@ show({ day = 1, coins = 5, days = [], bonusState = "locked" } = {}) {
 
   tomorrowEl.textContent = tomorrowCoins;
 
+  if (days.some((d) => d.state === "today")) {
+    claimBtn.textContent = "Claim";
+  } else {
+    claimBtn.textContent = "Play";
+  }
+
   el.classList.remove("hidden");
 
 },

@@ -596,29 +596,16 @@ setTimeout(() => {
     });
   }
 }, 0);
-
-  updateAllBadges();
-  document.body.classList.remove("welcome-visible");
-  const meFresh = await apiMe();
+const meFresh = await apiMe();
 console.log("WHO OPENED DAILY POPUP", meFresh?.dailyReward);
 
-if (meFresh?.dailyReward?.canClaim) {
+if (meFresh?.dailyReward) {
   dailyRewardPopup.show({
     day: meFresh.dailyReward.day,
     coins: meFresh.dailyReward.coins,
     days: meFresh.dailyReward.days,
     bonusState: meFresh.dailyReward.bonusState,
   });
-}
-
-if (meFresh?.missedDay) {
-  CURRENT_MISSED_DAY = meFresh.missedDay.day;
-  CURRENT_MISSED_COINS = meFresh.missedDay.coins;
-  missedRewardPopup.show(meFresh.missedDay);
-}
-
-if (meFresh?.mysteryChest) {
-  mysteryChestPopup.show();
 }
 }
      else {
@@ -1492,6 +1479,23 @@ missedRewardPopup.onRecover(() => {
       }
 
       if (out?.already) {
+        const meFresh = await apiMe();
+
+        if (meFresh?.missedDay) {
+          CURRENT_MISSED_DAY = meFresh.missedDay.day;
+          CURRENT_MISSED_COINS = meFresh.missedDay.coins;
+          missedRewardPopup.show(meFresh.missedDay);
+        } else if (meFresh?.mysteryChest) {
+          mysteryChestPopup.show();
+        } else if (meFresh?.dailyReward) {
+          dailyRewardPopup.show({
+            day: meFresh.dailyReward.day,
+            coins: meFresh.dailyReward.coins,
+            days: meFresh.dailyReward.days,
+            bonusState: meFresh.dailyReward.bonusState,
+          });
+        }
+
         return;
       }
 
@@ -1501,10 +1505,26 @@ missedRewardPopup.onRecover(() => {
         applyUserPatch(out.user);
         ui.setCoins(out.user.coins ?? 0);
       }
+
+      const meFresh = await apiMe();
+
+      if (meFresh?.missedDay) {
+        CURRENT_MISSED_DAY = meFresh.missedDay.day;
+        CURRENT_MISSED_COINS = meFresh.missedDay.coins;
+        missedRewardPopup.show(meFresh.missedDay);
+      } else if (meFresh?.mysteryChest) {
+        mysteryChestPopup.show();
+      } else if (meFresh?.dailyReward) {
+        dailyRewardPopup.show({
+          day: meFresh.dailyReward.day,
+          coins: meFresh.dailyReward.coins,
+          days: meFresh.dailyReward.days,
+          bonusState: meFresh.dailyReward.bonusState,
+        });
+      }
     },
   });
-});
-// ---- SKIP / HINT buttons (backend-powered) ----
+});// ---- SKIP / HINT buttons (backend-powered) ----
 ui.onSkipClick(async () => {
   if (!CURRENT_ACCESS_TOKEN) {
     ui.showLoginRequired();
@@ -1923,22 +1943,13 @@ ui.onLoginClick(async (e) => {
 const meFresh = await apiMe();
 console.log("WHO OPENED DAILY POPUP", meFresh?.dailyReward);
 
-if (meFresh?.dailyReward?.canClaim) {
+if (meFresh?.dailyReward) {
   dailyRewardPopup.show({
     day: meFresh.dailyReward.day,
     coins: meFresh.dailyReward.coins,
     days: meFresh.dailyReward.days,
     bonusState: meFresh.dailyReward.bonusState,
   });
-}
-
-if (meFresh?.missedDay) {
-  CURRENT_MISSED_DAY = meFresh.missedDay.day;
-  CURRENT_MISSED_COINS = meFresh.missedDay.coins;
-  missedRewardPopup.show(meFresh.missedDay);
-}
-if (meFresh?.mysteryChest) {
-  mysteryChestPopup.show();
 }
 
     if (RESUME_TILES.size > 0 || RESUME_POS) {
