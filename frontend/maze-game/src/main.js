@@ -599,7 +599,6 @@ setTimeout(() => {
   }
 }, 0);
 const meFresh = await apiMe();
-console.log("WHO OPENED DAILY POPUP", meFresh?.dailyReward);
 
 if (meFresh?.dailyReward) {
   dailyRewardPopup.show({
@@ -667,29 +666,45 @@ window.onRecoverMissedDay = (day) => {
           }
         }
 
-        const meFresh = await apiMe();
+        const meFresh = await fetch(`${BACKEND}/api/me?t=${Date.now()}`, {
+  method: "GET",
+  headers: {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${normalizeToken(CURRENT_ACCESS_TOKEN)}`,
+    "Cache-Control": "no-store",
+    Pragma: "no-cache",
+  },
+}).then((r) => r.json()).catch(() => null);
 
-        if (meFresh?.dailyReward) {
-          dailyRewardPopup.show({
-            day: meFresh.dailyReward.day,
-            coins: meFresh.dailyReward.coins,
-            days: meFresh.dailyReward.days,
-            bonusState: meFresh.dailyReward.bonusState,
-          });
-        }
+if (meFresh?.dailyReward) {
+  dailyRewardPopup.show({
+    day: meFresh.dailyReward.day,
+    coins: meFresh.dailyReward.coins,
+    days: meFresh.dailyReward.days,
+    bonusState: meFresh.dailyReward.bonusState,
+  });
+}
       } catch (e) {
         showAdCooldownToast("Recover failed");
 
-        const meFresh = await apiMe();
+        const meFresh = await fetch(`${BACKEND}/api/me?t=${Date.now()}`, {
+  method: "GET",
+  headers: {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${normalizeToken(CURRENT_ACCESS_TOKEN)}`,
+    "Cache-Control": "no-store",
+    Pragma: "no-cache",
+  },
+}).then((r) => r.json()).catch(() => null);
 
-        if (meFresh?.dailyReward) {
-          dailyRewardPopup.show({
-            day: meFresh.dailyReward.day,
-            coins: meFresh.dailyReward.coins,
-            days: meFresh.dailyReward.days,
-            bonusState: meFresh.dailyReward.bonusState,
-          });
-        }
+if (meFresh?.dailyReward) {
+  dailyRewardPopup.show({
+    day: meFresh.dailyReward.day,
+    coins: meFresh.dailyReward.coins,
+    days: meFresh.dailyReward.days,
+    bonusState: meFresh.dailyReward.bonusState,
+  });
+}
       }
     },
   });
@@ -815,14 +830,11 @@ async function apiClaimDailyReward() {
 async function apiMe() {
   if (!CURRENT_ACCESS_TOKEN) return null;
 
-  const res = await fetch(`${BACKEND}/api/me?t=${Date.now()}`, {
+  const res = await fetch(`${BACKEND}/api/me`, {
     method: "GET",
-    cache: "no-store",
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${normalizeToken(CURRENT_ACCESS_TOKEN)}`,
-      "Cache-Control": "no-store",
-      Pragma: "no-cache",
     },
   });
 
@@ -1455,13 +1467,12 @@ dailyRewardPopup.onClaim(async () => {
 
   dailyRewardPopup.hide();
 
-  const meFresh = await apiMe();
-
-  if (meFresh?.mysteryChest) {
+  if (Number(out?.day) >= 7) {
     mysteryChestPopup.show();
   }
 
-});function goNextLevel() {
+});
+function goNextLevel() {
   goToLevel(levelIndex + 1);
 }
 winPopup.onNextLevel(() => {
@@ -1999,7 +2010,6 @@ ui.onLoginClick(async (e) => {
     LOGIN_IN_PROGRESS = false;
     
 const meFresh = await apiMe();
-console.log("WHO OPENED DAILY POPUP", meFresh?.dailyReward);
 
 if (meFresh?.dailyReward) {
   dailyRewardPopup.show({
