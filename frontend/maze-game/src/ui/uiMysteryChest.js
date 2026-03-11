@@ -1,5 +1,4 @@
-﻿
-import "../css/mysteryChest.css";
+﻿import "../css/mysteryChest.css";
 
 export function createMysteryChestPopup() {
   const overlay = document.createElement("div");
@@ -10,10 +9,10 @@ export function createMysteryChestPopup() {
       <div class="daily-reward-title">Mystery Chest</div>
       <div class="daily-reward-subtitle">Perfect 7-day streak!</div>
 
-      <div id="chestClosed" class="chest-icon">ðŸŽ</div>
+      <div id="chestClosed" class="chest-icon">🎁</div>
 
       <div id="chestOpen" class="chest-open hidden">
-        <div class="spin">âœ¨</div>
+        <div class="spin">✨</div>
         <div id="rewardCoins" class="reward-coins"></div>
       </div>
 
@@ -27,11 +26,21 @@ export function createMysteryChestPopup() {
   const chestOpen = overlay.querySelector("#chestOpen");
   const rewardCoins = overlay.querySelector("#rewardCoins");
   const btn = overlay.querySelector("#openChest");
+  const chestBox = overlay.querySelector(".chest-box");
 
   let handler = null;
 
   btn.onclick = async () => {
     btn.disabled = true;
+    chestBox.classList.add("priming");
+
+    // Luxury anticipation beat before reveal.
+    await new Promise((resolve) => setTimeout(resolve, 300));
+
+    chestBox.classList.remove("priming");
+    chestBox.classList.add("opening");
+    chestBox.classList.add("impact");
+    setTimeout(() => chestBox.classList.remove("impact"), 420);
 
     chestClosed.classList.add("hidden");
     chestOpen.classList.remove("hidden");
@@ -40,11 +49,16 @@ export function createMysteryChestPopup() {
 
     if (reward != null) {
       rewardCoins.textContent = `+${reward} coins`;
+      chestBox.classList.add("revealed");
       setTimeout(() => {
         overlay.classList.add("hidden");
-      }, 3000);
+      }, 3400);
     } else {
       btn.disabled = false;
+      chestBox.classList.remove("priming");
+      chestBox.classList.remove("opening");
+      chestBox.classList.remove("revealed");
+      chestBox.classList.remove("impact");
       chestClosed.classList.remove("hidden");
       chestOpen.classList.add("hidden");
     }
@@ -52,6 +66,10 @@ export function createMysteryChestPopup() {
 
   return {
     show() {
+      chestBox.classList.remove("priming");
+      chestBox.classList.remove("opening");
+      chestBox.classList.remove("revealed");
+      chestBox.classList.remove("impact");
       chestClosed.classList.remove("hidden");
       chestOpen.classList.add("hidden");
       rewardCoins.textContent = "";

@@ -1,4 +1,4 @@
-﻿console.log("BUILD VERSION TEST 123");
+console.log("BUILD VERSION TEST 123");
 import "./css/dailyReward.css";
 import { createDailyRewardPopup } from "./ui/uiDailyReward.js";
 import "./css/ui.css";
@@ -220,7 +220,7 @@ function applyUserPatch(patch, opts = {}) {
     ui?.setCoins?.(CURRENT_USER?.coins ?? 0);
   }
 
-  // ðŸ”¥ CRITICAL: refresh badges from DB values
+  // 🔥 CRITICAL: refresh badges from DB values
   updateAllBadges();
 }
 let COIN_ANIM_SEQ = 0;
@@ -250,7 +250,7 @@ function showCoinGainFX(delta) {
   fx.id = "coinGainFX";
   fx.className = "coin-gain-fx";
   fx.innerHTML = `
-    <span class="coin-gain-sparkle">✦</span>
+    <span class="coin-gain-sparkle">?</span>
     <span class="coin-gain-amount">+${Math.floor(delta)} coins</span>
   `;
   fx.style.left = String(Math.round(rect.left + rect.width / 2)) + "px";
@@ -265,7 +265,7 @@ function showCoinGainFX(delta) {
   COIN_GAIN_TIMER = setTimeout(() => {
     coinsPill.classList.remove("coin-gain-pulse");
     fx.remove();
-  }, 1600);
+  }, 3300);
 }
 
 async function animateCoinsTo(target, opts = {}) {
@@ -636,7 +636,7 @@ if (storedToken) {
 CURRENT_USER = null;
 ui?.setUser?.({ username: "Guest", uid: null });
 ui?.setCoins?.(0);
-// ðŸ”¥ AUTO-HYDRATE USER IF TOKEN EXISTS
+// 🔥 AUTO-HYDRATE USER IF TOKEN EXISTS
 
   const root = document.querySelector("#app");
   if (!root) {
@@ -680,7 +680,7 @@ if (!game?.isRunning?.()) {
 // go to the last unlocked level (where resume is stored)
 goToLevel(CURRENT_MAX_UNLOCKED_LEVEL - 1);
 
-// âœ… APPLY PROGRESS AFTER GAME IS RUNNING + LEVEL IS SET
+// ✅ APPLY PROGRESS AFTER GAME IS RUNNING + LEVEL IS SET
 setTimeout(() => {
   if (RESUME_TILES.size > 0 || RESUME_POS) {
     game.applyProgress({
@@ -1134,10 +1134,10 @@ function getSmartHintFromState(state) {
   if (!state) return null;
 
   const dirs = [
-    { name: "UP", dx: 0, dy: -1, arrow: "â†‘" },
-    { name: "DOWN", dx: 0, dy: 1, arrow: "â†“" },
-    { name: "LEFT", dx: -1, dy: 0, arrow: "â†" },
-    { name: "RIGHT", dx: 1, dy: 0, arrow: "â†’" },
+    { name: "UP", dx: 0, dy: -1, arrow: "↑" },
+    { name: "DOWN", dx: 0, dy: 1, arrow: "↓" },
+    { name: "LEFT", dx: -1, dy: 0, arrow: "←" },
+    { name: "RIGHT", dx: 1, dy: 0, arrow: "→" },
   ];
 
   const options = [];
@@ -1145,7 +1145,7 @@ function getSmartHintFromState(state) {
   for (const d of dirs) {
     const out = _slideTargetAndNewPaintCount(state, d.dx, d.dy);
 
-    // ignore â€œno movementâ€
+    // ignore “no movement”
     if (out.dist <= 0) continue;
 
     options.push({
@@ -1259,13 +1259,13 @@ RESUME_ENABLED = false;
 
     const completedLevel = level?.number ?? (levelIndex + 1);
 
-    // âœ… server reward: +1 coin once per level
-    // âœ… server reward: +1 coin once per level
+    // ✅ server reward: +1 coin once per level
+    // ✅ server reward: +1 coin once per level
 afterLevelCompleteShowAdOrWin({
   levelNumber: completedLevel,
 });
 
-// âœ… server reward: +1 coin once per level
+// ✅ server reward: +1 coin once per level
 if (CURRENT_ACCESS_TOKEN) {
   (async () => {
     try {
@@ -1285,8 +1285,8 @@ if (CURRENT_ACCESS_TOKEN) {
     } catch (e) {}
   })();
 }
-    // âœ… logged-in: unlock next level in UI (old UNLOCKED_LEVEL behavior)
-    // âœ… logged-in: unlock next level + SAVE progress (OLD LOGIC RESTORED)
+    // ✅ logged-in: unlock next level in UI (old UNLOCKED_LEVEL behavior)
+    // ✅ logged-in: unlock next level + SAVE progress (OLD LOGIC RESTORED)
 if (CURRENT_ACCESS_TOKEN) {
   const nextUnlocked = Math.min(levels.length, completedLevel + 1);
 
@@ -1305,7 +1305,7 @@ if (CURRENT_ACCESS_TOKEN) {
     resume: null,
   }).catch(() => {});
 }
-    // ðŸŸ¡ guest progress is local-only (levels 1..GUEST_MAX_LEVEL)
+    // 🟡 guest progress is local-only (levels 1..GUEST_MAX_LEVEL)
     if (!CURRENT_ACCESS_TOKEN) {
       const nextUnlock = Math.min(GUEST_MAX_LEVEL, completedLevel + 1);
       const current = loadGuestProgress();
@@ -1366,7 +1366,7 @@ RESUME_ENABLED = false;
   const selectedLevelNumber = levelIndex + 1;
 
   game.setLevel(lvl);
-// âœ… Capture spawn tile AFTER level fully loads
+// ✅ Capture spawn tile AFTER level fully loads
 setTimeout(() => {
   const p = game.getPlayer?.();
   if (p) {
@@ -1416,7 +1416,7 @@ function simulateInterstitialAd(onFinished) {
     duration: 20,
     skipAfter: 5,
     buttonLabel: "Skip Ad",
-    rewardReadyText: "âœ… Ad Finished",
+    rewardReadyText: "✅ Ad Finished",
   });
 }
 function afterLevelCompleteShowAdOrWin({ levelNumber }) {
@@ -1461,7 +1461,7 @@ function simulateAd({
   overlay.innerHTML = `
     <div class="ad-box">
       <div class="ad-video">
-        ðŸŽ® Sponsored Ad
+        🎮 Sponsored Ad
       </div>
 
       <div id="adCountdown">
@@ -1585,7 +1585,7 @@ function goNextLevel() {
 winPopup.onNextLevel(() => {
   const nextLevelNumber = levelIndex + 2; // levelIndex is 0-based
 
-  // ðŸ”’ Guest limit: require login after level 5
+  // 🔒 Guest limit: require login after level 5
 if (!CURRENT_ACCESS_TOKEN && nextLevelNumber > GUEST_MAX_LEVEL) {
     winPopup.hide();
     ui.showLoginRequired();
@@ -2171,6 +2171,7 @@ if (meFresh?.dailyReward) {
 }
 
 boot();
+
 
 
 

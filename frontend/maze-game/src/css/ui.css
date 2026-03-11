@@ -1,4 +1,4 @@
-﻿
+
 html,
 body {
   height: 100%;
@@ -215,7 +215,7 @@ body.theme-ice .iconBtn {
   display: flex;
   align-items: center;
   justify-content: center;
-    padding: 24px;              /* â† more background visible */
+    padding: 24px;              /* ← more background visible */
 }
 
 canvas#game {
@@ -563,7 +563,7 @@ body.theme-lava {
     var(--ui-bg-mid),
     var(--ui-bg-bot)
   );
-  opacity: 0.6;          /* ðŸ”‘ control strength here */
+  opacity: 0.6;          /* 🔑 control strength here */
   z-index: 0;
   pointer-events: none;
 }
@@ -666,7 +666,7 @@ canvas#game {
     inset 0 1px 0 rgba(255,255,255,0.22);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
-  animation: coinGainFloatPremium 1.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: coinGainFloatPremium 3.05s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .coin-gain-sparkle {
@@ -691,7 +691,8 @@ canvas#game {
 @keyframes coinGainFloatPremium {
   0% { opacity: 0; transform: translate(-50%, -12%) scale(0.86); filter: blur(1px); }
   14% { opacity: 1; filter: blur(0); }
-  100% { opacity: 0; transform: translate(-50%, -190%) scale(1.04); }
+  72% { opacity: 1; transform: translate(-50%, -158%) scale(1.035); }
+  100% { opacity: 0; transform: translate(-50%, -230%) scale(1.05); }
 }
 
 @keyframes coinPillPulsePremium {
@@ -704,3 +705,5 @@ canvas#game {
   from { transform: rotate(-8deg) scale(0.9); opacity: 0.75; }
   to { transform: rotate(8deg) scale(1.08); opacity: 1; }
 }
+
+
