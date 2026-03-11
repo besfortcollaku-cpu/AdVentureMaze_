@@ -667,6 +667,11 @@ window.onRecoverMissedDay = (day) => {
           }
         }
 
+        if (out?.mysteryChestReady) {
+          mysteryChestPopup.show();
+          return;
+        }
+
         const meFresh = await apiMe();
 
         if (meFresh?.dailyReward) {
@@ -802,6 +807,20 @@ async function apiClaimDailyReward() {
   if (!CURRENT_ACCESS_TOKEN) return null;
 
   const res = await fetch(`${BACKEND}/api/daily-reward/claim`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${normalizeToken(CURRENT_ACCESS_TOKEN)}`,
+    },
+  });
+
+  return res.json().catch(() => ({}));
+}
+
+async function apiIgnoreMissedDailyCycle() {
+  if (!CURRENT_ACCESS_TOKEN) return null;
+
+  const res = await fetch(`${BACKEND}/api/daily-reward/ignore-missed`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -1453,7 +1472,14 @@ dailyRewardPopup.onClaim(async () => {
 
   dailyRewardPopup.hide();
 
-  if (Number(out?.day) >= 7) {
+  if (out?.needsRecoveryDecision && out?.missedDay) {
+    CURRENT_MISSED_DAY = out.missedDay.day;
+    CURRENT_MISSED_COINS = out.missedDay.coins;
+    missedRewardPopup.show(out.missedDay);
+    return;
+  }
+
+  if (out?.mysteryChestReady) {
     mysteryChestPopup.show();
   }
 
@@ -1517,6 +1543,28 @@ winPopup.onWatchAdClick(() => {
 });
 
 
+missedRewardPopup.onIgnore(async () => {
+  missedRewardPopup.hide();
+
+  const out = await apiIgnoreMissedDailyCycle();
+
+  if (out?.user) {
+    applyUserPatch(out.user);
+    ui.setCoins(out.user.coins ?? 0);
+  }
+
+  const meFresh = await apiMe();
+
+  if (meFresh?.dailyReward) {
+    dailyRewardPopup.show({
+      day: meFresh.dailyReward.day,
+      coins: meFresh.dailyReward.coins,
+      days: meFresh.dailyReward.days,
+      bonusState: meFresh.dailyReward.bonusState,
+    });
+  }
+});
+
 missedRewardPopup.onRecover(() => {
   if (!guardAdCooldownBeforeWatching()) {
     return;
@@ -1526,7 +1574,7 @@ missedRewardPopup.onRecover(() => {
 
   simulateAd({
     onFinished: async () => {
-      const out = await apiRecoverDailyReward();
+      const out = await apiRecoverDailyReward({ day: CURRENT_MISSED_DAY });
 
       if (!out?.ok) {
         showAdCooldownToast(out?.error || "Recover failed");

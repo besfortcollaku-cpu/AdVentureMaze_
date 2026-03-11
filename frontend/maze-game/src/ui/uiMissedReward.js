@@ -33,13 +33,14 @@ export function createMissedRewardPopup() {
   const ignoreBtn = overlay.querySelector("#missedIgnoreBtn");
 
   let recoverHandler = null;
+  let ignoreHandler = null;
 
   recoverBtn.addEventListener("click", () => {
     recoverHandler?.();
   });
 
   ignoreBtn.addEventListener("click", () => {
-    overlay.classList.add("hidden");
+    ignoreHandler?.();
   });
 
   return {
@@ -55,6 +56,10 @@ export function createMissedRewardPopup() {
 
     onRecover(fn) {
       recoverHandler = fn;
+    },
+
+    onIgnore(fn) {
+      ignoreHandler = fn;
     },
   };
 }
