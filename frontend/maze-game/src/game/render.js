@@ -62,6 +62,8 @@ function applyThemeAssets() {
       ? "/textures/themes/forest/"
       : theme === "lava"
       ? "/textures/themes/lava/"
+      : theme === "wood"
+      ? "/textures/themes/wood/"
       : "/textures/themes/ice/";
 
   floorReady = floorDoneReady = wallReady = ballReady = false;
@@ -159,6 +161,10 @@ ballImg.onload = () => (ballReady = true);
     grad.addColorStop(0, "#06140d");
     grad.addColorStop(0.5, "#0e2b1c");
     grad.addColorStop(1, "#06140d");
+  } else if (theme === "wood") {
+    grad.addColorStop(0, "#2c190f");
+    grad.addColorStop(0.5, "#4d2c1a");
+    grad.addColorStop(1, "#2c190f");
   } else if (theme === "lava") {
     grad.addColorStop(0, "#120302");
     grad.addColorStop(0.5, "#2a0b06");
@@ -218,6 +224,8 @@ function drawFloor() {
   let tint = null;
   if (theme === "forest") {
     tint = "rgba(60, 120, 80, 0.18)";
+  } else if (theme === "wood") {
+    tint = "rgba(132, 92, 54, 0.20)";
   } else if (theme === "lava") {
     tint = "rgba(160, 60, 30, 0.18)";
   }
@@ -313,6 +321,8 @@ if (contactFlash) {
     let color = "rgba(160,220,255,"; // ice
     if (theme === "forest") {
       color = "rgba(140,255,180,";
+    } else if (theme === "wood") {
+      color = "rgba(255,190,130,";
     } else if (theme === "lava") {
       color = "rgba(255,170,120,";
     }
@@ -363,6 +373,9 @@ function drawCrystalShard(x, y, angle, size, alpha, hueShift = 0) {
   if (theme === "forest") {
     glowHue = 135; // green
     sparkColor = "rgba(120,255,180,";
+  } else if (theme === "wood") {
+    glowHue = 32; // amber
+    sparkColor = "rgba(255,190,120,";
   } else if (theme === "lava") {
     glowHue = 20; // orange-red
     sparkColor = "rgba(255,160,80,";
@@ -571,6 +584,9 @@ shine.addColorStop(0.4, `hsla(${glowHue}, 100%, 70%, 0.25)`);
   if (theme === "forest") {
     glowColor = "rgba(20,80,40,0.55)";
     glow2 = "rgba(20,80,40,0.35)";
+  } else if (theme === "wood") {
+    glowColor = "rgba(100,64,36,0.55)";
+    glow2 = "rgba(100,64,36,0.35)";
   } else if (theme === "lava") {
     glowColor = "rgba(120,40,10,0.55)";
     glow2 = "rgba(120,40,10,0.35)";
@@ -650,3 +666,6 @@ resize();
 
   return { resize, render };
 }
+
+
+

@@ -132,12 +132,14 @@ accountBtn.addEventListener("click", () => {
 // ----- THEME UI -----
 const themeUI = mountThemeUI(root);
 function applyTheme(theme) {
-  document.body.classList.remove("theme-ice", "theme-forest", "theme-lava");
+  document.body.classList.remove("theme-ice", "theme-forest", "theme-lava", "theme-wood");
 
   if (theme === "forest") {
     document.body.classList.add("theme-forest");
   } else if (theme === "lava") {
     document.body.classList.add("theme-lava");
+  } else if (theme === "wood") {
+    document.body.classList.add("theme-wood");
   } else {
     // default
     document.body.classList.add("theme-ice");
@@ -370,3 +372,4 @@ const ICONS = {
   hint: iconSVG("M12 3a6 6 0 0 0-3 11.2V17h6v-2.8A6 6 0 0 0 12 3Zm-1 17h2v2h-2Z"),
   skip: iconSVG("M5 4l8 8-8 8V4Zm10 0h2v16h-2V4Z")
 };
+

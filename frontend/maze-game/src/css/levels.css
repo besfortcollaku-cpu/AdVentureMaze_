@@ -345,3 +345,14 @@ body.theme-lava .levelBtn {
     transform: translateY(0) scale(1);
   }
 }
+/* WOOD */
+body.theme-wood .levelsHeader .badge {
+  background: linear-gradient(135deg, #d19a64, #9f6236);
+}
+body.theme-wood .levelBtn.unlocked {
+  background: linear-gradient(180deg, rgba(198,136,84,0.35), rgba(120,76,42,0.35));
+  border-color: rgba(201, 145, 96, 0.45);
+}
+body.theme-wood .levelBtn {
+  border-color: rgba(201, 145, 96, 0.35);
+}

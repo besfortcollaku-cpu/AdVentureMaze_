@@ -105,3 +105,8 @@
   color: #9fb3c8;
   font-size: 14px;
 }
+/* Wood theme option */
+.theme-item[data-theme="wood"] {
+  background: linear-gradient(180deg, #d6a26c, #9a6034);
+  color: #2a1406;
+}
