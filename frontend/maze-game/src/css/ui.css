@@ -215,7 +215,7 @@ body.theme-ice .iconBtn {
   display: flex;
   align-items: center;
   justify-content: center;
-    padding: 14px;              /* ← more background visible */
+    padding: 10px;              /* ← more background visible */
 }
 
 canvas#game {
