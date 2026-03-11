@@ -1,4 +1,4 @@
-
+﻿
 html,
 body {
   height: 100%;
@@ -215,7 +215,7 @@ body.theme-ice .iconBtn {
   display: flex;
   align-items: center;
   justify-content: center;
-    padding: 24px;              /* ← more background visible */
+    padding: 24px;              /* â† more background visible */
 }
 
 canvas#game {
@@ -563,7 +563,7 @@ body.theme-lava {
     var(--ui-bg-mid),
     var(--ui-bg-bot)
   );
-  opacity: 0.6;          /* 🔑 control strength here */
+  opacity: 0.6;          /* ðŸ”‘ control strength here */
   z-index: 0;
   pointer-events: none;
 }
@@ -622,4 +622,85 @@ canvas#game {
 
   background: transparent; /* IMPORTANT */
   border-radius: 18px;
+}
+.coin-gain-fx {
+  position: fixed;
+  transform: translate(-50%, -50%);
+  z-index: 100001;
+  font-size: 16px;
+  font-weight: 800;
+  color: #ffd54d;
+  text-shadow: 0 2px 10px rgba(0,0,0,0.45);
+  pointer-events: none;
+  animation: coinGainFloat 1.15s ease-out forwards;
+}
+
+.coins.coin-gain-pulse {
+  animation: coinPillPulse 0.6s ease-out;
+}
+
+@keyframes coinGainFloat {
+  0% { opacity: 0; transform: translate(-50%, -20%) scale(0.8); }
+  15% { opacity: 1; }
+  100% { opacity: 0; transform: translate(-50%, -155%) scale(1.05); }
+}
+
+@keyframes coinPillPulse {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.08); }
+  100% { transform: scale(1); }
+}
+
+/* Premium coin gain treatment */
+.coin-gain-fx {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 228, 140, 0.65);
+  background: linear-gradient(135deg, rgba(39,29,10,0.92), rgba(93,66,17,0.88));
+  box-shadow:
+    0 12px 28px rgba(0,0,0,0.4),
+    0 0 24px rgba(255, 206, 84, 0.35),
+    inset 0 1px 0 rgba(255,255,255,0.22);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  animation: coinGainFloatPremium 1.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.coin-gain-sparkle {
+  color: #fff2af;
+  font-size: 13px;
+  opacity: 0.95;
+  animation: coinSparkle 0.9s ease-in-out infinite alternate;
+}
+
+.coin-gain-amount {
+  font-size: 15px;
+  font-weight: 900;
+  letter-spacing: 0.2px;
+  color: #ffeb9a;
+  text-shadow: 0 0 16px rgba(255, 217, 115, 0.4);
+}
+
+.coins.coin-gain-pulse {
+  animation: coinPillPulsePremium 0.85s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes coinGainFloatPremium {
+  0% { opacity: 0; transform: translate(-50%, -12%) scale(0.86); filter: blur(1px); }
+  14% { opacity: 1; filter: blur(0); }
+  100% { opacity: 0; transform: translate(-50%, -190%) scale(1.04); }
+}
+
+@keyframes coinPillPulsePremium {
+  0% { transform: scale(1); box-shadow: none; }
+  40% { transform: scale(1.095); box-shadow: 0 0 0 8px rgba(255,208,95,0.16); }
+  100% { transform: scale(1); box-shadow: none; }
+}
+
+@keyframes coinSparkle {
+  from { transform: rotate(-8deg) scale(0.9); opacity: 0.75; }
+  to { transform: rotate(8deg) scale(1.08); opacity: 1; }
 }

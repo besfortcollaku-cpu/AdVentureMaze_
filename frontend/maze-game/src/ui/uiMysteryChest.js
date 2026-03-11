@@ -1,4 +1,4 @@
-
+﻿
 import "../css/mysteryChest.css";
 
 export function createMysteryChestPopup() {
@@ -10,10 +10,10 @@ export function createMysteryChestPopup() {
       <div class="daily-reward-title">Mystery Chest</div>
       <div class="daily-reward-subtitle">Perfect 7-day streak!</div>
 
-      <div id="chestClosed" class="chest-icon">🎁</div>
+      <div id="chestClosed" class="chest-icon">ðŸŽ</div>
 
       <div id="chestOpen" class="chest-open hidden">
-        <div class="spin">✨</div>
+        <div class="spin">âœ¨</div>
         <div id="rewardCoins" class="reward-coins"></div>
       </div>
 
@@ -42,7 +42,7 @@ export function createMysteryChestPopup() {
       rewardCoins.textContent = `+${reward} coins`;
       setTimeout(() => {
         overlay.classList.add("hidden");
-      }, 1200);
+      }, 3000);
     } else {
       btn.disabled = false;
       chestClosed.classList.remove("hidden");
