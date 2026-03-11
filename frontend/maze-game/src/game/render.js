@@ -216,6 +216,68 @@ function drawWallShadow(px, py) {
 
   ctx.restore();
 }
+function getReliefPalette(theme) {
+  if (theme === "forest") {
+    return {
+      cavity: "rgba(10,32,20,0.32)",
+      light: "rgba(180,255,210,0.18)",
+      shadow: "rgba(0,0,0,0.36)",
+      rim: "rgba(22,56,38,0.45)"
+    };
+  }
+  if (theme === "wood") {
+    return {
+      cavity: "rgba(40,22,12,0.30)",
+      light: "rgba(255,214,170,0.18)",
+      shadow: "rgba(0,0,0,0.34)",
+      rim: "rgba(92,58,34,0.45)"
+    };
+  }
+  if (theme === "lava") {
+    return {
+      cavity: "rgba(40,12,8,0.34)",
+      light: "rgba(255,190,130,0.16)",
+      shadow: "rgba(0,0,0,0.38)",
+      rim: "rgba(110,38,18,0.45)"
+    };
+  }
+  return {
+    cavity: "rgba(8,18,44,0.30)",
+    light: "rgba(195,225,255,0.20)",
+    shadow: "rgba(0,0,0,0.34)",
+    rim: "rgba(32,52,96,0.45)"
+  };
+}
+
+function drawEngravedFloorTile(px, py, theme) {
+  const palette = getReliefPalette(theme);
+
+  const inset = tile * 0.10;
+  const iw = tile - inset * 2;
+  const ih = tile - inset * 2;
+
+  // carved center (below surface)
+  ctx.fillStyle = palette.cavity;
+  ctx.fillRect(px + inset, py + inset, iw, ih);
+
+  // light from bottom-left, shadow at top-right
+  const shadowGrad = ctx.createLinearGradient(px + tile, py, px, py + tile);
+  shadowGrad.addColorStop(0, palette.shadow);
+  shadowGrad.addColorStop(0.45, "rgba(0,0,0,0)");
+  ctx.fillStyle = shadowGrad;
+  ctx.fillRect(px + inset, py + inset, iw, ih);
+
+  const lightGrad = ctx.createLinearGradient(px, py + tile, px + tile, py);
+  lightGrad.addColorStop(0, palette.light);
+  lightGrad.addColorStop(0.55, "rgba(255,255,255,0)");
+  ctx.fillStyle = lightGrad;
+  ctx.fillRect(px + inset, py + inset, iw, ih);
+
+  // rim line to sell the engraving
+  ctx.strokeStyle = palette.rim;
+  ctx.lineWidth = Math.max(1, tile * 0.03);
+  ctx.strokeRect(px + inset + 0.5, py + inset + 0.5, iw - 1, ih - 1);
+}
 function drawFloor() {
   const grid = state.grid;
   const theme = getTheme();
@@ -234,6 +296,7 @@ function drawFloor() {
     for (let x = 0; x < grid[y].length; x++) {
       const px = ox + x * tile;
       const py = oy + y * tile;
+      const isWall = grid[y][x] === 1;
 
       // base fallback
       ctx.fillStyle = "#0f1c33";
@@ -305,6 +368,11 @@ ctx.lineTo(
 ctx.stroke();
 ctx.restore();
         }
+      }
+
+      // 0-cells are engraved into the surface
+      if (!isWall) {
+        drawEngravedFloorTile(px, py, theme);
       }
     }
   }
@@ -574,7 +642,33 @@ shine.addColorStop(0.4, `hsla(${glowHue}, 100%, 70%, 0.25)`);
 }
   
   
-  function drawWalls() {
+  function drawRaisedWallBase(px, py, theme) {
+  const palette = getReliefPalette(theme);
+  const lip = Math.max(1, tile * 0.09);
+
+  // top-left highlight lip
+  const lift = ctx.createLinearGradient(px, py, px + tile, py + tile);
+  lift.addColorStop(0, palette.light);
+  lift.addColorStop(0.55, "rgba(255,255,255,0)");
+  ctx.fillStyle = lift;
+  ctx.fillRect(px, py, tile, tile);
+
+  // bottom-right shadow lip
+  const drop = ctx.createLinearGradient(px + tile, py + tile, px, py);
+  drop.addColorStop(0, palette.shadow);
+  drop.addColorStop(0.5, "rgba(0,0,0,0)");
+  ctx.fillStyle = drop;
+  ctx.fillRect(px, py, tile, tile);
+
+  ctx.strokeStyle = palette.rim;
+  ctx.lineWidth = Math.max(1, tile * 0.028);
+  ctx.strokeRect(px + 0.5, py + 0.5, tile - 1, tile - 1);
+
+  // small front face to make wall appear to protrude above floor
+  ctx.fillStyle = "rgba(0,0,0,0.18)";
+  ctx.fillRect(px + lip * 0.6, py + tile - lip * 0.9, tile - lip * 1.2, lip * 0.6);
+}
+function drawWalls() {
   const grid = state.grid;
   const theme = getTheme();
 
@@ -601,6 +695,9 @@ shine.addColorStop(0.4, `hsla(${glowHue}, 100%, 70%, 0.25)`);
 
       const px = ox + x * tile;
       const py = oy + y * tile;
+
+      // 1-cells are raised above the surface
+      drawRaisedWallBase(px, py, theme);
 
      // darkest core
   ctx.fillStyle = glowColor;
@@ -666,6 +763,7 @@ resize();
 
   return { resize, render };
 }
+
 
 
 
