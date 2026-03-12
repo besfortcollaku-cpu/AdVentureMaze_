@@ -64,13 +64,14 @@ function applyThemeAssets() {
       ? "/textures/themes/lava/"
       : "/textures/themes/ice/";
 
-  floorReady = floorDoneReady = ballReady = false;
+  floorReady = floorDoneReady = wallBaseReady = ballReady = false;
   wallTileCache.clear();
   wallMissingMasks.clear();
-  wallTilesBase = "/textures/themes/ice/sprites/";
+  wallTilesBase = `${base}sprites/`;
 
   floorImg.src = base + "floor.png";
   floorDoneImg.src = base + "floor_done.png";
+  wallBaseImg.src = base + "wall.png";
   ballImg.src = base + "ball.png";
 }
   // FLOOR TILE
@@ -83,6 +84,9 @@ function applyThemeAssets() {
 const floorDoneImg = new Image();
 let floorDoneReady = false;
 floorDoneImg.onload = () => (floorDoneReady = true);
+const wallBaseImg = new Image();
+let wallBaseReady = false;
+wallBaseImg.onload = () => (wallBaseReady = true);
 const wallTileCache = new Map();
 const wallMissingMasks = new Set();
 let wallTilesBase = "/textures/themes/ice/sprites/";
@@ -514,10 +518,12 @@ shine.addColorStop(0.4, `hsla(${glowHue}, 100%, 70%, 0.25)`);
       const maskFilename = forcedBoundaryFilename || getWallAutotileFilename(grid, x, y);
       const autotileImg = getWallAutotileImage(maskFilename);
 
-      // Draw exact PNG for this wall mask.
-      if (autotileImg) {
+      // Draw autotile PNG; fallback to base wall so every wall cell renders.
+      const wallImgToDraw = autotileImg || (wallBaseReady ? wallBaseImg : null);
+
+      if (wallImgToDraw) {
         ctx.drawImage(
-          autotileImg,
+          wallImgToDraw,
           px,
           py + tile - WALL_H,
           WALL_W,
@@ -558,6 +564,7 @@ resize();
 
   return { resize, render };
 }
+
 
 
 
