@@ -152,67 +152,10 @@ ballImg.onload = () => (ballReady = true);
   // ======================
   // DRAW
   // ======================
-  function drawBackground() {
-  const theme = getTheme();
-
-  let grad = ctx.createLinearGradient(0, 0, 0, h);
-
-  if (theme === "forest") {
-    grad.addColorStop(0, "#06140d");
-    grad.addColorStop(0.5, "#0e2b1c");
-    grad.addColorStop(1, "#06140d");
-  } else if (theme === "wood") {
-    grad.addColorStop(0, "#2c190f");
-    grad.addColorStop(0.5, "#4d2c1a");
-    grad.addColorStop(1, "#2c190f");
-  } else if (theme === "lava") {
-    grad.addColorStop(0, "#120302");
-    grad.addColorStop(0.5, "#2a0b06");
-    grad.addColorStop(1, "#120302");
-  } else {
-    // ice
-    grad.addColorStop(0, "#090f2a");
-    grad.addColorStop(0.5, "#141e42");
-    grad.addColorStop(1, "#090f2a");
-  }
-
-  // base gradient
-  ctx.fillStyle = grad;
-  ctx.fillRect(-w, -h, w * 3, h * 3);
-
-  // ── VIGNETTE (visible but clean)
-  const vg = ctx.createRadialGradient(
-    w / 2, h / 2, tile,
-    w / 2, h / 2, Math.max(w, h)
-  );
-
-  vg.addColorStop(0, "rgba(0,0,0,0)");
-  vg.addColorStop(1, "rgba(0,0,0,0.55)");
-
-  ctx.fillStyle = vg;
-  ctx.fillRect(-w, -h, w * 3, h * 3);
-  // ── SOFT TOP/BOTTOM BLEND INTO UI (very subtle)
-const edgeFade = ctx.createLinearGradient(0, 0, 0, h);
-edgeFade.addColorStop(0, "rgba(0,0,0,0.45)");
-edgeFade.addColorStop(0.12, "rgba(0,0,0,0)");
-edgeFade.addColorStop(0.88, "rgba(0,0,0,0)");
-edgeFade.addColorStop(1, "rgba(0,0,0,0.45)");
-
-ctx.fillStyle = edgeFade;
-ctx.fillRect(-w, -h, w * 3, h * 3);
+function drawBackground() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
 }
 function drawWallShadow(px, py) {
-  ctx.save();
-
-  ctx.filter = "blur(1px)";
-  ctx.fillStyle = "rgba(0,0,0,0.15)";
-
-  ctx.fillRect(
-    px + tile * 0.01,  // right
-    py - tile * 0.01,  // up (light from bottom-left)
-    tile,
-    tile
-  );
 
   ctx.restore();
 }
@@ -250,33 +193,7 @@ function getReliefPalette(theme) {
 }
 
 function drawEngravedFloorTile(px, py, theme) {
-  const palette = getReliefPalette(theme);
-
-  const inset = tile * 0.10;
-  const iw = tile - inset * 2;
-  const ih = tile - inset * 2;
-
-  // carved center (below surface)
-  ctx.fillStyle = palette.cavity;
-  ctx.fillRect(px + inset, py + inset, iw, ih);
-
-  // light from bottom-left, shadow at top-right
-  const shadowGrad = ctx.createLinearGradient(px + tile, py, px, py + tile);
-  shadowGrad.addColorStop(0, palette.shadow);
-  shadowGrad.addColorStop(0.45, "rgba(0,0,0,0)");
-  ctx.fillStyle = shadowGrad;
-  ctx.fillRect(px + inset, py + inset, iw, ih);
-
-  const lightGrad = ctx.createLinearGradient(px, py + tile, px + tile, py);
-  lightGrad.addColorStop(0, palette.light);
-  lightGrad.addColorStop(0.55, "rgba(255,255,255,0)");
-  ctx.fillStyle = lightGrad;
-  ctx.fillRect(px + inset, py + inset, iw, ih);
-
-  // rim line to sell the engraving
-  ctx.strokeStyle = palette.rim;
-  ctx.lineWidth = Math.max(1, tile * 0.03);
-  ctx.strokeRect(px + inset + 0.5, py + inset + 0.5, iw - 1, ih - 1);
+    
 }
 function drawFloor() {
   const grid = state.grid;
@@ -369,12 +286,7 @@ ctx.stroke();
 ctx.restore();
         }
       }
-
-      // 0-cells are engraved into the surface
-      if (!isWall) {
-        drawEngravedFloorTile(px, py, theme);
       }
-    }
   }
   // ── CONTACT FLASH RENDER
 if (contactFlash) {
@@ -748,7 +660,7 @@ resize();
 
   drawFloor();
   drawBall(playerFloat);
-  drawWallShadow();
+ // drawWallShadow();
   drawWalls();
 
   if (shakeTime > 0) {
