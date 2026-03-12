@@ -249,50 +249,18 @@ function drawFloor() {
 }
          else if (floorReady) {
           ctx.drawImage(floorImg, px, py, tile, tile);
-          if (tint) {
-  ctx.save();
-  ctx.globalCompositeOperation = "multiply";
-  ctx.fillStyle = tint;
-  ctx.fillRect(px, py, tile, tile);
-  ctx.restore();
-}   }
+           }
       } else {
         // 🔹 NORMAL TILE
         if (floorReady) {
           ctx.drawImage(floorImg, px, py, tile, tile);
-          if (tint) {
-  ctx.fillStyle = tint;
-  ctx.fillRect(px, py, tile, tile);
-}
-          // ── CRYSTAL SUBSURFACE LIGHT (cheap + elegant)
-const t = performance.now() * 0.001;
-const pulse = 0.5 + Math.sin(t + x * 0.8 + y * 0.6) * 0.5;
+      }
+  
 
-ctx.fillStyle = `rgba(120,200,255,${0.06 + pulse * 0.04})`;
-ctx.fillRect(
-  px + tile * 0.18,
-  py + tile * 0.18,
-  tile * 0.64,
-  tile * 0.64
-);
-// ── CRYSTAL FRACTURE LINES (static, elegant)
-ctx.save();
-ctx.globalAlpha = 0.18;
-ctx.strokeStyle = "rgba(220,240,255,0.8)";
-ctx.lineWidth = 1;
 
 ctx.beginPath();
 
-// pseudo-random but stable per tile
-const seed = (x * 928371 + y * 123457) % 1000;
-const fx = px + tile * (0.2 + (seed % 7) * 0.08);
-const fy = py + tile * (0.2 + ((seed >> 3) % 7) * 0.08);
 
-ctx.moveTo(fx, fy);
-ctx.lineTo(
-  fx + tile * (0.25 + ((seed >> 1) % 5) * 0.08),
-  fy + tile * (0.15 + ((seed >> 2) % 5) * 0.08)
-);
 
 ctx.stroke();
 ctx.restore();
@@ -564,18 +532,7 @@ shine.addColorStop(0.4, `hsla(${glowHue}, 100%, 70%, 0.25)`);
   function drawWalls() {
   const grid = state.grid;
   const theme = getTheme();
-
-  let glowColor = "rgba(0,0,0,0.55)";
-  let glow2 = "rgba(0,0,0,0.35)";
-
-  if (theme === "forest") {
-    glowColor = "rgba(20,80,40,0.55)";
-    glow2 = "rgba(20,80,40,0.35)";
-  } else if (theme === "lava") {
-    glowColor = "rgba(120,40,10,0.55)";
-    glow2 = "rgba(120,40,10,0.35)";
-  }
-
+  
   const WALL_W = tile;
   const WALL_H = tile * 1.0;
 
@@ -585,24 +542,6 @@ shine.addColorStop(0.4, `hsla(${glowHue}, 100%, 70%, 0.25)`);
 
       const px = ox + x * tile;
       const py = oy + y * tile;
-
-     // darkest core
-  ctx.fillStyle = glowColor;
-  ctx.fillRect(
-    px + tile * 0.12,
-    py - tile * 0.18,
-    tile,
-    tile
-  );
-
-  // soft spread 1
-ctx.fillStyle = glow2;
-ctx.fillRect(
-    px + tile * 0.2,
-    py - tile * 0.3,
-    tile,
-    tile
-  );
 
  
       // ── WALL SPRITE
