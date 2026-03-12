@@ -62,11 +62,12 @@ function applyThemeAssets() {
       ? "/textures/themes/forest/"
       : theme === "lava"
       ? "/textures/themes/lava/"
-      : theme === "wood"
-      ? "/textures/themes/wood/"
       : "/textures/themes/ice/";
 
   floorReady = floorDoneReady = wallReady = ballReady = false;
+  wallTileCache.clear();
+  wallMissingMasks.clear();
+  wallTilesBase = `${base}walls/`;
 
   floorImg.src = base + "floor.png";
   floorDoneImg.src = base + "floor_done.png";
@@ -88,6 +89,9 @@ floorDoneImg.onload = () => (floorDoneReady = true);
 const wallImg = new Image();
 let wallReady = false;
 wallImg.onload = () => (wallReady = true);
+const wallTileCache = new Map();
+const wallMissingMasks = new Set();
+let wallTilesBase = "/textures/themes/ice/walls/";
 // BALL SPRITE
 
 const ballImg = new Image();
@@ -161,10 +165,6 @@ ballImg.onload = () => (ballReady = true);
     grad.addColorStop(0, "#06140d");
     grad.addColorStop(0.5, "#0e2b1c");
     grad.addColorStop(1, "#06140d");
-  } else if (theme === "wood") {
-    grad.addColorStop(0, "#2c190f");
-    grad.addColorStop(0.5, "#4d2c1a");
-    grad.addColorStop(1, "#2c190f");
   } else if (theme === "lava") {
     grad.addColorStop(0, "#120302");
     grad.addColorStop(0.5, "#2a0b06");
@@ -201,82 +201,45 @@ edgeFade.addColorStop(1, "rgba(0,0,0,0.45)");
 ctx.fillStyle = edgeFade;
 ctx.fillRect(-w, -h, w * 3, h * 3);
 }
-function drawWallShadow(px, py) {
-  ctx.save();
-
-  ctx.filter = "blur(1px)";
-  ctx.fillStyle = "rgba(0,0,0,0.15)";
-
-  ctx.fillRect(
-    px + tile * 0.01,  // right
-    py - tile * 0.01,  // up (light from bottom-left)
-    tile,
-    tile
-  );
-
-  ctx.restore();
+function getWallBit(grid, x, y) {
+  if (!grid[y] || typeof grid[y][x] === "undefined") {
+    // Out-of-bounds is treated as wall.
+    return "1";
+  }
+  return grid[y][x] === 1 ? "1" : "0";
 }
-function getReliefPalette(theme) {
-  if (theme === "forest") {
-    return {
-      cavity: "rgba(10,32,20,0.32)",
-      light: "rgba(180,255,210,0.18)",
-      shadow: "rgba(0,0,0,0.36)",
-      rim: "rgba(22,56,38,0.45)"
-    };
-  }
-  if (theme === "wood") {
-    return {
-      cavity: "rgba(40,22,12,0.30)",
-      light: "rgba(255,214,170,0.18)",
-      shadow: "rgba(0,0,0,0.34)",
-      rim: "rgba(92,58,34,0.45)"
-    };
-  }
-  if (theme === "lava") {
-    return {
-      cavity: "rgba(40,12,8,0.34)",
-      light: "rgba(255,190,130,0.16)",
-      shadow: "rgba(0,0,0,0.38)",
-      rim: "rgba(110,38,18,0.45)"
-    };
-  }
-  return {
-    cavity: "rgba(8,18,44,0.30)",
-    light: "rgba(195,225,255,0.20)",
-    shadow: "rgba(0,0,0,0.34)",
-    rim: "rgba(32,52,96,0.45)"
+
+function getWallAutotileFilename(grid, x, y) {
+  // Bit order: TL, T, TR, R, BR, B, BL, L
+  const bits = [
+    getWallBit(grid, x - 1, y - 1), // TL
+    getWallBit(grid, x, y - 1),     // T
+    getWallBit(grid, x + 1, y - 1), // TR
+    getWallBit(grid, x + 1, y),     // R
+    getWallBit(grid, x + 1, y + 1), // BR
+    getWallBit(grid, x, y + 1),     // B
+    getWallBit(grid, x - 1, y + 1), // BL
+    getWallBit(grid, x - 1, y),     // L
+  ];
+  return `${bits.join("")}.png`;
+}
+
+function getWallAutotileImage(filename) {
+  if (wallMissingMasks.has(filename)) return null;
+  if (wallTileCache.has(filename)) return wallTileCache.get(filename);
+
+  const img = new Image();
+  img.onload = () => {
+    wallTileCache.set(filename, img);
   };
-}
+  img.onerror = () => {
+    wallMissingMasks.add(filename);
+    wallTileCache.delete(filename);
+  };
+  img.src = wallTilesBase + filename;
 
-function drawEngravedFloorTile(px, py, theme) {
-  const palette = getReliefPalette(theme);
-
-  const inset = tile * 0.10;
-  const iw = tile - inset * 2;
-  const ih = tile - inset * 2;
-
-  // carved center (below surface)
-  ctx.fillStyle = palette.cavity;
-  ctx.fillRect(px + inset, py + inset, iw, ih);
-
-  // light from bottom-left, shadow at top-right
-  const shadowGrad = ctx.createLinearGradient(px + tile, py, px, py + tile);
-  shadowGrad.addColorStop(0, palette.shadow);
-  shadowGrad.addColorStop(0.45, "rgba(0,0,0,0)");
-  ctx.fillStyle = shadowGrad;
-  ctx.fillRect(px + inset, py + inset, iw, ih);
-
-  const lightGrad = ctx.createLinearGradient(px, py + tile, px + tile, py);
-  lightGrad.addColorStop(0, palette.light);
-  lightGrad.addColorStop(0.55, "rgba(255,255,255,0)");
-  ctx.fillStyle = lightGrad;
-  ctx.fillRect(px + inset, py + inset, iw, ih);
-
-  // rim line to sell the engraving
-  ctx.strokeStyle = palette.rim;
-  ctx.lineWidth = Math.max(1, tile * 0.03);
-  ctx.strokeRect(px + inset + 0.5, py + inset + 0.5, iw - 1, ih - 1);
+  wallTileCache.set(filename, null);
+  return null;
 }
 function drawFloor() {
   const grid = state.grid;
@@ -286,8 +249,6 @@ function drawFloor() {
   let tint = null;
   if (theme === "forest") {
     tint = "rgba(60, 120, 80, 0.18)";
-  } else if (theme === "wood") {
-    tint = "rgba(132, 92, 54, 0.20)";
   } else if (theme === "lava") {
     tint = "rgba(160, 60, 30, 0.18)";
   }
@@ -296,7 +257,6 @@ function drawFloor() {
     for (let x = 0; x < grid[y].length; x++) {
       const px = ox + x * tile;
       const py = oy + y * tile;
-      const isWall = grid[y][x] === 1;
 
       // base fallback
       ctx.fillStyle = "#0f1c33";
@@ -320,59 +280,22 @@ function drawFloor() {
 }
          else if (floorReady) {
           ctx.drawImage(floorImg, px, py, tile, tile);
-          if (tint) {
-  ctx.save();
-  ctx.globalCompositeOperation = "multiply";
-  ctx.fillStyle = tint;
-  ctx.fillRect(px, py, tile, tile);
-  ctx.restore();
-}   }
+           }
       } else {
         // 🔹 NORMAL TILE
         if (floorReady) {
           ctx.drawImage(floorImg, px, py, tile, tile);
-          if (tint) {
-  ctx.fillStyle = tint;
-  ctx.fillRect(px, py, tile, tile);
-}
-          // ── CRYSTAL SUBSURFACE LIGHT (cheap + elegant)
-const t = performance.now() * 0.001;
-const pulse = 0.5 + Math.sin(t + x * 0.8 + y * 0.6) * 0.5;
+      }
+  
 
-ctx.fillStyle = `rgba(120,200,255,${0.06 + pulse * 0.04})`;
-ctx.fillRect(
-  px + tile * 0.18,
-  py + tile * 0.18,
-  tile * 0.64,
-  tile * 0.64
-);
-// ── CRYSTAL FRACTURE LINES (static, elegant)
-ctx.save();
-ctx.globalAlpha = 0.18;
-ctx.strokeStyle = "rgba(220,240,255,0.8)";
-ctx.lineWidth = 1;
 
 ctx.beginPath();
 
-// pseudo-random but stable per tile
-const seed = (x * 928371 + y * 123457) % 1000;
-const fx = px + tile * (0.2 + (seed % 7) * 0.08);
-const fy = py + tile * (0.2 + ((seed >> 3) % 7) * 0.08);
 
-ctx.moveTo(fx, fy);
-ctx.lineTo(
-  fx + tile * (0.25 + ((seed >> 1) % 5) * 0.08),
-  fy + tile * (0.15 + ((seed >> 2) % 5) * 0.08)
-);
 
 ctx.stroke();
 ctx.restore();
         }
-      }
-
-      // 0-cells are engraved into the surface
-      if (!isWall) {
-        drawEngravedFloorTile(px, py, theme);
       }
     }
   }
@@ -389,8 +312,6 @@ if (contactFlash) {
     let color = "rgba(160,220,255,"; // ice
     if (theme === "forest") {
       color = "rgba(140,255,180,";
-    } else if (theme === "wood") {
-      color = "rgba(255,190,130,";
     } else if (theme === "lava") {
       color = "rgba(255,170,120,";
     }
@@ -409,7 +330,6 @@ if (contactFlash) {
   } else {
     contactFlash = null;
   }
-}
 }
 function drawCrystalShard(x, y, angle, size, alpha, hueShift = 0) {
   ctx.save();
@@ -441,9 +361,6 @@ function drawCrystalShard(x, y, angle, size, alpha, hueShift = 0) {
   if (theme === "forest") {
     glowHue = 135; // green
     sparkColor = "rgba(120,255,180,";
-  } else if (theme === "wood") {
-    glowHue = 32; // amber
-    sparkColor = "rgba(255,190,120,";
   } else if (theme === "lava") {
     glowHue = 20; // orange-red
     sparkColor = "rgba(255,160,80,";
@@ -642,52 +559,11 @@ shine.addColorStop(0.4, `hsla(${glowHue}, 100%, 70%, 0.25)`);
 }
   
   
-  function drawRaisedWallBase(px, py, theme) {
-  const palette = getReliefPalette(theme);
-  const lip = Math.max(1, tile * 0.09);
-
-  // top-left highlight lip
-  const lift = ctx.createLinearGradient(px, py, px + tile, py + tile);
-  lift.addColorStop(0, palette.light);
-  lift.addColorStop(0.55, "rgba(255,255,255,0)");
-  ctx.fillStyle = lift;
-  ctx.fillRect(px, py, tile, tile);
-
-  // bottom-right shadow lip
-  const drop = ctx.createLinearGradient(px + tile, py + tile, px, py);
-  drop.addColorStop(0, palette.shadow);
-  drop.addColorStop(0.5, "rgba(0,0,0,0)");
-  ctx.fillStyle = drop;
-  ctx.fillRect(px, py, tile, tile);
-
-  ctx.strokeStyle = palette.rim;
-  ctx.lineWidth = Math.max(1, tile * 0.028);
-  ctx.strokeRect(px + 0.5, py + 0.5, tile - 1, tile - 1);
-
-  // small front face to make wall appear to protrude above floor
-  ctx.fillStyle = "rgba(0,0,0,0.18)";
-  ctx.fillRect(px + lip * 0.6, py + tile - lip * 0.9, tile - lip * 1.2, lip * 0.6);
-}
-function drawWalls() {
+  function drawWalls() {
   const grid = state.grid;
-  const theme = getTheme();
-
-  let glowColor = "rgba(0,0,0,0.55)";
-  let glow2 = "rgba(0,0,0,0.35)";
-
-  if (theme === "forest") {
-    glowColor = "rgba(20,80,40,0.55)";
-    glow2 = "rgba(20,80,40,0.35)";
-  } else if (theme === "wood") {
-    glowColor = "rgba(100,64,36,0.55)";
-    glow2 = "rgba(100,64,36,0.35)";
-  } else if (theme === "lava") {
-    glowColor = "rgba(120,40,10,0.55)";
-    glow2 = "rgba(120,40,10,0.35)";
-  }
-
+  
   const WALL_W = tile;
-  const WALL_H = tile * 1.5;
+  const WALL_H = tile * 1.0;
 
   for (let y = 0; y < grid.length; y++) {
     for (let x = 0; x < grid[y].length; x++) {
@@ -696,30 +572,19 @@ function drawWalls() {
       const px = ox + x * tile;
       const py = oy + y * tile;
 
-      // 1-cells are raised above the surface
-      drawRaisedWallBase(px, py, theme);
+      const maskFilename = getWallAutotileFilename(grid, x, y);
+      const autotileImg = getWallAutotileImage(maskFilename);
 
-     // darkest core
-  ctx.fillStyle = glowColor;
-  ctx.fillRect(
-    px + tile * 0.12,
-    py - tile * 0.18,
-    tile,
-    tile
-  );
-
-  // soft spread 1
-ctx.fillStyle = glow2;
-ctx.fillRect(
-    px + tile * 0.2,
-    py - tile * 0.3,
-    tile,
-    tile
-  );
-
- 
-      // ── WALL SPRITE
-      if (wallReady) {
+      // Draw exact PNG for this wall mask, fallback to default wall.png.
+      if (autotileImg) {
+        ctx.drawImage(
+          autotileImg,
+          px,
+          py + tile - WALL_H,
+          WALL_W,
+          WALL_H
+        );
+      } else if (wallReady) {
         ctx.drawImage(
           wallImg,
           px,
@@ -737,7 +602,7 @@ resize();
   function render(playerFloat) {
   ctx.clearRect(0, 0, w, h);
 
-  // ── CAMERA SHAKE APPLY
+  // ── CAMERA SHAKE APPLY Test
   if (shakeTime > 0) {
     const sx = (Math.random() - 0.5) * shakeStrength;
     const sy = (Math.random() - 0.5) * shakeStrength;
@@ -748,7 +613,6 @@ resize();
 
   drawFloor();
   drawBall(playerFloat);
-  drawWallShadow();
   drawWalls();
 
   if (shakeTime > 0) {
@@ -763,7 +627,6 @@ resize();
 
   return { resize, render };
 }
-
 
 
 

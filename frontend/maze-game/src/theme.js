@@ -1,17 +1,14 @@
 let theme = localStorage.getItem("theme") || "ice";
-const THEMES = new Set(["ice", "forest", "lava", "wood"]);
 
 const listeners = new Set();
 function applyBodyThemeClass(value) {
-  const safeTheme = THEMES.has(value) ? value : "ice";
   document.body.classList.remove(
     "theme-ice",
     "theme-forest",
-    "theme-lava",
-    "theme-wood"
+    "theme-lava"
   );
 
-  document.body.classList.add(`theme-${safeTheme}`);
+  document.body.classList.add(`theme-${value}`);
 }
 
 export function getTheme() {
@@ -19,10 +16,9 @@ export function getTheme() {
 }
 
 export function setTheme(nextTheme) {
-  const safeTheme = THEMES.has(nextTheme) ? nextTheme : "ice";
-  if (theme === safeTheme) return;
+  if (theme === nextTheme) return;
 
-  theme = safeTheme;
+  theme = nextTheme;
   localStorage.setItem("theme", theme);
 
   applyBodyThemeClass(theme);
@@ -36,4 +32,3 @@ export function onThemeChange(fn) {
 }
 
 applyBodyThemeClass(theme);
-
