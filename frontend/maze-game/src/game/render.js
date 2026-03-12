@@ -577,7 +577,7 @@ shine.addColorStop(0.4, `hsla(${glowHue}, 100%, 70%, 0.25)`);
   }
 
   const WALL_W = tile;
-  const WALL_H = tile * 1.5;
+  const WALL_H = tile * 1.0;
 
   for (let y = 0; y < grid.length; y++) {
     for (let x = 0; x < grid[y].length; x++) {
