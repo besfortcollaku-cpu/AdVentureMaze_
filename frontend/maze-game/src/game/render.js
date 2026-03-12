@@ -67,7 +67,7 @@ function applyThemeAssets() {
   floorReady = floorDoneReady = ballReady = false;
   wallTileCache.clear();
   wallMissingMasks.clear();
-  wallTilesBase = `${base}walls/`;
+  wallTilesBase = `${base}sprites/`;
 
   floorImg.src = base + "floor.png";
   floorDoneImg.src = base + "floor_done.png";
@@ -85,7 +85,7 @@ let floorDoneReady = false;
 floorDoneImg.onload = () => (floorDoneReady = true);
 const wallTileCache = new Map();
 const wallMissingMasks = new Set();
-let wallTilesBase = "/textures/themes/ice/walls/";
+let wallTilesBase = "/textures/themes/ice/sprites/";
 // BALL SPRITE
 
 const ballImg = new Image();
@@ -613,6 +613,7 @@ resize();
 
   return { resize, render };
 }
+
 
 
 
