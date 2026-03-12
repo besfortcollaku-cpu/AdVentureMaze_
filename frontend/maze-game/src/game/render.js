@@ -256,85 +256,23 @@ function getWallAutotileImage(filename) {
 }
 function drawFloor() {
   const grid = state.grid;
-  const theme = getTheme();
-    const now = performance.now();
-
-  let tint = null;
-  if (theme === "forest") {
-    tint = "rgba(60, 120, 80, 0.18)";
-  } else if (theme === "lava") {
-    tint = "rgba(160, 60, 30, 0.18)";
-  }
 
   for (let y = 0; y < grid.length; y++) {
     for (let x = 0; x < grid[y].length; x++) {
       const px = ox + x * tile;
       const py = oy + y * tile;
 
-      // choose image based on path state
+      // PNG-only floor rendering: no tint, glow, blur, or overlays.
       if (state.isPainted(x, y)) {
-        // 🔹 PATH COMPLETED TILE
         if (floorDoneReady) {
-  ctx.drawImage(floorDoneImg, px, py, tile, tile);
-
-  // ── subtle done-floor glow animation
-  const pulse =
-    0.12 + Math.sin(now * 0.002 + x * 0.4 + y * 0.4) * 0.06;
-
-  ctx.save();
-  ctx.globalCompositeOperation = "screen";
-  ctx.fillStyle = `rgba(255,255,255,${pulse})`;
-  ctx.fillRect(px, py, tile, tile);
-  ctx.restore();
-}
-      } else {
-        // 🔹 NORMAL TILE
-        if (floorReady) {
+          ctx.drawImage(floorDoneImg, px, py, tile, tile);
+        } else if (floorReady) {
           ctx.drawImage(floorImg, px, py, tile, tile);
-      }
-  
-
-
-ctx.beginPath();
-
-
-
-ctx.stroke();
-ctx.restore();
         }
+      } else if (floorReady) {
+        ctx.drawImage(floorImg, px, py, tile, tile);
       }
     }
-  }
-  // ── CONTACT FLASH RENDER
-if (contactFlash) {
-  const age = performance.now() - contactFlash.time;
-
-  if (age < 220) {
-    const cx = ox + contactFlash.x * tile + tile / 2;
-    const cy = oy + contactFlash.y * tile + tile / 2;
-
-    const theme = getTheme();
-
-    let color = "rgba(160,220,255,"; // ice
-    if (theme === "forest") {
-      color = "rgba(140,255,180,";
-    } else if (theme === "lava") {
-      color = "rgba(255,170,120,";
-    }
-
-    const alpha = 0.35 * (1 - age / 220);
-
-    ctx.save();
-    ctx.globalCompositeOperation = "lighter";
-    ctx.fillStyle = `${color}${alpha})`;
-
-    ctx.beginPath();
-    ctx.arc(cx, cy, tile * 0.35, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.restore();
-  } else {
-    contactFlash = null;
   }
 }
 function drawCrystalShard(x, y, angle, size, alpha, hueShift = 0) {
@@ -620,6 +558,7 @@ resize();
 
   return { resize, render };
 }
+
 
 
 
