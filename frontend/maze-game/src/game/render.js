@@ -64,14 +64,13 @@ function applyThemeAssets() {
       ? "/textures/themes/lava/"
       : "/textures/themes/ice/";
 
-  floorReady = floorDoneReady = wallReady = ballReady = false;
+  floorReady = floorDoneReady = ballReady = false;
   wallTileCache.clear();
   wallMissingMasks.clear();
   wallTilesBase = `${base}walls/`;
 
   floorImg.src = base + "floor.png";
   floorDoneImg.src = base + "floor_done.png";
-  wallImg.src = base + "wall.png";
   ballImg.src = base + "ball.png";
 }
   // FLOOR TILE
@@ -84,11 +83,6 @@ function applyThemeAssets() {
 const floorDoneImg = new Image();
 let floorDoneReady = false;
 floorDoneImg.onload = () => (floorDoneReady = true);
-// WALL TILE
-
-const wallImg = new Image();
-let wallReady = false;
-wallImg.onload = () => (wallReady = true);
 const wallTileCache = new Map();
 const wallMissingMasks = new Set();
 let wallTilesBase = "/textures/themes/ice/walls/";
@@ -270,10 +264,6 @@ function drawFloor() {
       const px = ox + x * tile;
       const py = oy + y * tile;
 
-      // base fallback
-      ctx.fillStyle = "#0f1c33";
-      ctx.fillRect(px, py, tile, tile);
-
       // choose image based on path state
       if (state.isPainted(x, y)) {
         // 🔹 PATH COMPLETED TILE
@@ -290,9 +280,6 @@ function drawFloor() {
   ctx.fillRect(px, py, tile, tile);
   ctx.restore();
 }
-         else if (floorReady) {
-          ctx.drawImage(floorImg, px, py, tile, tile);
-           }
       } else {
         // 🔹 NORMAL TILE
         if (floorReady) {
@@ -519,12 +506,6 @@ ctx.drawImage(
 );
 
 ctx.restore();
-
-  } else {
-    ctx.fillStyle = "#ffd34d";
-    ctx.beginPath();
-    ctx.arc(c.cx, c.cy, r, 0, Math.PI * 2);
-    ctx.fill();
   }
 
   // ─────────────────────────
@@ -588,18 +569,10 @@ shine.addColorStop(0.4, `hsla(${glowHue}, 100%, 70%, 0.25)`);
       const maskFilename = forcedCornerFilename || getWallAutotileFilename(grid, x, y);
       const autotileImg = getWallAutotileImage(maskFilename);
 
-      // Draw exact PNG for this wall mask, fallback to default wall.png.
+      // Draw exact PNG for this wall mask.
       if (autotileImg) {
         ctx.drawImage(
           autotileImg,
-          px,
-          py + tile - WALL_H,
-          WALL_W,
-          WALL_H
-        );
-      } else if (wallReady) {
-        ctx.drawImage(
-          wallImg,
           px,
           py + tile - WALL_H,
           WALL_W,
@@ -640,6 +613,8 @@ resize();
 
   return { resize, render };
 }
+
+
 
 
 
