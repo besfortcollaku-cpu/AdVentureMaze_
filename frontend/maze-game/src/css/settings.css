@@ -193,10 +193,3 @@ body.theme-lava input:checked + .slider {
 .settings-card {
   animation: softBounceIn 0.35s ease-out;
 }
-/* ===== WOOD ===== */
-body.theme-wood .slider {
-  background: #5c3a1f;
-}
-body.theme-wood input:checked + .slider {
-  background: #c48a55;
-}

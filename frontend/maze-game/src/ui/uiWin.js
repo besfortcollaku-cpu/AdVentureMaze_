@@ -66,7 +66,7 @@ export function createWinPopup() {
   const theme = getTheme();
 
   // reset theme classes
-  el.classList.remove("theme-forest", "theme-lava", "theme-ice", "theme-wood");
+  el.classList.remove("theme-forest", "theme-lava", "theme-ice");
 
   // apply current theme
   el.classList.add(`theme-${theme}`);

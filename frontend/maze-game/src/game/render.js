@@ -62,8 +62,6 @@ function applyThemeAssets() {
       ? "/textures/themes/forest/"
       : theme === "lava"
       ? "/textures/themes/lava/"
-      : theme === "wood"
-      ? "/textures/themes/wood/"
       : "/textures/themes/ice/";
 
   floorReady = floorDoneReady = wallReady = ballReady = false;
@@ -152,48 +150,65 @@ ballImg.onload = () => (ballReady = true);
   // ======================
   // DRAW
   // ======================
-function drawBackground() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  function drawBackground() {
+  const theme = getTheme();
+
+  let grad = ctx.createLinearGradient(0, 0, 0, h);
+
+  if (theme === "forest") {
+    grad.addColorStop(0, "#06140d");
+    grad.addColorStop(0.5, "#0e2b1c");
+    grad.addColorStop(1, "#06140d");
+  } else if (theme === "lava") {
+    grad.addColorStop(0, "#120302");
+    grad.addColorStop(0.5, "#2a0b06");
+    grad.addColorStop(1, "#120302");
+  } else {
+    // ice
+    grad.addColorStop(0, "#090f2a");
+    grad.addColorStop(0.5, "#141e42");
+    grad.addColorStop(1, "#090f2a");
+  }
+
+  // base gradient
+  ctx.fillStyle = grad;
+  ctx.fillRect(-w, -h, w * 3, h * 3);
+
+  // ── VIGNETTE (visible but clean)
+  const vg = ctx.createRadialGradient(
+    w / 2, h / 2, tile,
+    w / 2, h / 2, Math.max(w, h)
+  );
+
+  vg.addColorStop(0, "rgba(0,0,0,0)");
+  vg.addColorStop(1, "rgba(0,0,0,0.55)");
+
+  ctx.fillStyle = vg;
+  ctx.fillRect(-w, -h, w * 3, h * 3);
+  // ── SOFT TOP/BOTTOM BLEND INTO UI (very subtle)
+const edgeFade = ctx.createLinearGradient(0, 0, 0, h);
+edgeFade.addColorStop(0, "rgba(0,0,0,0.45)");
+edgeFade.addColorStop(0.12, "rgba(0,0,0,0)");
+edgeFade.addColorStop(0.88, "rgba(0,0,0,0)");
+edgeFade.addColorStop(1, "rgba(0,0,0,0.45)");
+
+ctx.fillStyle = edgeFade;
+ctx.fillRect(-w, -h, w * 3, h * 3);
 }
 function drawWallShadow(px, py) {
+  ctx.save();
+
+  ctx.filter = "blur(1px)";
+  ctx.fillStyle = "rgba(0,0,0,0.15)";
+
+  ctx.fillRect(
+    px + tile * 0.01,  // right
+    py - tile * 0.01,  // up (light from bottom-left)
+    tile,
+    tile
+  );
 
   ctx.restore();
-}
-function getReliefPalette(theme) {
-  if (theme === "forest") {
-    return {
-      cavity: "rgba(10,32,20,0.32)",
-      light: "rgba(180,255,210,0.18)",
-      shadow: "rgba(0,0,0,0.36)",
-      rim: "rgba(22,56,38,0.45)"
-    };
-  }
-  if (theme === "wood") {
-    return {
-      cavity: "rgba(40,22,12,0.30)",
-      light: "rgba(255,214,170,0.18)",
-      shadow: "rgba(0,0,0,0.34)",
-      rim: "rgba(92,58,34,0.45)"
-    };
-  }
-  if (theme === "lava") {
-    return {
-      cavity: "rgba(40,12,8,0.34)",
-      light: "rgba(255,190,130,0.16)",
-      shadow: "rgba(0,0,0,0.38)",
-      rim: "rgba(110,38,18,0.45)"
-    };
-  }
-  return {
-    cavity: "rgba(8,18,44,0.30)",
-    light: "rgba(195,225,255,0.20)",
-    shadow: "rgba(0,0,0,0.34)",
-    rim: "rgba(32,52,96,0.45)"
-  };
-}
-
-function drawEngravedFloorTile(px, py, theme) {
-    
 }
 function drawFloor() {
   const grid = state.grid;
@@ -203,8 +218,6 @@ function drawFloor() {
   let tint = null;
   if (theme === "forest") {
     tint = "rgba(60, 120, 80, 0.18)";
-  } else if (theme === "wood") {
-    tint = "rgba(132, 92, 54, 0.20)";
   } else if (theme === "lava") {
     tint = "rgba(160, 60, 30, 0.18)";
   }
@@ -213,7 +226,6 @@ function drawFloor() {
     for (let x = 0; x < grid[y].length; x++) {
       const px = ox + x * tile;
       const py = oy + y * tile;
-      const isWall = grid[y][x] === 1;
 
       // base fallback
       ctx.fillStyle = "#0f1c33";
@@ -286,7 +298,7 @@ ctx.stroke();
 ctx.restore();
         }
       }
-      }
+    }
   }
   // ── CONTACT FLASH RENDER
 if (contactFlash) {
@@ -301,8 +313,6 @@ if (contactFlash) {
     let color = "rgba(160,220,255,"; // ice
     if (theme === "forest") {
       color = "rgba(140,255,180,";
-    } else if (theme === "wood") {
-      color = "rgba(255,190,130,";
     } else if (theme === "lava") {
       color = "rgba(255,170,120,";
     }
@@ -353,9 +363,6 @@ function drawCrystalShard(x, y, angle, size, alpha, hueShift = 0) {
   if (theme === "forest") {
     glowHue = 135; // green
     sparkColor = "rgba(120,255,180,";
-  } else if (theme === "wood") {
-    glowHue = 32; // amber
-    sparkColor = "rgba(255,190,120,";
   } else if (theme === "lava") {
     glowHue = 20; // orange-red
     sparkColor = "rgba(255,160,80,";
@@ -554,33 +561,7 @@ shine.addColorStop(0.4, `hsla(${glowHue}, 100%, 70%, 0.25)`);
 }
   
   
-  function drawRaisedWallBase(px, py, theme) {
-  const palette = getReliefPalette(theme);
-  const lip = Math.max(1, tile * 0.09);
-
-  // top-left highlight lip
-  const lift = ctx.createLinearGradient(px, py, px + tile, py + tile);
-  lift.addColorStop(0, palette.light);
-  lift.addColorStop(0.55, "rgba(255,255,255,0)");
-  ctx.fillStyle = lift;
-  ctx.fillRect(px, py, tile, tile);
-
-  // bottom-right shadow lip
-  const drop = ctx.createLinearGradient(px + tile, py + tile, px, py);
-  drop.addColorStop(0, palette.shadow);
-  drop.addColorStop(0.5, "rgba(0,0,0,0)");
-  ctx.fillStyle = drop;
-  ctx.fillRect(px, py, tile, tile);
-
-  ctx.strokeStyle = palette.rim;
-  ctx.lineWidth = Math.max(1, tile * 0.028);
-  ctx.strokeRect(px + 0.5, py + 0.5, tile - 1, tile - 1);
-
-  // small front face to make wall appear to protrude above floor
-  ctx.fillStyle = "rgba(0,0,0,0.18)";
-  ctx.fillRect(px + lip * 0.6, py + tile - lip * 0.9, tile - lip * 1.2, lip * 0.6);
-}
-function drawWalls() {
+  function drawWalls() {
   const grid = state.grid;
   const theme = getTheme();
 
@@ -590,9 +571,6 @@ function drawWalls() {
   if (theme === "forest") {
     glowColor = "rgba(20,80,40,0.55)";
     glow2 = "rgba(20,80,40,0.35)";
-  } else if (theme === "wood") {
-    glowColor = "rgba(100,64,36,0.55)";
-    glow2 = "rgba(100,64,36,0.35)";
   } else if (theme === "lava") {
     glowColor = "rgba(120,40,10,0.55)";
     glow2 = "rgba(120,40,10,0.35)";
@@ -607,9 +585,6 @@ function drawWalls() {
 
       const px = ox + x * tile;
       const py = oy + y * tile;
-
-      // 1-cells are raised above the surface
-      drawRaisedWallBase(px, py, theme);
 
      // darkest core
   ctx.fillStyle = glowColor;
@@ -660,7 +635,7 @@ resize();
 
   drawFloor();
   drawBall(playerFloat);
- // drawWallShadow();
+  drawWallShadow();
   drawWalls();
 
   if (shakeTime > 0) {
@@ -675,7 +650,3 @@ resize();
 
   return { resize, render };
 }
-
-
-
-

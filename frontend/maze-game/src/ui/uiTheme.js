@@ -9,10 +9,9 @@ export function mountThemeUI(root) {
     <div class="theme-card">
       <h2>Select Theme</h2>
       <div class="theme-list">
-        <button class="theme-item" data-theme="ice">Ice</button>
-        <button class="theme-item" data-theme="forest">Forest</button>
-        <button class="theme-item" data-theme="lava">Lava</button>
-        <button class="theme-item" data-theme="wood">Wood</button>
+        <button class="theme-item" data-theme="ice">❄️ Ice</button>
+        <button class="theme-item" data-theme="forest">🌿 Forest</button>
+        <button class="theme-item" data-theme="lava">🔥 Lava</button>
       </div>
       <button class="theme-close">Close</button>
     </div>
@@ -42,4 +41,3 @@ open() {
   close,
 };
 }
-
