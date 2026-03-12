@@ -224,6 +224,18 @@ function getWallAutotileFilename(grid, x, y) {
   return `${bits.join("")}.png`;
 }
 
+function getForcedCornerWallFilename(grid, x, y) {
+  const lastX = grid[0].length - 1;
+  const lastY = grid.length - 1;
+
+  if (x === 0 && y === 0) return "wall_tl.png";
+  if (x === lastX && y === 0) return "wall_tr.png";
+  if (x === 0 && y === lastY) return "wall_bl.png";
+  if (x === lastX && y === lastY) return "wall_br.png";
+
+  return null;
+}
+
 function getWallAutotileImage(filename) {
   if (wallMissingMasks.has(filename)) return null;
   if (wallTileCache.has(filename)) return wallTileCache.get(filename);
@@ -572,7 +584,8 @@ shine.addColorStop(0.4, `hsla(${glowHue}, 100%, 70%, 0.25)`);
       const px = ox + x * tile;
       const py = oy + y * tile;
 
-      const maskFilename = getWallAutotileFilename(grid, x, y);
+      const forcedCornerFilename = getForcedCornerWallFilename(grid, x, y);
+      const maskFilename = forcedCornerFilename || getWallAutotileFilename(grid, x, y);
       const autotileImg = getWallAutotileImage(maskFilename);
 
       // Draw exact PNG for this wall mask, fallback to default wall.png.
@@ -627,6 +640,8 @@ resize();
 
   return { resize, render };
 }
+
+
 
 
 
