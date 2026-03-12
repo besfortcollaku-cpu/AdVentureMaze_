@@ -215,7 +215,7 @@ body.theme-ice .iconBtn {
   display: flex;
   align-items: center;
   justify-content: center;
-    padding: 24px;              /* ← more background visible */
+               /* ← more background visible */
 }
 
 canvas#game {
@@ -591,7 +591,8 @@ body.theme-lava {
 
 /* Forest */
 body.theme-forest .board {
-  background-image: url("/textures/ui/background/bg_game_forest.png");
+/*  background-image: url("/textures/ui/background/bg_game_forest.png");
+  */
   background-size: contain;
   background-position: center;
   background-repeat: no-repeat;
@@ -599,7 +600,8 @@ body.theme-forest .board {
 
 /* Ice */
 body.theme-ice .board {
-  background-image: url("/textures/ui/background/bg_game_ice.png");
+ /* background-image: url("/textures/ui/background/bg_game_ice.png");
+ */
   background-size: contain;
   background-position: center;
   background-repeat: no-repeat;
