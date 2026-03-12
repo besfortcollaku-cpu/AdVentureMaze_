@@ -218,14 +218,21 @@ function getWallAutotileFilename(grid, x, y) {
   return `${bits.join("")}.png`;
 }
 
-function getForcedCornerWallFilename(grid, x, y) {
+function getForcedBoundaryWallFilename(grid, x, y) {
   const lastX = grid[0].length - 1;
   const lastY = grid.length - 1;
 
+  // Corners
   if (x === 0 && y === 0) return "wall_tl.png";
   if (x === lastX && y === 0) return "wall_tr.png";
   if (x === 0 && y === lastY) return "wall_bl.png";
   if (x === lastX && y === lastY) return "wall_br.png";
+
+  // Edges between corners
+  if (x === 0 && y > 0 && y < lastY) return "wall_left.png";
+  if (y === 0 && x > 0 && x < lastX) return "wall_top.png";
+  if (x === lastX && y > 0 && y < lastY) return "wall_right.png";
+  if (y === lastY && x > 0 && x < lastX) return "wall_bottom.png";
 
   return null;
 }
@@ -565,8 +572,8 @@ shine.addColorStop(0.4, `hsla(${glowHue}, 100%, 70%, 0.25)`);
       const px = ox + x * tile;
       const py = oy + y * tile;
 
-      const forcedCornerFilename = getForcedCornerWallFilename(grid, x, y);
-      const maskFilename = forcedCornerFilename || getWallAutotileFilename(grid, x, y);
+      const forcedBoundaryFilename = getForcedBoundaryWallFilename(grid, x, y);
+      const maskFilename = forcedBoundaryFilename || getWallAutotileFilename(grid, x, y);
       const autotileImg = getWallAutotileImage(maskFilename);
 
       // Draw exact PNG for this wall mask.
@@ -613,6 +620,7 @@ resize();
 
   return { resize, render };
 }
+
 
 
 
