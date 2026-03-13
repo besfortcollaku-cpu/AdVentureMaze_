@@ -38,17 +38,16 @@ export function mountAccountUI(root) {
             </div>
 
             <div class="accountSection" id="conversionSection">
-              <h3>Pi Conversion Rate</h3>
+              <h3>Pi Conversion Progress</h3>
               <div class="accountRow"><span>Current Rate</span><span id="accountRateFinal">50%</span></div>
-              <div class="accountRow"><span>Base</span><span id="accountRateBase">50%</span></div>
-              <div class="accountRow"><span>Invite Bonus (+2% each, max 10%, persistent)</span><span id="accountRateInvites">0%</span></div>
-              <div class="accountRow"><span>Login Bonus (20 days/month max 10%)</span><span id="accountRateLogin">0%</span></div>
-              <div class="accountRow"><span>Usage Bonus (Skip/Hint/Restart max 3%)</span><span id="accountRateUsage">0%</span></div>
-              <div class="accountRow"><span>Levels Bonus (200 levels/month max 10%)</span><span id="accountRateLevels">0%</span></div>
-              <div class="accountRow"><span>Surprise Box Bonus (200/month max 10%)</span><span id="accountRateSurprise">0%</span></div>
-              <div class="accountRow"><span>Mystery Box Bonus (1/month = 5%)</span><span id="accountRateMystery">0%</span></div>
-              <div class="accountRow"><span>Reserved Bonus (Coming Soon)</span><span id="accountRateReserved">0%</span></div>
-              <div class="accountRow"><span>Lifetime Valid Invites</span><span id="accountInviteLifetime">0</span></div>
+              <div class="accountRow"><span>Levels</span><span id="accountProgLevels">0/200</span></div>
+              <div class="accountRow"><span>Surprise Box</span><span id="accountProgSurprise">0/200</span></div>
+              <div class="accountRow"><span>Login Days</span><span id="accountProgLogin">0/20</span></div>
+              <div class="accountRow"><span>Mystery Box</span><span id="accountProgMystery">0/1</span></div>
+              <div class="accountRow"><span>Skip</span><span id="accountProgSkip">0/1</span></div>
+              <div class="accountRow"><span>Hint</span><span id="accountProgHint">0/1</span></div>
+              <div class="accountRow"><span>Restart</span><span id="accountProgRestart">0/1</span></div>
+              <div class="accountRow"><span>Invites (Lifetime)</span><span id="accountProgInvites">0/5</span></div>
             </div>
           </div>
         </div>
@@ -73,15 +72,14 @@ export function mountAccountUI(root) {
   const inviteSection = root.querySelector("#inviteSection");
 
   const rateFinalEl = root.querySelector("#accountRateFinal");
-  const rateBaseEl = root.querySelector("#accountRateBase");
-  const rateInvitesEl = root.querySelector("#accountRateInvites");
-  const rateLoginEl = root.querySelector("#accountRateLogin");
-  const rateUsageEl = root.querySelector("#accountRateUsage");
-  const rateLevelsEl = root.querySelector("#accountRateLevels");
-  const rateSurpriseEl = root.querySelector("#accountRateSurprise");
-  const rateMysteryEl = root.querySelector("#accountRateMystery");
-  const rateReservedEl = root.querySelector("#accountRateReserved");
-  const inviteLifetimeEl = root.querySelector("#accountInviteLifetime");
+  const progLevelsEl = root.querySelector("#accountProgLevels");
+  const progSurpriseEl = root.querySelector("#accountProgSurprise");
+  const progLoginEl = root.querySelector("#accountProgLogin");
+  const progMysteryEl = root.querySelector("#accountProgMystery");
+  const progSkipEl = root.querySelector("#accountProgSkip");
+  const progHintEl = root.querySelector("#accountProgHint");
+  const progRestartEl = root.querySelector("#accountProgRestart");
+  const progInvitesEl = root.querySelector("#accountProgInvites");
 
   function show() {
     if (!overlay) return;
@@ -112,19 +110,25 @@ export function mountAccountUI(root) {
       inviteLinkEl.value = `${window.location.origin}?invite=${encodeURIComponent(code)}`;
     }
 
-    const breakdown = user.monthly_rate_breakdown || {};
     const finalRate = Number(user.monthly_final_rate ?? 50) || 50;
+    const levelsDone = Number(user.monthly_levels_completed ?? 0);
+    const surpriseDone = Number(user.monthly_surprise_boxes_opened ?? 0);
+    const loginDone = Number(user.monthly_login_days ?? 0);
+    const mysteryDone = Number(user.monthly_mystery_boxes_opened ?? 0);
+    const skipDone = Number(user.monthly_skips_used ?? 0);
+    const hintDone = Number(user.monthly_hints_used ?? 0);
+    const restartDone = Number(user.monthly_restarts_used ?? 0);
+    const invitesDone = Number(user.lifetime_valid_invites ?? 0);
 
     if (rateFinalEl) rateFinalEl.textContent = `${finalRate}%`;
-    if (rateBaseEl) rateBaseEl.textContent = `${Number(breakdown.base ?? 50)}%`;
-    if (rateInvitesEl) rateInvitesEl.textContent = `${Number(breakdown.invites_persistent ?? breakdown.invites ?? 0)}%`;
-    if (rateLoginEl) rateLoginEl.textContent = `${Number(breakdown.login_monthly ?? breakdown.daily ?? 0)}%`;
-    if (rateUsageEl) rateUsageEl.textContent = `${Number(breakdown.usage_monthly ?? breakdown.skill ?? 0)}%`;
-    if (rateLevelsEl) rateLevelsEl.textContent = `${Number(breakdown.levels_monthly ?? breakdown.levels ?? 0)}%`;
-    if (rateSurpriseEl) rateSurpriseEl.textContent = `${Number(breakdown.surprise_monthly ?? 0)}%`;
-    if (rateMysteryEl) rateMysteryEl.textContent = `${Number(breakdown.mystery_monthly ?? 0)}%`;
-    if (rateReservedEl) rateReservedEl.textContent = `${Number(breakdown.reserved_monthly ?? 0)}%`;
-    if (inviteLifetimeEl) inviteLifetimeEl.textContent = String(user.lifetime_valid_invites ?? 0);
+    if (progLevelsEl) progLevelsEl.textContent = `${Math.min(levelsDone, 200)}/200`;
+    if (progSurpriseEl) progSurpriseEl.textContent = `${Math.min(surpriseDone, 200)}/200`;
+    if (progLoginEl) progLoginEl.textContent = `${Math.min(loginDone, 20)}/20`;
+    if (progMysteryEl) progMysteryEl.textContent = `${Math.min(mysteryDone, 1)}/1`;
+    if (progSkipEl) progSkipEl.textContent = `${Math.min(skipDone, 1)}/1`;
+    if (progHintEl) progHintEl.textContent = `${Math.min(hintDone, 1)}/1`;
+    if (progRestartEl) progRestartEl.textContent = `${Math.min(restartDone, 1)}/1`;
+    if (progInvitesEl) progInvitesEl.textContent = `${Math.min(invitesDone, 5)}/5`;
   }
 
   function setCoins(n) {
