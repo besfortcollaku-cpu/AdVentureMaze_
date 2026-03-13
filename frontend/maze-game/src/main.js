@@ -205,6 +205,7 @@ let RESUME_TILES = new Set();
 let RESUME_POS = null;
 let RESUME_SAVE_TIMER = null;
 let LEVEL_START_KEY = null;
+let EXIT_GUARD_ENABLED = false;
 
 function normalizeToken(t) {
   return String(t || "").replace(/^Bearer\s+/i, "");
@@ -242,6 +243,31 @@ function getDisplayedCoins() {
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function enableBackExitGuard() {
+  if (EXIT_GUARD_ENABLED) return;
+  EXIT_GUARD_ENABLED = true;
+
+  // Add one extra history entry so back can be intercepted in-game.
+  try {
+    window.history.pushState({ mazeBackGuard: true }, "");
+  } catch {}
+
+  window.addEventListener("popstate", () => {
+    const shouldExit = window.confirm("Do you really want to exit the game?");
+
+    if (shouldExit) {
+      // Let the next back action continue naturally.
+      EXIT_GUARD_ENABLED = false;
+      return;
+    }
+
+    // Keep user in game by restoring guard state.
+    try {
+      window.history.pushState({ mazeBackGuard: true }, "");
+    } catch {}
+  });
 }
 
 function showCoinGainFX(delta) {
@@ -635,6 +661,7 @@ function saveGuestProgress(maxLevel) {
 }
 
 async function boot() {
+  enableBackExitGuard();
     // Ensure Pi SDK is initialized before login can happen
   try {
     if (window.Pi && !window.__PI_INITIALIZED__) {
