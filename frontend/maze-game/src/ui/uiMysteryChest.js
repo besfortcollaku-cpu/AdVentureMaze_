@@ -1,22 +1,26 @@
-﻿import "../css/mysteryChest.css";
+import "../css/mysteryChest.css";
 
-export function createMysteryChestPopup() {
+export function createMysteryChestPopup({
+  title = "Mystery Chest",
+  subtitle = "Perfect 7-day streak!",
+  buttonText = "Open Chest",
+} = {}) {
   const overlay = document.createElement("div");
   overlay.className = "daily-reward-overlay hidden";
 
   overlay.innerHTML = `
     <div class="daily-reward-box chest-box">
-      <div class="daily-reward-title">Mystery Chest</div>
-      <div class="daily-reward-subtitle">Perfect 7-day streak!</div>
+      <div class="daily-reward-title">${title}</div>
+      <div class="daily-reward-subtitle">${subtitle}</div>
 
-      <div id="chestClosed" class="chest-icon">🎁</div>
+      <div id="chestClosed" class="chest-icon">??</div>
 
       <div id="chestOpen" class="chest-open hidden">
-        <div class="spin">✨</div>
+        <div class="spin">?</div>
         <div id="rewardCoins" class="reward-coins"></div>
       </div>
 
-      <button id="openChest" class="daily-reward-btn">Open Chest</button>
+      <button id="openChest" class="daily-reward-btn">${buttonText}</button>
     </div>
   `;
 
@@ -29,6 +33,7 @@ export function createMysteryChestPopup() {
   const chestBox = overlay.querySelector(".chest-box");
 
   let handler = null;
+  let revealDoneHandler = null;
 
   btn.onclick = async () => {
     btn.disabled = true;
@@ -52,6 +57,7 @@ export function createMysteryChestPopup() {
       chestBox.classList.add("revealed");
       setTimeout(() => {
         overlay.classList.add("hidden");
+        revealDoneHandler?.();
       }, 3400);
     } else {
       btn.disabled = false;
@@ -83,6 +89,10 @@ export function createMysteryChestPopup() {
 
     onOpen(fn) {
       handler = fn;
+    },
+
+    onRevealDone(fn) {
+      revealDoneHandler = fn;
     },
   };
 }

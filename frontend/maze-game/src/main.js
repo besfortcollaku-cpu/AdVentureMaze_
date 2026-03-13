@@ -105,6 +105,13 @@ const missedRewardPopup = createMissedRewardPopup();
 const AUTO_AD_COOLDOWN_MS = 180000;
 const AUTO_AD_LAST_KEY = "auto_ad_last";
 const mysteryChestPopup = createMysteryChestPopup();
+const adSurprisePopup = createMysteryChestPopup({
+  title: "Surprise Box",
+  subtitle: "Ad reward unlocked!",
+  buttonText: "Open Surprise Box",
+});
+let pendingWinAdBoxReward = null;
+let pendingWinAdNextLevel = false;
 function shouldShowAutoAd() {
   const last = Number(localStorage.getItem(AUTO_AD_LAST_KEY) || 0);
   return Date.now() - last > AUTO_AD_COOLDOWN_MS;
@@ -971,6 +978,28 @@ mysteryChestPopup.onOpen(async () => {
   return out.reward;
 
 });
+adSurprisePopup.onOpen(async () => {
+  if (!pendingWinAdBoxReward) return null;
+
+  const rewardPack = pendingWinAdBoxReward;
+  pendingWinAdBoxReward = null;
+
+  markAdClaimedNow();
+
+  setTimeout(async () => {
+    applyUserPatch({ coins: rewardPack.coins }, { skipCoinSync: true });
+    await animateCoinsTo(rewardPack.coins, { showGainFx: true });
+  }, 3000);
+
+  return rewardPack.reward;
+});
+
+adSurprisePopup.onRevealDone(() => {
+  if (!pendingWinAdNextLevel) return;
+
+  pendingWinAdNextLevel = false;
+  goNextLevel();
+});
 function onAnyPaintDuringMove() {
   if (!HINT_ACTIVE_FOR_LEVEL) return;
   if (!Array.isArray(HINT_ROUTE) || HINT_ROUTE.length === 0) return;
@@ -1637,13 +1666,25 @@ winPopup.onWatchAdClick(() => {
     }
 
     if (out?.user?.coins != null) {
-      markAdClaimedNow();
-      applyUserPatch({ coins: out.user.coins }, { skipCoinSync: true });
-      await animateCoinsTo(Number(out.user.coins), { showGainFx: true });
+      const nextCoins = Number(out.user.coins ?? 0);
+      const currentCoins = Number(CURRENT_USER?.coins ?? 0);
+      const rewardFromResponse = Number(out?.reward);
+      const reward = Number.isFinite(rewardFromResponse)
+        ? rewardFromResponse
+        : Math.max(0, nextCoins - currentCoins) || 50;
+
+      pendingWinAdBoxReward = {
+        reward,
+        coins: nextCoins,
+      };
+      pendingWinAdNextLevel = true;
+
+      winPopup.hide();
+      adSurprisePopup.show();
+      return;
     }
 
-    winPopup.hide();
-    goNextLevel();
+    showAdCooldownToast("Ad reward not available. Try again.");
   },
 });
 });
