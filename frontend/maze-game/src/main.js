@@ -206,6 +206,7 @@ let RESUME_POS = null;
 let RESUME_SAVE_TIMER = null;
 let LEVEL_START_KEY = null;
 let EXIT_GUARD_ENABLED = false;
+let BACK_EXIT_PROMPT_OPEN = false;
 
 function normalizeToken(t) {
   return String(t || "").replace(/^Bearer\s+/i, "");
@@ -245,6 +246,36 @@ function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+function showBackExitPopup() {
+  return new Promise((resolve) => {
+    if (BACK_EXIT_PROMPT_OPEN) return resolve(false);
+    BACK_EXIT_PROMPT_OPEN = true;
+
+    const overlay = document.createElement("div");
+    overlay.style.cssText = "position: fixed; inset: 0; z-index: 100000; background: rgba(0,0,0,0.45); display: flex; align-items: center; justify-content: center; padding: 16px;";
+
+    const card = document.createElement("div");
+    card.style.cssText = "width: min(420px, 100%); border-radius: 16px; border: 1px solid rgba(255,255,255,0.15); background: rgba(12,16,30,0.96); color: #fff; box-shadow: 0 18px 50px rgba(0,0,0,0.45); padding: 16px;";
+
+    card.innerHTML = '<div style="font-size:18px;font-weight:800;margin-bottom:8px;">Exit Game?</div>' + '<div style="font-size:14px;opacity:.92;line-height:1.35;margin-bottom:14px;">Do you really want to exit the game?</div>' + '<div style="display:flex;gap:8px;justify-content:flex-end;">' + '<button id="stayGameBtn" style="border:1px solid rgba(255,255,255,0.25);background:rgba(255,255,255,0.08);color:#fff;border-radius:10px;padding:8px 12px;">Stay</button>' + '<button id="exitGameBtn" style="border:1px solid rgba(62,214,255,0.45);background:linear-gradient(180deg, rgba(62,214,255,1), rgba(30,166,255,1));color:#051322;border-radius:10px;padding:8px 12px;font-weight:700;">Exit</button>' + '</div>';
+
+    overlay.appendChild(card);
+    document.body.appendChild(overlay);
+
+    const cleanup = (value) => {
+      BACK_EXIT_PROMPT_OPEN = false;
+      overlay.remove();
+      resolve(value);
+    };
+
+    card.querySelector("#stayGameBtn")?.addEventListener("click", () => cleanup(false));
+    card.querySelector("#exitGameBtn")?.addEventListener("click", () => cleanup(true));
+    overlay.addEventListener("click", (e) => {
+      if (e.target === overlay) cleanup(false);
+    });
+  });
+}
+
 function enableBackExitGuard() {
   if (EXIT_GUARD_ENABLED) return;
   EXIT_GUARD_ENABLED = true;
@@ -255,18 +286,19 @@ function enableBackExitGuard() {
   } catch {}
 
   window.addEventListener("popstate", () => {
-    const shouldExit = window.confirm("Do you really want to exit the game?");
+    showBackExitPopup().then((shouldExit) => {
+      if (shouldExit) {
+        // Leave game by going back once more in history.
+        EXIT_GUARD_ENABLED = false;
+        window.history.back();
+        return;
+      }
 
-    if (shouldExit) {
-      // Let the next back action continue naturally.
-      EXIT_GUARD_ENABLED = false;
-      return;
-    }
-
-    // Keep user in game by restoring guard state.
-    try {
-      window.history.pushState({ mazeBackGuard: true }, "");
-    } catch {}
+      // Keep user in game by restoring guard state.
+      try {
+        window.history.pushState({ mazeBackGuard: true }, "");
+      } catch {}
+    });
   });
 }
 
