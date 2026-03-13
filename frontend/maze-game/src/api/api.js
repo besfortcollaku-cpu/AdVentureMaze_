@@ -43,3 +43,15 @@ export function apiHint(mode, nonce) {
     body: JSON.stringify({ mode, nonce })
   });
 }
+/* ================= INVITES ================= */
+
+export function apiInviteMe() {
+  return request("/api/invite/me");
+}
+
+export function apiInviteClaim(code) {
+  return request("/api/invite/claim", {
+    method: "POST",
+    body: JSON.stringify({ code })
+  });
+}

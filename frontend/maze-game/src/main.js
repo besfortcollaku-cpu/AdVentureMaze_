@@ -506,6 +506,17 @@ async function loadMeAndSyncUI({ BACKEND, token, ui }) {
   free_restarts_used: Number(progress.free_restarts_used ?? 0),
   free_skips_used: Number(progress.free_skips_used ?? 0),
   free_hints_used: Number(progress.free_hints_used ?? 0),
+
+  monthly_final_rate: Number(user.monthly_final_rate ?? 50),
+  monthly_rate_breakdown: user.monthly_rate_breakdown ?? {},
+  monthly_login_days: Number(user.monthly_login_days ?? 0),
+  monthly_levels_completed: Number(user.monthly_levels_completed ?? 0),
+  monthly_skips_used: Number(user.monthly_skips_used ?? 0),
+  monthly_hints_used: Number(user.monthly_hints_used ?? 0),
+  monthly_restarts_used: Number(user.monthly_restarts_used ?? 0),
+  monthly_valid_invites: Number(user.monthly_valid_invites ?? 0),
+  lifetime_valid_invites: Number(user.lifetime_valid_invites ?? 0),
+  invite_code: user.invite_code ?? null,
 };
   ui.setUser({
     ...CURRENT_USER,
