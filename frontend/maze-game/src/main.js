@@ -193,6 +193,7 @@ document.addEventListener(
   "touchmove",
   (e) => {
     if (document.body.classList.contains("welcome-visible")) return;
+    if (e.target?.closest?.(".accountScroll")) return;
     e.preventDefault();
   },
   { passive: false }

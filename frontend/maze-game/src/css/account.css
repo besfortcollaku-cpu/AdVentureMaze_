@@ -198,3 +198,89 @@
   color: white;
   padding: 4px;
 }
+/* Account layout and scrolling */
+.accountCard.full {
+  overflow: hidden;
+}
+
+.accountScroll {
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  padding-bottom: 34px;
+}
+
+.accountSection h3 {
+  margin: 0 0 10px;
+  font-size: 16px;
+}
+
+.accountRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 0;
+  font-size: 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.accountRow:first-of-type {
+  border-top: 0;
+}
+
+.accountInviteBox {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.accountInviteBox input {
+  flex: 1;
+  min-width: 0;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.14);
+  background: rgba(255,255,255,0.06);
+  color: #fff;
+  padding: 8px 10px;
+}
+
+.accountInviteBox button {
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 10px;
+  background: rgba(255,255,255,0.08);
+  color: #fff;
+  padding: 8px 10px;
+}
+
+.accountOverallBlock {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255,255,255,0.14);
+}
+
+.accountOverallHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  font-size: 13px;
+  opacity: 0.95;
+}
+
+.accountOverallBar {
+  width: 100%;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.12);
+  overflow: hidden;
+}
+
+.accountOverallFill {
+  width: 0%;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #38d8ff 0%, #4cff9f 100%);
+  transition: width 280ms ease;
+}

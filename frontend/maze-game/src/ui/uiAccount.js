@@ -48,6 +48,16 @@ export function mountAccountUI(root) {
               <div class="accountRow"><span>Hint</span><span id="accountProgHint">0/1</span></div>
               <div class="accountRow"><span>Restart</span><span id="accountProgRestart">0/1</span></div>
               <div class="accountRow"><span>Invites (Lifetime)</span><span id="accountProgInvites">0/5</span></div>
+
+              <div class="accountOverallBlock">
+                <div class="accountOverallHead">
+                  <span>General Progress to 100%</span>
+                  <span id="accountOverallText">50/100</span>
+                </div>
+                <div class="accountOverallBar">
+                  <div id="accountOverallFill" class="accountOverallFill"></div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -80,6 +90,8 @@ export function mountAccountUI(root) {
   const progHintEl = root.querySelector("#accountProgHint");
   const progRestartEl = root.querySelector("#accountProgRestart");
   const progInvitesEl = root.querySelector("#accountProgInvites");
+  const overallTextEl = root.querySelector("#accountOverallText");
+  const overallFillEl = root.querySelector("#accountOverallFill");
 
   function show() {
     if (!overlay) return;
@@ -119,6 +131,7 @@ export function mountAccountUI(root) {
     const hintDone = Number(user.monthly_hints_used ?? 0);
     const restartDone = Number(user.monthly_restarts_used ?? 0);
     const invitesDone = Number(user.lifetime_valid_invites ?? 0);
+    const rateClamped = Math.max(0, Math.min(100, finalRate));
 
     if (rateFinalEl) rateFinalEl.textContent = `${finalRate}%`;
     if (progLevelsEl) progLevelsEl.textContent = `${Math.min(levelsDone, 200)}/200`;
@@ -129,6 +142,8 @@ export function mountAccountUI(root) {
     if (progHintEl) progHintEl.textContent = `${Math.min(hintDone, 1)}/1`;
     if (progRestartEl) progRestartEl.textContent = `${Math.min(restartDone, 1)}/1`;
     if (progInvitesEl) progInvitesEl.textContent = `${Math.min(invitesDone, 5)}/5`;
+    if (overallTextEl) overallTextEl.textContent = `${rateClamped}/100`;
+    if (overallFillEl) overallFillEl.style.width = `${rateClamped}%`;
   }
 
   function setCoins(n) {
