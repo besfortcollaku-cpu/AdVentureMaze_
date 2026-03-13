@@ -41,10 +41,13 @@ export function mountAccountUI(root) {
               <h3>Pi Conversion Rate</h3>
               <div class="accountRow"><span>Current Rate</span><span id="accountRateFinal">50%</span></div>
               <div class="accountRow"><span>Base</span><span id="accountRateBase">50%</span></div>
-              <div class="accountRow"><span>Invite Bonus (Persistent)</span><span id="accountRateInvites">0%</span></div>
-              <div class="accountRow"><span>Login Bonus (Monthly)</span><span id="accountRateLogin">0%</span></div>
-              <div class="accountRow"><span>Usage Bonus (Monthly)</span><span id="accountRateUsage">0%</span></div>
-              <div class="accountRow"><span>Levels Bonus (Monthly)</span><span id="accountRateLevels">0%</span></div>
+              <div class="accountRow"><span>Invite Bonus (+2% each, max 10%, persistent)</span><span id="accountRateInvites">0%</span></div>
+              <div class="accountRow"><span>Login Bonus (20 days/month max 10%)</span><span id="accountRateLogin">0%</span></div>
+              <div class="accountRow"><span>Usage Bonus (Skip/Hint/Restart max 3%)</span><span id="accountRateUsage">0%</span></div>
+              <div class="accountRow"><span>Levels Bonus (200 levels/month max 10%)</span><span id="accountRateLevels">0%</span></div>
+              <div class="accountRow"><span>Surprise Box Bonus (200/month max 10%)</span><span id="accountRateSurprise">0%</span></div>
+              <div class="accountRow"><span>Mystery Box Bonus (1/month = 5%)</span><span id="accountRateMystery">0%</span></div>
+              <div class="accountRow"><span>Reserved Bonus (Coming Soon)</span><span id="accountRateReserved">0%</span></div>
               <div class="accountRow"><span>Lifetime Valid Invites</span><span id="accountInviteLifetime">0</span></div>
             </div>
           </div>
@@ -75,6 +78,9 @@ export function mountAccountUI(root) {
   const rateLoginEl = root.querySelector("#accountRateLogin");
   const rateUsageEl = root.querySelector("#accountRateUsage");
   const rateLevelsEl = root.querySelector("#accountRateLevels");
+  const rateSurpriseEl = root.querySelector("#accountRateSurprise");
+  const rateMysteryEl = root.querySelector("#accountRateMystery");
+  const rateReservedEl = root.querySelector("#accountRateReserved");
   const inviteLifetimeEl = root.querySelector("#accountInviteLifetime");
 
   function show() {
@@ -115,6 +121,9 @@ export function mountAccountUI(root) {
     if (rateLoginEl) rateLoginEl.textContent = `${Number(breakdown.login_monthly ?? breakdown.daily ?? 0)}%`;
     if (rateUsageEl) rateUsageEl.textContent = `${Number(breakdown.usage_monthly ?? breakdown.skill ?? 0)}%`;
     if (rateLevelsEl) rateLevelsEl.textContent = `${Number(breakdown.levels_monthly ?? breakdown.levels ?? 0)}%`;
+    if (rateSurpriseEl) rateSurpriseEl.textContent = `${Number(breakdown.surprise_monthly ?? 0)}%`;
+    if (rateMysteryEl) rateMysteryEl.textContent = `${Number(breakdown.mystery_monthly ?? 0)}%`;
+    if (rateReservedEl) rateReservedEl.textContent = `${Number(breakdown.reserved_monthly ?? 0)}%`;
     if (inviteLifetimeEl) inviteLifetimeEl.textContent = String(user.lifetime_valid_invites ?? 0);
   }
 

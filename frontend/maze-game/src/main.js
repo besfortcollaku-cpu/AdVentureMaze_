@@ -521,6 +521,8 @@ async function loadMeAndSyncUI({ BACKEND, token, ui }) {
   monthly_skips_used: Number(user.monthly_skips_used ?? 0),
   monthly_hints_used: Number(user.monthly_hints_used ?? 0),
   monthly_restarts_used: Number(user.monthly_restarts_used ?? 0),
+  monthly_surprise_boxes_opened: Number(user.monthly_surprise_boxes_opened ?? 0),
+  monthly_mystery_boxes_opened: Number(user.monthly_mystery_boxes_opened ?? 0),
   monthly_valid_invites: Number(user.monthly_valid_invites ?? 0),
   lifetime_valid_invites: Number(user.lifetime_valid_invites ?? 0),
   invite_code: user.invite_code ?? null,
