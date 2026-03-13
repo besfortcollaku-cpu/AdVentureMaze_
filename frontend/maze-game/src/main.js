@@ -1629,7 +1629,7 @@ winPopup.onWatchAdClick(() => {
     });
 
     const out = await res.json().catch(() => ({}));
-    console.log("AD +50 RESPONSE", out);
+    console.log("AD REWARD RESPONSE", out);
 
     if (out?.already) {
       showAdCooldownToast("Ad already claimed. Please wait a few minutes.");

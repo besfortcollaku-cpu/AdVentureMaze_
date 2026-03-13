@@ -122,12 +122,11 @@ export function mountGameShell(app) {
         <div class="winRow">
           <button class="winBtnPrimary" id="winNextBtn">Next level</button>
           <button class="winBtnSecondary" id="winAdBtn">
-            Watch Ad <span class="winPlus">+50</span>
-            <span class="winCoinDot" aria-hidden="true"></span>
+            Watch Ad for Surprise Box <span class="winCoinDot" aria-hidden="true"></span>
           </button>
         </div>
 
-        <div class="winHint">Tip: Watch ad gives +50 coins</div>
+        <div class="winHint">Tip: Watch an ad to open a surprise box</div>
       </div>
     </div>
     

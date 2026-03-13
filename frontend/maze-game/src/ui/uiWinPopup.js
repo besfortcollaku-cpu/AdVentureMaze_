@@ -28,11 +28,11 @@ export function createWinPopup() {
       </button>
 
       <button class="btn secondary" id="watchAdBtn">
-        Watch Ad <span class="reward">+50</span> 🪙
+        Watch Ad for Surprise Box
       </button>
 
       <div class="tip">
-        Tip: Watch ad gives +50 coins
+        Tip: Watch an ad to open a surprise box
       </div>
     </div>
   `;
