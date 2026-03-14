@@ -305,6 +305,25 @@ function isLikelyPiBrowser() {
   return /pibrowser|pi browser/i.test(ua);
 }
 
+function isSandboxOrDevHost() {
+  const host = String(window?.location?.hostname || "").toLowerCase();
+  if (!host) return false;
+
+  // Allow local/dev/sandbox testing outside Pi Browser.
+  if (
+    host === "localhost" ||
+    host === "127.0.0.1" ||
+    host === "0.0.0.0" ||
+    host.endsWith(".local") ||
+    host.includes("sandbox") ||
+    host.includes("webcontainer")
+  ) {
+    return true;
+  }
+
+  return false;
+}
+
 function applyUserPatch(patch, opts = {}) {
   if (!patch) return;
   const skipCoinSync = Boolean(opts?.skipCoinSync);
@@ -823,7 +842,7 @@ ui?.setCoins?.(0);
   // Mount UI
      ui = mountUI(root);
 
-if (!window.Pi || piInitFailed || !isLikelyPiBrowser()) {
+if (!isSandboxOrDevHost() && (!window.Pi || piInitFailed || !isLikelyPiBrowser())) {
   showPiBrowserRequiredBlocker();
   return;
 }
