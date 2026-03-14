@@ -6,7 +6,7 @@ export const level26 = {
 
   name: "LEVEL 26",
 
-  zoom: 0.92, // slightly zoomed-out (bigger maze feel)
+  zoom: 0.92, // slightly zoo2med-out (bigger maze feel)
 
   start: { x: 1, y: 6 },
 
