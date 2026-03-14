@@ -64,14 +64,9 @@ function applyThemeAssets() {
       ? "/textures/themes/lava/"
       : "/textures/themes/ice/";
 
-  floorReady = floorDoneReady = wallBaseReady = ballReady = false;
-  wallTileCache.clear();
-  wallMissingMasks.clear();
-  wallTilesBase = `${base}sprites/`;
-
+  floorReady = floorDoneReady = ballReady = false;
   floorImg.src = base + "floor.png";
   floorDoneImg.src = base + "floor_done.png";
-  wallBaseImg.src = base + "wall.png";
   ballImg.src = base + "ball.png";
 }
   // FLOOR TILE
@@ -244,10 +239,12 @@ function drawFloor() {
 
   for (let y = 0; y < grid.length; y++) {
     for (let x = 0; x < grid[y].length; x++) {
+      if (grid[y][x] !== 0) continue; // Draw floor PNG only for path cells.
+
       const px = ox + x * tile;
       const py = oy + y * tile;
 
-      // PNG-only floor rendering: no tint, glow, blur, or overlays.
+      // PNG-only floor rendering for path: no tint, glow, blur, or overlays.
       if (state.isPainted(x, y)) {
         if (floorDoneReady) {
           ctx.drawImage(floorDoneImg, px, py, tile, tile);
@@ -480,13 +477,9 @@ shine.addColorStop(0.4, `hsla(${glowHue}, 100%, 70%, 0.25)`);
     ctx.restore();
   }
 }
-  
-  
   function drawWalls() {
   const grid = state.grid;
-  
-  const WALL_W = tile;
-  const WALL_H = tile * 1.0;
+  const edge = Math.max(2, Math.floor(tile * 0.12));
 
   for (let y = 0; y < grid.length; y++) {
     for (let x = 0; x < grid[y].length; x++) {
@@ -495,20 +488,16 @@ shine.addColorStop(0.4, `hsla(${glowHue}, 100%, 70%, 0.25)`);
       const px = ox + x * tile;
       const py = oy + y * tile;
 
-      const maskFilename = getWallAutotileFilename(grid, x, y);
-      const autotileImg = getWallAutotileImage(maskFilename);
+      // Wall uses no PNG. Draw only a simple bevel/emboss frame.
+      // Top/left highlight.
+      ctx.fillStyle = "rgba(255,255,255,0.22)";
+      ctx.fillRect(px, py, tile, edge);
+      ctx.fillRect(px, py, edge, tile);
 
-      // Draw only the exact 8-neighbor autotile PNG for this wall cell.
-
-      if (autotileImg) {
-        ctx.drawImage(
-          autotileImg,
-          px,
-          py + tile - WALL_H,
-          WALL_W,
-          WALL_H
-        );
-      }
+      // Bottom/right shadow.
+      ctx.fillStyle = "rgba(0,0,0,0.28)";
+      ctx.fillRect(px, py + tile - edge, tile, edge);
+      ctx.fillRect(px + tile - edge, py, edge, tile);
     }
   }
 }
@@ -543,16 +532,4 @@ resize();
 
   return { resize, render };
 }
-
-
-
-
-
-
-
-
-
-
-
-
 
