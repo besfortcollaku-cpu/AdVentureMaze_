@@ -64,9 +64,14 @@ function applyThemeAssets() {
       ? "/textures/themes/lava/"
       : "/textures/themes/ice/";
 
-  floorReady = floorDoneReady = ballReady = false;
+  floorReady = floorDoneReady = wallBaseReady = ballReady = false;
+  wallTileCache.clear();
+  wallMissingMasks.clear();
+  wallTilesBase = `${base}sprites/`;
+
   floorImg.src = base + "floor.png";
   floorDoneImg.src = base + "floor_done.png";
+  wallBaseImg.src = base + "wall.png";
   ballImg.src = base + "ball.png";
 }
   // FLOOR TILE
@@ -239,12 +244,10 @@ function drawFloor() {
 
   for (let y = 0; y < grid.length; y++) {
     for (let x = 0; x < grid[y].length; x++) {
-      if (grid[y][x] !== 0) continue; // Draw floor PNG only for path cells.
-
       const px = ox + x * tile;
       const py = oy + y * tile;
 
-      // PNG-only floor rendering for path: no tint, glow, blur, or overlays.
+      // PNG-only floor rendering: no tint, glow, blur, or overlays.
       if (state.isPainted(x, y)) {
         if (floorDoneReady) {
           ctx.drawImage(floorDoneImg, px, py, tile, tile);
@@ -476,10 +479,14 @@ shine.addColorStop(0.4, `hsla(${glowHue}, 100%, 70%, 0.25)`);
 
     ctx.restore();
   }
-}
+}
+  
+  
   function drawWalls() {
   const grid = state.grid;
-  const edge = Math.max(4, Math.floor(tile * 0.24));
+  
+  const WALL_W = tile;
+  const WALL_H = tile * 1.0;
 
   for (let y = 0; y < grid.length; y++) {
     for (let x = 0; x < grid[y].length; x++) {
@@ -488,48 +495,20 @@ shine.addColorStop(0.4, `hsla(${glowHue}, 100%, 70%, 0.25)`);
       const px = ox + x * tile;
       const py = oy + y * tile;
 
-      // 8-neighbor wall logic (TL, T, TR, R, BR, B, BL, L).
-      // Bevel is drawn only on exposed edges/corners (neighbor is path/empty).
-      const tl = getWallBit(grid, x - 1, y - 1) === "1";
-      const t = getWallBit(grid, x, y - 1) === "1";
-      const tr = getWallBit(grid, x + 1, y - 1) === "1";
-      const r = getWallBit(grid, x + 1, y) === "1";
-      const br = getWallBit(grid, x + 1, y + 1) === "1";
-      const b = getWallBit(grid, x, y + 1) === "1";
-      const bl = getWallBit(grid, x - 1, y + 1) === "1";
-      const l = getWallBit(grid, x - 1, y) === "1";
+      const maskFilename = getWallAutotileFilename(grid, x, y);
+      const autotileImg = getWallAutotileImage(maskFilename);
 
-      const topExposed = !t;
-      const rightExposed = !r;
-      const bottomExposed = !b;
-      const leftExposed = !l;
+      // Draw autotile PNG; fallback to base wall so every wall cell renders.
+      const wallImgToDraw = autotileImg || (wallBaseReady ? wallBaseImg : null);
 
-      // Top/left highlight.
-      ctx.fillStyle = "rgba(255,255,255,0.22)";
-      if (topExposed) ctx.fillRect(px, py, tile, edge);
-      if (leftExposed) ctx.fillRect(px, py, edge, tile);
-
-      // Bottom/right shadow.
-      ctx.fillStyle = "rgba(0,0,0,0.45)";
-      if (bottomExposed) ctx.fillRect(px, py + tile - edge, tile, edge);
-      if (rightExposed) ctx.fillRect(px + tile - edge, py, edge, tile);
-
-      // Diagonal corner accents from 8-bit neighbors.
-      if (!tl && (topExposed || leftExposed)) {
-        ctx.fillStyle = "rgba(255,255,255,0.16)";
-        ctx.fillRect(px, py, edge, edge);
-      }
-      if (!tr && (topExposed || rightExposed)) {
-        ctx.fillStyle = "rgba(255,255,255,0.12)";
-        ctx.fillRect(px + tile - edge, py, edge, edge);
-      }
-      if (!bl && (bottomExposed || leftExposed)) {
-        ctx.fillStyle = "rgba(0,0,0,0.28)";
-        ctx.fillRect(px, py + tile - edge, edge, edge);
-      }
-      if (!br && (bottomExposed || rightExposed)) {
-        ctx.fillStyle = "rgba(0,0,0,0.36)";
-        ctx.fillRect(px + tile - edge, py + tile - edge, edge, edge);
+      if (wallImgToDraw) {
+        ctx.drawImage(
+          wallImgToDraw,
+          px,
+          py + tile - WALL_H,
+          WALL_W,
+          WALL_H
+        );
       }
     }
   }
@@ -565,6 +544,4 @@ resize();
 
   return { resize, render };
 }
-
-
 
