@@ -860,8 +860,7 @@ ui?.setCoins?.(0);
 const allowRuntime =
   isSandboxOrDevHost() ||
   isPiSandboxMode() ||
-  isLikelyPiBrowser() ||
-  Boolean(window.Pi);
+  isLikelyPiBrowser();
 
 if (!allowRuntime) {
   showPiBrowserRequiredBlocker();
