@@ -783,6 +783,7 @@ function saveGuestProgress(maxLevel) {
 async function boot() {
   enableBackExitGuard();
   captureInviteCodeFromUrl();
+  let piInitFailed = false;
     // Ensure Pi SDK is initialized before login can happen
   try {
     if (window.Pi && !window.__PI_INITIALIZED__) {
@@ -791,6 +792,7 @@ async function boot() {
       console.log("Pi SDK initialized");
     }
   } catch (e) {
+    piInitFailed = true;
     console.warn("Pi SDK init failed", e);
   }
     const storedToken = localStorage.getItem("pi_access_token");
@@ -815,7 +817,7 @@ ui?.setCoins?.(0);
   // Mount UI
      ui = mountUI(root);
 
-if (!window.Pi) {
+if (!window.Pi || piInitFailed) {
   showPiBrowserRequiredBlocker();
   return;
 }
