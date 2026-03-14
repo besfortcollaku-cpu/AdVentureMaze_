@@ -244,7 +244,6 @@ function drawFloor() {
 
   for (let y = 0; y < grid.length; y++) {
     for (let x = 0; x < grid[y].length; x++) {
-      if (grid[y][x] !== 0) continue; // Floor PNG only for path cells.
       const px = ox + x * tile;
       const py = oy + y * tile;
 
@@ -491,7 +490,6 @@ shine.addColorStop(0.4, `hsla(${glowHue}, 100%, 70%, 0.25)`);
 
   for (let y = 0; y < grid.length; y++) {
     for (let x = 0; x < grid[y].length; x++) {
-      if (grid[y][x] !== 0) continue; // Floor PNG only for path cells.
       if (grid[y][x] !== 1) continue;
 
       const px = ox + x * tile;
@@ -546,5 +544,6 @@ resize();
 
   return { resize, render };
 }
+
 
 
