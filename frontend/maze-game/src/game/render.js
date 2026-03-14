@@ -498,12 +498,11 @@ shine.addColorStop(0.4, `hsla(${glowHue}, 100%, 70%, 0.25)`);
       const maskFilename = getWallAutotileFilename(grid, x, y);
       const autotileImg = getWallAutotileImage(maskFilename);
 
-      // Draw autotile PNG; fallback to base wall so every wall cell renders.
-      const wallImgToDraw = autotileImg || (wallBaseReady ? wallBaseImg : null);
+      // Draw only the exact 8-neighbor autotile PNG for this wall cell.
 
-      if (wallImgToDraw) {
+      if (autotileImg) {
         ctx.drawImage(
-          wallImgToDraw,
+          autotileImg,
           px,
           py + tile - WALL_H,
           WALL_W,
