@@ -479,7 +479,7 @@ shine.addColorStop(0.4, `hsla(${glowHue}, 100%, 70%, 0.25)`);
 }
   function drawWalls() {
   const grid = state.grid;
-  const edge = Math.max(2, Math.floor(tile * 0.12));
+  const edge = Math.max(4, Math.floor(tile * 0.24));
 
   for (let y = 0; y < grid.length; y++) {
     for (let x = 0; x < grid[y].length; x++) {
@@ -510,7 +510,7 @@ shine.addColorStop(0.4, `hsla(${glowHue}, 100%, 70%, 0.25)`);
       if (leftExposed) ctx.fillRect(px, py, edge, tile);
 
       // Bottom/right shadow.
-      ctx.fillStyle = "rgba(0,0,0,0.28)";
+      ctx.fillStyle = "rgba(0,0,0,0.45)";
       if (bottomExposed) ctx.fillRect(px, py + tile - edge, tile, edge);
       if (rightExposed) ctx.fillRect(px + tile - edge, py, edge, tile);
 
@@ -524,11 +524,11 @@ shine.addColorStop(0.4, `hsla(${glowHue}, 100%, 70%, 0.25)`);
         ctx.fillRect(px + tile - edge, py, edge, edge);
       }
       if (!bl && (bottomExposed || leftExposed)) {
-        ctx.fillStyle = "rgba(0,0,0,0.16)";
+        ctx.fillStyle = "rgba(0,0,0,0.28)";
         ctx.fillRect(px, py + tile - edge, edge, edge);
       }
       if (!br && (bottomExposed || rightExposed)) {
-        ctx.fillStyle = "rgba(0,0,0,0.22)";
+        ctx.fillStyle = "rgba(0,0,0,0.36)";
         ctx.fillRect(px + tile - edge, py + tile - edge, edge, edge);
       }
     }
@@ -565,5 +565,6 @@ resize();
 
   return { resize, render };
 }
+
 
 
