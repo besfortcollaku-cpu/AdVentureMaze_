@@ -612,7 +612,7 @@ body.theme-ice .board {
 
 /* Lava */
 body.theme-lava .board {
-  background-image: url("/textures/ui/background/bg_game_lava.png");
+ /* background-image: url("/textures/ui/background/bg_game_lava.png");*/
   background-size: contain;
   background-position: center;
   background-repeat: no-repeat;
