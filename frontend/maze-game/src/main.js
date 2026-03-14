@@ -55,6 +55,7 @@ let LOGIN_IN_PROGRESS = false;
 const AUTO_HINT_SEEN_KEY = "auto_hint_seen_v1";
 const AD_COOLDOWN_MS = 180_000;
 const AD_LAST_CLAIM_KEY = "ad_last_claim_at_v1";
+const INVITE_PENDING_KEY = "pending_invite_code_v1";
 let adToastTimer = null;
 const adPlayingStyle = document.createElement("style");
 adPlayingStyle.textContent = `
@@ -210,6 +211,47 @@ let BACK_EXIT_PROMPT_OPEN = false;
 
 function normalizeToken(t) {
   return String(t || "").replace(/^Bearer\s+/i, "");
+}
+
+function captureInviteCodeFromUrl() {
+  try {
+    const url = new URL(window.location.href);
+    const invite = String(url.searchParams.get("invite") || "").trim();
+    if (!invite) return;
+
+    localStorage.setItem(INVITE_PENDING_KEY, invite);
+    url.searchParams.delete("invite");
+    window.history.replaceState({}, "", url.toString());
+  } catch {}
+}
+
+function getPendingInviteCode() {
+  return String(localStorage.getItem(INVITE_PENDING_KEY) || "").trim();
+}
+
+function clearPendingInviteCode() {
+  localStorage.removeItem(INVITE_PENDING_KEY);
+}
+
+async function tryAutoClaimInvite() {
+  const code = getPendingInviteCode();
+  if (!code || !CURRENT_ACCESS_TOKEN) return;
+
+  try {
+    const res = await fetch(`${BACKEND}/api/invite/claim`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${normalizeToken(CURRENT_ACCESS_TOKEN)}`,
+      },
+      body: JSON.stringify({ code }),
+    });
+
+    // Server responded (ok or error), clear to avoid retry loops.
+    if (res) clearPendingInviteCode();
+  } catch {
+    // Keep code for retry on next successful online session.
+  }
 }
 function applyUserPatch(patch, opts = {}) {
   if (!patch) return;
@@ -694,6 +736,7 @@ function saveGuestProgress(maxLevel) {
 
 async function boot() {
   enableBackExitGuard();
+  captureInviteCodeFromUrl();
     // Ensure Pi SDK is initialized before login can happen
   try {
     if (window.Pi && !window.__PI_INITIALIZED__) {
@@ -734,6 +777,7 @@ if (CURRENT_ACCESS_TOKEN) {
     });
 
     if (me?.user) {
+  await tryAutoClaimInvite();
   document.body.classList.add("game-running");
 
   const unlocked = Number(me?.progress?.level || 1);
@@ -2208,6 +2252,8 @@ ui.onLoginClick(async (e) => {
       ui.showWelcome();
       return;
     }
+
+    await tryAutoClaimInvite();
 
     const unlockedLevel =
       me?.progress?.level ??
