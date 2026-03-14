@@ -150,17 +150,47 @@ export function mountAccountUI(root) {
     if (coinsEl) coinsEl.textContent = String(n ?? 0);
   }
 
+  async function copyInviteLinkText(text) {
+    const value = String(text || "").trim();
+    if (!value) return false;
+
+    // Modern API (may fail in some mobile webviews/insecure contexts).
+    try {
+      if (navigator?.clipboard?.writeText) {
+        await navigator.clipboard.writeText(value);
+        return true;
+      }
+    } catch {}
+
+    // Fallback for webviews: select input and use execCommand.
+    try {
+      const tempInput = document.createElement("input");
+      tempInput.value = value;
+      tempInput.setAttribute("readonly", "");
+      tempInput.style.position = "fixed";
+      tempInput.style.opacity = "0";
+      tempInput.style.pointerEvents = "none";
+      document.body.appendChild(tempInput);
+      tempInput.focus();
+      tempInput.select();
+      tempInput.setSelectionRange(0, tempInput.value.length);
+      const ok = document.execCommand("copy");
+      tempInput.remove();
+      return Boolean(ok);
+    } catch {
+      return false;
+    }
+  }
+
   copyInviteBtn?.addEventListener("click", async () => {
     if (!inviteLinkEl?.value) return;
-    try {
-      await navigator.clipboard.writeText(inviteLinkEl.value);
-      copyInviteBtn.textContent = "Copied";
-      setTimeout(() => {
-        copyInviteBtn.textContent = "Copy";
-      }, 1200);
-    } catch {
-      // no-op
-    }
+
+    const ok = await copyInviteLinkText(inviteLinkEl.value);
+    copyInviteBtn.textContent = ok ? "Copied" : "Copy Failed";
+
+    setTimeout(() => {
+      copyInviteBtn.textContent = "Copy";
+    }, 1200);
   });
 
   closeBtn?.addEventListener("click", hide);
