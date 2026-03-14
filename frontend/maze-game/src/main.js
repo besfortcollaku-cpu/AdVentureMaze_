@@ -324,6 +324,21 @@ function isSandboxOrDevHost() {
   return false;
 }
 
+
+function isPiSandboxMode() {
+  try {
+    const host = String(window?.location?.hostname || "").toLowerCase();
+    const path = String(window?.location?.pathname || "").toLowerCase();
+    const search = String(window?.location?.search || "").toLowerCase();
+    return (
+      host.includes("sandbox") ||
+      path.includes("sandbox") ||
+      search.includes("sandbox")
+    );
+  } catch {
+    return false;
+  }
+}
 function applyUserPatch(patch, opts = {}) {
   if (!patch) return;
   const skipCoinSync = Boolean(opts?.skipCoinSync);
@@ -842,7 +857,13 @@ ui?.setCoins?.(0);
   // Mount UI
      ui = mountUI(root);
 
-if (!isSandboxOrDevHost() && (!window.Pi || piInitFailed || !isLikelyPiBrowser())) {
+const allowRuntime =
+  isSandboxOrDevHost() ||
+  isPiSandboxMode() ||
+  isLikelyPiBrowser() ||
+  Boolean(window.Pi);
+
+if (!allowRuntime) {
   showPiBrowserRequiredBlocker();
   return;
 }
