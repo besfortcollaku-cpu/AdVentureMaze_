@@ -299,6 +299,12 @@ function showPiBrowserRequiredBlocker() {
   document.body.appendChild(overlay);
 }
 
+
+function isLikelyPiBrowser() {
+  const ua = String(navigator?.userAgent || "");
+  return /pibrowser|pi browser/i.test(ua);
+}
+
 function applyUserPatch(patch, opts = {}) {
   if (!patch) return;
   const skipCoinSync = Boolean(opts?.skipCoinSync);
@@ -817,7 +823,7 @@ ui?.setCoins?.(0);
   // Mount UI
      ui = mountUI(root);
 
-if (!window.Pi || piInitFailed) {
+if (!window.Pi || piInitFailed || !isLikelyPiBrowser()) {
   showPiBrowserRequiredBlocker();
   return;
 }
