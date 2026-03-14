@@ -44,9 +44,9 @@ export function mountAccountUI(root) {
               <div class="accountRow"><span>Surprise Box</span><span id="accountProgSurprise">0/200</span></div>
               <div class="accountRow"><span>Login Days</span><span id="accountProgLogin">0/20</span></div>
               <div class="accountRow"><span>Mystery Box</span><span id="accountProgMystery">0/1</span></div>
-              <div class="accountRow"><span>Skip</span><span id="accountProgSkip">0/1</span></div>
-              <div class="accountRow"><span>Hint</span><span id="accountProgHint">0/1</span></div>
-              <div class="accountRow"><span>Restart</span><span id="accountProgRestart">0/1</span></div>
+              <div class="accountRow"><span>Skip</span><span id="accountProgSkip">0/5</span></div>
+              <div class="accountRow"><span>Hint</span><span id="accountProgHint">0/5</span></div>
+              <div class="accountRow"><span>Restart</span><span id="accountProgRestart">0/5</span></div>
               <div class="accountRow"><span>Invites (Lifetime)</span><span id="accountProgInvites">0/5</span></div>
 
               <div class="accountOverallBlock">
@@ -138,9 +138,9 @@ export function mountAccountUI(root) {
     if (progSurpriseEl) progSurpriseEl.textContent = `${Math.min(surpriseDone, 200)}/200`;
     if (progLoginEl) progLoginEl.textContent = `${Math.min(loginDone, 20)}/20`;
     if (progMysteryEl) progMysteryEl.textContent = `${Math.min(mysteryDone, 1)}/1`;
-    if (progSkipEl) progSkipEl.textContent = `${Math.min(skipDone, 1)}/1`;
-    if (progHintEl) progHintEl.textContent = `${Math.min(hintDone, 1)}/1`;
-    if (progRestartEl) progRestartEl.textContent = `${Math.min(restartDone, 1)}/1`;
+    if (progSkipEl) progSkipEl.textContent = `${Math.min(skipDone, 5)}/5`;
+    if (progHintEl) progHintEl.textContent = `${Math.min(hintDone, 5)}/5`;
+    if (progRestartEl) progRestartEl.textContent = `${Math.min(restartDone, 5)}/5`;
     if (progInvitesEl) progInvitesEl.textContent = `${Math.min(invitesDone, 5)}/5`;
     if (overallTextEl) overallTextEl.textContent = `${rateClamped}/100`;
     if (overallFillEl) overallFillEl.style.width = `${rateClamped}%`;
