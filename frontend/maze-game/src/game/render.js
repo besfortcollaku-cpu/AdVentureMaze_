@@ -476,7 +476,7 @@ shine.addColorStop(0.4, `hsla(${glowHue}, 100%, 70%, 0.25)`);
 
     ctx.restore();
   }
-}
+}
   function drawWalls() {
   const grid = state.grid;
   const edge = Math.max(2, Math.floor(tile * 0.12));
@@ -488,16 +488,49 @@ shine.addColorStop(0.4, `hsla(${glowHue}, 100%, 70%, 0.25)`);
       const px = ox + x * tile;
       const py = oy + y * tile;
 
-      // Wall uses no PNG. Draw only a simple bevel/emboss frame.
+      // 8-neighbor wall logic (TL, T, TR, R, BR, B, BL, L).
+      // Bevel is drawn only on exposed edges/corners (neighbor is path/empty).
+      const tl = getWallBit(grid, x - 1, y - 1) === "1";
+      const t = getWallBit(grid, x, y - 1) === "1";
+      const tr = getWallBit(grid, x + 1, y - 1) === "1";
+      const r = getWallBit(grid, x + 1, y) === "1";
+      const br = getWallBit(grid, x + 1, y + 1) === "1";
+      const b = getWallBit(grid, x, y + 1) === "1";
+      const bl = getWallBit(grid, x - 1, y + 1) === "1";
+      const l = getWallBit(grid, x - 1, y) === "1";
+
+      const topExposed = !t;
+      const rightExposed = !r;
+      const bottomExposed = !b;
+      const leftExposed = !l;
+
       // Top/left highlight.
       ctx.fillStyle = "rgba(255,255,255,0.22)";
-      ctx.fillRect(px, py, tile, edge);
-      ctx.fillRect(px, py, edge, tile);
+      if (topExposed) ctx.fillRect(px, py, tile, edge);
+      if (leftExposed) ctx.fillRect(px, py, edge, tile);
 
       // Bottom/right shadow.
       ctx.fillStyle = "rgba(0,0,0,0.28)";
-      ctx.fillRect(px, py + tile - edge, tile, edge);
-      ctx.fillRect(px + tile - edge, py, edge, tile);
+      if (bottomExposed) ctx.fillRect(px, py + tile - edge, tile, edge);
+      if (rightExposed) ctx.fillRect(px + tile - edge, py, edge, tile);
+
+      // Diagonal corner accents from 8-bit neighbors.
+      if (!tl && (topExposed || leftExposed)) {
+        ctx.fillStyle = "rgba(255,255,255,0.16)";
+        ctx.fillRect(px, py, edge, edge);
+      }
+      if (!tr && (topExposed || rightExposed)) {
+        ctx.fillStyle = "rgba(255,255,255,0.12)";
+        ctx.fillRect(px + tile - edge, py, edge, edge);
+      }
+      if (!bl && (bottomExposed || leftExposed)) {
+        ctx.fillStyle = "rgba(0,0,0,0.16)";
+        ctx.fillRect(px, py + tile - edge, edge, edge);
+      }
+      if (!br && (bottomExposed || rightExposed)) {
+        ctx.fillStyle = "rgba(0,0,0,0.22)";
+        ctx.fillRect(px + tile - edge, py + tile - edge, edge, edge);
+      }
     }
   }
 }
@@ -532,4 +565,5 @@ resize();
 
   return { resize, render };
 }
+
 
