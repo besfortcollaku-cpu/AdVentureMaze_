@@ -244,10 +244,12 @@ function drawFloor() {
 
   for (let y = 0; y < grid.length; y++) {
     for (let x = 0; x < grid[y].length; x++) {
+      if (grid[y][x] !== 0) continue;
+
       const px = ox + x * tile;
       const py = oy + y * tile;
 
-      // PNG-only floor rendering: no tint, glow, blur, or overlays.
+      // PNG-only floor rendering for path cells.
       if (state.isPainted(x, y)) {
         if (floorDoneReady) {
           ctx.drawImage(floorDoneImg, px, py, tile, tile);
@@ -544,6 +546,8 @@ resize();
 
   return { resize, render };
 }
+
+
 
 
 
