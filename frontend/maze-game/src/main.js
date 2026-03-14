@@ -253,6 +253,52 @@ async function tryAutoClaimInvite() {
     // Keep code for retry on next successful online session.
   }
 }
+
+function showPiBrowserRequiredBlocker() {
+  const existing = document.getElementById("piBrowserRequiredOverlay");
+  if (existing) return;
+
+  const overlay = document.createElement("div");
+  overlay.id = "piBrowserRequiredOverlay";
+  overlay.style.cssText = [
+    "position: fixed",
+    "inset: 0",
+    "z-index: 1000000",
+    "background: linear-gradient(180deg, rgba(8,12,22,0.98), rgba(10,16,34,0.98))",
+    "display: flex",
+    "align-items: center",
+    "justify-content: center",
+    "padding: 16px",
+    "color: #fff",
+  ].join(";");
+
+  const card = document.createElement("div");
+  card.style.cssText = [
+    "width: min(560px, 100%)",
+    "border-radius: 18px",
+    "border: 1px solid rgba(120,220,255,0.35)",
+    "background: rgba(12,20,40,0.96)",
+    "box-shadow: 0 20px 60px rgba(0,0,0,0.45)",
+    "padding: 18px",
+    "line-height: 1.45",
+  ].join(";");
+
+  card.innerHTML =
+    '<div style="font-size:22px;font-weight:900;margin-bottom:8px;">Pi Browser Required</div>' +
+    '<div style="font-size:14px;opacity:.92;margin-bottom:14px;">This game only works inside <b>Pi Browser</b> with Pi SDK.</div>' +
+    '<div style="font-size:14px;margin-bottom:8px;font-weight:700;">How to open:</div>' +
+    '<ol style="margin:0 0 14px 18px;padding:0;font-size:13px;opacity:.9;">' +
+    '<li>Install the Pi Network app on your phone.</li>' +
+    '<li>Create your Pi account (or sign in).</li>' +
+    '<li>Open Pi Browser from inside the Pi app.</li>' +
+    '<li>Open this game URL in Pi Browser.</li>' +
+    '</ol>' +
+    '<div style="font-size:12px;opacity:.8;">If you already have Pi Browser open, refresh this page there.</div>';
+
+  overlay.appendChild(card);
+  document.body.appendChild(overlay);
+}
+
 function applyUserPatch(patch, opts = {}) {
   if (!patch) return;
   const skipCoinSync = Boolean(opts?.skipCoinSync);
@@ -768,6 +814,11 @@ ui?.setCoins?.(0);
   }
   // Mount UI
      ui = mountUI(root);
+
+if (!window.Pi) {
+  showPiBrowserRequiredBlocker();
+  return;
+}
 if (CURRENT_ACCESS_TOKEN) {
   try {
     const me = await loadMeAndSyncUI({
