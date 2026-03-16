@@ -28,15 +28,6 @@ export function mountAccountUI(root) {
               <div class="accountRow"><span>Free Restarts Used</span><span id="accountRestartsUsed">0</span></div>
             </div>
 
-            <div class="accountSection" id="inviteSection">
-              <h3>Invite Friends</h3>
-              <div class="accountInviteBox">
-                <input id="accountInviteLink" readonly />
-                <button id="accountCopyInvite">Copy</button>
-              </div>
-              <div class="accountRow"><span>Valid Invites (This Month)</span><span id="accountInviteCount">0</span></div>
-            </div>
-
             <div class="accountSection" id="conversionSection">
               <h3>Pi Conversion Progress</h3>
               <div class="accountRow"><span>Current Rate</span><span id="accountRateFinal">50%</span></div>
@@ -59,6 +50,16 @@ export function mountAccountUI(root) {
                 </div>
               </div>
             </div>
+
+            <div class="accountSection" id="inviteSection">
+              <h3>Invite Friends</h3>
+              <div class="accountInviteBox">
+                <input id="accountInviteLink" readonly />
+                <button id="accountCopyInvite">Copy</button>
+              </div>
+              <div class="accountRow"><span>Who invited you</span><span id="accountInvitedBy">-</span></div>
+              <div class="accountRow"><span>Have you invited</span><span id="accountInvitedCount">0</span></div>
+            </div>
           </div>
         </div>
       </div>
@@ -77,7 +78,8 @@ export function mountAccountUI(root) {
   const restartsUsedEl = root.querySelector("#accountRestartsUsed");
 
   const inviteLinkEl = root.querySelector("#accountInviteLink");
-  const inviteCountEl = root.querySelector("#accountInviteCount");
+  const invitedByEl = root.querySelector("#accountInvitedBy");
+  const invitedCountEl = root.querySelector("#accountInvitedCount");
   const copyInviteBtn = root.querySelector("#accountCopyInvite");
   const inviteSection = root.querySelector("#inviteSection");
 
@@ -114,7 +116,8 @@ export function mountAccountUI(root) {
     if (hintsUsedEl) hintsUsedEl.textContent = String(user.free_hints_used ?? 0);
     if (restartsUsedEl) restartsUsedEl.textContent = String(user.free_restarts_used ?? 0);
 
-    if (inviteCountEl) inviteCountEl.textContent = String(user.monthly_valid_invites ?? 0);
+    if (invitedByEl) invitedByEl.textContent = String(user.invited_by_uid || "-");
+    if (invitedCountEl) invitedCountEl.textContent = String(user.lifetime_valid_invites ?? 0);
     if (inviteSection) inviteSection.style.display = user.uid ? "block" : "none";
 
     if (inviteLinkEl && user.uid) {
@@ -154,7 +157,6 @@ export function mountAccountUI(root) {
     const value = String(text || "").trim();
     if (!value) return false;
 
-    // Modern API (may fail in some mobile webviews/insecure contexts).
     try {
       if (navigator?.clipboard?.writeText) {
         await navigator.clipboard.writeText(value);
@@ -162,7 +164,6 @@ export function mountAccountUI(root) {
       }
     } catch {}
 
-    // Fallback for webviews: select input and use execCommand.
     try {
       const tempInput = document.createElement("input");
       tempInput.value = value;
