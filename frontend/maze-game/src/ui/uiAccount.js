@@ -1,6 +1,14 @@
 // src/ui/uiAccount.js
 import "../css/account.css";
 
+const DUMMY_COIN_TO_PI_RATE = 0.001;
+
+function formatMonthKey(date) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  return `${y}-${m}`;
+}
+
 export function mountAccountUI(root) {
   const wrap = document.createElement("div");
   wrap.innerHTML = `
@@ -20,14 +28,6 @@ export function mountAccountUI(root) {
 
         <div class="accountScroll">
           <div class="accountContent">
-            <div class="accountSection">
-              <h3>Player Stats</h3>
-              <div class="accountRow"><span>Level</span><span id="accountLevels">0</span></div>
-              <div class="accountRow"><span>Free Skips Used</span><span id="accountSkipsUsed">0</span></div>
-              <div class="accountRow"><span>Free Hints Used</span><span id="accountHintsUsed">0</span></div>
-              <div class="accountRow"><span>Free Restarts Used</span><span id="accountRestartsUsed">0</span></div>
-            </div>
-
             <div class="accountSection" id="conversionSection">
               <h3>Pi Conversion Progress</h3>
               <div class="accountRow"><span>Current Rate</span><span id="accountRateFinal">50%</span></div>
@@ -58,7 +58,21 @@ export function mountAccountUI(root) {
                 <button id="accountCopyInvite">Copy</button>
               </div>
               <div class="accountRow"><span>Who invited you</span><span id="accountInvitedBy">-</span></div>
-              <div class="accountRow"><span>Have you invited</span><span id="accountInvitedCount">0</span></div>
+              <div class="accountRow"><span>Have you invited</span></div>
+              <div class="accountRow"><span id="accountInvitedList">No invited friends yet</span></div>
+            </div>
+
+            <div class="accountSection" id="monthlyTransferSection">
+              <h3>Monthly Coin to Pi (Preview)</h3>
+              <div class="accountRow"><span>Month</span><span id="accountMonthCurrent">-</span></div>
+              <div class="accountRow"><span>Coins</span><span id="accountMonthCoins">0</span></div>
+              <div class="accountRow"><span>Convertible Rate</span><span id="accountMonthRate">50%</span></div>
+              <div class="accountRow"><span>Coin to Pi Rate</span><span id="accountCoinToPiRate">0.001</span></div>
+              <div class="accountRow"><span>Total Pi</span><span id="accountMonthTotalPi">0.0000</span></div>
+              <div class="accountRow"><button id="accountClaimPiBtn">Claim (Dummy)</button></div>
+
+              <div class="accountRow"><span>Previous Month</span><span id="accountPrevMonth">-</span></div>
+              <div class="accountRow"><span>Prev Total Pi</span><span id="accountPrevMonthPi">0.0000</span></div>
             </div>
           </div>
         </div>
@@ -72,14 +86,10 @@ export function mountAccountUI(root) {
 
   const usernameEl = root.querySelector("#accountUsername");
   const coinsEl = root.querySelector("#accountCoins");
-  const levelsEl = root.querySelector("#accountLevels");
-  const skipsUsedEl = root.querySelector("#accountSkipsUsed");
-  const hintsUsedEl = root.querySelector("#accountHintsUsed");
-  const restartsUsedEl = root.querySelector("#accountRestartsUsed");
 
   const inviteLinkEl = root.querySelector("#accountInviteLink");
   const invitedByEl = root.querySelector("#accountInvitedBy");
-  const invitedCountEl = root.querySelector("#accountInvitedCount");
+  const invitedListEl = root.querySelector("#accountInvitedList");
   const copyInviteBtn = root.querySelector("#accountCopyInvite");
   const inviteSection = root.querySelector("#inviteSection");
 
@@ -94,6 +104,15 @@ export function mountAccountUI(root) {
   const progInvitesEl = root.querySelector("#accountProgInvites");
   const overallTextEl = root.querySelector("#accountOverallText");
   const overallFillEl = root.querySelector("#accountOverallFill");
+
+  const monthCurrentEl = root.querySelector("#accountMonthCurrent");
+  const monthCoinsEl = root.querySelector("#accountMonthCoins");
+  const monthRateEl = root.querySelector("#accountMonthRate");
+  const coinToPiRateEl = root.querySelector("#accountCoinToPiRate");
+  const monthTotalPiEl = root.querySelector("#accountMonthTotalPi");
+  const claimPiBtn = root.querySelector("#accountClaimPiBtn");
+  const prevMonthEl = root.querySelector("#accountPrevMonth");
+  const prevMonthPiEl = root.querySelector("#accountPrevMonthPi");
 
   function show() {
     if (!overlay) return;
@@ -111,14 +130,19 @@ export function mountAccountUI(root) {
     if (!user) return;
 
     if (usernameEl) usernameEl.textContent = user.username ?? "guest";
-    if (levelsEl) levelsEl.textContent = String(user.level ?? 0);
-    if (skipsUsedEl) skipsUsedEl.textContent = String(user.free_skips_used ?? 0);
-    if (hintsUsedEl) hintsUsedEl.textContent = String(user.free_hints_used ?? 0);
-    if (restartsUsedEl) restartsUsedEl.textContent = String(user.free_restarts_used ?? 0);
 
-    if (invitedByEl) invitedByEl.textContent = String(user.invited_by_uid || "-");
-    if (invitedCountEl) invitedCountEl.textContent = String(user.lifetime_valid_invites ?? 0);
+    if (invitedByEl) invitedByEl.textContent = String(user.invited_by_name || user.invited_by_uid || "-");
     if (inviteSection) inviteSection.style.display = user.uid ? "block" : "none";
+
+    const invitedNames = Array.isArray(user.invited_usernames)
+      ? user.invited_usernames.map((n) => String(n || "").trim()).filter(Boolean)
+      : [];
+
+    if (invitedListEl) {
+      invitedListEl.textContent = invitedNames.length
+        ? invitedNames.join(", ")
+        : "No invited friends yet";
+    }
 
     if (inviteLinkEl && user.uid) {
       const code = String(user.invite_code || "").trim();
@@ -147,6 +171,25 @@ export function mountAccountUI(root) {
     if (progInvitesEl) progInvitesEl.textContent = `${Math.min(invitesDone, 5)}/5`;
     if (overallTextEl) overallTextEl.textContent = `${rateClamped}/100`;
     if (overallFillEl) overallFillEl.style.width = `${rateClamped}%`;
+
+    // Monthly conversion preview (dummy calculation for now)
+    const now = new Date();
+    const currentMonth = formatMonthKey(now);
+    const prev = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const prevMonth = formatMonthKey(prev);
+
+    const monthCoins = Math.max(0, Number(user.monthly_coins_earned ?? user.coins ?? 0));
+    const rate = Math.max(0, Math.min(100, Number(user.monthly_final_rate ?? 50)));
+    const totalPi = (monthCoins * (rate / 100) * DUMMY_COIN_TO_PI_RATE).toFixed(4);
+
+    if (monthCurrentEl) monthCurrentEl.textContent = currentMonth;
+    if (monthCoinsEl) monthCoinsEl.textContent = String(monthCoins);
+    if (monthRateEl) monthRateEl.textContent = `${rate}%`;
+    if (coinToPiRateEl) coinToPiRateEl.textContent = String(DUMMY_COIN_TO_PI_RATE);
+    if (monthTotalPiEl) monthTotalPiEl.textContent = totalPi;
+
+    if (prevMonthEl) prevMonthEl.textContent = prevMonth;
+    if (prevMonthPiEl) prevMonthPiEl.textContent = totalPi;
   }
 
   function setCoins(n) {
@@ -192,6 +235,13 @@ export function mountAccountUI(root) {
     setTimeout(() => {
       copyInviteBtn.textContent = "Copy";
     }, 1200);
+  });
+
+  claimPiBtn?.addEventListener("click", () => {
+    claimPiBtn.textContent = "Claimed (Dummy)";
+    setTimeout(() => {
+      claimPiBtn.textContent = "Claim (Dummy)";
+    }, 1400);
   });
 
   closeBtn?.addEventListener("click", hide);
