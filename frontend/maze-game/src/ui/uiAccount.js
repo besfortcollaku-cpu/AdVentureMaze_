@@ -118,8 +118,8 @@ export function mountAccountUI(root) {
     if (inviteSection) inviteSection.style.display = user.uid ? "block" : "none";
 
     if (inviteLinkEl && user.uid) {
-      const code = user.invite_code || user.uid;
-      inviteLinkEl.value = `${window.location.origin}?invite=${encodeURIComponent(code)}`;
+      const code = String(user.invite_code || "").trim();
+      inviteLinkEl.value = code ? `${window.location.origin}?invite=${encodeURIComponent(code)}` : "";
     }
 
     const finalRate = Number(user.monthly_final_rate ?? 50) || 50;

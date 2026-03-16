@@ -305,6 +305,14 @@ function isLikelyPiBrowser() {
   return /pibrowser|pi browser/i.test(ua);
 }
 
+function hasPiSdkRuntime() {
+  try {
+    return !!(window.Pi && typeof window.Pi.authenticate === "function");
+  } catch {
+    return false;
+  }
+}
+
 function isSandboxOrDevHost() {
   const host = String(window?.location?.hostname || "").toLowerCase();
   if (!host) return false;
@@ -338,6 +346,22 @@ function isPiSandboxMode() {
   } catch {
     return false;
   }
+}
+
+async function canRunInCurrentEnvironment() {
+  // Keep local/dev/sandbox usable for testing.
+  if (isSandboxOrDevHost() || isPiSandboxMode()) return true;
+
+  // Fast path.
+  if (hasPiSdkRuntime() || isLikelyPiBrowser()) return true;
+
+  // Pi SDK injection can be delayed in some Pi Browser launches.
+  for (let i = 0; i < 30; i++) {
+    await new Promise((r) => setTimeout(r, 100));
+    if (hasPiSdkRuntime()) return true;
+  }
+
+  return false;
 }
 function applyUserPatch(patch, opts = {}) {
   if (!patch) return;
@@ -857,10 +881,7 @@ ui?.setCoins?.(0);
   // Mount UI
      ui = mountUI(root);
 
-const allowRuntime =
-  isSandboxOrDevHost() ||
-  isPiSandboxMode() ||
-  isLikelyPiBrowser();
+const allowRuntime = await canRunInCurrentEnvironment();
 
 if (!allowRuntime) {
   showPiBrowserRequiredBlocker();
@@ -2429,6 +2450,8 @@ if (meFresh?.dailyReward) {
 }
 
 boot();
+
+
 
 
 
