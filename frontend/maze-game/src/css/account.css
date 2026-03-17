@@ -318,3 +318,16 @@
   font-size: 12px;
   opacity: 0.9;
 }
+
+.accountWalletLabel {
+  margin-top: 8px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.accountWalletHelp {
+  margin-top: 6px;
+  font-size: 12px;
+  opacity: 0.86;
+  line-height: 1.35;
+}

@@ -16,6 +16,53 @@ function maskWallet(wallet) {
   return `${value.slice(0, 6)}...${value.slice(-4)}`;
 }
 
+function normalizeWalletInput(raw) {
+  return String(raw || "").replace(/[\r\n]+/g, " ").trim();
+}
+
+function mapWalletErrorMessage(code) {
+  const key = String(code || "").trim();
+  if (key === "invalid_wallet_required") return "Wallet address is required.";
+  if (key === "invalid_wallet_format") return "Wallet address format is invalid.";
+  if (key === "invalid_wallet_prefix") return "Pi wallet addresses must start with G.";
+  if (key === "invalid_wallet_secret_like") return "Do not enter a private key or seed phrase.";
+  if (key === "invalid_wallet_alnum") return "Only letters and numbers are allowed.";
+  return "Failed to save wallet.";
+}
+
+function validateWalletInput(raw) {
+  const normalized = normalizeWalletInput(raw);
+  if (!normalized) return { ok: false, error: "invalid_wallet_required" };
+
+  const words = normalized.split(/\s+/).filter(Boolean);
+  if (words.length >= 12) return { ok: false, error: "invalid_wallet_secret_like" };
+
+  if (normalized.includes(" ")) return { ok: false, error: "invalid_wallet_format" };
+
+  const hasSecretKeywords = /(seed|mnemonic|private|secret|phrase)/i.test(normalized);
+  const alpha = normalized.replace(/[^a-zA-Z]/g, "");
+  const lower = normalized.replace(/[^a-z]/g, "");
+  const lowerHeavy = alpha.length >= 20 && (lower.length / alpha.length) >= 0.75;
+  const upperCandidate = normalized.toUpperCase();
+  if (hasSecretKeywords || (upperCandidate.length >= 40 && !upperCandidate.startsWith("G")) || lowerHeavy) {
+    return { ok: false, error: "invalid_wallet_secret_like" };
+  }
+
+  if (normalized.length < 20 || normalized.length > 100) {
+    return { ok: false, error: "invalid_wallet_format" };
+  }
+
+  if (!/^[A-Za-z0-9]+$/.test(normalized)) {
+    return { ok: false, error: "invalid_wallet_alnum" };
+  }
+
+  if (!/^G/i.test(normalized)) {
+    return { ok: false, error: "invalid_wallet_prefix" };
+  }
+
+  return { ok: true, wallet: upperCandidate };
+}
+
 export function mountAccountUI(root) {
   const wrap = document.createElement("div");
   wrap.innerHTML = `
@@ -72,8 +119,10 @@ export function mountAccountUI(root) {
             <div class="accountSection" id="walletSection">
               <h3>Pi Wallet</h3>
               <div class="accountRow"><span>Saved Wallet</span><span id="accountWalletMasked" class="accountWalletMasked">Not set</span></div>
+              <div class="accountWalletLabel">Enter your Pi Wallet Address (public key)</div>
+              <div class="accountWalletHelp">We only need your public wallet address to send Pi payouts. Never enter your private key or seed phrase.</div>
               <div class="accountWalletBox">
-                <input id="accountWalletInput" placeholder="Enter Pi Wallet Address" maxlength="100" autocomplete="off" />
+                <input id="accountWalletInput" placeholder="Enter your Pi Wallet Address (public key)" maxlength="100" autocomplete="off" />
                 <button id="accountSaveWallet">Save Wallet</button>
               </div>
               <div class="accountWalletStatus" id="accountWalletStatus"></div>
@@ -267,11 +316,13 @@ export function mountAccountUI(root) {
   });
 
   saveWalletBtn?.addEventListener("click", async () => {
-    const wallet = String(walletInputEl?.value || "").trim();
-    if (!wallet) {
-      if (walletStatusEl) walletStatusEl.textContent = "Enter wallet first.";
+    const local = validateWalletInput(walletInputEl?.value);
+    if (!local.ok) {
+      if (walletStatusEl) walletStatusEl.textContent = mapWalletErrorMessage(local.error);
       return;
     }
+
+    const wallet = local.wallet;
 
     const api = window.__maze?.setWallet;
     if (typeof api !== "function") {
@@ -279,22 +330,20 @@ export function mountAccountUI(root) {
       return;
     }
 
+    if (walletInputEl) walletInputEl.value = wallet;
     saveWalletBtn.disabled = true;
     if (walletStatusEl) walletStatusEl.textContent = "Saving...";
 
     try {
       const out = await api(wallet);
       if (!out?.ok) {
-        if (walletStatusEl) walletStatusEl.textContent = out?.error === "invalid_wallet"
-          ? "Invalid wallet format. Use letters/numbers only."
-          : (out?.error || "Failed to save wallet.");
+        if (walletStatusEl) walletStatusEl.textContent = mapWalletErrorMessage(out?.error);
         return;
       }
 
-      const normalized = wallet.toLowerCase();
-      if (walletMaskedEl) walletMaskedEl.textContent = maskWallet(normalized);
-      if (payoutWalletConfirmEl) payoutWalletConfirmEl.textContent = maskWallet(normalized);
-      if (walletStatusEl) walletStatusEl.textContent = "Wallet saved. Payouts will be sent here.";
+      if (walletMaskedEl) walletMaskedEl.textContent = maskWallet(wallet);
+      if (payoutWalletConfirmEl) payoutWalletConfirmEl.textContent = maskWallet(wallet);
+      if (walletStatusEl) walletStatusEl.textContent = "Wallet saved. Monthly Pi payouts will be sent here.";
     } catch {
       if (walletStatusEl) walletStatusEl.textContent = "Failed to save wallet.";
     } finally {
