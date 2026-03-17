@@ -316,16 +316,21 @@ export function mountAccountUI(root) {
   });
 
   saveWalletBtn?.addEventListener("click", async () => {
-    const local = validateWalletInput(walletInputEl?.value);
+    if (saveWalletBtn.disabled) return;
+
+    const normalizedInput = normalizeWalletInput(walletInputEl?.value);
+    const local = validateWalletInput(normalizedInput);
     if (!local.ok) {
       if (walletStatusEl) walletStatusEl.textContent = mapWalletErrorMessage(local.error);
       return;
     }
 
+    if (walletStatusEl) walletStatusEl.textContent = "";
     const wallet = local.wallet;
 
     const api = window.__maze?.setWallet;
     if (typeof api !== "function") {
+      console.error("setWallet API missing");
       if (walletStatusEl) walletStatusEl.textContent = "Wallet save unavailable.";
       return;
     }
@@ -343,7 +348,16 @@ export function mountAccountUI(root) {
 
       if (walletMaskedEl) walletMaskedEl.textContent = maskWallet(wallet);
       if (payoutWalletConfirmEl) payoutWalletConfirmEl.textContent = maskWallet(wallet);
-      if (walletStatusEl) walletStatusEl.textContent = "Wallet saved. Monthly Pi payouts will be sent here.";
+
+      if (walletStatusEl) {
+        if (out?.duplicate_in_use === true) {
+          walletStatusEl.textContent = "Wallet saved. Warning: this wallet is already used by another account.";
+        } else if (out?.suspicious_wallet_cluster === true) {
+          walletStatusEl.textContent = "Wallet saved, but flagged for review due to multiple accounts using this wallet.";
+        } else {
+          walletStatusEl.textContent = "Wallet saved. Monthly Pi payouts will be sent here.";
+        }
+      }
     } catch {
       if (walletStatusEl) walletStatusEl.textContent = "Failed to save wallet.";
     } finally {
