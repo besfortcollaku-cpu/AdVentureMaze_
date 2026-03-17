@@ -2,13 +2,11 @@
 // Level Complete / Win popup UI
 import "../css/win.css";
 import { getTheme } from "../theme.js";
+
 export function createWinPopup() {
   let onNext = null;
   let onWatchAd = null;
 
-  // ---------------------------
-  // HTML
-  // ---------------------------
   const el = document.createElement("div");
   el.className = "overlay winOverlay hidden";
 
@@ -40,16 +38,11 @@ export function createWinPopup() {
 
   document.body.appendChild(el);
 
-  // ---------------------------
-  // Elements
-  // ---------------------------
   const levelText = el.querySelector("#winLevelText");
   const nextBtn = el.querySelector("#nextLevelBtn");
   const adBtn = el.querySelector("#watchAdBtn");
+  const adBtnDefaultText = adBtn?.textContent || "Watch Ad for Surprise Box";
 
-  // ---------------------------
-  // Events
-  // ---------------------------
   nextBtn.addEventListener("click", () => {
     hide();
     onNext?.();
@@ -59,24 +52,26 @@ export function createWinPopup() {
     onWatchAd?.();
   });
 
-  // ---------------------------
-  // API
-  // ---------------------------
   function show({ levelNumber }) {
-  const theme = getTheme();
+    const theme = getTheme();
 
-  // reset theme classes
-  el.classList.remove("theme-forest", "theme-lava", "theme-ice");
+    el.classList.remove("theme-forest", "theme-lava", "theme-ice");
+    el.classList.add(`theme-${theme}`);
 
-  // apply current theme
-  el.classList.add(`theme-${theme}`);
-
-  levelText.textContent = `You finished Level ${levelNumber}`;
-  el.classList.remove("hidden");
-}
+    levelText.textContent = `You finished Level ${levelNumber}`;
+    setWatchAdBusy(false);
+    el.classList.remove("hidden");
+  }
 
   function hide() {
+    setWatchAdBusy(false);
     el.classList.add("hidden");
+  }
+
+  function setWatchAdBusy(isBusy, busyText = "Please wait...") {
+    if (!adBtn) return;
+    adBtn.disabled = !!isBusy;
+    adBtn.textContent = isBusy ? busyText : adBtnDefaultText;
   }
 
   function onNextLevel(cb) {
@@ -90,6 +85,7 @@ export function createWinPopup() {
   return {
     show,
     hide,
+    setWatchAdBusy,
     onNextLevel,
     onWatchAdClick,
   };

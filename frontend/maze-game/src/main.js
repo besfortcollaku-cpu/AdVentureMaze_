@@ -113,6 +113,7 @@ const adSurprisePopup = createMysteryChestPopup({
 });
 let pendingWinAdBoxReward = null;
 let pendingWinAdNextLevel = false;
+let winAdFlowBusy = false;
 function shouldShowAutoAd() {
   const last = Number(localStorage.getItem(AUTO_AD_LAST_KEY) || 0);
   return Date.now() - last > AUTO_AD_COOLDOWN_MS;
@@ -1230,7 +1231,11 @@ mysteryChestPopup.onOpen(async () => {
 
 });
 adSurprisePopup.onOpen(async () => {
-  if (!pendingWinAdBoxReward) return null;
+  if (!pendingWinAdBoxReward) {
+    winAdFlowBusy = false;
+    winPopup.setWatchAdBusy?.(false);
+    return null;
+  }
 
   const rewardPack = pendingWinAdBoxReward;
   pendingWinAdBoxReward = null;
@@ -1246,6 +1251,9 @@ adSurprisePopup.onOpen(async () => {
 });
 
 adSurprisePopup.onRevealDone(() => {
+  winAdFlowBusy = false;
+  winPopup.setWatchAdBusy?.(false);
+
   if (!pendingWinAdNextLevel) return;
 
   pendingWinAdNextLevel = false;
@@ -1892,52 +1900,71 @@ winPopup.onWatchAdClick(() => {
     return;
   }
 
+  if (winAdFlowBusy || pendingWinAdBoxReward) {
+    showAdCooldownToast("Please wait... preparing surprise box.");
+    return;
+  }
+
   if (!guardAdCooldownBeforeWatching()) {
     return;
   }
- simulateAd({
-  onFinished: async () => {
-    const nonce = crypto.randomUUID();
 
-    const res = await fetch(`${BACKEND}/api/rewards/ad-50`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${normalizeToken(CURRENT_ACCESS_TOKEN)}`,
-      },
-      body: JSON.stringify({ nonce }),
-    });
+  winAdFlowBusy = true;
+  winPopup.setWatchAdBusy?.(true, "Loading ad...");
 
-    const out = await res.json().catch(() => ({}));
-    console.log("AD REWARD RESPONSE", out);
+  simulateAd({
+    onFinished: async () => {
+      try {
+        winPopup.setWatchAdBusy?.(true, "Preparing surprise box...");
 
-    if (out?.already) {
-      showAdCooldownToast("Ad already claimed. Please wait a few minutes.");
-      return;
-    }
+        const nonce = crypto.randomUUID();
+        const res = await fetch(`${BACKEND}/api/rewards/ad-50`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${normalizeToken(CURRENT_ACCESS_TOKEN)}`,
+          },
+          body: JSON.stringify({ nonce }),
+        });
 
-    if (out?.user?.coins != null) {
-      const nextCoins = Number(out.user.coins ?? 0);
-      const currentCoins = Number(CURRENT_USER?.coins ?? 0);
-      const rewardFromResponse = Number(out?.reward);
-      const reward = Number.isFinite(rewardFromResponse)
-        ? rewardFromResponse
-        : Math.max(0, nextCoins - currentCoins) || 50;
+        const out = await res.json().catch(() => ({}));
 
-      pendingWinAdBoxReward = {
-        reward,
-        coins: nextCoins,
-      };
-      pendingWinAdNextLevel = true;
+        if (out?.already) {
+          winAdFlowBusy = false;
+          winPopup.setWatchAdBusy?.(false);
+          showAdCooldownToast("Ad already claimed. Please wait a few minutes.");
+          return;
+        }
 
-      winPopup.hide();
-      adSurprisePopup.show();
-      return;
-    }
+        if (out?.user?.coins != null) {
+          const nextCoins = Number(out.user.coins ?? 0);
+          const currentCoins = Number(CURRENT_USER?.coins ?? 0);
+          const rewardFromResponse = Number(out?.reward);
+          const reward = Number.isFinite(rewardFromResponse)
+            ? rewardFromResponse
+            : Math.max(0, nextCoins - currentCoins) || 50;
 
-    showAdCooldownToast("Ad reward not available. Try again.");
-  },
-});
+          pendingWinAdBoxReward = {
+            reward,
+            coins: nextCoins,
+          };
+          pendingWinAdNextLevel = true;
+
+          winPopup.hide();
+          adSurprisePopup.show();
+          return;
+        }
+
+        winAdFlowBusy = false;
+        winPopup.setWatchAdBusy?.(false);
+        showAdCooldownToast("Ad reward not available. Try again.");
+      } catch {
+        winAdFlowBusy = false;
+        winPopup.setWatchAdBusy?.(false);
+        showAdCooldownToast("Ad reward not available. Try again.");
+      }
+    },
+  });
 });
 
 
