@@ -9,6 +9,13 @@ function formatMonthKey(date) {
   return `${y}-${m}`;
 }
 
+function maskWallet(wallet) {
+  const value = String(wallet || "").trim();
+  if (!value) return "Not set";
+  if (value.length <= 10) return value;
+  return `${value.slice(0, 6)}...${value.slice(-4)}`;
+}
+
 export function mountAccountUI(root) {
   const wrap = document.createElement("div");
   wrap.innerHTML = `
@@ -62,6 +69,16 @@ export function mountAccountUI(root) {
               <div class="accountRow"><span id="accountInvitedList">No invited friends yet</span></div>
             </div>
 
+            <div class="accountSection" id="walletSection">
+              <h3>Pi Wallet</h3>
+              <div class="accountRow"><span>Saved Wallet</span><span id="accountWalletMasked" class="accountWalletMasked">Not set</span></div>
+              <div class="accountWalletBox">
+                <input id="accountWalletInput" placeholder="Enter Pi Wallet Address" maxlength="100" autocomplete="off" />
+                <button id="accountSaveWallet">Save Wallet</button>
+              </div>
+              <div class="accountWalletStatus" id="accountWalletStatus"></div>
+            </div>
+
             <div class="accountSection" id="monthlyTransferSection">
               <h3>Monthly Coin to Pi (Preview)</h3>
               <div class="accountRow"><span>Month</span><span id="accountMonthCurrent">-</span></div>
@@ -69,6 +86,7 @@ export function mountAccountUI(root) {
               <div class="accountRow"><span>Convertible Rate</span><span id="accountMonthRate">50%</span></div>
               <div class="accountRow"><span>Coin to Pi Rate</span><span id="accountCoinToPiRate">0.001</span></div>
               <div class="accountRow"><span>Total Pi</span><span id="accountMonthTotalPi">0.0000</span></div>
+              <div class="accountRow"><span>Your Pi will be sent to</span><span id="accountPayoutWalletConfirm">Not set</span></div>
               <div class="accountRow"><button id="accountClaimPiBtn">Claim (Dummy)</button></div>
 
               <div class="accountRow"><span>Previous Month</span><span id="accountPrevMonth">-</span></div>
@@ -92,6 +110,12 @@ export function mountAccountUI(root) {
   const invitedListEl = root.querySelector("#accountInvitedList");
   const copyInviteBtn = root.querySelector("#accountCopyInvite");
   const inviteSection = root.querySelector("#inviteSection");
+
+  const walletMaskedEl = root.querySelector("#accountWalletMasked");
+  const walletInputEl = root.querySelector("#accountWalletInput");
+  const saveWalletBtn = root.querySelector("#accountSaveWallet");
+  const walletStatusEl = root.querySelector("#accountWalletStatus");
+  const payoutWalletConfirmEl = root.querySelector("#accountPayoutWalletConfirm");
 
   const rateFinalEl = root.querySelector("#accountRateFinal");
   const progLevelsEl = root.querySelector("#accountProgLevels");
@@ -148,6 +172,11 @@ export function mountAccountUI(root) {
       const code = String(user.invite_code || "").trim();
       inviteLinkEl.value = code ? `${window.location.origin}?invite=${encodeURIComponent(code)}` : "";
     }
+
+    const wallet = String(user.pi_wallet_identifier || "").trim();
+    if (walletMaskedEl) walletMaskedEl.textContent = maskWallet(wallet);
+    if (walletInputEl && wallet) walletInputEl.value = wallet;
+    if (payoutWalletConfirmEl) payoutWalletConfirmEl.textContent = maskWallet(wallet);
 
     const finalRate = Number(user.monthly_final_rate ?? 50) || 50;
     const levelsDone = Number(user.monthly_levels_completed ?? 0);
@@ -235,6 +264,42 @@ export function mountAccountUI(root) {
     setTimeout(() => {
       copyInviteBtn.textContent = "Copy";
     }, 1200);
+  });
+
+  saveWalletBtn?.addEventListener("click", async () => {
+    const wallet = String(walletInputEl?.value || "").trim();
+    if (!wallet) {
+      if (walletStatusEl) walletStatusEl.textContent = "Enter wallet first.";
+      return;
+    }
+
+    const api = window.__maze?.setWallet;
+    if (typeof api !== "function") {
+      if (walletStatusEl) walletStatusEl.textContent = "Wallet save unavailable.";
+      return;
+    }
+
+    saveWalletBtn.disabled = true;
+    if (walletStatusEl) walletStatusEl.textContent = "Saving...";
+
+    try {
+      const out = await api(wallet);
+      if (!out?.ok) {
+        if (walletStatusEl) walletStatusEl.textContent = out?.error === "invalid_wallet"
+          ? "Invalid wallet format. Use letters/numbers only."
+          : (out?.error || "Failed to save wallet.");
+        return;
+      }
+
+      const normalized = wallet.toLowerCase();
+      if (walletMaskedEl) walletMaskedEl.textContent = maskWallet(normalized);
+      if (payoutWalletConfirmEl) payoutWalletConfirmEl.textContent = maskWallet(normalized);
+      if (walletStatusEl) walletStatusEl.textContent = "Wallet saved. Payouts will be sent here.";
+    } catch {
+      if (walletStatusEl) walletStatusEl.textContent = "Failed to save wallet.";
+    } finally {
+      saveWalletBtn.disabled = false;
+    }
   });
 
   claimPiBtn?.addEventListener("click", () => {

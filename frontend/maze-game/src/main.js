@@ -737,6 +737,9 @@ async function loadMeAndSyncUI({ BACKEND, token, ui }) {
   monthly_valid_invites: Number(user.monthly_valid_invites ?? 0),
   lifetime_valid_invites: Number(user.lifetime_valid_invites ?? 0),
   invite_code: user.invite_code ?? null,
+  pi_wallet_identifier: user.pi_wallet_identifier ?? null,
+  wallet_verified: Boolean(user.wallet_verified),
+  wallet_last_updated_at: user.wallet_last_updated_at ?? null,
 };
   ui.setUser({
     ...CURRENT_USER,
@@ -970,6 +973,29 @@ window.__maze = window.__maze || {};
 window.__maze.guestMaxLevel = GUEST_MAX_LEVEL;
 window.__maze.showLoginRequired = () => ui.showLoginRequired();
 window.__maze.isLoggedIn = () => Boolean(CURRENT_ACCESS_TOKEN);
+window.__maze.setWallet = async (wallet) => {
+  if (!CURRENT_ACCESS_TOKEN) return { ok: false, error: "auth_required" };
+
+  const res = await fetch(`${BACKEND}/api/user/set-wallet`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${normalizeToken(CURRENT_ACCESS_TOKEN)}`,
+    },
+    body: JSON.stringify({ wallet }),
+  });
+
+  const out = await res.json().catch(() => ({}));
+  if (!res.ok || !out?.ok) {
+    return { ok: false, error: out?.error || "set_wallet_failed" };
+  }
+
+  try {
+    await loadMeAndSyncUI({ BACKEND, token: CURRENT_ACCESS_TOKEN, ui });
+  } catch {}
+
+  return out;
+};
 
 const winPopup = createWinPopup();
 const skipPopup = createSkipPopup();
