@@ -331,3 +331,65 @@
   opacity: 0.86;
   line-height: 1.35;
 }
+
+.accountLeaderboardHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+  font-size: 13px;
+  opacity: 0.95;
+}
+
+.accountMiniBtn {
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 10px;
+  background: rgba(255,255,255,0.08);
+  color: #fff;
+  padding: 6px 10px;
+  font-size: 12px;
+}
+
+.accountLeaderboardList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.accountLeaderboardRow {
+  display: grid;
+  grid-template-columns: 56px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 8px;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 10px;
+  font-size: 13px;
+  background: rgba(255,255,255,0.04);
+}
+
+.accountLeaderboardRow .rank {
+  font-weight: 700;
+}
+
+.accountLeaderboardRow .name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.accountLeaderboardRow .coins {
+  font-weight: 700;
+}
+
+.accountLeaderboardRow.empty {
+  grid-template-columns: 1fr;
+  justify-items: start;
+}
+
+.accountLeaderboardMe {
+  margin-top: 10px;
+  font-size: 13px;
+  font-weight: 700;
+}

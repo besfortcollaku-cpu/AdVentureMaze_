@@ -976,6 +976,37 @@ window.__maze.showLoginRequired = () => ui.showLoginRequired();
 window.__maze.isLoggedIn = () => Boolean(CURRENT_ACCESS_TOKEN);
 window.__maze.setWallet = async (wallet) => {
   if (!CURRENT_ACCESS_TOKEN) return { ok: false, error: "auth_required" };
+window.__maze.getDailyLeaderboard = async () => {
+  const res = await fetch(`${BACKEND}/api/leaderboard/daily`, {
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+  });
+  const out = await res.json().catch(() => ({}));
+  if (!res.ok || !out?.ok) {
+    return { ok: false, error: out?.error || "leaderboard_failed", rows: [] };
+  }
+  return out;
+};
+
+window.__maze.getDailyLeaderboardMe = async () => {
+  if (!CURRENT_ACCESS_TOKEN) {
+    return { ok: true, row: { rank: null, uid: null, username: "Guest", coins_earned: 0 } };
+  }
+
+  const res = await fetch(`${BACKEND}/api/leaderboard/daily/me`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${normalizeToken(CURRENT_ACCESS_TOKEN)}`,
+    },
+  });
+
+  const out = await res.json().catch(() => ({}));
+  if (!res.ok || !out?.ok) {
+    return { ok: false, error: out?.error || "leaderboard_me_failed", row: { rank: null, uid: CURRENT_USER?.uid || null, username: CURRENT_USER?.username || "Player", coins_earned: 0 } };
+  }
+  return out;
+};
 
   const res = await fetch(`${BACKEND}/api/user/set-wallet`, {
     method: "POST",

@@ -16,6 +16,14 @@ function maskWallet(wallet) {
   return `${value.slice(0, 6)}...${value.slice(-4)}`;
 }
 
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
 function normalizeWalletInput(raw) {
   return String(raw || "").replace(/[\r\n]+/g, " ").trim();
 }
@@ -116,6 +124,16 @@ export function mountAccountUI(root) {
               <div class="accountRow"><span id="accountInvitedList">No invited friends yet</span></div>
             </div>
 
+            <div class="accountSection" id="dailyRankingSection">
+              <h3>Daily Ranking</h3>
+              <div class="accountLeaderboardHead">
+                <span>Top 20 (Coins earned today)</span>
+                <button id="accountRefreshRanking" class="accountMiniBtn">Refresh</button>
+              </div>
+              <div id="accountDailyRankingStatus" class="accountWalletStatus">Loading...</div>
+              <div class="accountLeaderboardList" id="accountDailyRankingRows"></div>
+              <div class="accountLeaderboardMe" id="accountDailyYourRank">You are not ranked yet today.</div>
+            </div>
             <div class="accountSection" id="walletSection">
               <h3>Pi Wallet</h3>
               <div class="accountRow"><span>Saved Wallet</span><span id="accountWalletMasked" class="accountWalletMasked">Not set</span></div>
@@ -159,6 +177,10 @@ export function mountAccountUI(root) {
   const invitedListEl = root.querySelector("#accountInvitedList");
   const copyInviteBtn = root.querySelector("#accountCopyInvite");
   const inviteSection = root.querySelector("#inviteSection");
+  const dailyRankingStatusEl = root.querySelector("#accountDailyRankingStatus");
+  const dailyRankingRowsEl = root.querySelector("#accountDailyRankingRows");
+  const dailyYourRankEl = root.querySelector("#accountDailyYourRank");
+  const refreshRankingBtn = root.querySelector("#accountRefreshRanking");
 
   const walletMaskedEl = root.querySelector("#accountWalletMasked");
   const walletInputEl = root.querySelector("#accountWalletInput");
@@ -187,10 +209,65 @@ export function mountAccountUI(root) {
   const prevMonthEl = root.querySelector("#accountPrevMonth");
   const prevMonthPiEl = root.querySelector("#accountPrevMonthPi");
 
+  function renderDailyRankingRows(rows) {
+    if (!dailyRankingRowsEl) return;
+    const list = Array.isArray(rows) ? rows : [];
+    if (!list.length) {
+      dailyRankingRowsEl.innerHTML = `<div class="accountLeaderboardRow empty">No ranked users yet today.</div>`;
+      return;
+    }
+
+    dailyRankingRowsEl.innerHTML = list.slice(0, 20).map((r) => {
+      const rank = Number(r.rank || 0) || "-";
+      const username = String(r.username || r.uid || "player");
+      const coins = Number(r.coins_earned || 0);
+      return `<div class="accountLeaderboardRow"><span class="rank">#${rank}</span><span class="name">${escapeHtml(username)}</span><span class="coins">${coins}</span></div>`;
+    }).join("");
+  }
+
+  function renderDailyMyRank(row) {
+    if (!dailyYourRankEl) return;
+    const rank = row?.rank != null ? Number(row.rank) : null;
+    const coins = Number(row?.coins_earned || 0);
+    if (!rank) {
+      dailyYourRankEl.textContent = "You are not ranked yet today.";
+      return;
+    }
+    dailyYourRankEl.textContent = `Your Rank: #${rank} (${coins} coins)`;
+  }
+
+  async function refreshDailyRanking() {
+    const listApi = window.__maze?.getDailyLeaderboard;
+    const meApi = window.__maze?.getDailyLeaderboardMe;
+
+    if (typeof listApi !== "function") {
+      if (dailyRankingStatusEl) dailyRankingStatusEl.textContent = "Leaderboard unavailable.";
+      if (dailyRankingRowsEl) dailyRankingRowsEl.innerHTML = "";
+      if (dailyYourRankEl) dailyYourRankEl.textContent = "You are not ranked yet today.";
+      return;
+    }
+
+    if (dailyRankingStatusEl) dailyRankingStatusEl.textContent = "Loading...";
+
+    try {
+      const [listOut, meOut] = await Promise.all([
+        listApi(),
+        typeof meApi === "function" ? meApi() : Promise.resolve({ ok: true, row: { rank: null, coins_earned: 0 } }),
+      ]);
+
+      const rows = listOut?.rows || [];
+      renderDailyRankingRows(rows);
+      renderDailyMyRank(meOut?.row || null);
+      if (dailyRankingStatusEl) dailyRankingStatusEl.textContent = rows.length ? "" : "No data yet today.";
+    } catch {
+      if (dailyRankingStatusEl) dailyRankingStatusEl.textContent = "Failed to load ranking.";
+    }
+  }
   function show() {
     if (!overlay) return;
     overlay.classList.add("show");
     overlay.setAttribute("aria-hidden", "false");
+    void refreshDailyRanking();
   }
 
   function hide() {
@@ -268,6 +345,8 @@ export function mountAccountUI(root) {
 
     if (prevMonthEl) prevMonthEl.textContent = prevMonth;
     if (prevMonthPiEl) prevMonthPiEl.textContent = totalPi;
+
+    void refreshDailyRanking();
   }
 
   function setCoins(n) {
@@ -303,6 +382,10 @@ export function mountAccountUI(root) {
       return false;
     }
   }
+
+  refreshRankingBtn?.addEventListener("click", () => {
+    void refreshDailyRanking();
+  });
 
   copyInviteBtn?.addEventListener("click", async () => {
     if (!inviteLinkEl?.value) return;
