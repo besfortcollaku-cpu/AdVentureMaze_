@@ -16,6 +16,7 @@ import { createHintPopup } from "./ui/uiHints.js";
 import { createRestartPopup } from "./ui/uiRestarts.js";
 import { createMissedRewardPopup } from "./ui/uiMissedReward.js";
 import { createMysteryChestPopup } from "./ui/uiMysteryChest.js";
+import { createDailyLeaderboardPopup } from "./ui/uiLeaderboardDaily.js";
 
 // DEBUG: show fatal errors on mobile so buttons don't "do nothing"
 window.addEventListener("error", (e) => {
@@ -620,6 +621,49 @@ async function apiClaimLevelComplete(levelNumber) {
   return res.json();
 }
 
+async function apiLeaderboardDaily() {
+  const res = await fetch(`${BACKEND}/api/leaderboard/daily`, {
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+  });
+
+  const out = await res.json().catch(() => ({}));
+  if (!res.ok || !out?.ok) {
+    throw new Error(out?.error || "leaderboard_failed");
+  }
+
+  return out;
+}
+
+async function apiLeaderboardDailyMe() {
+  if (!CURRENT_ACCESS_TOKEN) {
+    return {
+      ok: true,
+      row: {
+        rank: null,
+        uid: null,
+        username: "Guest",
+        coins_earned: 0,
+      },
+    };
+  }
+
+  const res = await fetch(`${BACKEND}/api/leaderboard/daily/me`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${normalizeToken(CURRENT_ACCESS_TOKEN)}`,
+    },
+  });
+
+  const out = await res.json().catch(() => ({}));
+  if (!res.ok || !out?.ok) {
+    throw new Error(out?.error || "leaderboard_me_failed");
+  }
+
+  return out;
+}
+
 function updateBadge({ badgeId, left }) {
   const badge = document.getElementById(badgeId);
   if (!badge) return;
@@ -1034,6 +1078,7 @@ const skipPopup = createSkipPopup();
 const hintPopup = createHintPopup();
 const restartPopup = createRestartPopup();
 const dailyRewardPopup = createDailyRewardPopup();
+const dailyLeaderboardPopup = createDailyLeaderboardPopup();
 window.onRecoverMissedDay = (day) => {
   if (!guardAdCooldownBeforeWatching()) {
     return;
@@ -1562,94 +1607,94 @@ levelsUI.onSelect((levelNumber) => {
 
 // Create game (DO NOT START)
   game = createGame({
-  canvas: ui.canvas,
-  level: levels[0],
-  getCurrentUser: () => CURRENT_USER ?? { username: "guest", uid: null },
+    canvas: ui.canvas,
+    level: levels[0],
+    getCurrentUser: () => CURRENT_USER ?? { username: "guest", uid: null },
 
-onTilePainted({ key, x, y }) {
-if (HINT_ACTIVE_FOR_LEVEL) {
-  onAnyPaintDuringMove();
-}
-  // resume save is logged-in only
-  if (!CURRENT_ACCESS_TOKEN) return;
-  if (!RESUME_ENABLED) return;
+    onTilePainted({ key, x, y }) {
+      if (HINT_ACTIVE_FOR_LEVEL) {
+        onAnyPaintDuringMove();
+      }
+      // resume save is logged-in only
+      if (!CURRENT_ACCESS_TOKEN) return;
+      if (!RESUME_ENABLED) return;
 
-  RESUME_TILES.add(key);
-  RESUME_POS = { x, y };
+      RESUME_TILES.add(key);
+      RESUME_POS = { x, y };
 
-  scheduleResumeSave(levelIndex + 1);
-},
+      scheduleResumeSave(levelIndex + 1);
+    },
 
-  async onLevelComplete({ level }) {
+    async onLevelComplete({ level }) {
       hideHintArrows();
-HINT_ROUTE = null;
-HINT_ROUTE_INDEX = 0;
-HINT_ACTIVE_FOR_LEVEL = false;
-RESUME_ENABLED = false;
+      HINT_ROUTE = null;
+      HINT_ROUTE_INDEX = 0;
+      HINT_ACTIVE_FOR_LEVEL = false;
+      RESUME_ENABLED = false;
 
-    const completedLevel = level?.number ?? (levelIndex + 1);
+      const completedLevel = level?.number ?? (levelIndex + 1);
 
-    // ✅ server reward: +1 coin once per level
-    // ✅ server reward: +1 coin once per level
-afterLevelCompleteShowAdOrWin({
-  levelNumber: completedLevel,
-});
+      if (CURRENT_ACCESS_TOKEN) {
+        try {
+          await apiClaimLevelComplete(completedLevel);
 
-// ✅ server reward: +1 coin once per level
-if (CURRENT_ACCESS_TOKEN) {
-  (async () => {
-    try {
-      await apiClaimLevelComplete(completedLevel);
+          // Refresh user from DB and run the existing coin animation first.
+          const me = await loadMeAndSyncUI({
+            BACKEND,
+            token: CURRENT_ACCESS_TOKEN,
+            ui,
+          });
 
-      // hard refresh from DB so later UI/state cannot overwrite it
-      const me = await loadMeAndSyncUI({
-        BACKEND,
-        token: CURRENT_ACCESS_TOKEN,
-        ui,
+          if (me?.user) {
+            applyUserPatch(me.user, { skipCoinSync: true });
+            await animateCoinsTo(Number(me.user.coins ?? 0), { showGainFx: true });
+          }
+        } catch {}
+      }
+
+      // Keep coin gain visible before leaderboard/win flow.
+      await sleep(2000);
+
+      // Show daily ranking before the win popup. On fetch failure, continue normally.
+      await showDailyLeaderboardBeforeWin();
+
+      afterLevelCompleteShowAdOrWin({
+        levelNumber: completedLevel,
       });
 
-      if (me?.user) {
-        applyUserPatch(me.user, { skipCoinSync: true });
-        await animateCoinsTo(Number(me.user.coins ?? 0), { showGainFx: true });
+      // logged-in: unlock next level + persist progress and clear resume
+      if (CURRENT_ACCESS_TOKEN) {
+        const nextUnlocked = Math.min(levels.length, completedLevel + 1);
+
+        CURRENT_MAX_UNLOCKED_LEVEL = Math.max(
+          CURRENT_MAX_UNLOCKED_LEVEL,
+          nextUnlocked
+        );
+
+        setTimeout(() => levelsUI.setUnlocked?.(CURRENT_MAX_UNLOCKED_LEVEL), 0);
+
+        apiSetProgress({
+          uid: CURRENT_USER.uid,
+          level: nextUnlocked,
+          paintedKeys: [],
+          resume: null,
+        }).catch(() => {});
       }
-    } catch (e) {}
-  })();
-}
-    // ✅ logged-in: unlock next level in UI (old UNLOCKED_LEVEL behavior)
-    // ✅ logged-in: unlock next level + SAVE progress (OLD LOGIC RESTORED)
-if (CURRENT_ACCESS_TOKEN) {
-  const nextUnlocked = Math.min(levels.length, completedLevel + 1);
 
-  CURRENT_MAX_UNLOCKED_LEVEL = Math.max(
-    CURRENT_MAX_UNLOCKED_LEVEL,
-    nextUnlocked
-  );
-
-  setTimeout(() => levelsUI.setUnlocked?.(CURRENT_MAX_UNLOCKED_LEVEL), 0);
-
-  // persist unlocked progress + CLEAR resume
-  apiSetProgress({
-      uid: CURRENT_USER.uid,
-    level: nextUnlocked,
-    paintedKeys: [],
-    resume: null,
-  }).catch(() => {});
-}
-    // 🟡 guest progress is local-only (levels 1..GUEST_MAX_LEVEL)
-    if (!CURRENT_ACCESS_TOKEN) {
-      const nextUnlock = Math.min(GUEST_MAX_LEVEL, completedLevel + 1);
-      const current = loadGuestProgress();
-      const newMax = Math.min(
-        GUEST_MAX_LEVEL,
-        Math.max(current?.maxLevel || 1, nextUnlock)
-      );
-      saveGuestProgress(newMax);
-      CURRENT_MAX_UNLOCKED_LEVEL = newMax;
-      // update Levels UI after popup has been mounted
-      setTimeout(() => levelsUI.setUnlocked?.(newMax), 0);
-    }
-  },
-});
+      // guest progress is local-only (levels 1..GUEST_MAX_LEVEL)
+      if (!CURRENT_ACCESS_TOKEN) {
+        const nextUnlock = Math.min(GUEST_MAX_LEVEL, completedLevel + 1);
+        const current = loadGuestProgress();
+        const newMax = Math.min(
+          GUEST_MAX_LEVEL,
+          Math.max(current?.maxLevel || 1, nextUnlock)
+        );
+        saveGuestProgress(newMax);
+        CURRENT_MAX_UNLOCKED_LEVEL = newMax;
+        setTimeout(() => levelsUI.setUnlocked?.(newMax), 0);
+      }
+    },
+  });
 function maybeAutoHintTutorial() {
   // no-op; tutorial is started directly inside ui.onGuestStart
 }
@@ -1749,6 +1794,31 @@ function simulateInterstitialAd(onFinished) {
     rewardReadyText: "✅ Ad Finished",
   });
 }
+async function showDailyLeaderboardBeforeWin() {
+  try {
+    const [boardOut, meOut] = await Promise.all([
+      apiLeaderboardDaily(),
+      apiLeaderboardDailyMe(),
+    ]);
+
+    await new Promise((resolve) => {
+      dailyLeaderboardPopup.onClose(() => {
+        dailyLeaderboardPopup.onClose(null);
+        resolve();
+      });
+
+      dailyLeaderboardPopup.show({
+        rows: Array.isArray(boardOut?.rows) ? boardOut.rows : [],
+        me: meOut?.row || { rank: null, uid: null, username: "Player", coins_earned: 0 },
+      });
+    });
+
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 function afterLevelCompleteShowAdOrWin({ levelNumber }) {
   // Optional: do not show auto ads on the first few levels
   if (levelNumber <= 2) {
@@ -2534,17 +2604,5 @@ if (meFresh?.dailyReward) {
 }
 
 boot();
-
-
-
-
-
-
-
-
-
-
-
-
 
 
