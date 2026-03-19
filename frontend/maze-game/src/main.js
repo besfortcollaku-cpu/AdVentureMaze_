@@ -1671,7 +1671,8 @@ levelsUI.onSelect((levelNumber) => {
       RESUME_ENABLED = false;
 
       const completedLevel = level?.number ?? (levelIndex + 1);
-      const leaderboardPrefetch = preloadDailyLeaderboardForPopup(1200);
+      const autoAdDueNow = completedLevel > 2 && !AD_OVERLAY_ACTIVE && shouldShowAutoAd();
+      const leaderboardPrefetch = autoAdDueNow ? null : preloadDailyLeaderboardForPopup(1200);
 
       // Do reward sync in parallel so leaderboard timing stays fixed.
       const rewardSyncPromise = CURRENT_ACCESS_TOKEN
@@ -1695,7 +1696,10 @@ levelsUI.onSelect((levelNumber) => {
 
       // Fixed timing: leaderboard step starts after ~2 seconds from level complete.
       await sleep(2000);
-      await showDailyLeaderboardBeforeWin(leaderboardPrefetch, rewardSyncPromise);
+      // If auto-ad is due, do not stack leaderboard with ad in the same completion step.
+      if (!autoAdDueNow) {
+        await showDailyLeaderboardBeforeWin(leaderboardPrefetch, rewardSyncPromise);
+      }
 
       afterLevelCompleteShowAdOrWin({
         levelNumber: completedLevel,
@@ -2730,6 +2734,9 @@ if (meFresh?.dailyReward) {
 }
 
 boot();
+
+
+
 
 
 
