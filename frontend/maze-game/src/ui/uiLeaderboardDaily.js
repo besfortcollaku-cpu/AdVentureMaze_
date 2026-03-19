@@ -9,8 +9,31 @@ function escapeHtml(value) {
     .replaceAll("'", "&#039;");
 }
 
+function normalizeRows(rows) {
+  if (!Array.isArray(rows)) return [];
+  return rows.slice(0, 20).map((row, idx) => ({
+    uid: String(row?.uid || `row-${idx}`),
+    username: String(row?.username || row?.uid || "player"),
+    rank: Number(row?.rank || 0) || idx + 1,
+    coins_earned: Number(row?.coins_earned || 0),
+  }));
+}
+
+function hasPositionChanges(previousRows, currentRows) {
+  const prevIndex = new Map();
+  previousRows.forEach((r, i) => prevIndex.set(String(r.uid), i));
+  for (let i = 0; i < currentRows.length; i += 1) {
+    const uid = String(currentRows[i].uid);
+    if (!prevIndex.has(uid)) continue;
+    if (prevIndex.get(uid) !== i) return true;
+  }
+  return false;
+}
+
 export function createDailyLeaderboardPopup() {
   let closeHandler = null;
+  let renderVersion = 0;
+  let isAnimating = false;
 
   const overlay = document.createElement("div");
   overlay.className = "leaderboardDailyOverlay hidden";
@@ -30,29 +53,33 @@ export function createDailyLeaderboardPopup() {
   const meEl = overlay.querySelector("#leaderboardDailyMe");
   const continueBtn = overlay.querySelector("#leaderboardDailyContinue");
 
+  function setContinueDisabled(disabled) {
+    if (!continueBtn) return;
+    continueBtn.disabled = !!disabled;
+    continueBtn.classList.toggle("is-disabled", !!disabled);
+  }
+
   function renderRows(rows, me, loading = false) {
-    const topRows = Array.isArray(rows) ? rows.slice(0, 20) : [];
+    const topRows = normalizeRows(rows);
     const meUid = String(me?.uid || "");
 
     if (!topRows.length) {
       const text = loading ? "Loading ranking..." : "No ranked users yet today.";
-      rowsEl.innerHTML = `<div class="leaderboardDailyRow is-empty">${text}</div>`;
+      rowsEl.innerHTML = `<div class="leaderboardDailyRow leaderboard-row is-empty">${text}</div>`;
       return;
     }
 
     rowsEl.innerHTML = topRows
       .map((row) => {
-        const rank = Number(row?.rank || 0) || "-";
-        const uid = String(row?.uid || "");
-        const username = escapeHtml(String(row?.username || uid || "player"));
-        const coins = Number(row?.coins_earned || 0);
-        const isMe = meUid && uid === meUid;
-        const cls = isMe ? "leaderboardDailyRow is-me" : "leaderboardDailyRow";
+        const isMe = meUid && String(row.uid) === meUid;
+        const cls = isMe
+          ? "leaderboardDailyRow leaderboard-row is-me current-user"
+          : "leaderboardDailyRow leaderboard-row";
         return `
-          <div class="${cls}">
-            <span class="rank">#${rank}</span>
-            <span class="name">${username}</span>
-            <span class="coins">${coins}</span>
+          <div class="${cls}" data-uid="${escapeHtml(row.uid)}">
+            <span class="rank">#${row.rank}</span>
+            <span class="name">${escapeHtml(row.username)}</span>
+            <span class="coins">${row.coins_earned}</span>
           </div>
         `;
       })
@@ -69,14 +96,116 @@ export function createDailyLeaderboardPopup() {
     meEl.textContent = `Your Rank: #${rank} (${coins} coins)`;
   }
 
-  function hide() {
-    overlay.classList.add("hidden");
+  async function animateRowMovement({ previousRows, rows, me, loading, version }) {
+    const prev = normalizeRows(previousRows);
+    const cur = normalizeRows(rows);
+    const meUid = String(me?.uid || "");
+
+    if (!prev.length || !cur.length || !hasPositionChanges(prev, cur)) {
+      renderRows(cur, me, loading);
+      renderMe(me);
+      setContinueDisabled(false);
+      isAnimating = false;
+      return;
+    }
+
+    // Step 1: render previous order and capture positions.
+    renderRows(prev, me, false);
+    renderMe(me);
+    const prevEls = Array.from(rowsEl.querySelectorAll(".leaderboard-row[data-uid]"));
+    const prevTop = new Map(
+      prevEls.map((el) => [String(el.getAttribute("data-uid") || ""), el.getBoundingClientRect().top])
+    );
+
+    // Step 2: render new order and invert by old/new delta.
+    renderRows(cur, me, loading);
+    renderMe(me);
+
+    const curEls = Array.from(rowsEl.querySelectorAll(".leaderboard-row[data-uid]"));
+    let movedAny = false;
+
+    for (const el of curEls) {
+      const uid = String(el.getAttribute("data-uid") || "");
+      const newTop = el.getBoundingClientRect().top;
+      const oldTop = prevTop.get(uid);
+
+      el.classList.add("moving");
+      if (uid === meUid) {
+        el.classList.add("moving-current");
+      }
+
+      if (oldTop == null) {
+        el.style.opacity = "0";
+        el.style.transform = "translateY(8px)";
+        movedAny = true;
+        continue;
+      }
+
+      const dy = oldTop - newTop;
+      if (Math.abs(dy) > 1) {
+        el.style.transform = `translateY(${dy}px)`;
+        movedAny = true;
+      }
+    }
+
+    if (!movedAny) {
+      for (const el of curEls) {
+        el.classList.remove("moving", "moving-current");
+        el.style.transform = "";
+        el.style.opacity = "";
+      }
+      setContinueDisabled(false);
+      isAnimating = false;
+      return;
+    }
+
+    setContinueDisabled(true);
+    isAnimating = true;
+
+    // FLIP play.
+    void rowsEl.offsetHeight;
+    requestAnimationFrame(() => {
+      for (const el of curEls) {
+        el.style.transform = "translateY(0)";
+        el.style.opacity = "1";
+      }
+    });
+
+    await new Promise((resolve) => setTimeout(resolve, 460));
+
+    if (version !== renderVersion) return;
+
+    for (const el of curEls) {
+      el.classList.remove("moving", "moving-current");
+      el.style.transform = "";
+      el.style.opacity = "";
+    }
+
+    setContinueDisabled(false);
+    isAnimating = false;
   }
 
-  function show({ rows, me, loading = false } = {}) {
+  function hide() {
+    overlay.classList.add("hidden");
+    setContinueDisabled(false);
+    isAnimating = false;
+  }
+
+  function show({ rows, me, loading = false, previousRows = null, animateMovement = false } = {}) {
+    renderVersion += 1;
+    const version = renderVersion;
+
+    overlay.classList.remove("hidden");
+
+    if (animateMovement && Array.isArray(previousRows) && previousRows.length > 0) {
+      void animateRowMovement({ previousRows, rows, me, loading, version });
+      return;
+    }
+
     renderRows(rows, me, loading);
     renderMe(me);
-    overlay.classList.remove("hidden");
+    setContinueDisabled(false);
+    isAnimating = false;
   }
 
   function onClose(fn) {
@@ -84,6 +213,7 @@ export function createDailyLeaderboardPopup() {
   }
 
   continueBtn?.addEventListener("click", () => {
+    if (isAnimating) return;
     hide();
     closeHandler?.();
   });

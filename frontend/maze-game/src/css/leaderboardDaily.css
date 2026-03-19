@@ -114,3 +114,23 @@
     font-size: 13px;
   }
 }
+.leaderboard-row {
+  transition: transform 420ms cubic-bezier(0.2, 0.8, 0.2, 1), opacity 420ms ease;
+  will-change: transform, opacity;
+}
+
+.leaderboard-row.current-user {
+  box-shadow: 0 0 0 1px rgba(69, 198, 255, 0.2), 0 8px 20px rgba(22, 163, 255, 0.12);
+}
+
+.leaderboard-row.moving {
+  z-index: 2;
+}
+
+.leaderboard-row.moving-current {
+  box-shadow: 0 0 0 1px rgba(69, 198, 255, 0.55), 0 12px 28px rgba(22, 163, 255, 0.32);
+}
+
+.leaderboardDailyContinue.is-disabled {
+  opacity: 0.65;
+}

@@ -117,6 +117,8 @@ let pendingWinAdNextLevel = false;
 let winAdFlowBusy = false;
 let LAST_DAILY_LEADERBOARD_ROWS = [];
 let LAST_DAILY_LEADERBOARD_ME = null;
+let PREVIOUS_DAILY_LEADERBOARD_ROWS = [];
+let PREVIOUS_DAILY_LEADERBOARD_ME = null;
 function shouldShowAutoAd() {
   const last = Number(localStorage.getItem(AUTO_AD_LAST_KEY) || 0);
   return Date.now() - last > AUTO_AD_COOLDOWN_MS;
@@ -1846,6 +1848,15 @@ async function showDailyLeaderboardBeforeWin(prefetchedPayload = null) {
       coins_earned: 0,
     };
 
+    const previousRowsForAnimation = Array.isArray(PREVIOUS_DAILY_LEADERBOARD_ROWS)
+      ? PREVIOUS_DAILY_LEADERBOARD_ROWS
+      : [];
+    const previousMeForAnimation = PREVIOUS_DAILY_LEADERBOARD_ME || initialMe;
+
+    let latestRows = initialRows;
+    let latestMe = initialMe;
+    let movementAnimated = false;
+
     await new Promise((resolve) => {
       let closed = false;
 
@@ -1855,7 +1866,7 @@ async function showDailyLeaderboardBeforeWin(prefetchedPayload = null) {
         resolve();
       });
 
-      // Show immediately to keep the 2s timing strict.
+      // Show immediately to keep 2s timing strict.
       dailyLeaderboardPopup.show({
         rows: initialRows,
         me: initialMe,
@@ -1865,25 +1876,60 @@ async function showDailyLeaderboardBeforeWin(prefetchedPayload = null) {
       prefetch.fast
         .then((fast) => {
           if (closed) return;
+          const fastRows = Array.isArray(fast?.rows) ? fast.rows : [];
+          const fastMe = fast?.me || initialMe;
+          latestRows = fastRows;
+          latestMe = fastMe;
+
+          const canAnimate =
+            !movementAnimated &&
+            previousRowsForAnimation.length > 0 &&
+            fastRows.length > 0;
+
           dailyLeaderboardPopup.show({
-            rows: Array.isArray(fast?.rows) ? fast.rows : [],
-            me: fast?.me || initialMe,
-            loading: Boolean(fast?.timedOut && (!fast?.rows || fast.rows.length === 0)),
+            rows: fastRows,
+            me: fastMe,
+            loading: Boolean(fast?.timedOut && fastRows.length === 0),
+            previousRows: canAnimate ? previousRowsForAnimation : null,
+            animateMovement: canAnimate,
           });
+
+          if (canAnimate) {
+            movementAnimated = true;
+          }
         })
         .catch(() => {});
 
       prefetch.full
         .then((live) => {
           if (closed) return;
+          const liveRows = Array.isArray(live?.rows) ? live.rows : [];
+          const liveMe = live?.me || initialMe;
+          latestRows = liveRows;
+          latestMe = liveMe;
+
+          const canAnimate =
+            !movementAnimated &&
+            previousRowsForAnimation.length > 0 &&
+            liveRows.length > 0;
+
           dailyLeaderboardPopup.show({
-            rows: Array.isArray(live?.rows) ? live.rows : [],
-            me: live?.me || initialMe,
+            rows: liveRows,
+            me: liveMe,
             loading: false,
+            previousRows: canAnimate ? previousRowsForAnimation : null,
+            animateMovement: canAnimate,
           });
+
+          if (canAnimate) {
+            movementAnimated = true;
+          }
         })
         .catch(() => {});
     });
+
+    PREVIOUS_DAILY_LEADERBOARD_ROWS = Array.isArray(latestRows) ? latestRows.slice(0, 20) : [];
+    PREVIOUS_DAILY_LEADERBOARD_ME = latestMe || previousMeForAnimation;
 
     return true;
   } catch {
