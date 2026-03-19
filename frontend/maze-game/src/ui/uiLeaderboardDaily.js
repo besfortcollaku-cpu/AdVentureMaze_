@@ -79,7 +79,10 @@ export function createDailyLeaderboardPopup() {
           <div class="leaderboardDailyTitle">Daily Ranking</div>
           <div class="leaderboardDailySubtitle">Top players today</div>
         </div>
-        <div class="leaderboardDailyServerTime" id="leaderboardDailyServerTime">Server: --:--:--</div>
+        <div class="leaderboardDailyServerTimeWrap">
+          <div class="leaderboardDailyServerTime" id="leaderboardDailyServerTime">Server: --:--:--</div>
+          <div class="leaderboardDailyResetTime" id="leaderboardDailyResetTime">New Day In: --:--:--</div>
+        </div>
       </div>
       <div class="leaderboardDailyRows" id="leaderboardDailyRows"></div>
       <div class="leaderboardDailyMe" id="leaderboardDailyMe"></div>
@@ -93,6 +96,7 @@ export function createDailyLeaderboardPopup() {
   const meEl = overlay.querySelector("#leaderboardDailyMe");
   const continueBtn = overlay.querySelector("#leaderboardDailyContinue");
   const serverTimeEl = overlay.querySelector("#leaderboardDailyServerTime");
+  const resetTimeEl = overlay.querySelector("#leaderboardDailyResetTime");
 
   let serverTimeBaseMs = null;
   let serverTimeClientStartedMs = null;
@@ -112,14 +116,32 @@ export function createDailyLeaderboardPopup() {
     }
   }
 
+  function formatResetCountdown(msLeft) {
+    const total = Math.max(0, Math.floor(msLeft / 1000));
+    const h = String(Math.floor(total / 3600)).padStart(2, "0");
+    const m = String(Math.floor((total % 3600) / 60)).padStart(2, "0");
+    const s = String(total % 60).padStart(2, "0");
+    return `${h}:${m}:${s}`;
+  }
+
+  function nextUtcResetMs(nowMs) {
+    const d = new Date(nowMs);
+    return Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() + 1, 0, 0, 0, 0);
+  }
+
   function renderServerTime() {
     if (!serverTimeEl) return;
     if (!Number.isFinite(serverTimeBaseMs) || !Number.isFinite(serverTimeClientStartedMs)) {
       serverTimeEl.textContent = "Server: --:--:--";
+      if (resetTimeEl) resetTimeEl.textContent = "New Day In: --:--:--";
       return;
     }
     const nowMs = serverTimeBaseMs + (Date.now() - serverTimeClientStartedMs);
     serverTimeEl.textContent = `Server: ${formatServerTime(nowMs)}`;
+    if (resetTimeEl) {
+      const left = nextUtcResetMs(nowMs) - nowMs;
+      resetTimeEl.textContent = `New Day In: ${formatResetCountdown(left)}`;
+    }
   }
 
   function setServerTime(serverMs) {
@@ -308,6 +330,9 @@ export function createDailyLeaderboardPopup() {
     onClose,
   };
 }
+
+
+
 
 
 

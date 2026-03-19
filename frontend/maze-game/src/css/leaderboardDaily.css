@@ -157,3 +157,16 @@
   white-space: nowrap;
   margin-top: 6px;
 }
+
+.leaderboardDailyServerTimeWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.leaderboardDailyResetTime {
+  font-size: 12px;
+  opacity: 0.82;
+  white-space: nowrap;
+}

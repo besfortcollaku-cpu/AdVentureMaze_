@@ -84,6 +84,7 @@ export function mountAccountUI(root) {
             </div>
             <div class="accountTopCoins">Coins: <span id="accountCoins">0</span></div>
             <div class="accountTopServerTime" id="accountServerTime">Server Time: --:--:--</div>
+            <div class="accountTopResetTime" id="accountResetTime">New Day In: --:--:--</div>
 
           </div>
           <button class="accountClose" id="accountCloseBtn">X</button>
@@ -173,6 +174,7 @@ export function mountAccountUI(root) {
   const usernameEl = root.querySelector("#accountUsername");
   const coinsEl = root.querySelector("#accountCoins");
   const serverTimeEl = root.querySelector("#accountServerTime");
+  const resetTimeEl = root.querySelector("#accountResetTime");
   const inviteLinkEl = root.querySelector("#accountInviteLink");
   const invitedByEl = root.querySelector("#accountInvitedBy");
   const invitedListEl = root.querySelector("#accountInvitedList");
@@ -228,14 +230,32 @@ export function mountAccountUI(root) {
     }
   }
 
+  function formatResetCountdown(msLeft) {
+    const total = Math.max(0, Math.floor(msLeft / 1000));
+    const h = String(Math.floor(total / 3600)).padStart(2, "0");
+    const m = String(Math.floor((total % 3600) / 60)).padStart(2, "0");
+    const s = String(total % 60).padStart(2, "0");
+    return `${h}:${m}:${s}`;
+  }
+
+  function nextUtcResetMs(nowMs) {
+    const d = new Date(nowMs);
+    return Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() + 1, 0, 0, 0, 0);
+  }
+
   function renderServerTime() {
     if (!serverTimeEl) return;
     if (!Number.isFinite(serverTimeBaseMs) || !Number.isFinite(serverTimeClientStartedMs)) {
       serverTimeEl.textContent = "Server Time: --:--:--";
+      if (resetTimeEl) resetTimeEl.textContent = "New Day In: --:--:--";
       return;
     }
     const nowMs = serverTimeBaseMs + (Date.now() - serverTimeClientStartedMs);
     serverTimeEl.textContent = `Server Time: ${formatServerTime(nowMs)}`;
+    if (resetTimeEl) {
+      const left = nextUtcResetMs(nowMs) - nowMs;
+      resetTimeEl.textContent = `New Day In: ${formatResetCountdown(left)}`;
+    }
   }
 
   function setServerTime(serverMs) {
@@ -502,6 +522,9 @@ export function mountAccountUI(root) {
 
   return { show, hide, setUser, setCoins, setServerTime };
 }
+
+
+
 
 
 
