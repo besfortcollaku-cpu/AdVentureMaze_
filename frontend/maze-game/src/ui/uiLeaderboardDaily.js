@@ -25,9 +25,7 @@ function mergeRowsWithMe(rows, me) {
   const meRank = me?.rank != null ? Number(me.rank) : null;
   const meCoins = Number(me?.coins_earned || 0);
   const meName = String(me?.username || meUid || "player");
-  const mePublicEligible = me?.public_eligible !== false;
-
-  if (!meUid || !mePublicEligible || !meRank || meRank > 20) {
+  if (!meUid || !meRank || meRank > 20) {
     return list;
   }
 
@@ -260,3 +258,4 @@ export function createDailyLeaderboardPopup() {
     onClose,
   };
 }
+
