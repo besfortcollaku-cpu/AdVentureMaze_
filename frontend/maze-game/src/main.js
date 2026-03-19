@@ -400,6 +400,28 @@ function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+async function preloadDailyLeaderboardForPopup(timeoutMs = 1200) {
+  const fallback = {
+    rows: [],
+    me: {
+      rank: null,
+      uid: CURRENT_USER?.uid || null,
+      username: CURRENT_USER?.username || "Player",
+      coins_earned: 0,
+    },
+  };
+
+  const boardPromise = apiLeaderboardDaily().catch(() => ({ ok: false, rows: [] }));
+  const mePromise = apiLeaderboardDailyMe().catch(() => ({ ok: false, row: fallback.me }));
+
+  const combined = Promise.all([boardPromise, mePromise]).then(([boardOut, meOut]) => ({
+    rows: Array.isArray(boardOut?.rows) ? boardOut.rows : [],
+    me: meOut?.row || fallback.me,
+  }));
+
+  return Promise.race([combined, sleep(timeoutMs).then(() => fallback)]);
+}
+
 function showBackExitPopup() {
   return new Promise((resolve) => {
     if (BACK_EXIT_PROMPT_OPEN) return resolve(false);
@@ -1633,6 +1655,7 @@ levelsUI.onSelect((levelNumber) => {
       RESUME_ENABLED = false;
 
       const completedLevel = level?.number ?? (levelIndex + 1);
+      const leaderboardPrefetch = preloadDailyLeaderboardForPopup(1200);
 
       if (CURRENT_ACCESS_TOKEN) {
         try {
@@ -1656,7 +1679,7 @@ levelsUI.onSelect((levelNumber) => {
       await sleep(2000);
 
       // Show daily ranking before the win popup. On fetch failure, continue normally.
-      await showDailyLeaderboardBeforeWin();
+      await showDailyLeaderboardBeforeWin(leaderboardPrefetch);
 
       afterLevelCompleteShowAdOrWin({
         levelNumber: completedLevel,
@@ -1794,12 +1817,10 @@ function simulateInterstitialAd(onFinished) {
     rewardReadyText: "✅ Ad Finished",
   });
 }
-async function showDailyLeaderboardBeforeWin() {
+async function showDailyLeaderboardBeforeWin(prefetchedPayload = null) {
   try {
-    const [boardOut, meOut] = await Promise.all([
-      apiLeaderboardDaily(),
-      apiLeaderboardDailyMe(),
-    ]);
+    const payload = prefetchedPayload || preloadDailyLeaderboardForPopup(1200);
+    const out = await payload;
 
     await new Promise((resolve) => {
       dailyLeaderboardPopup.onClose(() => {
@@ -1808,8 +1829,8 @@ async function showDailyLeaderboardBeforeWin() {
       });
 
       dailyLeaderboardPopup.show({
-        rows: Array.isArray(boardOut?.rows) ? boardOut.rows : [],
-        me: meOut?.row || { rank: null, uid: null, username: "Player", coins_earned: 0 },
+        rows: Array.isArray(out?.rows) ? out.rows : [],
+        me: out?.me || { rank: null, uid: null, username: "Player", coins_earned: 0 },
       });
     });
 
@@ -2604,5 +2625,4 @@ if (meFresh?.dailyReward) {
 }
 
 boot();
-
 
