@@ -134,3 +134,26 @@
 .leaderboardDailyContinue.is-disabled {
   opacity: 0.65;
 }
+
+.leaderboardDailyHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 16px 4px;
+}
+
+.leaderboardDailyHead .leaderboardDailyTitle {
+  padding: 0;
+}
+
+.leaderboardDailyHead .leaderboardDailySubtitle {
+  padding: 2px 0 0;
+}
+
+.leaderboardDailyServerTime {
+  font-size: 12px;
+  opacity: 0.82;
+  white-space: nowrap;
+  margin-top: 6px;
+}

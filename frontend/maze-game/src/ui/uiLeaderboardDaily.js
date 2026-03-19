@@ -74,8 +74,13 @@ export function createDailyLeaderboardPopup() {
   overlay.className = "leaderboardDailyOverlay hidden";
   overlay.innerHTML = `
     <div class="leaderboardDailyCard">
-      <div class="leaderboardDailyTitle">Daily Ranking</div>
-      <div class="leaderboardDailySubtitle">Top players today</div>
+      <div class="leaderboardDailyHead">
+        <div>
+          <div class="leaderboardDailyTitle">Daily Ranking</div>
+          <div class="leaderboardDailySubtitle">Top players today</div>
+        </div>
+        <div class="leaderboardDailyServerTime" id="leaderboardDailyServerTime">Server: --:--:--</div>
+      </div>
       <div class="leaderboardDailyRows" id="leaderboardDailyRows"></div>
       <div class="leaderboardDailyMe" id="leaderboardDailyMe"></div>
       <button type="button" class="leaderboardDailyContinue" id="leaderboardDailyContinue">Continue</button>
@@ -87,6 +92,46 @@ export function createDailyLeaderboardPopup() {
   const rowsEl = overlay.querySelector("#leaderboardDailyRows");
   const meEl = overlay.querySelector("#leaderboardDailyMe");
   const continueBtn = overlay.querySelector("#leaderboardDailyContinue");
+  const serverTimeEl = overlay.querySelector("#leaderboardDailyServerTime");
+
+  let serverTimeBaseMs = null;
+  let serverTimeClientStartedMs = null;
+  let serverTimeTimer = null;
+
+  function formatServerTime(ms) {
+    if (!Number.isFinite(ms)) return "--:--:--";
+    try {
+      return new Date(ms).toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: false,
+      });
+    } catch {
+      return "--:--:--";
+    }
+  }
+
+  function renderServerTime() {
+    if (!serverTimeEl) return;
+    if (!Number.isFinite(serverTimeBaseMs) || !Number.isFinite(serverTimeClientStartedMs)) {
+      serverTimeEl.textContent = "Server: --:--:--";
+      return;
+    }
+    const nowMs = serverTimeBaseMs + (Date.now() - serverTimeClientStartedMs);
+    serverTimeEl.textContent = `Server: ${formatServerTime(nowMs)}`;
+  }
+
+  function setServerTime(serverMs) {
+    const ms = Number(serverMs);
+    if (!Number.isFinite(ms)) return;
+    serverTimeBaseMs = ms;
+    serverTimeClientStartedMs = Date.now();
+    renderServerTime();
+    if (serverTimeTimer) clearInterval(serverTimeTimer);
+    serverTimeTimer = setInterval(renderServerTime, 1000);
+  }
+
 
   function setContinueDisabled(disabled) {
     if (!continueBtn) return;
@@ -227,11 +272,15 @@ export function createDailyLeaderboardPopup() {
     isAnimating = false;
   }
 
-  function show({ rows, me, loading = false, previousRows = null, animateMovement = false } = {}) {
+  function show({ rows, me, loading = false, previousRows = null, animateMovement = false, serverTimeMs = null } = {}) {
     renderVersion += 1;
     const version = renderVersion;
 
     overlay.classList.remove("hidden");
+
+    if (Number.isFinite(Number(serverTimeMs))) {
+      setServerTime(Number(serverTimeMs));
+    }
 
     if (animateMovement && Array.isArray(previousRows) && previousRows.length > 0) {
       void animateRowMovement({ previousRows, rows, me, loading, version });
@@ -243,7 +292,6 @@ export function createDailyLeaderboardPopup() {
     setContinueDisabled(Boolean(loading));
     isAnimating = false;
   }
-
   function onClose(fn) {
     closeHandler = fn;
   }
@@ -260,5 +308,11 @@ export function createDailyLeaderboardPopup() {
     onClose,
   };
 }
+
+
+
+
+
+
 
 

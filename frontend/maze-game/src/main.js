@@ -121,6 +121,7 @@ let LAST_DAILY_LEADERBOARD_ROWS = [];
 let LAST_DAILY_LEADERBOARD_ME = null;
 let PREVIOUS_DAILY_LEADERBOARD_ROWS = [];
 let PREVIOUS_DAILY_LEADERBOARD_ME = null;
+let LAST_SERVER_TIME_MS = null;
 function shouldShowAutoAd() {
   const last = Number(localStorage.getItem(AUTO_AD_LAST_KEY) || 0);
   return Date.now() - last > AUTO_AD_COOLDOWN_MS;
@@ -380,6 +381,10 @@ function applyUserPatch(patch, opts = {}) {
 
   CURRENT_USER = { ...CURRENT_USER, ...patch };
 
+  if (Number.isFinite(Number(CURRENT_USER?.server_time_ms))) {
+    setGlobalServerTime(Number(CURRENT_USER.server_time_ms));
+  }
+
   // never allow identity to be wiped by partial backend patches
   if (!CURRENT_USER?.uid && keepUid) CURRENT_USER.uid = keepUid;
   if (!CURRENT_USER?.username && keepName) CURRENT_USER.username = keepName;
@@ -406,6 +411,26 @@ function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+function readServerTimeFromHeaders(res) {
+  try {
+    const raw = res?.headers?.get?.("date");
+    if (!raw) return null;
+    const ms = Date.parse(raw);
+    if (!Number.isFinite(ms)) return null;
+    return ms;
+  } catch {
+    return null;
+  }
+}
+
+function setGlobalServerTime(ms) {
+  const n = Number(ms);
+  if (!Number.isFinite(n)) return;
+  LAST_SERVER_TIME_MS = n;
+  ui?.setServerTime?.(n);
+}
+
+
 async function preloadDailyLeaderboardForPopup(timeoutMs = 1200) {
   const fallback = {
     rows: Array.isArray(LAST_DAILY_LEADERBOARD_ROWS) ? LAST_DAILY_LEADERBOARD_ROWS : [],
@@ -416,6 +441,7 @@ async function preloadDailyLeaderboardForPopup(timeoutMs = 1200) {
       coins_earned: 0,
     },
     timedOut: true,
+    serverTimeMs: LAST_SERVER_TIME_MS,
   };
 
   const full = Promise.all([
@@ -426,7 +452,12 @@ async function preloadDailyLeaderboardForPopup(timeoutMs = 1200) {
       rows: Array.isArray(boardOut?.rows) ? boardOut.rows : [],
       me: meOut?.row || fallback.me,
       timedOut: false,
+      serverTimeMs: Number.isFinite(Number(boardOut?.server_time_ms)) ? Number(boardOut.server_time_ms) : (Number.isFinite(Number(meOut?.server_time_ms)) ? Number(meOut.server_time_ms) : LAST_SERVER_TIME_MS),
     };
+
+    if (Number.isFinite(Number(out.serverTimeMs))) {
+      setGlobalServerTime(Number(out.serverTimeMs));
+    }
 
     if (out.rows.length) {
       LAST_DAILY_LEADERBOARD_ROWS = out.rows;
@@ -669,9 +700,16 @@ async function apiLeaderboardDaily() {
     headers: { "Content-Type": "application/json" },
   });
 
+  const serverMs = readServerTimeFromHeaders(res);
+  if (Number.isFinite(serverMs)) setGlobalServerTime(serverMs);
+
   const out = await res.json().catch(() => ({}));
   if (!res.ok || !out?.ok) {
     throw new Error(out?.error || "leaderboard_failed");
+  }
+
+  if (Number.isFinite(serverMs)) {
+    out.server_time_ms = serverMs;
   }
 
   return out;
@@ -687,6 +725,7 @@ async function apiLeaderboardDailyMe() {
         username: "Guest",
         coins_earned: 0,
       },
+      server_time_ms: LAST_SERVER_TIME_MS,
     };
   }
 
@@ -698,9 +737,16 @@ async function apiLeaderboardDailyMe() {
     },
   });
 
+  const serverMs = readServerTimeFromHeaders(res);
+  if (Number.isFinite(serverMs)) setGlobalServerTime(serverMs);
+
   const out = await res.json().catch(() => ({}));
   if (!res.ok || !out?.ok) {
     throw new Error(out?.error || "leaderboard_me_failed");
+  }
+
+  if (Number.isFinite(serverMs)) {
+    out.server_time_ms = serverMs;
   }
 
   return out;
@@ -1067,16 +1113,20 @@ window.__maze.getDailyLeaderboard = async () => {
     method: "GET",
     headers: { "Content-Type": "application/json" },
   });
+  const serverMs = readServerTimeFromHeaders(res);
+  if (Number.isFinite(serverMs)) setGlobalServerTime(serverMs);
+
   const out = await res.json().catch(() => ({}));
   if (!res.ok || !out?.ok) {
     return { ok: false, error: out?.error || "leaderboard_failed", rows: [] };
   }
+  if (Number.isFinite(serverMs)) out.server_time_ms = serverMs;
   return out;
 };
 
 window.__maze.getDailyLeaderboardMe = async () => {
   if (!CURRENT_ACCESS_TOKEN) {
-    return { ok: true, row: { rank: null, uid: null, username: "Guest", coins_earned: 0 } };
+    return { ok: true, row: { rank: null, uid: null, username: "Guest", coins_earned: 0 }, server_time_ms: LAST_SERVER_TIME_MS };
   }
 
   const res = await fetch(`${BACKEND}/api/leaderboard/daily/me`, {
@@ -1087,10 +1137,14 @@ window.__maze.getDailyLeaderboardMe = async () => {
     },
   });
 
+  const serverMs = readServerTimeFromHeaders(res);
+  if (Number.isFinite(serverMs)) setGlobalServerTime(serverMs);
+
   const out = await res.json().catch(() => ({}));
   if (!res.ok || !out?.ok) {
     return { ok: false, error: out?.error || "leaderboard_me_failed", row: { rank: null, uid: CURRENT_USER?.uid || null, username: CURRENT_USER?.username || "Player", coins_earned: 0 } };
   }
+  if (Number.isFinite(serverMs)) out.server_time_ms = serverMs;
   return out;
 };
 
@@ -1411,7 +1465,19 @@ async function apiMe() {
     },
   });
 
-  return res.json().catch(() => ({}));
+  const serverMs = readServerTimeFromHeaders(res);
+  if (Number.isFinite(serverMs)) setGlobalServerTime(serverMs);
+
+  const out = await res.json().catch(() => ({}));
+
+  if (Number.isFinite(serverMs)) {
+    out.server_time_ms = serverMs;
+    if (out?.user && typeof out.user === "object") {
+      out.user.server_time_ms = serverMs;
+    }
+  }
+
+  return out;
 }
 
 mysteryChestPopup.onOpen(async () => {
@@ -1952,6 +2018,7 @@ async function showDailyLeaderboardBeforeWin(prefetchedPayload = null, rewardSyn
 
     let latestRows = initialRows;
     let latestMe = initialMe;
+    let latestServerTimeMs = Number.isFinite(Number(LAST_SERVER_TIME_MS)) ? Number(LAST_SERVER_TIME_MS) : null;
     let movementAnimated = false;
 
     await new Promise((resolve) => {
@@ -1967,13 +2034,18 @@ async function showDailyLeaderboardBeforeWin(prefetchedPayload = null, rewardSyn
         rows: initialRows,
         me: initialMe,
         loading: initialRows.length === 0,
+        serverTimeMs: latestServerTimeMs,
       });
 
-      const applyRows = (rows, me, loading, allowAnimate = false) => {
+      const applyRows = (rows, me, loading, allowAnimate = false, serverTimeMs = null) => {
         const safeRows = Array.isArray(rows) ? rows : [];
         const safeMe = me || initialMe;
         latestRows = safeRows;
         latestMe = safeMe;
+        if (Number.isFinite(Number(serverTimeMs))) {
+          latestServerTimeMs = Number(serverTimeMs);
+          setGlobalServerTime(latestServerTimeMs);
+        }
 
         const canAnimate =
           allowAnimate &&
@@ -1985,6 +2057,7 @@ async function showDailyLeaderboardBeforeWin(prefetchedPayload = null, rewardSyn
           rows: safeRows,
           me: safeMe,
           loading: Boolean(loading),
+          serverTimeMs: latestServerTimeMs,
           previousRows: canAnimate ? previousRowsForAnimation : null,
           animateMovement: canAnimate,
         });
@@ -1999,7 +2072,8 @@ async function showDailyLeaderboardBeforeWin(prefetchedPayload = null, rewardSyn
             fast?.rows,
             fast?.me || initialMe,
             Boolean(fast?.timedOut && (!fast?.rows || fast.rows.length === 0)),
-            true
+            true,
+            fast?.serverTimeMs
           );
         })
         .catch(() => {
@@ -2010,7 +2084,7 @@ async function showDailyLeaderboardBeforeWin(prefetchedPayload = null, rewardSyn
       prefetch.full
         .then((live) => {
           if (closed) return;
-          applyRows(live?.rows, live?.me || initialMe, false, true);
+          applyRows(live?.rows, live?.me || initialMe, false, true, live?.serverTimeMs);
         })
         .catch(() => {
           if (closed) return;
@@ -2827,4 +2901,14 @@ if (meFresh?.dailyReward) {
 }
 
 boot();
+
+
+
+
+
+
+
+
+
+
 

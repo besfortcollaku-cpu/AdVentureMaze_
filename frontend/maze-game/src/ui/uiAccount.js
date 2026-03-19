@@ -83,7 +83,7 @@ export function mountAccountUI(root) {
               <button id="accountEditName" class="accountEditBtn">Edit</button>
             </div>
             <div class="accountTopCoins">Coins: <span id="accountCoins">0</span></div>
-          </div>
+            <div class="accountTopServerTime" id="accountServerTime">Server Time: --:--:--</div>
 
           <button class="accountClose" id="accountCloseBtn">X</button>
         </div>
@@ -171,7 +171,7 @@ export function mountAccountUI(root) {
 
   const usernameEl = root.querySelector("#accountUsername");
   const coinsEl = root.querySelector("#accountCoins");
-
+  const serverTimeEl = root.querySelector("#accountServerTime");
   const inviteLinkEl = root.querySelector("#accountInviteLink");
   const invitedByEl = root.querySelector("#accountInvitedBy");
   const invitedListEl = root.querySelector("#accountInvitedList");
@@ -208,6 +208,45 @@ export function mountAccountUI(root) {
   const claimPiBtn = root.querySelector("#accountClaimPiBtn");
   const prevMonthEl = root.querySelector("#accountPrevMonth");
   const prevMonthPiEl = root.querySelector("#accountPrevMonthPi");
+
+  let serverTimeBaseMs = null;
+  let serverTimeClientStartedMs = null;
+  let serverTimeTimer = null;
+
+  function formatServerTime(ms) {
+    if (!Number.isFinite(ms)) return "--:--:--";
+    try {
+      return new Date(ms).toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: false,
+      });
+    } catch {
+      return "--:--:--";
+    }
+  }
+
+  function renderServerTime() {
+    if (!serverTimeEl) return;
+    if (!Number.isFinite(serverTimeBaseMs) || !Number.isFinite(serverTimeClientStartedMs)) {
+      serverTimeEl.textContent = "Server Time: --:--:--";
+      return;
+    }
+    const nowMs = serverTimeBaseMs + (Date.now() - serverTimeClientStartedMs);
+    serverTimeEl.textContent = `Server Time: ${formatServerTime(nowMs)}`;
+  }
+
+  function setServerTime(serverMs) {
+    const ms = Number(serverMs);
+    if (!Number.isFinite(ms)) return;
+    serverTimeBaseMs = ms;
+    serverTimeClientStartedMs = Date.now();
+    renderServerTime();
+    if (serverTimeTimer) clearInterval(serverTimeTimer);
+    serverTimeTimer = setInterval(renderServerTime, 1000);
+  }
+
 
   function renderDailyRankingRows(rows) {
     if (!dailyRankingRowsEl) return;
@@ -280,7 +319,7 @@ export function mountAccountUI(root) {
     if (!user) return;
 
     if (usernameEl) usernameEl.textContent = user.username ?? "guest";
-
+    if (Number.isFinite(Number(user.server_time_ms))) setServerTime(Number(user.server_time_ms));
     if (invitedByEl) invitedByEl.textContent = String(user.invited_by_name || user.invited_by_uid || "-");
     if (inviteSection) inviteSection.style.display = user.uid ? "block" : "none";
 
@@ -460,5 +499,10 @@ export function mountAccountUI(root) {
     if (e.target === overlay) hide();
   });
 
-  return { show, hide, setUser, setCoins };
+  return { show, hide, setUser, setCoins, setServerTime };
 }
+
+
+
+
+

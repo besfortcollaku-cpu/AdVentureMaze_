@@ -393,3 +393,9 @@
   font-size: 13px;
   font-weight: 700;
 }
+
+.accountTopServerTime {
+  font-size: 12px;
+  opacity: 0.78;
+  letter-spacing: 0.2px;
+}

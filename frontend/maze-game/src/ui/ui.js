@@ -297,6 +297,10 @@ triggerLogin() {
       accountUI.setCoins(count);
     },
 
+    setServerTime(ms) {
+      accountUI.setServerTime?.(ms);
+    },
+
 setHintsBadge(count) {
   const el = document.getElementById("hintCount");
   if (!el) return;
@@ -370,3 +374,4 @@ const ICONS = {
   hint: iconSVG("M12 3a6 6 0 0 0-3 11.2V17h6v-2.8A6 6 0 0 0 12 3Zm-1 17h2v2h-2Z"),
   skip: iconSVG("M5 4l8 8-8 8V4Zm10 0h2v16h-2V4Z")
 };
+
