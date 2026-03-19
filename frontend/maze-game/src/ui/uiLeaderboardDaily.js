@@ -19,6 +19,41 @@ function normalizeRows(rows) {
   }));
 }
 
+function mergeRowsWithMe(rows, me) {
+  const list = normalizeRows(rows);
+  const meUid = String(me?.uid || "");
+  const meRank = me?.rank != null ? Number(me.rank) : null;
+  const meCoins = Number(me?.coins_earned || 0);
+  const meName = String(me?.username || meUid || "player");
+  const mePublicEligible = me?.public_eligible !== false;
+
+  if (!meUid || !mePublicEligible || !meRank || meRank > 20) {
+    return list;
+  }
+
+  if (list.some((r) => String(r.uid) === meUid)) {
+    return list;
+  }
+
+  const withMe = [
+    ...list,
+    {
+      uid: meUid,
+      username: meName,
+      rank: meRank,
+      coins_earned: meCoins,
+    },
+  ];
+
+  withMe.sort((a, b) => {
+    const r = Number(a.rank || 0) - Number(b.rank || 0);
+    if (r !== 0) return r;
+    return String(a.uid).localeCompare(String(b.uid));
+  });
+
+  return withMe.slice(0, 20);
+}
+
 function hasPositionChanges(previousRows, currentRows) {
   const prevIndex = new Map();
   previousRows.forEach((r, i) => prevIndex.set(String(r.uid), i));
@@ -60,7 +95,7 @@ export function createDailyLeaderboardPopup() {
   }
 
   function renderRows(rows, me, loading = false) {
-    const topRows = normalizeRows(rows);
+    const topRows = mergeRowsWithMe(rows, me);
     const meUid = String(me?.uid || "");
 
     if (!topRows.length) {
@@ -101,8 +136,8 @@ export function createDailyLeaderboardPopup() {
   }
 
   async function animateRowMovement({ previousRows, rows, me, loading, version }) {
-    const prev = normalizeRows(previousRows);
-    const cur = normalizeRows(rows);
+    const prev = mergeRowsWithMe(previousRows, me);
+    const cur = mergeRowsWithMe(rows, me);
     const meUid = String(me?.uid || "");
 
     if (!prev.length || !cur.length || !hasPositionChanges(prev, cur)) {
