@@ -1,6 +1,7 @@
 
 import "../css/settings.css";
 import { getSettings, setSetting, subscribeSettings } from "../settings.js";
+import { unlockGlobalAudio } from "../audio/audioManager.js";
 
 
 
@@ -99,7 +100,7 @@ soundToggle.addEventListener("change", async () => {
 
   // 🔑 IMPORTANT: only try unlock when turning sound ON
   if (checked) {
-    await ensureAudioUnlocked();
+    unlockGlobalAudio();
   }
 });
 
