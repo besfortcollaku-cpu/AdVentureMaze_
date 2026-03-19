@@ -17,6 +17,8 @@ import { createRestartPopup } from "./ui/uiRestarts.js";
 import { createMissedRewardPopup } from "./ui/uiMissedReward.js";
 import { createMysteryChestPopup } from "./ui/uiMysteryChest.js";
 import { createDailyLeaderboardPopup } from "./ui/uiLeaderboardDaily.js";
+import { getSettings, subscribeSettings } from "./settings.js";
+import { unlockGlobalAudio, play as playAudio, setMusicEnabled, setSfxEnabled, setMasterVolume, startBackgroundMusic, stopBackgroundMusic } from "./audio/audioManager.js";
 
 // DEBUG: show fatal errors on mobile so buttons don't "do nothing"
 window.addEventListener("error", (e) => {
@@ -535,6 +537,7 @@ async function animateCoinsTo(target, opts = {}) {
   if (delayMs > 0) await sleep(delayMs);
 
   if (delta > 0 && opts?.showGainFx !== false) {
+    playAudio("coins_gain");
     showCoinGainFX(delta);
   }
 
@@ -1117,6 +1120,81 @@ const hintPopup = createHintPopup();
 const restartPopup = createRestartPopup();
 const dailyRewardPopup = createDailyRewardPopup();
 const dailyLeaderboardPopup = createDailyLeaderboardPopup();
+
+function withPopupAudio(popupApi) {
+  if (!popupApi) return;
+
+  if (typeof popupApi.show === "function") {
+    const originalShow = popupApi.show.bind(popupApi);
+    popupApi.show = (...args) => {
+      playAudio("popup_open");
+      return originalShow(...args);
+    };
+  }
+
+  if (typeof popupApi.hide === "function") {
+    const originalHide = popupApi.hide.bind(popupApi);
+    popupApi.hide = (...args) => {
+      playAudio("popup_close");
+      return originalHide(...args);
+    };
+  }
+}
+
+withPopupAudio(winPopup);
+withPopupAudio(skipPopup);
+withPopupAudio(hintPopup);
+withPopupAudio(restartPopup);
+withPopupAudio(dailyRewardPopup);
+withPopupAudio(missedRewardPopup);
+withPopupAudio(mysteryChestPopup);
+withPopupAudio(adSurprisePopup);
+withPopupAudio(dailyLeaderboardPopup);
+
+function setupGlobalAudioHooks() {
+  setMasterVolume(0.6);
+
+  const s = getSettings();
+  setSfxEnabled(!!s.sound);
+  setMusicEnabled(!!s.sound);
+
+  subscribeSettings((next) => {
+    const soundOn = !!next?.sound;
+    setSfxEnabled(soundOn);
+    setMusicEnabled(soundOn);
+    if (!soundOn) {
+      stopBackgroundMusic();
+    }
+  });
+
+  let audioUnlocked = false;
+  const unlockOnce = () => {
+    if (audioUnlocked) return;
+    audioUnlocked = true;
+    unlockGlobalAudio();
+    startBackgroundMusic();
+  };
+
+  window.addEventListener("pointerdown", unlockOnce, { once: true, passive: true });
+
+  document.addEventListener(
+    "pointerdown",
+    (e) => {
+      const t = e.target;
+      if (!(t instanceof Element)) return;
+      if (!t.closest("button, .icon, .startBtn, .accountMiniBtn, [role='button']")) return;
+      playAudio("ui_click");
+    },
+    { passive: true, capture: true }
+  );
+
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) stopBackgroundMusic();
+    else startBackgroundMusic();
+  });
+}
+
+setupGlobalAudioHooks();
 window.onRecoverMissedDay = (day) => {
   if (!guardAdCooldownBeforeWatching()) {
     return;
@@ -2734,9 +2812,4 @@ if (meFresh?.dailyReward) {
 }
 
 boot();
-
-
-
-
-
 
