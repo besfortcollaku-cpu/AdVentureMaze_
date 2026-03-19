@@ -1155,14 +1155,21 @@ function setupGlobalAudioHooks() {
   setMasterVolume(0.6);
 
   const s = getSettings();
-  setSfxEnabled(!!s.sound);
-  setMusicEnabled(!!s.sound);
+  const sfxOn = !!s.sound;
+  const musicOn = !!(s.music ?? s.sound);
+  setSfxEnabled(sfxOn);
+  setMusicEnabled(musicOn);
 
   subscribeSettings((next) => {
-    const soundOn = !!next?.sound;
-    setSfxEnabled(soundOn);
-    setMusicEnabled(soundOn);
-    if (!soundOn) {
+    const nextSfxOn = !!next?.sound;
+    const nextMusicOn = !!(next?.music ?? next?.sound);
+
+    setSfxEnabled(nextSfxOn);
+    setMusicEnabled(nextMusicOn);
+
+    if (nextMusicOn && !document.hidden) {
+      startBackgroundMusic();
+    } else {
       stopBackgroundMusic();
     }
   });
@@ -1172,7 +1179,9 @@ function setupGlobalAudioHooks() {
     if (audioUnlocked) return;
     audioUnlocked = true;
     unlockGlobalAudio();
-    startBackgroundMusic();
+    if (isMusicAllowedNow()) {
+      startBackgroundMusic();
+    }
   };
 
   window.addEventListener("pointerdown", unlockOnce, { once: true, passive: true });
@@ -1189,9 +1198,14 @@ function setupGlobalAudioHooks() {
   );
 
   document.addEventListener("visibilitychange", () => {
-    if (document.hidden) stopBackgroundMusic();
+    if (document.hidden || !isMusicAllowedNow()) stopBackgroundMusic();
     else startBackgroundMusic();
   });
+
+  function isMusicAllowedNow() {
+    const curr = getSettings();
+    return !!(curr.music ?? curr.sound);
+  }
 }
 
 setupGlobalAudioHooks();

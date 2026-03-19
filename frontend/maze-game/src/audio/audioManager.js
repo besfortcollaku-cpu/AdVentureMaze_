@@ -25,7 +25,7 @@ const state = {
   sfxGain: null,
   musicGain: null,
   masterVolume: 0.6,
-  sfxVolume: 0.35,
+  sfxVolume: 0.4,
   musicVolume: 0.18,
   sfxEnabled: readBool(SFX_KEY, true),
   musicEnabled: readBool(MUSIC_KEY, true),
@@ -304,7 +304,7 @@ function registerDefaults() {
     category: "sfx",
     type: "file",
     src: `${ASSET_BASE}ui_click.mp3`,
-    volume: 0.26,
+    volume: 0.3,
     cooldownMs: 70,
     fallback: { type: "tone", freq: 680, duration: 0.045, gain: 0.05 },
   });
@@ -313,7 +313,7 @@ function registerDefaults() {
     category: "sfx",
     type: "file",
     src: `${ASSET_BASE}popup_open.mp3`,
-    volume: 0.25,
+    volume: 0.3,
     cooldownMs: 80,
     fallback: { type: "tone", freq: 510, duration: 0.1, gain: 0.055, curve: "up" },
   });
@@ -322,7 +322,7 @@ function registerDefaults() {
     category: "sfx",
     type: "file",
     src: `${ASSET_BASE}popup_close.mp3`,
-    volume: 0.22,
+    volume: 0.3,
     cooldownMs: 80,
     fallback: { type: "tone", freq: 420, duration: 0.09, gain: 0.05, curve: "down" },
   });
@@ -331,7 +331,7 @@ function registerDefaults() {
     category: "sfx",
     type: "file",
     src: `${ASSET_BASE}coins_gain.mp3`,
-    volume: 0.28,
+    volume: 0.3,
     cooldownMs: 180,
     fallback: {
       type: "sequence",
@@ -501,3 +501,4 @@ export function isSfxEnabled() {
 }
 
 registerDefaults();
+

@@ -5,6 +5,8 @@ const KEY = "maze_settings_v1";
 
 const DEFAULTS = {
   sound: true,
+  music: true,
+  slideSound: true,
   vibration: true,
 };
 
@@ -52,3 +54,4 @@ export function subscribeSettings(fn) {
   } catch {}
   return () => listeners.delete(fn);
 }
+

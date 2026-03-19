@@ -105,7 +105,7 @@ onTilePainted?.({
     // ---- sound + vibration settings ----
     const s = getSettings();
 
-    if (s.sound) {
+    if (s.sound && (s.slideSound ?? true)) {
       // start rolling sound with intensity based on distance
       startRollSound(Math.min(3, 0.8 + anim.dist * 0.25));
       soundActive = true;
@@ -128,7 +128,7 @@ onTilePainted?.({
     const s = getSettings();
 
     // if user toggled sound OFF while moving -> stop immediately
-    if (!s.sound && soundActive) {
+    if ((!s.sound || !(s.slideSound ?? true)) && soundActive) {
       stopRollSound();
       soundActive = false;
     }
@@ -142,7 +142,7 @@ onTilePainted?.({
     const fy = anim.sy + (anim.ty - anim.sy) * k;
 
     // update rolling sound while active
-    if (s.sound && soundActive) {
+    if (s.sound && (s.slideSound ?? true) && soundActive) {
       const speedFeel = 1.2 + anim.dist * 0.25 * (1 - clamped);
       updateRollSound(Math.min(3, speedFeel));
     }

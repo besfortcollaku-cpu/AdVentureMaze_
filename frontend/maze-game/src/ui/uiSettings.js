@@ -1,10 +1,6 @@
-
 import "../css/settings.css";
 import { getSettings, setSetting, subscribeSettings } from "../settings.js";
 import { unlockGlobalAudio } from "../audio/audioManager.js";
-
-
-
 
 export function mountSettingsUI(root) {
   const el = document.createElement("div");
@@ -16,16 +12,35 @@ export function mountSettingsUI(root) {
     <div class="settings-card">
       <div class="settings-header">
         <h2>Settings</h2>
-        <button class="close-btn">✕</button>
+        <button class="close-btn">x</button>
       </div>
 
       <div class="settings-item">
         <div>
-          <strong>Sound</strong>
-          <div class="desc">Rolling + victory (no wall-hit sound)</div>
+          <strong>Sound Effects</strong>
         </div>
         <label class="switch">
           <input type="checkbox" id="soundToggle">
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="settings-item">
+        <div>
+          <strong>Background Music</strong>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="musicToggle">
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="settings-item">
+        <div>
+          <strong>Slide Ball Sound</strong>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="slideSoundToggle">
           <span class="slider"></span>
         </label>
       </div>
@@ -40,25 +55,14 @@ export function mountSettingsUI(root) {
           <span class="slider"></span>
         </label>
       </div>
-      <div class="settings-item">
-  <div>
-    <strong>Gyroscope</strong>
-    <div class="desc">Tilt phone to move ball</div>
-  </div>
-  <label class="switch">
-    <input type="checkbox" id="gyroToggle">
-    <span class="slider"></span>
-  </label>
-</div>
 
-      <!-- FUTURE -->
-      <div class="settings-item disabled">
+      <div class="settings-item">
         <div>
-          <strong>Background music</strong>
-          <div class="desc">Coming soon</div>
+          <strong>Gyroscope</strong>
+          <div class="desc">Tilt phone to move ball</div>
         </div>
         <label class="switch">
-          <input type="checkbox" disabled>
+          <input type="checkbox" id="gyroToggle">
           <span class="slider"></span>
         </label>
       </div>
@@ -68,48 +72,55 @@ export function mountSettingsUI(root) {
   `;
 
   root.appendChild(el);
-const gyroToggle = el.querySelector("#gyroToggle");
+
+  const gyroToggle = el.querySelector("#gyroToggle");
   const soundToggle = el.querySelector("#soundToggle");
+  const musicToggle = el.querySelector("#musicToggle");
+  const slideSoundToggle = el.querySelector("#slideSoundToggle");
   const vibrationToggle = el.querySelector("#vibrationToggle");
 
-  // ---- LOAD SAVED SETTINGS ----
   gyroToggle.checked = localStorage.getItem("gyro") === "on";
-  // ---- SAVE ON CHANGE ----
   gyroToggle.addEventListener("change", () => {
-  localStorage.setItem("gyro", gyroToggle.checked ? "on" : "off");
-});
-  
+    localStorage.setItem("gyro", gyroToggle.checked ? "on" : "off");
+  });
 
-// ---- LOAD (from src/settings.js) ----
-const s0 = getSettings();
-soundToggle.checked = !!s0.sound;
-vibrationToggle.checked = !!s0.vibration;
+  const s0 = getSettings();
+  soundToggle.checked = !!s0.sound;
+  musicToggle.checked = !!(s0.music ?? s0.sound);
+  slideSoundToggle.checked = !!(s0.slideSound ?? true);
+  vibrationToggle.checked = !!s0.vibration;
 
-// keep UI in sync if settings change elsewhere
-subscribeSettings((s) => {
-  soundToggle.checked = !!s.sound;
-  vibrationToggle.checked = !!s.vibration;
-});
+  subscribeSettings((s) => {
+    soundToggle.checked = !!s.sound;
+    musicToggle.checked = !!(s.music ?? s.sound);
+    slideSoundToggle.checked = !!(s.slideSound ?? true);
+    vibrationToggle.checked = !!s.vibration;
+  });
 
-// ---- SAVE ON CHANGE (to src/settings.js) ----
-soundToggle.addEventListener("change", async () => {
-  const checked = soundToggle.checked;
+  soundToggle.addEventListener("change", () => {
+    const checked = soundToggle.checked;
+    setSetting("sound", checked);
+    if (checked) {
+      unlockGlobalAudio();
+    }
+  });
 
-  // store
-  setSetting("sound", checked);
+  musicToggle.addEventListener("change", () => {
+    const checked = musicToggle.checked;
+    setSetting("music", checked);
+    if (checked) {
+      unlockGlobalAudio();
+    }
+  });
 
-  // 🔑 IMPORTANT: only try unlock when turning sound ON
-  if (checked) {
-    unlockGlobalAudio();
-  }
-});
+  slideSoundToggle.addEventListener("change", () => {
+    setSetting("slideSound", slideSoundToggle.checked);
+  });
 
-vibrationToggle.addEventListener("change", () => {
-  setSetting("vibration", vibrationToggle.checked);
-});
+  vibrationToggle.addEventListener("change", () => {
+    setSetting("vibration", vibrationToggle.checked);
+  });
 
-
-  // ---- OPEN / CLOSE ----
   el.querySelector(".close-btn").onclick = close;
   el.querySelector(".settings-backdrop").onclick = close;
 

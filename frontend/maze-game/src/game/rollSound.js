@@ -69,7 +69,7 @@ export function startRollSound(intensity = 1) {
 
   // fade in
   rollGain.gain.linearRampToValueAtTime(
-    0.12,
+    0.07,
     ctx.currentTime + 0.12
   );
 }
@@ -92,7 +92,7 @@ export function updateRollSound(intensity = 1) {
   );
 
   rollGain.gain.setTargetAtTime(
-    0.06 + s * 0.06,
+    0.035 + s * 0.035,
     ctx.currentTime,
     0.05
   );
@@ -122,3 +122,4 @@ export function stopRollSound() {
     rollFilter = null;
   }
 }
+
