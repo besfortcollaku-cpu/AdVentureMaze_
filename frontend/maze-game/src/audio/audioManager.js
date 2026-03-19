@@ -345,13 +345,22 @@ function registerDefaults() {
     },
   });
 
+
+  state.sounds.set("back_btn", {
+    category: "sfx",
+    type: "file",
+    src: `${ASSET_BASE}back_btn.mp3`,
+    volume: 0.3,
+    cooldownMs: 120,
+    fallback: { type: "tone", freq: 560, duration: 0.08, gain: 0.05, curve: "down" },
+  });
+
   state.sounds.set("bg_music", {
     category: "music",
     type: "file",
     src: `${ASSET_BASE}bg_music.mp3`,
     loop: true,
     volume: 0.16,
-    fallback: { type: "music" },
   });
 
   // Keep compatibility key for existing ball-slide behavior.
@@ -364,10 +373,6 @@ function playFallback(name, def, options = {}) {
 
   if (fb.type === "tone") return playTone(fb, options);
   if (fb.type === "sequence") return playSequence(fb, options);
-  if (fb.type === "music") {
-    startBgMusicNodes();
-    return true;
-  }
   return false;
 }
 
@@ -501,4 +506,8 @@ export function isSfxEnabled() {
 }
 
 registerDefaults();
+
+
+
+
 

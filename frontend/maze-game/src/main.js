@@ -444,6 +444,7 @@ function showBackExitPopup() {
   return new Promise((resolve) => {
     if (BACK_EXIT_PROMPT_OPEN) return resolve(false);
     BACK_EXIT_PROMPT_OPEN = true;
+    playAudio("back_btn");
 
     const overlay = document.createElement("div");
     overlay.style.cssText = "position: fixed; inset: 0; z-index: 100000; background: rgba(0,0,0,0.45); display: flex; align-items: center; justify-content: center; padding: 16px;";
