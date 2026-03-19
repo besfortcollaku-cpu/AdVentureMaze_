@@ -85,6 +85,7 @@ export function mountAccountUI(root) {
             <div class="accountTopCoins">Coins: <span id="accountCoins">0</span></div>
             <div class="accountTopServerTime" id="accountServerTime">Server Time: --:--:--</div>
 
+          </div>
           <button class="accountClose" id="accountCloseBtn">X</button>
         </div>
 
