@@ -1108,6 +1108,28 @@ window.__maze.showLoginRequired = () => ui.showLoginRequired();
 window.__maze.isLoggedIn = () => Boolean(CURRENT_ACCESS_TOKEN);
 window.__maze.setWallet = async (wallet) => {
   if (!CURRENT_ACCESS_TOKEN) return { ok: false, error: "auth_required" };
+
+  const res = await fetch(`${BACKEND}/api/user/set-wallet`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${normalizeToken(CURRENT_ACCESS_TOKEN)}`,
+    },
+    body: JSON.stringify({ wallet }),
+  });
+
+  const out = await res.json().catch(() => ({}));
+  if (!res.ok || !out?.ok) {
+    return { ok: false, error: out?.error || "set_wallet_failed" };
+  }
+
+  try {
+    await loadMeAndSyncUI({ BACKEND, token: CURRENT_ACCESS_TOKEN, ui });
+  } catch {}
+
+  return out;
+};
+
 window.__maze.getDailyLeaderboard = async () => {
   const res = await fetch(`${BACKEND}/api/leaderboard/daily`, {
     method: "GET",
@@ -1148,26 +1170,6 @@ window.__maze.getDailyLeaderboardMe = async () => {
   return out;
 };
 
-  const res = await fetch(`${BACKEND}/api/user/set-wallet`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${normalizeToken(CURRENT_ACCESS_TOKEN)}`,
-    },
-    body: JSON.stringify({ wallet }),
-  });
-
-  const out = await res.json().catch(() => ({}));
-  if (!res.ok || !out?.ok) {
-    return { ok: false, error: out?.error || "set_wallet_failed" };
-  }
-
-  try {
-    await loadMeAndSyncUI({ BACKEND, token: CURRENT_ACCESS_TOKEN, ui });
-  } catch {}
-
-  return out;
-};
 
 const winPopup = createWinPopup();
 const skipPopup = createSkipPopup();
@@ -2901,6 +2903,7 @@ if (meFresh?.dailyReward) {
 }
 
 boot();
+
 
 
 
