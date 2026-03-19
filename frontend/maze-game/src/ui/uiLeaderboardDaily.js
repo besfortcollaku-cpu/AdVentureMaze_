@@ -33,8 +33,10 @@ function mergeRowsWithMe(rows, me) {
     return list;
   }
 
+  // Prevent duplicate rank labels when cached rows are stale.
+  const withoutSameRank = list.filter((r) => Number(r.rank) !== meRank);
   const withMe = [
-    ...list,
+    ...withoutSameRank,
     {
       uid: meUid,
       username: meName,
@@ -258,4 +260,5 @@ export function createDailyLeaderboardPopup() {
     onClose,
   };
 }
+
 
