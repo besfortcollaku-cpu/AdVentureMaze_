@@ -115,6 +115,8 @@ const adSurprisePopup = createMysteryChestPopup({
 let pendingWinAdBoxReward = null;
 let pendingWinAdNextLevel = false;
 let winAdFlowBusy = false;
+let LAST_DAILY_LEADERBOARD_ROWS = [];
+let LAST_DAILY_LEADERBOARD_ME = null;
 function shouldShowAutoAd() {
   const last = Number(localStorage.getItem(AUTO_AD_LAST_KEY) || 0);
   return Date.now() - last > AUTO_AD_COOLDOWN_MS;
@@ -402,24 +404,36 @@ function sleep(ms) {
 
 async function preloadDailyLeaderboardForPopup(timeoutMs = 1200) {
   const fallback = {
-    rows: [],
-    me: {
+    rows: Array.isArray(LAST_DAILY_LEADERBOARD_ROWS) ? LAST_DAILY_LEADERBOARD_ROWS : [],
+    me: LAST_DAILY_LEADERBOARD_ME || {
       rank: null,
       uid: CURRENT_USER?.uid || null,
       username: CURRENT_USER?.username || "Player",
       coins_earned: 0,
     },
+    timedOut: true,
   };
 
-  const boardPromise = apiLeaderboardDaily().catch(() => ({ ok: false, rows: [] }));
-  const mePromise = apiLeaderboardDailyMe().catch(() => ({ ok: false, row: fallback.me }));
+  const full = Promise.all([
+    apiLeaderboardDaily().catch(() => ({ ok: false, rows: [] })),
+    apiLeaderboardDailyMe().catch(() => ({ ok: false, row: fallback.me })),
+  ]).then(([boardOut, meOut]) => {
+    const out = {
+      rows: Array.isArray(boardOut?.rows) ? boardOut.rows : [],
+      me: meOut?.row || fallback.me,
+      timedOut: false,
+    };
 
-  const combined = Promise.all([boardPromise, mePromise]).then(([boardOut, meOut]) => ({
-    rows: Array.isArray(boardOut?.rows) ? boardOut.rows : [],
-    me: meOut?.row || fallback.me,
-  }));
+    if (out.rows.length) {
+      LAST_DAILY_LEADERBOARD_ROWS = out.rows;
+    }
+    LAST_DAILY_LEADERBOARD_ME = out.me;
 
-  return Promise.race([combined, sleep(timeoutMs).then(() => fallback)]);
+    return out;
+  });
+
+  const fast = Promise.race([full, sleep(timeoutMs).then(() => fallback)]);
+  return { fast, full };
 }
 
 function showBackExitPopup() {
@@ -1657,33 +1671,36 @@ levelsUI.onSelect((levelNumber) => {
       const completedLevel = level?.number ?? (levelIndex + 1);
       const leaderboardPrefetch = preloadDailyLeaderboardForPopup(1200);
 
-      if (CURRENT_ACCESS_TOKEN) {
-        try {
-          await apiClaimLevelComplete(completedLevel);
+      // Do reward sync in parallel so leaderboard timing stays fixed.
+      const rewardSyncPromise = CURRENT_ACCESS_TOKEN
+        ? (async () => {
+            try {
+              await apiClaimLevelComplete(completedLevel);
 
-          // Refresh user from DB and run the existing coin animation first.
-          const me = await loadMeAndSyncUI({
-            BACKEND,
-            token: CURRENT_ACCESS_TOKEN,
-            ui,
-          });
+              const me = await loadMeAndSyncUI({
+                BACKEND,
+                token: CURRENT_ACCESS_TOKEN,
+                ui,
+              });
 
-          if (me?.user) {
-            applyUserPatch(me.user, { skipCoinSync: true });
-            await animateCoinsTo(Number(me.user.coins ?? 0), { showGainFx: true });
-          }
-        } catch {}
-      }
+              if (me?.user) {
+                applyUserPatch(me.user, { skipCoinSync: true });
+                await animateCoinsTo(Number(me.user.coins ?? 0), { showGainFx: true });
+              }
+            } catch {}
+          })()
+        : Promise.resolve();
 
-      // Keep coin gain visible before leaderboard/win flow.
+      // Fixed timing: leaderboard step starts after ~2 seconds from level complete.
       await sleep(2000);
-
-      // Show daily ranking before the win popup. On fetch failure, continue normally.
       await showDailyLeaderboardBeforeWin(leaderboardPrefetch);
 
       afterLevelCompleteShowAdOrWin({
         levelNumber: completedLevel,
       });
+
+      // Keep reward flow completion non-blocking for popup timing.
+      await rewardSyncPromise;
 
       // logged-in: unlock next level + persist progress and clear resume
       if (CURRENT_ACCESS_TOKEN) {
@@ -1819,19 +1836,53 @@ function simulateInterstitialAd(onFinished) {
 }
 async function showDailyLeaderboardBeforeWin(prefetchedPayload = null) {
   try {
-    const payload = prefetchedPayload || preloadDailyLeaderboardForPopup(1200);
-    const out = await payload;
+    const prefetch = prefetchedPayload || preloadDailyLeaderboardForPopup(1200);
+
+    const initialRows = Array.isArray(LAST_DAILY_LEADERBOARD_ROWS) ? LAST_DAILY_LEADERBOARD_ROWS : [];
+    const initialMe = LAST_DAILY_LEADERBOARD_ME || {
+      rank: null,
+      uid: CURRENT_USER?.uid || null,
+      username: CURRENT_USER?.username || "Player",
+      coins_earned: 0,
+    };
 
     await new Promise((resolve) => {
+      let closed = false;
+
       dailyLeaderboardPopup.onClose(() => {
+        closed = true;
         dailyLeaderboardPopup.onClose(null);
         resolve();
       });
 
+      // Show immediately to keep the 2s timing strict.
       dailyLeaderboardPopup.show({
-        rows: Array.isArray(out?.rows) ? out.rows : [],
-        me: out?.me || { rank: null, uid: null, username: "Player", coins_earned: 0 },
+        rows: initialRows,
+        me: initialMe,
+        loading: initialRows.length === 0,
       });
+
+      prefetch.fast
+        .then((fast) => {
+          if (closed) return;
+          dailyLeaderboardPopup.show({
+            rows: Array.isArray(fast?.rows) ? fast.rows : [],
+            me: fast?.me || initialMe,
+            loading: Boolean(fast?.timedOut && (!fast?.rows || fast.rows.length === 0)),
+          });
+        })
+        .catch(() => {});
+
+      prefetch.full
+        .then((live) => {
+          if (closed) return;
+          dailyLeaderboardPopup.show({
+            rows: Array.isArray(live?.rows) ? live.rows : [],
+            me: live?.me || initialMe,
+            loading: false,
+          });
+        })
+        .catch(() => {});
     });
 
     return true;

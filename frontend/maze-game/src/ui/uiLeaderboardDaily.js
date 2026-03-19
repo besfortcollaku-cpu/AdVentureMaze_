@@ -30,11 +30,13 @@ export function createDailyLeaderboardPopup() {
   const meEl = overlay.querySelector("#leaderboardDailyMe");
   const continueBtn = overlay.querySelector("#leaderboardDailyContinue");
 
-  function renderRows(rows, me) {
+  function renderRows(rows, me, loading = false) {
     const topRows = Array.isArray(rows) ? rows.slice(0, 20) : [];
     const meUid = String(me?.uid || "");
+
     if (!topRows.length) {
-      rowsEl.innerHTML = `<div class="leaderboardDailyRow is-empty">No ranked users yet today.</div>`;
+      const text = loading ? "Loading ranking..." : "No ranked users yet today.";
+      rowsEl.innerHTML = `<div class="leaderboardDailyRow is-empty">${text}</div>`;
       return;
     }
 
@@ -71,8 +73,8 @@ export function createDailyLeaderboardPopup() {
     overlay.classList.add("hidden");
   }
 
-  function show({ rows, me } = {}) {
-    renderRows(rows, me);
+  function show({ rows, me, loading = false } = {}) {
+    renderRows(rows, me, loading);
     renderMe(me);
     overlay.classList.remove("hidden");
   }
