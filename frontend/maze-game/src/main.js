@@ -1695,7 +1695,7 @@ levelsUI.onSelect((levelNumber) => {
 
       // Fixed timing: leaderboard step starts after ~2 seconds from level complete.
       await sleep(2000);
-      await showDailyLeaderboardBeforeWin(leaderboardPrefetch);
+      await showDailyLeaderboardBeforeWin(leaderboardPrefetch, rewardSyncPromise);
 
       afterLevelCompleteShowAdOrWin({
         levelNumber: completedLevel,
@@ -1836,7 +1836,7 @@ function simulateInterstitialAd(onFinished) {
     rewardReadyText: "✅ Ad Finished",
   });
 }
-async function showDailyLeaderboardBeforeWin(prefetchedPayload = null) {
+async function showDailyLeaderboardBeforeWin(prefetchedPayload = null, rewardSyncPromise = null) {
   try {
     const prefetch = prefetchedPayload || preloadDailyLeaderboardForPopup(1200);
 
@@ -1846,12 +1846,12 @@ async function showDailyLeaderboardBeforeWin(prefetchedPayload = null) {
       uid: CURRENT_USER?.uid || null,
       username: CURRENT_USER?.username || "Player",
       coins_earned: 0,
+      public_eligible: true,
     };
 
     const previousRowsForAnimation = Array.isArray(PREVIOUS_DAILY_LEADERBOARD_ROWS)
       ? PREVIOUS_DAILY_LEADERBOARD_ROWS
       : [];
-    const previousMeForAnimation = PREVIOUS_DAILY_LEADERBOARD_ME || initialMe;
 
     let latestRows = initialRows;
     let latestMe = initialMe;
@@ -1866,70 +1866,78 @@ async function showDailyLeaderboardBeforeWin(prefetchedPayload = null) {
         resolve();
       });
 
-      // Show immediately to keep 2s timing strict.
       dailyLeaderboardPopup.show({
         rows: initialRows,
         me: initialMe,
         loading: initialRows.length === 0,
       });
 
+      const applyRows = (rows, me, loading, allowAnimate = false) => {
+        const safeRows = Array.isArray(rows) ? rows : [];
+        const safeMe = me || initialMe;
+        latestRows = safeRows;
+        latestMe = safeMe;
+
+        const canAnimate =
+          allowAnimate &&
+          !movementAnimated &&
+          previousRowsForAnimation.length > 0 &&
+          safeRows.length > 0;
+
+        dailyLeaderboardPopup.show({
+          rows: safeRows,
+          me: safeMe,
+          loading: Boolean(loading),
+          previousRows: canAnimate ? previousRowsForAnimation : null,
+          animateMovement: canAnimate,
+        });
+
+        if (canAnimate) movementAnimated = true;
+      };
+
       prefetch.fast
         .then((fast) => {
           if (closed) return;
-          const fastRows = Array.isArray(fast?.rows) ? fast.rows : [];
-          const fastMe = fast?.me || initialMe;
-          latestRows = fastRows;
-          latestMe = fastMe;
-
-          const canAnimate =
-            !movementAnimated &&
-            previousRowsForAnimation.length > 0 &&
-            fastRows.length > 0;
-
-          dailyLeaderboardPopup.show({
-            rows: fastRows,
-            me: fastMe,
-            loading: Boolean(fast?.timedOut && fastRows.length === 0),
-            previousRows: canAnimate ? previousRowsForAnimation : null,
-            animateMovement: canAnimate,
-          });
-
-          if (canAnimate) {
-            movementAnimated = true;
-          }
+          applyRows(
+            fast?.rows,
+            fast?.me || initialMe,
+            Boolean(fast?.timedOut && (!fast?.rows || fast.rows.length === 0)),
+            true
+          );
         })
-        .catch(() => {});
+        .catch(() => {
+          if (closed) return;
+          applyRows(latestRows, latestMe, false, false);
+        });
 
       prefetch.full
         .then((live) => {
           if (closed) return;
-          const liveRows = Array.isArray(live?.rows) ? live.rows : [];
-          const liveMe = live?.me || initialMe;
-          latestRows = liveRows;
-          latestMe = liveMe;
-
-          const canAnimate =
-            !movementAnimated &&
-            previousRowsForAnimation.length > 0 &&
-            liveRows.length > 0;
-
-          dailyLeaderboardPopup.show({
-            rows: liveRows,
-            me: liveMe,
-            loading: false,
-            previousRows: canAnimate ? previousRowsForAnimation : null,
-            animateMovement: canAnimate,
-          });
-
-          if (canAnimate) {
-            movementAnimated = true;
-          }
+          applyRows(live?.rows, live?.me || initialMe, false, true);
         })
-        .catch(() => {});
+        .catch(() => {
+          if (closed) return;
+          applyRows(latestRows, latestMe, false, false);
+        });
+
+      // After reward sync settles, do one extra refresh so latest level/ad coins are reflected.
+      if (rewardSyncPromise) {
+        Promise.resolve(rewardSyncPromise)
+          .then(async () => {
+            if (closed) return;
+            const [boardOut, meOut] = await Promise.all([
+              apiLeaderboardDaily().catch(() => ({ ok: false, rows: latestRows })),
+              apiLeaderboardDailyMe().catch(() => ({ ok: false, row: latestMe })),
+            ]);
+            if (closed) return;
+            applyRows(boardOut?.rows, meOut?.row || latestMe, false, true);
+          })
+          .catch(() => {});
+      }
     });
 
     PREVIOUS_DAILY_LEADERBOARD_ROWS = Array.isArray(latestRows) ? latestRows.slice(0, 20) : [];
-    PREVIOUS_DAILY_LEADERBOARD_ME = latestMe || previousMeForAnimation;
+    PREVIOUS_DAILY_LEADERBOARD_ME = latestMe || initialMe;
 
     return true;
   } catch {
@@ -2722,4 +2730,6 @@ if (meFresh?.dailyReward) {
 }
 
 boot();
+
+
 

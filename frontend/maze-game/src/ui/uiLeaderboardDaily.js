@@ -90,7 +90,11 @@ export function createDailyLeaderboardPopup() {
     const rank = me?.rank != null ? Number(me.rank) : null;
     const coins = Number(me?.coins_earned || 0);
     if (!rank) {
-      meEl.textContent = "You are not ranked yet today.";
+      if (me?.public_eligible === false && coins > 0) {
+        meEl.textContent = `Your Rank: hidden from public board (${coins} coins)`;
+      } else {
+        meEl.textContent = "You are not ranked yet today.";
+      }
       return;
     }
     meEl.textContent = `Your Rank: #${rank} (${coins} coins)`;
@@ -109,7 +113,6 @@ export function createDailyLeaderboardPopup() {
       return;
     }
 
-    // Step 1: render previous order and capture positions.
     renderRows(prev, me, false);
     renderMe(me);
     const prevEls = Array.from(rowsEl.querySelectorAll(".leaderboard-row[data-uid]"));
@@ -117,7 +120,6 @@ export function createDailyLeaderboardPopup() {
       prevEls.map((el) => [String(el.getAttribute("data-uid") || ""), el.getBoundingClientRect().top])
     );
 
-    // Step 2: render new order and invert by old/new delta.
     renderRows(cur, me, loading);
     renderMe(me);
 
@@ -162,7 +164,6 @@ export function createDailyLeaderboardPopup() {
     setContinueDisabled(true);
     isAnimating = true;
 
-    // FLIP play.
     void rowsEl.offsetHeight;
     requestAnimationFrame(() => {
       for (const el of curEls) {
@@ -204,7 +205,7 @@ export function createDailyLeaderboardPopup() {
 
     renderRows(rows, me, loading);
     renderMe(me);
-    setContinueDisabled(false);
+    setContinueDisabled(Boolean(loading));
     isAnimating = false;
   }
 
