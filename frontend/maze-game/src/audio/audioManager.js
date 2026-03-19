@@ -1,5 +1,6 @@
 const MUSIC_KEY = "maze_music_enabled";
 const SFX_KEY = "maze_sfx_enabled";
+const ASSET_BASE = "/audio/";
 
 function readBool(key, fallback = true) {
   try {
@@ -31,9 +32,18 @@ const state = {
   sounds: new Map(),
   lastPlayAt: new Map(),
   activeFilePlayers: new Map(),
+  warned: new Set(),
   bgNodes: null,
   pendingMusicStart: false,
 };
+
+function warnOnce(key, message) {
+  if (state.warned.has(key)) return;
+  state.warned.add(key);
+  try {
+    console.warn(message);
+  } catch {}
+}
 
 function ensureCtx() {
   if (!state.ctx) {
@@ -55,7 +65,8 @@ function ensureCtx() {
 }
 
 function applyVolumes() {
-  if (!state.masterGain || !state.sfxGain || !state.musicGain) return;
+  if (!state.masterGain || !state.sfxGain || !state.musicGain || !state.ctx) return;
+
   const m = Math.max(0, Math.min(1, state.masterVolume));
   const sfx = state.sfxEnabled ? Math.max(0, Math.min(1, state.sfxVolume)) : 0;
   const music = state.musicEnabled ? Math.max(0, Math.min(1, state.musicVolume)) : 0;
@@ -63,6 +74,12 @@ function applyVolumes() {
   state.masterGain.gain.setValueAtTime(m, state.ctx.currentTime);
   state.sfxGain.gain.setValueAtTime(sfx, state.ctx.currentTime);
   state.musicGain.gain.setValueAtTime(music, state.ctx.currentTime);
+
+  // Keep HTMLAudio-based music volumes in sync too.
+  const bg = state.activeFilePlayers.get("bg_music");
+  if (bg) {
+    bg.volume = Math.max(0, Math.min(1, m * music * Number(state.sounds.get("bg_music")?.volume ?? 1)));
+  }
 }
 
 function nowMs() {
@@ -85,9 +102,19 @@ function canPlay(name) {
   return true;
 }
 
+function categoryVolume(def) {
+  const perSound = Number(def.volume ?? 1);
+  if (def.category === "music") {
+    if (!state.musicEnabled) return 0;
+    return Math.max(0, Math.min(1, state.masterVolume * state.musicVolume * perSound));
+  }
+  if (!state.sfxEnabled) return 0;
+  return Math.max(0, Math.min(1, state.masterVolume * state.sfxVolume * perSound));
+}
+
 function playTone(def, opts = {}) {
   const ctx = ensureCtx();
-  if (!ctx || !state.unlocked) return;
+  if (!ctx || !state.unlocked) return false;
 
   const freq = Number(opts.freq ?? def.freq ?? 640);
   const duration = Number(opts.duration ?? def.duration ?? 0.08);
@@ -115,15 +142,18 @@ function playTone(def, opts = {}) {
   try {
     osc.start();
     osc.stop(ctx.currentTime + duration + 0.02);
-  } catch {}
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 function playSequence(def, opts = {}) {
   const seq = Array.isArray(def.notes) ? def.notes : [];
-  if (!seq.length) return;
+  if (!seq.length) return false;
 
   const ctx = ensureCtx();
-  if (!ctx || !state.unlocked) return;
+  if (!ctx || !state.unlocked) return false;
 
   let t = ctx.currentTime;
   const gap = Number(def.gap ?? 0.03);
@@ -151,28 +181,57 @@ function playSequence(def, opts = {}) {
 
     t += Number(note.dur || 0.08) + gap;
   }
+
+  return true;
+}
+
+function getOrCreateFilePlayer(name, def) {
+  let entry = state.activeFilePlayers.get(name);
+  if (entry) return entry;
+
+  const audio = new Audio(def.src);
+  audio.preload = "auto";
+  audio.loop = !!def.loop;
+
+  entry = { audio, missing: false };
+  state.activeFilePlayers.set(name, entry);
+
+  audio.addEventListener("error", () => {
+    entry.missing = true;
+    warnOnce(`missing:${name}`, `[audio] Missing file for key "${name}" at ${def.src}. Using fallback.`);
+  });
+
+  return entry;
 }
 
 function playFile(name, def, opts = {}) {
-  if (!def.src) return;
+  if (!def.src) return false;
 
-  let el = state.activeFilePlayers.get(name);
-  if (!el) {
-    el = new Audio(def.src);
-    el.preload = "auto";
-    if (def.loop) el.loop = true;
-    state.activeFilePlayers.set(name, el);
-  }
+  const entry = getOrCreateFilePlayer(name, def);
+  if (!entry || entry.missing) return false;
 
-  el.volume = Math.max(0, Math.min(1, Number(def.volume ?? 1) * state.masterVolume));
-  if (opts.loop != null) el.loop = !!opts.loop;
+  const el = entry.audio;
+  el.loop = opts.loop != null ? !!opts.loop : !!def.loop;
+  el.volume = categoryVolume(def);
 
   try {
     if (!el.loop) el.currentTime = 0;
   } catch {}
 
-  const p = el.play();
-  if (p && typeof p.catch === "function") p.catch(() => {});
+  try {
+    const p = el.play();
+    if (p && typeof p.catch === "function") {
+      p.catch(() => {
+        warnOnce(`play-failed:${name}`, `[audio] Could not play "${name}" from ${def.src}. Using fallback.`);
+        entry.missing = true;
+      });
+    }
+    return true;
+  } catch {
+    warnOnce(`play-failed:${name}`, `[audio] Could not play "${name}" from ${def.src}. Using fallback.`);
+    entry.missing = true;
+    return false;
+  }
 }
 
 function startBgMusicNodes() {
@@ -240,25 +299,76 @@ function stopBgMusicNodes() {
 function registerDefaults() {
   if (state.sounds.size > 0) return;
 
-  state.sounds.set("ui_click", { category: "sfx", type: "tone", freq: 680, duration: 0.045, gain: 0.05, cooldownMs: 70 });
-  state.sounds.set("popup_open", { category: "sfx", type: "tone", freq: 510, duration: 0.1, gain: 0.06, curve: "up", cooldownMs: 80 });
-  state.sounds.set("popup_close", { category: "sfx", type: "tone", freq: 420, duration: 0.09, gain: 0.05, curve: "down", cooldownMs: 80 });
-  state.sounds.set("coins_gain", {
+  // File-first map. If a file is missing, fallback is used automatically.
+  state.sounds.set("ui_click", {
     category: "sfx",
-    type: "sequence",
-    notes: [
-      { freq: 620, dur: 0.07 },
-      { freq: 760, dur: 0.07 },
-      { freq: 920, dur: 0.1 },
-    ],
-    gap: 0.02,
-    gain: 0.05,
-    cooldownMs: 180,
+    type: "file",
+    src: `${ASSET_BASE}ui_click.mp3`,
+    volume: 0.26,
+    cooldownMs: 70,
+    fallback: { type: "tone", freq: 680, duration: 0.045, gain: 0.05 },
   });
 
-  // Optional file entries; if files are missing, playback safely no-ops.
-  state.sounds.set("bg_music", { category: "music", type: "music" });
+  state.sounds.set("popup_open", {
+    category: "sfx",
+    type: "file",
+    src: `${ASSET_BASE}popup_open.mp3`,
+    volume: 0.25,
+    cooldownMs: 80,
+    fallback: { type: "tone", freq: 510, duration: 0.1, gain: 0.055, curve: "up" },
+  });
+
+  state.sounds.set("popup_close", {
+    category: "sfx",
+    type: "file",
+    src: `${ASSET_BASE}popup_close.mp3`,
+    volume: 0.22,
+    cooldownMs: 80,
+    fallback: { type: "tone", freq: 420, duration: 0.09, gain: 0.05, curve: "down" },
+  });
+
+  state.sounds.set("coins_gain", {
+    category: "sfx",
+    type: "file",
+    src: `${ASSET_BASE}coins_gain.mp3`,
+    volume: 0.28,
+    cooldownMs: 180,
+    fallback: {
+      type: "sequence",
+      notes: [
+        { freq: 620, dur: 0.07 },
+        { freq: 760, dur: 0.07 },
+        { freq: 920, dur: 0.1 },
+      ],
+      gap: 0.02,
+      gain: 0.05,
+    },
+  });
+
+  state.sounds.set("bg_music", {
+    category: "music",
+    type: "file",
+    src: `${ASSET_BASE}bg_music.mp3`,
+    loop: true,
+    volume: 0.16,
+    fallback: { type: "music" },
+  });
+
+  // Keep compatibility key for existing ball-slide behavior.
   state.sounds.set("ball_slide", { category: "sfx", type: "none" });
+}
+
+function playFallback(name, def, options = {}) {
+  const fb = def?.fallback;
+  if (!fb) return false;
+
+  if (fb.type === "tone") return playTone(fb, options);
+  if (fb.type === "sequence") return playSequence(fb, options);
+  if (fb.type === "music") {
+    startBgMusicNodes();
+    return true;
+  }
+  return false;
 }
 
 export function unlockGlobalAudio() {
@@ -296,8 +406,13 @@ export function play(name, options = {}) {
   }
 
   if (def.type === "file") {
-    playFile(name, def, options);
+    const ok = playFile(name, def, options);
+    if (!ok) playFallback(name, def, options);
     return;
+  }
+
+  if (def.type === "music") {
+    startBgMusicNodes();
   }
 }
 
@@ -307,22 +422,21 @@ export function stop(name) {
     return;
   }
 
-  const el = state.activeFilePlayers.get(name);
-  if (!el) return;
+  const entry = state.activeFilePlayers.get(name);
+  if (!entry?.audio) return;
   try {
-    el.pause();
-    el.currentTime = 0;
+    entry.audio.pause();
+    entry.audio.currentTime = 0;
   } catch {}
 }
 
 export function stopAll() {
   stopBackgroundMusic();
-  for (const [name, el] of state.activeFilePlayers.entries()) {
+  for (const [, entry] of state.activeFilePlayers.entries()) {
     try {
-      el.pause();
-      el.currentTime = 0;
+      entry.audio.pause();
+      entry.audio.currentTime = 0;
     } catch {}
-    state.activeFilePlayers.delete(name);
   }
 }
 
@@ -355,8 +469,11 @@ export function startBackgroundMusic() {
   }
 
   const def = state.sounds.get("bg_music");
-  if (def?.type === "file") {
-    playFile("bg_music", { ...def, loop: true }, { loop: true });
+  if (!def) return;
+
+  if (def.type === "file") {
+    const ok = playFile("bg_music", def, { loop: true });
+    if (!ok) playFallback("bg_music", def, { loop: true });
     return;
   }
 
@@ -366,11 +483,11 @@ export function startBackgroundMusic() {
 export function stopBackgroundMusic() {
   stopBgMusicNodes();
 
-  const el = state.activeFilePlayers.get("bg_music");
-  if (el) {
+  const entry = state.activeFilePlayers.get("bg_music");
+  if (entry?.audio) {
     try {
-      el.pause();
-      el.currentTime = 0;
+      entry.audio.pause();
+      entry.audio.currentTime = 0;
     } catch {}
   }
 }
