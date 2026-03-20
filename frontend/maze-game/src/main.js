@@ -17,6 +17,7 @@ import { createRestartPopup } from "./ui/uiRestarts.js";
 import { createMissedRewardPopup } from "./ui/uiMissedReward.js";
 import { createMysteryChestPopup } from "./ui/uiMysteryChest.js";
 import { createDailyLeaderboardPopup } from "./ui/uiLeaderboardDaily.js";
+import { createDailyRankingRewardPopup } from "./ui/uiDailyRankingReward.js";
 import { getSettings, subscribeSettings } from "./settings.js";
 import { unlockGlobalAudio, play as playAudio, setMusicEnabled, setSfxEnabled, setMasterVolume, startBackgroundMusic, stopBackgroundMusic } from "./audio/audioManager.js";
 
@@ -122,6 +123,7 @@ let LAST_DAILY_LEADERBOARD_ME = null;
 let PREVIOUS_DAILY_LEADERBOARD_ROWS = [];
 let PREVIOUS_DAILY_LEADERBOARD_ME = null;
 let LAST_SERVER_TIME_MS = null;
+let RANKING_REWARD_PROMPT_SHOWN = false;
 function shouldShowAutoAd() {
   const last = Number(localStorage.getItem(AUTO_AD_LAST_KEY) || 0);
   return Date.now() - last > AUTO_AD_COOLDOWN_MS;
@@ -471,6 +473,38 @@ async function preloadDailyLeaderboardForPopup(timeoutMs = 1200) {
   return { fast, full };
 }
 
+
+function hasBlockingOverlayForRankingReward() {
+  return Boolean(
+    document.querySelector(".daily-reward-overlay:not(.hidden):not(.daily-ranking-reward-overlay)") ||
+    document.querySelector(".leaderboardDailyOverlay:not(.hidden)") ||
+    document.querySelector(".winOverlay.show")
+  );
+}
+
+async function maybeShowDailyRankingRewardPopup() {
+  if (RANKING_REWARD_PROMPT_SHOWN) return;
+  if (!CURRENT_ACCESS_TOKEN) return;
+
+  try {
+    const out = await apiLeaderboardRewardMe();
+    if (!out?.ok || !out?.available || !out?.row) return;
+
+    const row = out.row;
+    const rank = Number(row.rank || 0);
+    const rewardCoins = Number(row.reward_coins || 0);
+    if (!rank || rewardCoins <= 0) return;
+
+    if (hasBlockingOverlayForRankingReward()) {
+      setTimeout(() => { void maybeShowDailyRankingRewardPopup(); }, 2500);
+      return;
+    }
+
+    RANKING_REWARD_PROMPT_SHOWN = true;
+    dailyRankingRewardPopup.show({ rank, rewardCoins, dateKey: row.date_key });
+  } catch {}
+}
+
 function showBackExitPopup() {
   return new Promise((resolve) => {
     if (BACK_EXIT_PROMPT_OPEN) return resolve(false);
@@ -747,6 +781,43 @@ async function apiLeaderboardDailyMe() {
 
   if (Number.isFinite(serverMs)) {
     out.server_time_ms = serverMs;
+  }
+
+  return out;
+}
+async function apiLeaderboardRewardMe() {
+  if (!CURRENT_ACCESS_TOKEN) return { ok: true, available: false };
+
+  const res = await fetch(`${BACKEND}/api/leaderboard/daily-reward/me`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${normalizeToken(CURRENT_ACCESS_TOKEN)}`,
+    },
+  });
+
+  const out = await res.json().catch(() => ({}));
+  if (!res.ok || !out?.ok) {
+    return { ok: false, error: out?.error || "daily_reward_lookup_failed", available: false };
+  }
+
+  return out;
+}
+
+async function apiClaimLeaderboardReward() {
+  if (!CURRENT_ACCESS_TOKEN) return { ok: false, error: "auth_required" };
+
+  const res = await fetch(`${BACKEND}/api/leaderboard/daily-reward/claim`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${normalizeToken(CURRENT_ACCESS_TOKEN)}`,
+    },
+  });
+
+  const out = await res.json().catch(() => ({}));
+  if (!res.ok || !out?.ok) {
+    return { ok: false, error: out?.error || "daily_reward_claim_failed" };
   }
 
   return out;
@@ -1079,6 +1150,10 @@ if (meFresh?.dailyReward) {
     bonusState: meFresh.dailyReward.bonusState,
   });
 }
+
+setTimeout(() => {
+  void maybeShowDailyRankingRewardPopup();
+}, 1200);
 }
      else {
       throw new Error("Invalid session");
@@ -1207,6 +1282,24 @@ withPopupAudio(missedRewardPopup);
 withPopupAudio(mysteryChestPopup);
 withPopupAudio(adSurprisePopup);
 withPopupAudio(dailyLeaderboardPopup);
+withPopupAudio(dailyRankingRewardPopup);
+
+
+dailyRankingRewardPopup.onClaim(async () => {
+  const out = await apiClaimLeaderboardReward();
+  if (!out?.ok) {
+    dailyRankingRewardPopup.hide();
+    return;
+  }
+
+  if (out?.user) {
+    const targetCoins = Number(out.user.coins ?? CURRENT_USER?.coins ?? 0);
+    applyUserPatch(out.user, { skipCoinSync: true });
+    await animateCoinsTo(targetCoins, { showGainFx: true });
+  }
+
+  dailyRankingRewardPopup.hide();
+});
 
 function setupGlobalAudioHooks() {
   setMasterVolume(0.6);
@@ -2884,6 +2977,10 @@ if (meFresh?.dailyReward) {
   });
 }
 
+setTimeout(() => {
+  void maybeShowDailyRankingRewardPopup();
+}, 1200);
+
     if (RESUME_TILES.size > 0 || RESUME_POS) {
       setTimeout(() => {
         game.applyProgress({
@@ -2903,6 +3000,11 @@ if (meFresh?.dailyReward) {
 }
 
 boot();
+
+
+
+
+
 
 
 

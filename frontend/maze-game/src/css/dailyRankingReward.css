@@ -1,0 +1,63 @@
+.daily-ranking-reward-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1210;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(8, 14, 24, 0.68);
+  padding: 16px;
+}
+
+.daily-ranking-reward-overlay.hidden {
+  display: none;
+}
+
+.daily-ranking-reward-card {
+  width: min(420px, 100%);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: linear-gradient(180deg, rgba(8, 18, 34, 0.98), rgba(8, 14, 26, 0.98));
+  color: #eaf5ff;
+  padding: 16px;
+}
+
+.daily-ranking-reward-title {
+  font-size: 22px;
+  font-weight: 900;
+  margin-bottom: 6px;
+}
+
+.daily-ranking-reward-sub {
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+.daily-ranking-reward-date {
+  margin-top: 8px;
+  font-size: 12px;
+  opacity: 0.78;
+}
+
+.daily-ranking-reward-coins {
+  margin-top: 14px;
+  font-size: 26px;
+  font-weight: 900;
+  color: #ffe38a;
+}
+
+.daily-ranking-reward-btn {
+  margin-top: 14px;
+  width: 100%;
+  border: none;
+  border-radius: 12px;
+  padding: 12px;
+  background: linear-gradient(180deg, #37d4ff, #1899ff);
+  color: #04121f;
+  font-weight: 800;
+  font-size: 15px;
+}
+
+.daily-ranking-reward-btn:disabled {
+  opacity: 0.65;
+}
