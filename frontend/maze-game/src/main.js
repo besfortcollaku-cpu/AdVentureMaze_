@@ -1933,17 +1933,11 @@ levelsUI.onSelect((levelNumber) => {
       const rewardSyncPromise = CURRENT_ACCESS_TOKEN
         ? (async () => {
             try {
-              await apiClaimLevelComplete(completedLevel);
+              const out = await apiClaimLevelComplete(completedLevel);
 
-              const me = await loadMeAndSyncUI({
-                BACKEND,
-                token: CURRENT_ACCESS_TOKEN,
-                ui,
-              });
-
-              if (me?.user) {
-                applyUserPatch(me.user, { skipCoinSync: true });
-                await animateCoinsTo(Number(me.user.coins ?? 0), { showGainFx: true });
+              if (out?.user) {
+                applyUserPatch(out.user, { skipCoinSync: true });
+                await animateCoinsTo(Number(out.user.coins ?? 0), { showGainFx: true });
               }
             } catch {}
           })()
@@ -3001,6 +2995,7 @@ setTimeout(() => {
 }
 
 boot();
+
 
 
 
