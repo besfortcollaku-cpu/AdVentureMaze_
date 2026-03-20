@@ -1,4 +1,4 @@
-console.log("BUILD VERSION TEST 123");
+﻿console.log("BUILD VERSION TEST 123");
 import "./css/dailyReward.css";
 import { createDailyRewardPopup } from "./ui/uiDailyReward.js";
 import "./css/ui.css";
@@ -397,7 +397,7 @@ function applyUserPatch(patch, opts = {}) {
     ui?.setCoins?.(CURRENT_USER?.coins ?? 0);
   }
 
-  // 🔥 CRITICAL: refresh badges from DB values
+  // ðŸ”¥ CRITICAL: refresh badges from DB values
   updateAllBadges();
 }
 let COIN_ANIM_SEQ = 0;
@@ -1078,7 +1078,7 @@ if (storedToken) {
 CURRENT_USER = null;
 ui?.setUser?.({ username: "Guest", uid: null });
 ui?.setCoins?.(0);
-// 🔥 AUTO-HYDRATE USER IF TOKEN EXISTS
+// ðŸ”¥ AUTO-HYDRATE USER IF TOKEN EXISTS
 
   const root = document.querySelector("#app");
   if (!root) {
@@ -1130,7 +1130,7 @@ if (!game?.isRunning?.()) {
 // go to the last unlocked level (where resume is stored)
 goToLevel(CURRENT_MAX_UNLOCKED_LEVEL - 1);
 
-// ✅ APPLY PROGRESS AFTER GAME IS RUNNING + LEVEL IS SET
+// âœ… APPLY PROGRESS AFTER GAME IS RUNNING + LEVEL IS SET
 setTimeout(() => {
   if (RESUME_TILES.size > 0 || RESUME_POS) {
     game.applyProgress({
@@ -1252,6 +1252,7 @@ const hintPopup = createHintPopup();
 const restartPopup = createRestartPopup();
 const dailyRewardPopup = createDailyRewardPopup();
 const dailyLeaderboardPopup = createDailyLeaderboardPopup();
+const dailyRankingRewardPopup = createDailyRankingRewardPopup();
 
 function withPopupAudio(popupApi) {
   if (!popupApi) return;
@@ -1801,10 +1802,10 @@ function getSmartHintFromState(state) {
   if (!state) return null;
 
   const dirs = [
-    { name: "UP", dx: 0, dy: -1, arrow: "↑" },
-    { name: "DOWN", dx: 0, dy: 1, arrow: "↓" },
-    { name: "LEFT", dx: -1, dy: 0, arrow: "←" },
-    { name: "RIGHT", dx: 1, dy: 0, arrow: "→" },
+    { name: "UP", dx: 0, dy: -1, arrow: "â†‘" },
+    { name: "DOWN", dx: 0, dy: 1, arrow: "â†“" },
+    { name: "LEFT", dx: -1, dy: 0, arrow: "â†" },
+    { name: "RIGHT", dx: 1, dy: 0, arrow: "â†’" },
   ];
 
   const options = [];
@@ -1812,7 +1813,7 @@ function getSmartHintFromState(state) {
   for (const d of dirs) {
     const out = _slideTargetAndNewPaintCount(state, d.dx, d.dy);
 
-    // ignore “no movement”
+    // ignore â€œno movementâ€
     if (out.dist <= 0) continue;
 
     options.push({
@@ -2041,7 +2042,7 @@ RESUME_ENABLED = false;
   const selectedLevelNumber = levelIndex + 1;
 
   game.setLevel(lvl);
-// ✅ Capture spawn tile AFTER level fully loads
+// âœ… Capture spawn tile AFTER level fully loads
 setTimeout(() => {
   const p = game.getPlayer?.();
   if (p) {
@@ -2091,7 +2092,7 @@ function simulateInterstitialAd(onFinished) {
     duration: 20,
     skipAfter: 5,
     buttonLabel: "Skip Ad",
-    rewardReadyText: "✅ Ad Finished",
+    rewardReadyText: "âœ… Ad Finished",
   });
 }
 async function showDailyLeaderboardBeforeWin(prefetchedPayload = null, rewardSyncPromise = null) {
@@ -2253,7 +2254,7 @@ function simulateAd({
   overlay.innerHTML = `
     <div class="ad-box">
       <div class="ad-video">
-        🎮 Sponsored Ad
+        ðŸŽ® Sponsored Ad
       </div>
 
       <div id="adCountdown">
@@ -2377,7 +2378,7 @@ function goNextLevel() {
 winPopup.onNextLevel(() => {
   const nextLevelNumber = levelIndex + 2; // levelIndex is 0-based
 
-  // 🔒 Guest limit: require login after level 5
+  // ðŸ”’ Guest limit: require login after level 5
 if (!CURRENT_ACCESS_TOKEN && nextLevelNumber > GUEST_MAX_LEVEL) {
     winPopup.hide();
     ui.showLoginRequired();
