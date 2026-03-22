@@ -1,5 +1,7 @@
 import "../css/leaderboardMonthly.css";
 
+const LEADERBOARD_RANK_STORAGE_KEY = "maze_monthly_rank_snapshot";
+
 function escapeHtml(value) {
   return String(value ?? "")
     .replaceAll("&", "&amp;")
@@ -16,6 +18,26 @@ function formatMonthKey(monthKey) {
   const date = new Date(`${year}-${month}-01T00:00:00Z`);
   if (Number.isNaN(date.getTime())) return `${year}-${month}`;
   return date.toLocaleString(undefined, { month: "long", year: "numeric", timeZone: "UTC" });
+}
+
+function getSeasonEndMs(monthKey) {
+  const raw = String(monthKey || "").trim();
+  if (!/^\d{4}-\d{2}$/.test(raw)) return null;
+  const [year, month] = raw.split("-").map(Number);
+  if (!year || !month) return null;
+  return Date.UTC(month === 12 ? year + 1 : year, month === 12 ? 0 : month, 1, 0, 0, 0, 0);
+}
+
+function formatCountdown(monthKey) {
+  const endMs = getSeasonEndMs(monthKey);
+  if (!Number.isFinite(endMs)) return "";
+  const diff = Math.max(0, endMs - Date.now());
+  const totalHours = Math.floor(diff / (1000 * 60 * 60));
+  const days = Math.floor(totalHours / 24);
+  const hours = totalHours % 24;
+  if (days > 0) return `Season ends in ${days}d ${hours}h`;
+  const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+  return `Season ends in ${hours}h ${minutes}m`;
 }
 
 function formatRank(rank) {
@@ -42,6 +64,42 @@ function getTierOverviewRows(tierCutoffs = []) {
   ];
 }
 
+function readPreviousRank(monthKey, uid) {
+  try {
+    const raw = localStorage.getItem(LEADERBOARD_RANK_STORAGE_KEY);
+    const parsed = raw ? JSON.parse(raw) : null;
+    if (!parsed || parsed.monthKey !== monthKey || parsed.uid !== uid) return null;
+    const rank = Number(parsed.rank);
+    return Number.isFinite(rank) && rank > 0 ? rank : null;
+  } catch {
+    return null;
+  }
+}
+
+function storeCurrentRank(monthKey, uid, rank) {
+  try {
+    if (!monthKey || !uid || !rank) return;
+    localStorage.setItem(
+      LEADERBOARD_RANK_STORAGE_KEY,
+      JSON.stringify({ monthKey, uid, rank: Number(rank) })
+    );
+  } catch {}
+}
+
+function getRankMovement(summary) {
+  const monthKey = String(summary?.monthKey || "").trim();
+  const uid = String(summary?.uid || "").trim();
+  const currentRank = Number(summary?.currentRank || 0);
+  if (!monthKey || !uid || !currentRank) return null;
+
+  const previousRank = readPreviousRank(monthKey, uid);
+  storeCurrentRank(monthKey, uid, currentRank);
+  if (!previousRank) return null;
+  if (currentRank < previousRank) return `↑ moved up from #${previousRank}`;
+  if (currentRank > previousRank) return `↓ moved down from #${previousRank}`;
+  return `→ rank unchanged`;
+}
+
 function renderProjectedStatus(summary) {
   const tierLabel = String(summary?.projectedTierLabel || summary?.projectedTierName || "").trim();
   const nextTier = String(summary?.nextTierName || "").trim();
@@ -61,6 +119,29 @@ function renderProjectedStatus(summary) {
   return `No tier yet - keep playing to qualify.`;
 }
 
+function renderActivityHint(summary) {
+  const dailyRp = Number(summary?.dailyRp || 0);
+  if (dailyRp <= 0) return `Earn more Score today to climb the leaderboard.`;
+  if (dailyRp < 10) return `A little more Score today can move you up the board.`;
+  if (dailyRp < 30) return `Daily Score is capped - keep progressing steadily.`;
+  return `Strong day. Keep the momentum going before the season ends.`;
+}
+
+function renderQualificationStatus(summary) {
+  const tier = String(summary?.projectedTierLabel || summary?.projectedTierName || "").trim();
+  return tier ? "Qualified for seasonal rewards" : "Not yet qualified for rewards";
+}
+
+function getScoreGapText(items, summary) {
+  const meRank = Number(summary?.currentRank || 0);
+  const meScore = Number(summary?.rpScore || 0);
+  if (!meRank || !Array.isArray(items) || meRank <= 1) return "";
+  const above = items.find((item) => Number(item?.rank || 0) === meRank - 1);
+  if (!above) return "";
+  const gap = Math.max(0, Number(above?.rpScore || 0) - meScore + 1);
+  return gap > 0 ? `${gap} Score to pass rank #${meRank - 1}` : "";
+}
+
 export function mountLeaderboardMonthlyUI(root) {
   const wrap = document.createElement("div");
   wrap.innerHTML = `
@@ -70,6 +151,7 @@ export function mountLeaderboardMonthlyUI(root) {
           <div>
             <div class="leaderboardMonthlyTitle">Leaderboard</div>
             <div class="leaderboardMonthlySeason" id="leaderboardMonthlySeason">Season: --</div>
+            <div class="leaderboardMonthlyCountdown" id="leaderboardMonthlyCountdown"></div>
           </div>
           <button class="leaderboardMonthlyClose" id="leaderboardMonthlyClose" type="button">X</button>
         </div>
@@ -79,6 +161,7 @@ export function mountLeaderboardMonthlyUI(root) {
             <div class="leaderboardMonthlySection">
               <div class="leaderboardMonthlySectionTitle">Your Summary</div>
               <div class="leaderboardMonthlyStatus" id="leaderboardMonthlySummaryStatus">Loading...</div>
+              <div class="leaderboardMonthlySummaryHighlight hidden" id="leaderboardMonthlySummaryHighlight"></div>
               <div class="leaderboardMonthlySummaryCard" id="leaderboardMonthlySummaryCard"></div>
             </div>
 
@@ -91,7 +174,11 @@ export function mountLeaderboardMonthlyUI(root) {
                 Higher tiers unlock larger seasonal rewards.
               </div>
               <div class="leaderboardMonthlySeasonStatus" id="leaderboardMonthlySeasonStatus"></div>
+              <div class="leaderboardMonthlyActivityHint" id="leaderboardMonthlyActivityHint"></div>
               <div class="leaderboardMonthlyTierGrid" id="leaderboardMonthlyTierGrid"></div>
+              <div class="leaderboardMonthlyResetNotice">
+                Score resets at the end of each season. Coins are not reset.
+              </div>
             </div>
 
             <div class="leaderboardMonthlySection">
@@ -113,15 +200,21 @@ export function mountLeaderboardMonthlyUI(root) {
   const closeBtn = root.querySelector("#leaderboardMonthlyClose");
   const refreshBtn = root.querySelector("#leaderboardMonthlyRefresh");
   const seasonEl = root.querySelector("#leaderboardMonthlySeason");
+  const countdownEl = root.querySelector("#leaderboardMonthlyCountdown");
   const summaryStatusEl = root.querySelector("#leaderboardMonthlySummaryStatus");
+  const summaryHighlightEl = root.querySelector("#leaderboardMonthlySummaryHighlight");
   const summaryCardEl = root.querySelector("#leaderboardMonthlySummaryCard");
   const seasonStatusEl = root.querySelector("#leaderboardMonthlySeasonStatus");
+  const activityHintEl = root.querySelector("#leaderboardMonthlyActivityHint");
   const tierGridEl = root.querySelector("#leaderboardMonthlyTierGrid");
   const listStatusEl = root.querySelector("#leaderboardMonthlyListStatus");
   const rowsEl = root.querySelector("#leaderboardMonthlyRows");
+  let latestMonthKey = "";
+  let countdownTimer = null;
 
   function renderSummary(summary) {
     if (!summaryCardEl) return;
+    const rankMovement = getRankMovement(summary);
 
     const rows = [
       renderSummaryRow("Rank", summary?.currentRank ? `#${summary.currentRank}` : null),
@@ -148,11 +241,26 @@ export function mountLeaderboardMonthlyUI(root) {
         : "";
 
     summaryCardEl.innerHTML = `${rows.join("")}${progressLine}`;
+
+    if (summaryHighlightEl) {
+      summaryHighlightEl.textContent = rankMovement || "";
+      summaryHighlightEl.classList.toggle("hidden", !rankMovement);
+    }
   }
 
   function renderSeasonRewards(summary, listOut) {
     if (seasonStatusEl) {
       seasonStatusEl.textContent = renderProjectedStatus(summary || {});
+    }
+    if (activityHintEl) {
+      const qualification = renderQualificationStatus(summary || {});
+      const activityHint = renderActivityHint(summary || {});
+      const scoreGap = getScoreGapText(listOut?.items || [], summary || {});
+      activityHintEl.innerHTML = `
+        <div class="leaderboardMonthlyHintStrong">${escapeHtml(qualification)}</div>
+        <div>${escapeHtml(activityHint)}</div>
+        ${scoreGap ? `<div class="leaderboardMonthlyGapLine">${escapeHtml(scoreGap)}</div>` : ""}
+      `;
     }
 
     if (!tierGridEl) return;
@@ -177,9 +285,30 @@ export function mountLeaderboardMonthlyUI(root) {
       .join("");
   }
 
+  function updateCountdown() {
+    if (!countdownEl) return;
+    countdownEl.textContent = latestMonthKey ? formatCountdown(latestMonthKey) : "";
+  }
+
+  function startCountdown() {
+    stopCountdown();
+    updateCountdown();
+    countdownTimer = window.setInterval(updateCountdown, 60000);
+  }
+
+  function stopCountdown() {
+    if (countdownTimer) {
+      clearInterval(countdownTimer);
+      countdownTimer = null;
+    }
+  }
+
   function renderItems(items, meUid) {
     if (!rowsEl) return;
     const list = Array.isArray(items) ? items : [];
+    const meRank = Array.isArray(items)
+      ? Number(list.find((item) => String(item?.uid || "") === String(meUid || ""))?.rank || 0)
+      : 0;
     if (!list.length) {
       rowsEl.innerHTML = `<div class="leaderboardMonthlyRow is-empty">No leaderboard data yet.</div>`;
       return;
@@ -189,9 +318,11 @@ export function mountLeaderboardMonthlyUI(root) {
       .map((item) => {
         const uid = String(item?.uid || "player");
         const isMe = meUid && uid === meUid;
+        const rankNum = Number(item?.rank || 0);
+        const isNearMe = meRank > 0 && !isMe && Math.abs(rankNum - meRank) <= 2;
         const tierLabel = String(item?.projectedTierLabel || item?.projectedTierName || "-");
         return `
-          <div class="leaderboardMonthlyRow${isMe ? " is-me" : ""}">
+          <div class="leaderboardMonthlyRow${isMe ? " is-me" : ""}${isNearMe ? " is-near" : ""}">
             <span class="rank">${escapeHtml(formatRank(item?.rank))}</span>
             <span class="name">${escapeHtml(uid)}</span>
             <span class="score">${escapeHtml(String(Number(item?.rpScore || 0)))}</span>
@@ -225,8 +356,10 @@ export function mountLeaderboardMonthlyUI(root) {
 
       if (seasonEl) {
         const monthKey = listOut?.monthKey || meOut?.monthKey || "";
+        latestMonthKey = String(monthKey || "");
         seasonEl.textContent = monthKey ? `Season: ${formatMonthKey(monthKey)}` : "Season: --";
       }
+      updateCountdown();
 
       renderSummary(meOut || {});
       renderSeasonRewards(meOut || {}, listOut || {});
@@ -237,7 +370,14 @@ export function mountLeaderboardMonthlyUI(root) {
     } catch {
       if (summaryStatusEl) summaryStatusEl.textContent = "Failed to load leaderboard";
       if (listStatusEl) listStatusEl.textContent = "Failed to load leaderboard";
+      latestMonthKey = "";
+      updateCountdown();
+      if (summaryHighlightEl) {
+        summaryHighlightEl.textContent = "";
+        summaryHighlightEl.classList.add("hidden");
+      }
       if (seasonStatusEl) seasonStatusEl.textContent = "";
+      if (activityHintEl) activityHintEl.textContent = "";
       if (tierGridEl) tierGridEl.innerHTML = "";
       if (rowsEl) rowsEl.innerHTML = "";
       if (summaryCardEl) summaryCardEl.innerHTML = "";
@@ -248,11 +388,13 @@ export function mountLeaderboardMonthlyUI(root) {
     if (!overlay) return;
     overlay.classList.add("show");
     overlay.setAttribute("aria-hidden", "false");
+    startCountdown();
     void refresh();
   }
 
   function hide() {
     if (!overlay) return;
+    stopCountdown();
     overlay.classList.remove("show");
     overlay.setAttribute("aria-hidden", "true");
   }

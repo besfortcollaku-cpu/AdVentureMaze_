@@ -44,6 +44,12 @@
   margin-top: 4px;
 }
 
+.leaderboardMonthlyCountdown {
+  margin-top: 6px;
+  font-size: 12px;
+  color: #9ce7ff;
+}
+
 .leaderboardMonthlyClose {
   border: none;
   border-radius: 10px;
@@ -99,6 +105,21 @@
   margin-bottom: 10px;
 }
 
+.leaderboardMonthlySummaryHighlight {
+  margin-bottom: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(55, 212, 255, 0.1);
+  border: 1px solid rgba(55, 212, 255, 0.14);
+  color: #dff8ff;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.leaderboardMonthlySummaryHighlight.hidden {
+  display: none;
+}
+
 .leaderboardMonthlySummaryCard {
   display: grid;
   gap: 8px;
@@ -124,6 +145,29 @@
   color: #dff8ff;
   font-size: 13px;
   line-height: 1.4;
+}
+
+.leaderboardMonthlyActivityHint {
+  margin-top: 10px;
+  padding: 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #d9ebff;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.leaderboardMonthlyHintStrong {
+  font-weight: 800;
+  color: #ffffff;
+  margin-bottom: 4px;
+}
+
+.leaderboardMonthlyGapLine {
+  margin-top: 6px;
+  color: #9ce7ff;
+  font-weight: 700;
 }
 
 .leaderboardMonthlyTierGrid {
@@ -168,6 +212,13 @@
   margin-top: 6px;
   font-size: 12px;
   color: #b6d6ee;
+}
+
+.leaderboardMonthlyResetNotice {
+  margin-top: 12px;
+  font-size: 12px;
+  color: #a9c7de;
+  line-height: 1.4;
 }
 
 .leaderboardMonthlySummaryRow {
@@ -229,6 +280,11 @@
 .leaderboardMonthlyRow.is-me {
   border-color: rgba(69, 198, 255, 0.72);
   background: rgba(35, 112, 163, 0.34);
+}
+
+.leaderboardMonthlyRow.is-near {
+  border-color: rgba(255, 227, 138, 0.24);
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .leaderboardMonthlyRow.is-empty,
