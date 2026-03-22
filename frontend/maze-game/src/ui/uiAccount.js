@@ -158,7 +158,6 @@ export function mountAccountUI(root) {
               <div class="accountRow"><span>Next Tier</span><span id="accountCoinToPiRate">-</span></div>
               <div class="accountRow"><span>Reward Basis</span><span id="accountMonthTotalPi">Score and leaderboard standing</span></div>
               <div class="accountRow"><span>Your Pi will be sent to</span><span id="accountPayoutWalletConfirm">Not set</span></div>
-              <div class="accountRow"><button id="accountClaimPiBtn">Claim Reward (Dummy)</button></div>
 
               <div class="accountRow"><span>Previous Month</span><span id="accountPrevMonth">-</span></div>
               <div class="accountRow"><span>Previous Season</span><span id="accountPrevMonthPi">Awaiting archive</span></div>
@@ -211,7 +210,6 @@ export function mountAccountUI(root) {
   const monthRateEl = root.querySelector("#accountMonthRate");
   const coinToPiRateEl = root.querySelector("#accountCoinToPiRate");
   const monthTotalPiEl = root.querySelector("#accountMonthTotalPi");
-  const claimPiBtn = root.querySelector("#accountClaimPiBtn");
   const prevMonthEl = root.querySelector("#accountPrevMonth");
   const prevMonthPiEl = root.querySelector("#accountPrevMonthPi");
 
@@ -516,13 +514,6 @@ export function mountAccountUI(root) {
     }
   });
 
-  claimPiBtn?.addEventListener("click", () => {
-    claimPiBtn.textContent = "Claimed (Dummy)";
-    setTimeout(() => {
-      claimPiBtn.textContent = "Claim Reward (Dummy)";
-    }, 1400);
-  });
-
   closeBtn?.addEventListener("click", hide);
   overlay?.addEventListener("click", (e) => {
     if (e.target === overlay) hide();
@@ -530,6 +521,8 @@ export function mountAccountUI(root) {
 
   return { show, hide, setUser, setCoins, setScore, setServerTime };
 }
+
+
 
 
 

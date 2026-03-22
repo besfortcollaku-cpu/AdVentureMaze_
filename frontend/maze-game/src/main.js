@@ -1,6 +1,3 @@
-﻿console.log("BUILD VERSION TEST 123");
-import "./css/dailyReward.css";
-import { createDailyRewardPopup } from "./ui/uiDailyReward.js";
 import "./css/ui.css";
 import "./css/ads.css";
 import { mountLevelsUI } from "./ui/uiLevels.js";
@@ -14,7 +11,6 @@ import { createWinPopup } from "./ui/uiWin.js";
 import { createSkipPopup } from "./ui/uiSkip.js";
 import { createHintPopup } from "./ui/uiHints.js";
 import { createRestartPopup } from "./ui/uiRestarts.js";
-import { createMissedRewardPopup } from "./ui/uiMissedReward.js";
 import { createMysteryChestPopup } from "./ui/uiMysteryChest.js";
 import { createDailyLeaderboardPopup } from "./ui/uiLeaderboardDaily.js";
 import { createDailyRankingRewardPopup } from "./ui/uiDailyRankingReward.js";
@@ -106,7 +102,6 @@ function showAdCooldownToast(message) {
     el.style.display = "none";
   }, 1800);
 }
-const missedRewardPopup = createMissedRewardPopup();
 const AUTO_AD_COOLDOWN_MS = 180000;
 const AUTO_AD_LAST_KEY = "auto_ad_last";
 const mysteryChestPopup = createMysteryChestPopup();
@@ -398,7 +393,7 @@ function applyUserPatch(patch, opts = {}) {
     ui?.setCoins?.(CURRENT_USER?.coins ?? 0);
   }
 
-  // ðŸ”¥ CRITICAL: refresh badges from DB values
+  // 🔥 CRITICAL: refresh badges from DB values
   updateAllBadges();
 }
 let COIN_ANIM_SEQ = 0;
@@ -1073,22 +1068,7 @@ function updateAllBadges() {
   ui?.setRestartsBadge?.(totalRestarts);
 }
 
-async function apiRecoverDailyReward({ day }) {
-  if (!CURRENT_ACCESS_TOKEN) return null;
 
-  const res = await fetch(`${BACKEND}/api/rewards/recover-day`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${normalizeToken(CURRENT_ACCESS_TOKEN)}`,
-    },
-    body: JSON.stringify({
-      day,
-    }),
-  });
-
-  return res.json().catch(() => ({}));
-}
 async function apiRestart({ mode }) {
   const nonce = crypto.randomUUID?.() || `${Date.now()}-${Math.random()}`;
   const res = await fetch(`${BACKEND}/api/restart`, {
@@ -1163,7 +1143,7 @@ CURRENT_USER = null;
 ui?.setUser?.({ username: "Guest", uid: null });
 ui?.setCoins?.(0);
 ui?.setScore?.(0);
-// ðŸ”¥ AUTO-HYDRATE USER IF TOKEN EXISTS
+// 🔥 AUTO-HYDRATE USER IF TOKEN EXISTS
 
   const root = document.querySelector("#app");
   if (!root) {
@@ -1215,7 +1195,7 @@ if (!game?.isRunning?.()) {
 // go to the last unlocked level (where resume is stored)
 goToLevel(CURRENT_MAX_UNLOCKED_LEVEL - 1);
 
-// âœ… APPLY PROGRESS AFTER GAME IS RUNNING + LEVEL IS SET
+// ✅ APPLY PROGRESS AFTER GAME IS RUNNING + LEVEL IS SET
 setTimeout(() => {
   if (RESUME_TILES.size > 0 || RESUME_POS) {
     game.applyProgress({
@@ -1224,18 +1204,6 @@ setTimeout(() => {
     });
   }
 }, 0);
-const meFresh = await apiMe();
-console.log("WHO OPENED DAILY POPUP", meFresh?.dailyReward);
-
-if (meFresh?.dailyReward) {
-  dailyRewardPopup.show({
-    day: meFresh.dailyReward.day,
-    coins: meFresh.dailyReward.coins,
-    days: meFresh.dailyReward.days,
-    bonusState: meFresh.dailyReward.bonusState,
-  });
-}
-
 setTimeout(() => {
   void maybeShowDailyRankingRewardPopup();
 }, 1200);
@@ -1364,7 +1332,6 @@ const winPopup = createWinPopup();
 const skipPopup = createSkipPopup();
 const hintPopup = createHintPopup();
 const restartPopup = createRestartPopup();
-const dailyRewardPopup = createDailyRewardPopup();
 const dailyLeaderboardPopup = createDailyLeaderboardPopup();
 const dailyRankingRewardPopup = createDailyRankingRewardPopup();
 
@@ -1392,8 +1359,6 @@ withPopupAudio(winPopup);
 withPopupAudio(skipPopup);
 withPopupAudio(hintPopup);
 withPopupAudio(restartPopup);
-withPopupAudio(dailyRewardPopup);
-withPopupAudio(missedRewardPopup);
 withPopupAudio(mysteryChestPopup);
 withPopupAudio(adSurprisePopup);
 withPopupAudio(dailyLeaderboardPopup);
@@ -1474,64 +1439,7 @@ function setupGlobalAudioHooks() {
 }
 
 setupGlobalAudioHooks();
-window.onRecoverMissedDay = (day) => {
-  if (!guardAdCooldownBeforeWatching()) {
-    return;
-  }
 
-  dailyRewardPopup.hide();
-
-  simulateAd({
-    onFinished: async () => {
-      try {
-        const out = await apiRecoverDailyReward({ day });
-
-        if (!out?.ok) {
-          showAdCooldownToast(out?.error || "Recover failed");
-        } else {
-          if (!out?.already) {
-            markAdClaimedNow();
-
-            if (out?.user) {
-    const targetCoins = Number(out.user.coins ?? CURRENT_USER?.coins ?? 0);
-    applyUserPatch(out.user, { skipCoinSync: true });
-    await animateCoinsTo(targetCoins, { showGainFx: true });
-  }
-          }
-        }
-
-        if (out?.mysteryChestReady) {
-          mysteryChestPopup.show();
-          return;
-        }
-
-        const meFresh = await apiMe();
-
-        if (meFresh?.dailyReward) {
-          dailyRewardPopup.show({
-            day: meFresh.dailyReward.day,
-            coins: meFresh.dailyReward.coins,
-            days: meFresh.dailyReward.days,
-            bonusState: meFresh.dailyReward.bonusState,
-          });
-        }
-      } catch (e) {
-        showAdCooldownToast("Recover failed");
-
-        const meFresh = await apiMe();
-
-        if (meFresh?.dailyReward) {
-          dailyRewardPopup.show({
-            day: meFresh.dailyReward.day,
-            coins: meFresh.dailyReward.coins,
-            days: meFresh.dailyReward.days,
-            bonusState: meFresh.dailyReward.bonusState,
-          });
-        }
-      }
-    },
-  });
-};
 
 /* -------------------------------
    HINT ARROWS OVERLAY (animated)
@@ -1636,34 +1544,6 @@ function advanceRouteStep() {
     if (dir) showHintArrows(dir);
   }
 }
-async function apiClaimDailyReward() {
-  if (!CURRENT_ACCESS_TOKEN) return null;
-
-  const res = await fetch(`${BACKEND}/api/daily-reward/claim`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${normalizeToken(CURRENT_ACCESS_TOKEN)}`,
-    },
-  });
-
-  return res.json().catch(() => ({}));
-}
-
-async function apiIgnoreMissedDailyCycle() {
-  if (!CURRENT_ACCESS_TOKEN) return null;
-
-  const res = await fetch(`${BACKEND}/api/daily-reward/ignore-missed`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${normalizeToken(CURRENT_ACCESS_TOKEN)}`,
-    },
-  });
-
-  return res.json().catch(() => ({}));
-}
-
 async function apiMe() {
   if (!CURRENT_ACCESS_TOKEN) return null;
 
@@ -1916,10 +1796,10 @@ function getSmartHintFromState(state) {
   if (!state) return null;
 
   const dirs = [
-    { name: "UP", dx: 0, dy: -1, arrow: "â†‘" },
-    { name: "DOWN", dx: 0, dy: 1, arrow: "â†“" },
-    { name: "LEFT", dx: -1, dy: 0, arrow: "â†" },
-    { name: "RIGHT", dx: 1, dy: 0, arrow: "â†’" },
+    { name: "UP", dx: 0, dy: -1, arrow: "↑" },
+    { name: "DOWN", dx: 0, dy: 1, arrow: "↓" },
+    { name: "LEFT", dx: -1, dy: 0, arrow: "←" },
+    { name: "RIGHT", dx: 1, dy: 0, arrow: "→" },
   ];
 
   const options = [];
@@ -1927,7 +1807,7 @@ function getSmartHintFromState(state) {
   for (const d of dirs) {
     const out = _slideTargetAndNewPaintCount(state, d.dx, d.dy);
 
-    // ignore â€œno movementâ€
+    // ignore “no movement”
     if (out.dist <= 0) continue;
 
     options.push({
@@ -2154,7 +2034,7 @@ RESUME_ENABLED = false;
   const selectedLevelNumber = levelIndex + 1;
 
   game.setLevel(lvl);
-// âœ… Capture spawn tile AFTER level fully loads
+// ✅ Capture spawn tile AFTER level fully loads
 setTimeout(() => {
   const p = game.getPlayer?.();
   if (p) {
@@ -2204,7 +2084,7 @@ function simulateInterstitialAd(onFinished) {
     duration: 20,
     skipAfter: 5,
     buttonLabel: "Skip Ad",
-    rewardReadyText: "âœ… Ad Finished",
+    rewardReadyText: "✅ Ad Finished",
   });
 }
 async function showDailyLeaderboardBeforeWin(prefetchedPayload = null, rewardSyncPromise = null) {
@@ -2366,7 +2246,7 @@ function simulateAd({
   overlay.innerHTML = `
     <div class="ad-box">
       <div class="ad-video">
-        ðŸŽ® Sponsored Ad
+        🎮 Sponsored Ad
       </div>
 
       <div id="adCountdown">
@@ -2455,42 +2335,13 @@ async function grantRestartAdReward() {
   game.setLevel(levels[levelIndex]);
 }
 
-dailyRewardPopup.onClaim(async () => {
-
-  const out = await apiClaimDailyReward();
-
-  if (!out?.ok) {
-    dailyRewardPopup.hide();
-    return;
-  }
-
-  if (out?.user) {
-    const targetCoins = Number(out.user.coins ?? CURRENT_USER?.coins ?? 0);
-    applyUserPatch(out.user, { skipCoinSync: true });
-    await animateCoinsTo(targetCoins, { showGainFx: true });
-  }
-
-  dailyRewardPopup.hide();
-
-  if (out?.needsRecoveryDecision && out?.missedDay) {
-    CURRENT_MISSED_DAY = out.missedDay.day;
-    CURRENT_MISSED_COINS = out.missedDay.coins;
-    missedRewardPopup.show(out.missedDay);
-    return;
-  }
-
-  if (out?.mysteryChestReady) {
-    mysteryChestPopup.show();
-  }
-
-});
 function goNextLevel() {
   goToLevel(levelIndex + 1);
 }
 winPopup.onNextLevel(() => {
   const nextLevelNumber = levelIndex + 2; // levelIndex is 0-based
 
-  // ðŸ”’ Guest limit: require login after level 5
+  // 🔒 Guest limit: require login after level 5
 if (!CURRENT_ACCESS_TOKEN && nextLevelNumber > GUEST_MAX_LEVEL) {
     winPopup.hide();
     ui.showLoginRequired();
@@ -2574,93 +2425,7 @@ winPopup.onWatchAdClick(() => {
 });
 
 
-missedRewardPopup.onIgnore(async () => {
-  missedRewardPopup.hide();
-
-  const out = await apiIgnoreMissedDailyCycle();
-
-  if (out?.user) {
-    const targetCoins = Number(out.user.coins ?? CURRENT_USER?.coins ?? 0);
-    applyUserPatch(out.user, { skipCoinSync: true });
-    await animateCoinsTo(targetCoins, { showGainFx: true });
-  }
-
-  const meFresh = await apiMe();
-
-  if (meFresh?.dailyReward) {
-    dailyRewardPopup.show({
-      day: meFresh.dailyReward.day,
-      coins: meFresh.dailyReward.coins,
-      days: meFresh.dailyReward.days,
-      bonusState: meFresh.dailyReward.bonusState,
-    });
-  }
-});
-
-missedRewardPopup.onRecover(() => {
-  if (!guardAdCooldownBeforeWatching()) {
-    return;
-  }
-
-  missedRewardPopup.hide();
-
-  simulateAd({
-    onFinished: async () => {
-      const out = await apiRecoverDailyReward({ day: CURRENT_MISSED_DAY });
-
-      if (!out?.ok) {
-        showAdCooldownToast(out?.error || "Recover failed");
-        return;
-      }
-
-      if (out?.already) {
-        const meFresh = await apiMe();
-
-        if (meFresh?.missedDay) {
-          CURRENT_MISSED_DAY = meFresh.missedDay.day;
-          CURRENT_MISSED_COINS = meFresh.missedDay.coins;
-          missedRewardPopup.show(meFresh.missedDay);
-        } else if (meFresh?.mysteryChest) {
-          mysteryChestPopup.show();
-        } else if (meFresh?.dailyReward) {
-          dailyRewardPopup.show({
-            day: meFresh.dailyReward.day,
-            coins: meFresh.dailyReward.coins,
-            days: meFresh.dailyReward.days,
-            bonusState: meFresh.dailyReward.bonusState,
-          });
-        }
-
-        return;
-      }
-
-      markAdClaimedNow();
-
-      if (out?.user) {
-    const targetCoins = Number(out.user.coins ?? CURRENT_USER?.coins ?? 0);
-    applyUserPatch(out.user, { skipCoinSync: true });
-    await animateCoinsTo(targetCoins, { showGainFx: true });
-  }
-
-      const meFresh = await apiMe();
-
-      if (meFresh?.missedDay) {
-        CURRENT_MISSED_DAY = meFresh.missedDay.day;
-        CURRENT_MISSED_COINS = meFresh.missedDay.coins;
-        missedRewardPopup.show(meFresh.missedDay);
-      } else if (meFresh?.mysteryChest) {
-        mysteryChestPopup.show();
-      } else if (meFresh?.dailyReward) {
-        dailyRewardPopup.show({
-          day: meFresh.dailyReward.day,
-          coins: meFresh.dailyReward.coins,
-          days: meFresh.dailyReward.days,
-          bonusState: meFresh.dailyReward.bonusState,
-        });
-      }
-    },
-  });
-});// ---- SKIP / HINT buttons (backend-powered) ----
+// ---- SKIP / HINT buttons (backend-powered) ----
 ui.onSkipClick(async () => {
   if (!CURRENT_ACCESS_TOKEN) {
     ui.showLoginRequired();
@@ -3078,18 +2843,6 @@ ui.onLoginClick(async (e) => {
     updateAllBadges();
     LOGIN_IN_PROGRESS = false;
     
-const meFresh = await apiMe();
-console.log("WHO OPENED DAILY POPUP", meFresh?.dailyReward);
-
-if (meFresh?.dailyReward) {
-  dailyRewardPopup.show({
-    day: meFresh.dailyReward.day,
-    coins: meFresh.dailyReward.coins,
-    days: meFresh.dailyReward.days,
-    bonusState: meFresh.dailyReward.bonusState,
-  });
-}
-
 setTimeout(() => {
   void maybeShowDailyRankingRewardPopup();
 }, 1200);
@@ -3113,6 +2866,10 @@ setTimeout(() => {
 }
 
 boot();
+
+
+
+
 
 
 
