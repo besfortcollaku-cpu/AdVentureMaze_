@@ -404,3 +404,17 @@
   opacity: 0.78;
   letter-spacing: 0.2px;
 }
+
+.economyStat {
+  white-space: nowrap;
+}
+
+.economyDivider {
+  opacity: 0.55;
+}
+
+.accountTopCoins {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}

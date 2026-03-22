@@ -18,6 +18,19 @@ export function createWinPopup() {
       <h2 class="title">Level Complete</h2>
       <div class="subtitle" id="winLevelText">You finished Level</div>
 
+      <div class="winRewardSummary" id="winRewardSummary">
+        <div class="winRewardRow">
+          <span class="winRewardLabel">Coins</span>
+          <span class="winRewardValue" id="winRewardCoins">+0</span>
+        </div>
+        <div class="winRewardRow">
+          <span class="winRewardLabel">Score</span>
+          <span class="winRewardValue" id="winRewardScore">+0</span>
+        </div>
+      </div>
+
+      <div class="winRewardStatus hidden" id="winRewardStatus"></div>
+      <div class="winRewardNote hidden" id="winRewardNote"></div>
 
 <div class="winCard">
       <button class="btn primary btnNext" id="nextLevelBtn">
@@ -39,6 +52,11 @@ export function createWinPopup() {
   document.body.appendChild(el);
 
   const levelText = el.querySelector("#winLevelText");
+  const rewardSummaryEl = el.querySelector("#winRewardSummary");
+  const rewardCoinsEl = el.querySelector("#winRewardCoins");
+  const rewardScoreEl = el.querySelector("#winRewardScore");
+  const rewardStatusEl = el.querySelector("#winRewardStatus");
+  const rewardNoteEl = el.querySelector("#winRewardNote");
   const nextBtn = el.querySelector("#nextLevelBtn");
   const adBtn = el.querySelector("#watchAdBtn");
   const adBtnDefaultText = adBtn?.textContent || "Watch Ad for Surprise Box";
@@ -52,13 +70,38 @@ export function createWinPopup() {
     onWatchAd?.();
   });
 
-  function show({ levelNumber }) {
+  function applyRewardSummary({
+    rewards = null,
+    rewardStatus = "",
+    rewardNote = "",
+  } = {}) {
+    const hasRewards = rewards && (rewards.mc != null || rewards.rp != null);
+    const mc = Number(rewards?.mc || 0);
+    const rp = Number(rewards?.rp || 0);
+
+    if (rewardSummaryEl) rewardSummaryEl.classList.toggle("hidden", !hasRewards);
+    if (rewardCoinsEl) rewardCoinsEl.textContent = `+${mc}`;
+    if (rewardScoreEl) rewardScoreEl.textContent = `+${rp}`;
+
+    if (rewardStatusEl) {
+      rewardStatusEl.textContent = hasRewards ? rewardStatus || "" : "";
+      rewardStatusEl.classList.toggle("hidden", !hasRewards || !rewardStatus);
+    }
+
+    if (rewardNoteEl) {
+      rewardNoteEl.textContent = hasRewards ? rewardNote || "" : "";
+      rewardNoteEl.classList.toggle("hidden", !hasRewards || !rewardNote);
+    }
+  }
+
+  function show({ levelNumber, rewards = null, rewardStatus = "", rewardNote = "" }) {
     const theme = getTheme();
 
     el.classList.remove("theme-forest", "theme-lava", "theme-ice");
     el.classList.add(`theme-${theme}`);
 
     levelText.textContent = `You finished Level ${levelNumber}`;
+    applyRewardSummary({ rewards, rewardStatus, rewardNote });
     setWatchAdBusy(false);
     el.classList.remove("hidden");
   }
@@ -85,6 +128,7 @@ export function createWinPopup() {
   return {
     show,
     hide,
+    setRewardSummary: applyRewardSummary,
     setWatchAdBusy,
     onNextLevel,
     onWatchAdClick,

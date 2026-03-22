@@ -393,6 +393,7 @@ function applyUserPatch(patch, opts = {}) {
 
   // update header
   ui?.setUser?.(CURRENT_USER);
+  ui?.setScore?.(CURRENT_USER?.score ?? CURRENT_USER?.rp_score ?? 0);
   if (!skipCoinSync) {
     ui?.setCoins?.(CURRENT_USER?.coins ?? 0);
   }
@@ -728,6 +729,41 @@ async function apiClaimLevelComplete(levelNumber) {
   return res.json();
 }
 
+function buildLevelCompletePopupState(out, levelNumber) {
+  const rewards = out?.rewards
+    ? {
+        mc: Number(out.rewards.mc || 0),
+        rp: Number(out.rewards.rp || 0),
+      }
+    : null;
+
+  let rewardStatus = "";
+  let rewardNote = "";
+
+  if (rewards) {
+    if (out?.already) {
+      rewardStatus = "This level already gave Score this month.";
+      rewardNote = "Score affects your leaderboard position and monthly rewards.";
+    } else if (rewards.rp >= 2) {
+      rewardStatus = "Clean run bonus applied.";
+      rewardNote = "Score affects your leaderboard position and monthly rewards.";
+    } else if (rewards.rp === 1) {
+      rewardStatus = "Hint used: reduced Score.";
+      rewardNote = "Hints reduce Score for this run.";
+    } else if (rewards.rp === 0) {
+      rewardStatus = "No Score awarded for this run.";
+      rewardNote = "Skipped levels do not award Score.";
+    }
+  }
+
+  return {
+    levelNumber,
+    rewards,
+    rewardStatus,
+    rewardNote,
+  };
+}
+
 async function apiLeaderboardDaily() {
   const res = await fetch(`${BACKEND}/api/leaderboard/daily`, {
     method: "GET",
@@ -746,6 +782,51 @@ async function apiLeaderboardDaily() {
     out.server_time_ms = serverMs;
   }
 
+  return out;
+}
+
+async function apiLeaderboardMonthly(params = {}) {
+  const qs = new URLSearchParams();
+  if (params?.limit != null) qs.set("limit", String(params.limit));
+  if (params?.offset != null) qs.set("offset", String(params.offset));
+  const suffix = qs.toString() ? `?${qs.toString()}` : "";
+  const res = await fetch(`${BACKEND}/api/leaderboard${suffix}`, {
+    headers: {
+      ...(CURRENT_ACCESS_TOKEN ? { Authorization: `Bearer ${normalizeToken(CURRENT_ACCESS_TOKEN)}` } : {}),
+    },
+  });
+  const out = await res.json().catch(() => ({}));
+  if (!res.ok || out?.ok === false) {
+    throw new Error(out?.error || "leaderboard_failed");
+  }
+  return out;
+}
+
+async function apiLeaderboardMonthlyMe() {
+  if (!CURRENT_ACCESS_TOKEN) {
+    return {
+      ok: true,
+      monthKey: null,
+      uid: CURRENT_USER?.uid || null,
+      rpScore: Number(CURRENT_USER?.score || 0),
+      dailyRp: Number(CURRENT_USER?.dailyRp ?? CURRENT_USER?.daily_rp ?? 0),
+      currentRank: null,
+      projectedTierName: null,
+      projectedTierLabel: null,
+      nextTierName: null,
+      rpNeededForNextTier: null,
+    };
+  }
+
+  const res = await fetch(`${BACKEND}/api/leaderboard/me`, {
+    headers: {
+      Authorization: `Bearer ${normalizeToken(CURRENT_ACCESS_TOKEN)}`,
+    },
+  });
+  const out = await res.json().catch(() => ({}));
+  if (!res.ok || out?.ok === false) {
+    throw new Error(out?.error || "leaderboard_me_failed");
+  }
   return out;
 }
 
@@ -920,6 +1001,8 @@ async function loadMeAndSyncUI({ BACKEND, token, ui }) {
 
   // normalize everything
   coins: Number(user.coins ?? progress.coins ?? 0),
+  score: Number(user.score ?? user.rp_score ?? 0),
+  dailyRp: Number(user.dailyRp ?? user.daily_rp ?? 0),
 
   restarts_balance: Number(user.restarts_balance ?? 0),
   skips_balance: Number(user.skips_balance ?? 0),
@@ -951,6 +1034,7 @@ async function loadMeAndSyncUI({ BACKEND, token, ui }) {
   });
 
   ui.setCoins(Number(user.coins ?? progress.coins ?? 0));
+  ui.setScore(Number(user.score ?? user.rp_score ?? 0));
   
 setTimeout(() => {
   updateAllBadges();
@@ -1078,6 +1162,7 @@ if (storedToken) {
 CURRENT_USER = null;
 ui?.setUser?.({ username: "Guest", uid: null });
 ui?.setCoins?.(0);
+ui?.setScore?.(0);
 // ðŸ”¥ AUTO-HYDRATE USER IF TOKEN EXISTS
 
   const root = document.querySelector("#app");
@@ -1219,6 +1304,35 @@ window.__maze.getDailyLeaderboard = async () => {
   }
   if (Number.isFinite(serverMs)) out.server_time_ms = serverMs;
   return out;
+};
+
+window.__maze.getLeaderboard = async (params = {}) => {
+  try {
+    return await apiLeaderboardMonthly(params);
+  } catch (e) {
+    return { ok: false, error: e?.message || "leaderboard_failed", monthKey: null, totalEligibleUsers: 0, tierCutoffs: [], items: [] };
+  }
+};
+
+window.__maze.getMyLeaderboardSummary = async () => {
+  try {
+    return await apiLeaderboardMonthlyMe();
+  } catch (e) {
+    return {
+      ok: false,
+      error: e?.message || "leaderboard_me_failed",
+      monthKey: null,
+      uid: CURRENT_USER?.uid || null,
+      rpScore: Number(CURRENT_USER?.score || 0),
+      dailyRp: Number(CURRENT_USER?.dailyRp ?? CURRENT_USER?.daily_rp ?? 0),
+      currentRank: null,
+      projectedTierName: null,
+      projectedTierLabel: null,
+      nextTierName: null,
+      rpNeededForNextTier: null,
+      tierCutoffs: [],
+    };
+  }
 };
 
 window.__maze.getDailyLeaderboardMe = async () => {
@@ -1928,12 +2042,18 @@ levelsUI.onSelect((levelNumber) => {
       const completedLevel = level?.number ?? (levelIndex + 1);
       const autoAdDueNow = completedLevel > 2 && !AD_OVERLAY_ACTIVE && shouldShowAutoAd();
       const leaderboardPrefetch = autoAdDueNow ? null : preloadDailyLeaderboardForPopup(1200);
+      let winPopupState = buildLevelCompletePopupState(null, completedLevel);
 
       // Do reward sync in parallel so leaderboard timing stays fixed.
       const rewardSyncPromise = CURRENT_ACCESS_TOKEN
         ? (async () => {
             try {
               const out = await apiClaimLevelComplete(completedLevel);
+
+              if (out) {
+                winPopupState = buildLevelCompletePopupState(out, completedLevel);
+                winPopup.setRewardSummary?.(winPopupState);
+              }
 
               if (out?.user) {
                 applyUserPatch(out.user, { skipCoinSync: true });
@@ -1950,9 +2070,7 @@ levelsUI.onSelect((levelNumber) => {
         await showDailyLeaderboardBeforeWin(leaderboardPrefetch, rewardSyncPromise);
       }
 
-      afterLevelCompleteShowAdOrWin({
-        levelNumber: completedLevel,
-      });
+      afterLevelCompleteShowAdOrWin(winPopupState);
 
       // Keep reward flow completion non-blocking for popup timing.
       await rewardSyncPromise;
@@ -2206,10 +2324,10 @@ async function showDailyLeaderboardBeforeWin(prefetchedPayload = null, rewardSyn
   }
 }
 
-function afterLevelCompleteShowAdOrWin({ levelNumber }) {
+function afterLevelCompleteShowAdOrWin({ levelNumber, rewards = null, rewardStatus = "", rewardNote = "" }) {
   // Optional: do not show auto ads on the first few levels
   if (levelNumber <= 2) {
-    winPopup.show({ levelNumber });
+    winPopup.show({ levelNumber, rewards, rewardStatus, rewardNote });
     return;
   }
 
@@ -2222,10 +2340,10 @@ function afterLevelCompleteShowAdOrWin({ levelNumber }) {
     markAutoAdShown();
 
     simulateInterstitialAd(() => {
-      winPopup.show({ levelNumber });
+      winPopup.show({ levelNumber, rewards, rewardStatus, rewardNote });
     });
   } else {
-    winPopup.show({ levelNumber });
+    winPopup.show({ levelNumber, rewards, rewardStatus, rewardNote });
   }
 }
 function simulateAd({
@@ -2833,7 +2951,7 @@ restartPopup.onWatchAdRestart(() => {
 });
   // ---- GUEST ----
 ui.onGuestStart(() => {
-  CURRENT_USER = { username: "Guest", uid: null };
+  CURRENT_USER = { username: "Guest", uid: null, coins: 0, score: 0, dailyRp: 0 };
   CURRENT_ACCESS_TOKEN = null;
 
   CURRENT_MAX_UNLOCKED_LEVEL = 1;

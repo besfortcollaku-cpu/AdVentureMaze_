@@ -26,6 +26,18 @@ export function apiMe() {
   return request("/api/me");
 }
 
+export function getLeaderboard(params = {}) {
+  const qs = new URLSearchParams();
+  if (params?.limit != null) qs.set("limit", String(params.limit));
+  if (params?.offset != null) qs.set("offset", String(params.offset));
+  const suffix = qs.toString() ? `?${qs.toString()}` : "";
+  return request(`/api/leaderboard${suffix}`);
+}
+
+export function getMyLeaderboardSummary() {
+  return request("/api/leaderboard/me");
+}
+
 /* ================= SKIP ================= */
 
 export function apiSkip(mode, nonce) {

@@ -1,8 +1,6 @@
 // src/ui/uiAccount.js
 import "../css/account.css";
 
-const DUMMY_COIN_TO_PI_RATE = 0.001;
-
 function formatMonthKey(date) {
   const y = date.getFullYear();
   const m = String(date.getMonth() + 1).padStart(2, "0");
@@ -83,6 +81,7 @@ export function mountAccountUI(root) {
               <button id="accountEditName" class="accountEditBtn">Edit</button>
             </div>
             <div class="accountTopCoins">Coins: <span id="accountCoins">0</span></div>
+            <div class="accountTopCoins">Score: <span id="accountScore">0</span></div>
             <div class="accountTopServerTime" id="accountServerTime">Server Time: --:--:--</div>
             <div class="accountTopResetTime" id="accountResetTime">New Day In: --:--:--</div>
 
@@ -93,7 +92,9 @@ export function mountAccountUI(root) {
         <div class="accountScroll">
           <div class="accountContent">
             <div class="accountSection" id="conversionSection">
-              <h3>Pi Conversion Progress</h3>
+              <h3>Monthly Progress</h3>
+              <div class="accountNote">Coins are used for gameplay actions like hints, skips, and unlocks.</div>
+              <div class="accountNote">Score is earned through level performance and affects leaderboard rewards.</div>
               <div class="accountRow"><span>Current Rate</span><span id="accountRateFinal">50%</span></div>
               <div class="accountRow"><span>Levels</span><span id="accountProgLevels">0/200</span></div>
               <div class="accountRow"><span>Surprise Box</span><span id="accountProgSurprise">0/200</span></div>
@@ -106,7 +107,7 @@ export function mountAccountUI(root) {
 
               <div class="accountOverallBlock">
                 <div class="accountOverallHead">
-                  <span>General Progress to 100%</span>
+                  <span>General Progress</span>
                   <span id="accountOverallText">50/100</span>
                 </div>
                 <div class="accountOverallBar">
@@ -149,17 +150,18 @@ export function mountAccountUI(root) {
             </div>
 
             <div class="accountSection" id="monthlyTransferSection">
-              <h3>Monthly Coin to Pi (Preview)</h3>
+              <h3>Monthly Reward Status</h3>
+              <div class="accountNote">Monthly rewards are based on Score and leaderboard standing.</div>
               <div class="accountRow"><span>Month</span><span id="accountMonthCurrent">-</span></div>
-              <div class="accountRow"><span>Coins</span><span id="accountMonthCoins">0</span></div>
-              <div class="accountRow"><span>Convertible Rate</span><span id="accountMonthRate">50%</span></div>
-              <div class="accountRow"><span>Coin to Pi Rate</span><span id="accountCoinToPiRate">0.001</span></div>
-              <div class="accountRow"><span>Total Pi</span><span id="accountMonthTotalPi">0.0000</span></div>
+              <div class="accountRow"><span>Score</span><span id="accountMonthCoins">0</span></div>
+              <div class="accountRow"><span>Current Tier</span><span id="accountMonthRate">-</span></div>
+              <div class="accountRow"><span>Next Tier</span><span id="accountCoinToPiRate">-</span></div>
+              <div class="accountRow"><span>Reward Basis</span><span id="accountMonthTotalPi">Score and leaderboard standing</span></div>
               <div class="accountRow"><span>Your Pi will be sent to</span><span id="accountPayoutWalletConfirm">Not set</span></div>
-              <div class="accountRow"><button id="accountClaimPiBtn">Claim (Dummy)</button></div>
+              <div class="accountRow"><button id="accountClaimPiBtn">Claim Reward (Dummy)</button></div>
 
               <div class="accountRow"><span>Previous Month</span><span id="accountPrevMonth">-</span></div>
-              <div class="accountRow"><span>Prev Total Pi</span><span id="accountPrevMonthPi">0.0000</span></div>
+              <div class="accountRow"><span>Previous Season</span><span id="accountPrevMonthPi">Awaiting archive</span></div>
             </div>
           </div>
         </div>
@@ -173,6 +175,7 @@ export function mountAccountUI(root) {
 
   const usernameEl = root.querySelector("#accountUsername");
   const coinsEl = root.querySelector("#accountCoins");
+  const scoreEl = root.querySelector("#accountScore");
   const serverTimeEl = root.querySelector("#accountServerTime");
   const resetTimeEl = root.querySelector("#accountResetTime");
   const inviteLinkEl = root.querySelector("#accountInviteLink");
@@ -340,6 +343,7 @@ export function mountAccountUI(root) {
     if (!user) return;
 
     if (usernameEl) usernameEl.textContent = user.username ?? "guest";
+    if (scoreEl) scoreEl.textContent = String(Number(user.score ?? user.rp_score ?? 0));
     if (Number.isFinite(Number(user.server_time_ms))) setServerTime(Number(user.server_time_ms));
     if (invitedByEl) invitedByEl.textContent = String(user.invited_by_name || user.invited_by_uid || "-");
     if (inviteSection) inviteSection.style.display = user.uid ? "block" : "none";
@@ -387,30 +391,34 @@ export function mountAccountUI(root) {
     if (overallTextEl) overallTextEl.textContent = `${rateClamped}/100`;
     if (overallFillEl) overallFillEl.style.width = `${rateClamped}%`;
 
-    // Monthly conversion preview (dummy calculation for now)
+    // Monthly reward status
     const now = new Date();
     const currentMonth = formatMonthKey(now);
     const prev = new Date(now.getFullYear(), now.getMonth() - 1, 1);
     const prevMonth = formatMonthKey(prev);
 
-    const monthCoins = Math.max(0, Number(user.monthly_coins_earned ?? user.coins ?? 0));
-    const rate = Math.max(0, Math.min(100, Number(user.monthly_final_rate ?? 50)));
-    const totalPi = (monthCoins * (rate / 100) * DUMMY_COIN_TO_PI_RATE).toFixed(4);
+    const monthScore = Math.max(0, Number(user.score ?? user.rp_score ?? 0));
+    const currentTier = String(user.projectedTierLabel || user.projectedTierName || "-");
+    const nextTier = String(user.nextTierName || "-");
 
     if (monthCurrentEl) monthCurrentEl.textContent = currentMonth;
-    if (monthCoinsEl) monthCoinsEl.textContent = String(monthCoins);
-    if (monthRateEl) monthRateEl.textContent = `${rate}%`;
-    if (coinToPiRateEl) coinToPiRateEl.textContent = String(DUMMY_COIN_TO_PI_RATE);
-    if (monthTotalPiEl) monthTotalPiEl.textContent = totalPi;
+    if (monthCoinsEl) monthCoinsEl.textContent = String(monthScore);
+    if (monthRateEl) monthRateEl.textContent = currentTier;
+    if (coinToPiRateEl) coinToPiRateEl.textContent = nextTier;
+    if (monthTotalPiEl) monthTotalPiEl.textContent = "Score and leaderboard standing";
 
     if (prevMonthEl) prevMonthEl.textContent = prevMonth;
-    if (prevMonthPiEl) prevMonthPiEl.textContent = totalPi;
+    if (prevMonthPiEl) prevMonthPiEl.textContent = "Awaiting archive";
 
     void refreshDailyRanking();
   }
 
   function setCoins(n) {
     if (coinsEl) coinsEl.textContent = String(n ?? 0);
+  }
+
+  function setScore(n) {
+    if (scoreEl) scoreEl.textContent = String(n ?? 0);
   }
 
   async function copyInviteLinkText(text) {
@@ -511,7 +519,7 @@ export function mountAccountUI(root) {
   claimPiBtn?.addEventListener("click", () => {
     claimPiBtn.textContent = "Claimed (Dummy)";
     setTimeout(() => {
-      claimPiBtn.textContent = "Claim (Dummy)";
+      claimPiBtn.textContent = "Claim Reward (Dummy)";
     }, 1400);
   });
 
@@ -520,7 +528,7 @@ export function mountAccountUI(root) {
     if (e.target === overlay) hide();
   });
 
-  return { show, hide, setUser, setCoins, setServerTime };
+  return { show, hide, setUser, setCoins, setScore, setServerTime };
 }
 
 

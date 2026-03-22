@@ -1,11 +1,16 @@
 import "../css/hints.css";
 
+const HINT_COST = 15;
+
 export function createHintPopup() {
   const el = document.createElement("div");
   el.className = "popup hidden";
   el.innerHTML = `
     <div class="popup-card">
       <h3>Hint</h3>
+      <div class="popup-balance" id="hintCoinsBalance">Your Coins: 0</div>
+      <div class="popup-note">Use Hint - ${HINT_COST} Coins</div>
+      <div class="popup-subnote">Hints reduce Score for this run.</div>
       <button id="freeHintBtn">Free Hint</button>
       <button id="buyHintBtn">Buy Hint</button>
       <button id="watchAdHintBtn">Watch Ad</button>
@@ -21,6 +26,11 @@ export function createHintPopup() {
   const freeBtn = el.querySelector("#freeHintBtn");
   const buyBtn = el.querySelector("#buyHintBtn");
   const adBtn = el.querySelector("#watchAdHintBtn");
+  const balanceEl = el.querySelector("#hintCoinsBalance");
+
+  if (balanceEl) {
+    balanceEl.textContent = `Your Coins: ${Number(coins || 0)}`;
+  }
 
   // Free hint button
   if (freeBtn) {
@@ -33,21 +43,20 @@ export function createHintPopup() {
     }
   }
 
-  // Buy hint (50 coins)
+  // Buy hint
   if (buyBtn) {
-    if (coins < 50) {
+    if (coins < HINT_COST) {
       buyBtn.disabled = true;
-      buyBtn.textContent = "Not enough coins";
+      buyBtn.textContent = `Use Hint - ${HINT_COST} Coins`;
     } else {
       buyBtn.disabled = false;
-      buyBtn.textContent = "Hint (50 coins)";
+      buyBtn.textContent = `Use Hint - ${HINT_COST} Coins`;
     }
   }
 
-  // Watch ad is always available (frontend decides)
   if (adBtn) {
     adBtn.disabled = false;
-    adBtn.textContent = "Watch Ad";
+    adBtn.textContent = "Watch Ad Instead";
   }
 },
     hide() {

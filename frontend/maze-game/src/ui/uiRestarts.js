@@ -1,11 +1,16 @@
 import "../css/restart.css";
 
+const RESTART_COST = 15;
+
 export function createRestartPopup() {
   const el = document.createElement("div");
   el.className = "popup hidden";
   el.innerHTML = `
     <div class="popup-card">
       <h3>Restart Level</h3>
+      <div class="popup-balance" id="restartCoinsBalance">Your Coins: 0</div>
+      <div class="popup-note">Restart Level - ${RESTART_COST} Coins</div>
+      <div class="popup-subnote">Restarts cost Coins but do not reduce Score on their own.</div>
       <button id="buyRestartBtn">Buy Restart</button>
       <button id="watchAdRestartBtn">Watch Ad</button>
       <button id="closeRestartBtn">Close</button>
@@ -24,17 +29,22 @@ open({ coins } = {}) {
 
   const buyBtn = el.querySelector("#buyRestartBtn");
   const adBtn = el.querySelector("#watchAdRestartBtn");
+  const balanceEl = el.querySelector("#restartCoinsBalance");
 
-  if (coins < 50) {
+  if (balanceEl) {
+    balanceEl.textContent = `Your Coins: ${Number(coins || 0)}`;
+  }
+
+  if (coins < RESTART_COST) {
     buyBtn.disabled = true;
-    buyBtn.textContent = "Not enough coins";
+    buyBtn.textContent = `Restart Level - ${RESTART_COST} Coins`;
   } else {
     buyBtn.disabled = false;
-    buyBtn.textContent = "Restart (50 coins)";
+    buyBtn.textContent = `Restart Level - ${RESTART_COST} Coins`;
   }
 
   adBtn.disabled = false;
-  adBtn.textContent = "Watch Ad";
+  adBtn.textContent = "Watch Ad Instead";
 },
   hide() {
     el.classList.add("hidden");

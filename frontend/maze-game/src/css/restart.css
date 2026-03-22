@@ -66,6 +66,36 @@
   font-weight: 700;
 }
 
+.popup-balance,
+.popup-note,
+.popup-subnote {
+  border-radius: 14px;
+  padding: 10px 12px;
+  margin-bottom: 10px;
+  line-height: 1.35;
+}
+
+.popup-balance {
+  background: rgba(255, 255, 255, 0.08);
+  color: #f8fafc;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.popup-note {
+  background: rgba(47, 212, 255, 0.14);
+  border: 1px solid rgba(47, 212, 255, 0.18);
+  color: #dbf8ff;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.popup-subnote {
+  background: rgba(255, 255, 255, 0.05);
+  color: #d7e2ef;
+  font-size: 13px;
+}
+
 /* ===== Buttons ===== */
 .popup-card button {
   width: 100%;

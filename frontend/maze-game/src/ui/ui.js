@@ -1,6 +1,7 @@
 import { mountAccountUI } from "./uiAccount.js";
 import { mountSettingsUI } from "./uiSettings.js";
 import { mountThemeUI } from "./uiTheme.js";
+import { mountLeaderboardMonthlyUI } from "./uiLeaderboardMonthly.js";
 import { getTheme, onThemeChange } from "../theme.js";
 // NOTE: Hint/Skip popups are now controlled from src/main.js so
 // they can call the backend (free/coins/ad) and update the game.
@@ -12,6 +13,7 @@ export function mountUI(root) {
         <h1 class="level">Level 1</h1>
     <div class="icons">
   <button class="icon" id="accountBtn">${ICONS.account}</button>
+  <button class="icon" id="leaderboardBtn">${ICONS.leaderboard}</button>
   <button class="icon" id="settingsBtn">${ICONS.settings}</button>
   <button class="icon" id="levelsBtn">${ICONS.levels}</button>
   <button class="icon" id="themeBtn">${ICONS.theme}</button>
@@ -23,7 +25,9 @@ export function mountUI(root) {
 </div>
         <div class="coins">
           <span id="userName" class="userName">Guest</span>
-          🪙 <span id="coinCount">0</span>
+          <span class="economyStat">Coins: <span id="coinCount">0</span></span>
+          <span class="economyDivider">|</span>
+          <span class="economyStat">Score: <span id="scoreCount">0</span></span>
         </div>
       </header>
 
@@ -107,6 +111,7 @@ const guestBtn = document.body.querySelector("#guestBtn");
 const loginBtn = document.body.querySelector("#loginBtn");
 const levelsBtn = root.querySelector("#levelsBtn");
 const accountBtn = root.querySelector("#accountBtn");
+const leaderboardBtn = root.querySelector("#leaderboardBtn");
 const themeBtn = root.querySelector("#themeBtn");
 const settingsBtn = root.querySelector("#settingsBtn");
 const restartBtn = root.querySelector("#restartBtn");
@@ -114,10 +119,19 @@ const hintBtn = root.querySelector("#hintBtn");
 const skipBtn = root.querySelector("#skipBtn");
   // ----- ACCOUNT UI -----
 const accountUI = mountAccountUI(root);
+const leaderboardMonthlyUI = mountLeaderboardMonthlyUI(root);
 
 accountBtn.addEventListener("click", () => {
   if (window.__maze?.isLoggedIn?.()) {
     accountUI.show();
+  } else {
+    window.__maze?.showLoginRequired?.();
+  }
+});
+
+leaderboardBtn.addEventListener("click", () => {
+  if (window.__maze?.isLoggedIn?.()) {
+    leaderboardMonthlyUI.show();
   } else {
     window.__maze?.showLoginRequired?.();
   }
@@ -297,6 +311,12 @@ triggerLogin() {
       accountUI.setCoins(count);
     },
 
+    setScore(count) {
+      const scoreEl = document.getElementById("scoreCount");
+      if (scoreEl) scoreEl.textContent = count ?? 0;
+      accountUI.setScore?.(count);
+    },
+
     setServerTime(ms) {
       accountUI.setServerTime?.(ms);
     },
@@ -369,6 +389,7 @@ const ICONS = {
   account: iconSVG("M12 12c2.8 0 5-2.2 5-5s-2.2-5-5-5-5 2.2-5 5 2.2 5 5 5Zm0 2c-4 0-8 2-8 5v1h16v-1c0-3-4-5-8-5"),
   settings: iconSVG("M12 15.2a3.2 3.2 0 1 0 0-6.4a3.2 3.2 0 0 0 0 6.4Zm9-3.2-2-.6a7 7 0 0 0-.6-1.4l1.2-1.8-1.7-1.7-1.8 1.2c-.4-.2-.9-.4-1.4-.6L13 3h-2l-.6 2.1c-.5.1-1 .3-1.4.6L7.2 4.5 5.5 6.2l1.2 1.8c-.2.4-.4.9-.6 1.4L4 12l2.1.6c.1.5.3 1 .6 1.4l-1.2 1.8 1.7 1.7 1.8-1.2c.4.2.9.4 1.4.6L11 21h2l.6-2.1c.5-.1 1-.3 1.4-.6l1.8 1.2 1.7-1.7-1.2-1.8c.2-.4.4-.9.6-1.4L21 12Z", 1.6),
   levels: iconSVG("M5 6h14M5 12h14M5 18h14"),
+  leaderboard: iconSVG("M4 19h16M7 17V10M12 17V6M17 17v-4"),
   theme: iconSVG("M12 3a9 9 0 1 0 9 9c0-.6-.5-1-1-1h-3a2 2 0 0 1-2-2V6a3 3 0 0 0-3-3Z"),
   restart: iconSVG("M12 5v3l4-4-4-4v3a9 9 0 1 0 9 9h-2a7 7 0 1 1-7-7Z"),
   hint: iconSVG("M12 3a6 6 0 0 0-3 11.2V17h6v-2.8A6 6 0 0 0 12 3Zm-1 17h2v2h-2Z"),
