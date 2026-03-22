@@ -16,7 +16,7 @@ export function createDailyRankingRewardPopup() {
       <div class="daily-ranking-reward-title">Daily Ranking Reward</div>
       <div class="daily-ranking-reward-sub" id="dailyRankingRewardSub">You finished #1 yesterday.</div>
       <div class="daily-ranking-reward-date" id="dailyRankingRewardDate"></div>
-      <div class="daily-ranking-reward-coins" id="dailyRankingRewardCoins">+0 coins</div>
+      <div class="daily-ranking-reward-coins" id="dailyRankingRewardCoins">+0 Coins</div>
       <button type="button" class="daily-ranking-reward-btn" id="dailyRankingRewardClaim">Claim</button>
     </div>
   `;
@@ -45,7 +45,7 @@ export function createDailyRankingRewardPopup() {
       const rankNum = Number(rank || 0);
       const coinsNum = Number(rewardCoins || 0);
       if (subEl) subEl.textContent = `You finished #${rankNum} yesterday.`;
-      if (coinsEl) coinsEl.textContent = `+${coinsNum} coins`;
+      if (coinsEl) coinsEl.textContent = `+${coinsNum} Coins`;
       if (dateEl) {
         const label = toDateLabel(dateKey);
         dateEl.textContent = label ? `Result Date: ${label}` : "";

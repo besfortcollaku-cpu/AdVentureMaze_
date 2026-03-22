@@ -2120,7 +2120,7 @@ winPopup.onWatchAdClick(() => {
         if (out?.already) {
           winAdFlowBusy = false;
           winPopup.setWatchAdBusy?.(false);
-          showAdCooldownToast("Ad already claimed. Please wait a few minutes.");
+          showAdCooldownToast("Ad reward already used. Please wait a few minutes.");
           return;
         }
 

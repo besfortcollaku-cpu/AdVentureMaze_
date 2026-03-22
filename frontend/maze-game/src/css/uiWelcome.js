@@ -8,7 +8,7 @@ export function mountWelcomeUI(root, user) {
       <div class="welcome-content">
         <h1 class="welcome-title"></h1>
         <p class="welcome-subtitle">
-          Solve mazes, earn coins, convert to Pi.
+          Solve mazes, earn Coins, and build Score for season rewards.
         </p>
         <p class="welcome-cta">Tap anywhere to start</p>
       </div>

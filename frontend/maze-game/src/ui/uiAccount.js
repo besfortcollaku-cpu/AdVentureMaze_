@@ -95,7 +95,7 @@ export function mountAccountUI(root) {
               <h3>Monthly Progress</h3>
               <div class="accountNote">Coins are used for gameplay actions like hints, skips, and unlocks.</div>
               <div class="accountNote">Score is earned through level performance and affects leaderboard rewards.</div>
-              <div class="accountRow"><span>Current Rate</span><span id="accountRateFinal">50%</span></div>
+              <div class="accountRow"><span>Season Progress</span><span id="accountRateFinal">50%</span></div>
               <div class="accountRow"><span>Levels</span><span id="accountProgLevels">0/200</span></div>
               <div class="accountRow"><span>Surprise Box</span><span id="accountProgSurprise">0/200</span></div>
               <div class="accountRow"><span>Login Days</span><span id="accountProgLogin">0/20</span></div>
@@ -146,7 +146,7 @@ export function mountAccountUI(root) {
               <div class="accountRow"><span>Score</span><span id="accountMonthCoins">0</span></div>
               <div class="accountRow"><span>Current Tier</span><span id="accountMonthRate">-</span></div>
               <div class="accountRow"><span>Next Tier</span><span id="accountCoinToPiRate">-</span></div>
-              <div class="accountRow"><span>Reward Basis</span><span id="accountMonthTotalPi">Score and leaderboard standing</span></div>
+              <div class="accountRow"><span>Reward Source</span><span id="accountMonthTotalPi">Score and leaderboard standing</span></div>
               <div class="accountRow"><span>Your Pi will be sent to</span><span id="accountPayoutWalletConfirm">Not set</span></div>
 
               <div class="accountRow"><span>Previous Month</span><span id="accountPrevMonth">-</span></div>
