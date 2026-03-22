@@ -12,7 +12,6 @@ import { createSkipPopup } from "./ui/uiSkip.js";
 import { createHintPopup } from "./ui/uiHints.js";
 import { createRestartPopup } from "./ui/uiRestarts.js";
 import { createMysteryChestPopup } from "./ui/uiMysteryChest.js";
-import { createDailyLeaderboardPopup } from "./ui/uiLeaderboardDaily.js";
 import { createDailyRankingRewardPopup } from "./ui/uiDailyRankingReward.js";
 import { getSettings, subscribeSettings } from "./settings.js";
 import { unlockGlobalAudio, play as playAudio, setMusicEnabled, setSfxEnabled, setMasterVolume, startBackgroundMusic, stopBackgroundMusic } from "./audio/audioManager.js";
@@ -113,10 +112,6 @@ const adSurprisePopup = createMysteryChestPopup({
 let pendingWinAdBoxReward = null;
 let pendingWinAdNextLevel = false;
 let winAdFlowBusy = false;
-let LAST_DAILY_LEADERBOARD_ROWS = [];
-let LAST_DAILY_LEADERBOARD_ME = null;
-let PREVIOUS_DAILY_LEADERBOARD_ROWS = [];
-let PREVIOUS_DAILY_LEADERBOARD_ME = null;
 let LAST_SERVER_TIME_MS = null;
 let RANKING_REWARD_PROMPT_SHOWN = false;
 function shouldShowAutoAd() {
@@ -429,51 +424,9 @@ function setGlobalServerTime(ms) {
 }
 
 
-async function preloadDailyLeaderboardForPopup(timeoutMs = 1200) {
-  const fallback = {
-    rows: Array.isArray(LAST_DAILY_LEADERBOARD_ROWS) ? LAST_DAILY_LEADERBOARD_ROWS : [],
-    me: LAST_DAILY_LEADERBOARD_ME || {
-      rank: null,
-      uid: CURRENT_USER?.uid || null,
-      username: CURRENT_USER?.username || "Player",
-      coins_earned: 0,
-    },
-    timedOut: true,
-    serverTimeMs: LAST_SERVER_TIME_MS,
-  };
-
-  const full = Promise.all([
-    apiLeaderboardDaily().catch(() => ({ ok: false, rows: [] })),
-    apiLeaderboardDailyMe().catch(() => ({ ok: false, row: fallback.me })),
-  ]).then(([boardOut, meOut]) => {
-    const out = {
-      rows: Array.isArray(boardOut?.rows) ? boardOut.rows : [],
-      me: meOut?.row || fallback.me,
-      timedOut: false,
-      serverTimeMs: Number.isFinite(Number(boardOut?.server_time_ms)) ? Number(boardOut.server_time_ms) : (Number.isFinite(Number(meOut?.server_time_ms)) ? Number(meOut.server_time_ms) : LAST_SERVER_TIME_MS),
-    };
-
-    if (Number.isFinite(Number(out.serverTimeMs))) {
-      setGlobalServerTime(Number(out.serverTimeMs));
-    }
-
-    if (out.rows.length) {
-      LAST_DAILY_LEADERBOARD_ROWS = out.rows;
-    }
-    LAST_DAILY_LEADERBOARD_ME = out.me;
-
-    return out;
-  });
-
-  const fast = Promise.race([full, sleep(timeoutMs).then(() => fallback)]);
-  return { fast, full };
-}
-
-
 function hasBlockingOverlayForRankingReward() {
   return Boolean(
     document.querySelector(".daily-reward-overlay:not(.hidden):not(.daily-ranking-reward-overlay)") ||
-    document.querySelector(".leaderboardDailyOverlay:not(.hidden)") ||
     document.querySelector(".winOverlay.show")
   );
 }
@@ -759,27 +712,6 @@ function buildLevelCompletePopupState(out, levelNumber) {
   };
 }
 
-async function apiLeaderboardDaily() {
-  const res = await fetch(`${BACKEND}/api/leaderboard/daily`, {
-    method: "GET",
-    headers: { "Content-Type": "application/json" },
-  });
-
-  const serverMs = readServerTimeFromHeaders(res);
-  if (Number.isFinite(serverMs)) setGlobalServerTime(serverMs);
-
-  const out = await res.json().catch(() => ({}));
-  if (!res.ok || !out?.ok) {
-    throw new Error(out?.error || "leaderboard_failed");
-  }
-
-  if (Number.isFinite(serverMs)) {
-    out.server_time_ms = serverMs;
-  }
-
-  return out;
-}
-
 async function apiLeaderboardMonthly(params = {}) {
   const qs = new URLSearchParams();
   if (params?.limit != null) qs.set("limit", String(params.limit));
@@ -825,42 +757,6 @@ async function apiLeaderboardMonthlyMe() {
   return out;
 }
 
-async function apiLeaderboardDailyMe() {
-  if (!CURRENT_ACCESS_TOKEN) {
-    return {
-      ok: true,
-      row: {
-        rank: null,
-        uid: null,
-        username: "Guest",
-        coins_earned: 0,
-      },
-      server_time_ms: LAST_SERVER_TIME_MS,
-    };
-  }
-
-  const res = await fetch(`${BACKEND}/api/leaderboard/daily/me`, {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${normalizeToken(CURRENT_ACCESS_TOKEN)}`,
-    },
-  });
-
-  const serverMs = readServerTimeFromHeaders(res);
-  if (Number.isFinite(serverMs)) setGlobalServerTime(serverMs);
-
-  const out = await res.json().catch(() => ({}));
-  if (!res.ok || !out?.ok) {
-    throw new Error(out?.error || "leaderboard_me_failed");
-  }
-
-  if (Number.isFinite(serverMs)) {
-    out.server_time_ms = serverMs;
-  }
-
-  return out;
-}
 async function apiLeaderboardRewardMe() {
   if (!CURRENT_ACCESS_TOKEN) return { ok: true, available: false };
 
@@ -1258,22 +1154,6 @@ window.__maze.setWallet = async (wallet) => {
   return out;
 };
 
-window.__maze.getDailyLeaderboard = async () => {
-  const res = await fetch(`${BACKEND}/api/leaderboard/daily`, {
-    method: "GET",
-    headers: { "Content-Type": "application/json" },
-  });
-  const serverMs = readServerTimeFromHeaders(res);
-  if (Number.isFinite(serverMs)) setGlobalServerTime(serverMs);
-
-  const out = await res.json().catch(() => ({}));
-  if (!res.ok || !out?.ok) {
-    return { ok: false, error: out?.error || "leaderboard_failed", rows: [] };
-  }
-  if (Number.isFinite(serverMs)) out.server_time_ms = serverMs;
-  return out;
-};
-
 window.__maze.getLeaderboard = async (params = {}) => {
   try {
     return await apiLeaderboardMonthly(params);
@@ -1303,36 +1183,10 @@ window.__maze.getMyLeaderboardSummary = async () => {
   }
 };
 
-window.__maze.getDailyLeaderboardMe = async () => {
-  if (!CURRENT_ACCESS_TOKEN) {
-    return { ok: true, row: { rank: null, uid: null, username: "Guest", coins_earned: 0 }, server_time_ms: LAST_SERVER_TIME_MS };
-  }
-
-  const res = await fetch(`${BACKEND}/api/leaderboard/daily/me`, {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${normalizeToken(CURRENT_ACCESS_TOKEN)}`,
-    },
-  });
-
-  const serverMs = readServerTimeFromHeaders(res);
-  if (Number.isFinite(serverMs)) setGlobalServerTime(serverMs);
-
-  const out = await res.json().catch(() => ({}));
-  if (!res.ok || !out?.ok) {
-    return { ok: false, error: out?.error || "leaderboard_me_failed", row: { rank: null, uid: CURRENT_USER?.uid || null, username: CURRENT_USER?.username || "Player", coins_earned: 0 } };
-  }
-  if (Number.isFinite(serverMs)) out.server_time_ms = serverMs;
-  return out;
-};
-
-
 const winPopup = createWinPopup();
 const skipPopup = createSkipPopup();
 const hintPopup = createHintPopup();
 const restartPopup = createRestartPopup();
-const dailyLeaderboardPopup = createDailyLeaderboardPopup();
 const dailyRankingRewardPopup = createDailyRankingRewardPopup();
 
 function withPopupAudio(popupApi) {
@@ -1361,7 +1215,6 @@ withPopupAudio(hintPopup);
 withPopupAudio(restartPopup);
 withPopupAudio(mysteryChestPopup);
 withPopupAudio(adSurprisePopup);
-withPopupAudio(dailyLeaderboardPopup);
 withPopupAudio(dailyRankingRewardPopup);
 
 
@@ -1921,7 +1774,6 @@ levelsUI.onSelect((levelNumber) => {
 
       const completedLevel = level?.number ?? (levelIndex + 1);
       const autoAdDueNow = completedLevel > 2 && !AD_OVERLAY_ACTIVE && shouldShowAutoAd();
-      const leaderboardPrefetch = autoAdDueNow ? null : preloadDailyLeaderboardForPopup(1200);
       let winPopupState = buildLevelCompletePopupState(null, completedLevel);
 
       // Do reward sync in parallel so leaderboard timing stays fixed.
@@ -1943,12 +1795,8 @@ levelsUI.onSelect((levelNumber) => {
           })()
         : Promise.resolve();
 
-      // Fixed timing: leaderboard step starts after ~2 seconds from level complete.
+      // Fixed timing: reward animation stays visible for ~2 seconds from level complete.
       await sleep(2000);
-      // If auto-ad is due, do not stack leaderboard with ad in the same completion step.
-      if (!autoAdDueNow) {
-        await showDailyLeaderboardBeforeWin(leaderboardPrefetch, rewardSyncPromise);
-      }
 
       afterLevelCompleteShowAdOrWin(winPopupState);
 
@@ -2087,123 +1935,6 @@ function simulateInterstitialAd(onFinished) {
     rewardReadyText: "✅ Ad Finished",
   });
 }
-async function showDailyLeaderboardBeforeWin(prefetchedPayload = null, rewardSyncPromise = null) {
-  try {
-    const prefetch = prefetchedPayload || preloadDailyLeaderboardForPopup(1200);
-
-    const initialRows = Array.isArray(LAST_DAILY_LEADERBOARD_ROWS) ? LAST_DAILY_LEADERBOARD_ROWS : [];
-    const initialMe = LAST_DAILY_LEADERBOARD_ME || {
-      rank: null,
-      uid: CURRENT_USER?.uid || null,
-      username: CURRENT_USER?.username || "Player",
-      coins_earned: 0,
-      public_eligible: true,
-    };
-
-    const previousRowsForAnimation = Array.isArray(PREVIOUS_DAILY_LEADERBOARD_ROWS)
-      ? PREVIOUS_DAILY_LEADERBOARD_ROWS
-      : [];
-
-    let latestRows = initialRows;
-    let latestMe = initialMe;
-    let latestServerTimeMs = Number.isFinite(Number(LAST_SERVER_TIME_MS)) ? Number(LAST_SERVER_TIME_MS) : null;
-    let movementAnimated = false;
-
-    await new Promise((resolve) => {
-      let closed = false;
-
-      dailyLeaderboardPopup.onClose(() => {
-        closed = true;
-        dailyLeaderboardPopup.onClose(null);
-        resolve();
-      });
-
-      dailyLeaderboardPopup.show({
-        rows: initialRows,
-        me: initialMe,
-        loading: initialRows.length === 0,
-        serverTimeMs: latestServerTimeMs,
-      });
-
-      const applyRows = (rows, me, loading, allowAnimate = false, serverTimeMs = null) => {
-        const safeRows = Array.isArray(rows) ? rows : [];
-        const safeMe = me || initialMe;
-        latestRows = safeRows;
-        latestMe = safeMe;
-        if (Number.isFinite(Number(serverTimeMs))) {
-          latestServerTimeMs = Number(serverTimeMs);
-          setGlobalServerTime(latestServerTimeMs);
-        }
-
-        const canAnimate =
-          allowAnimate &&
-          !movementAnimated &&
-          previousRowsForAnimation.length > 0 &&
-          safeRows.length > 0;
-
-        dailyLeaderboardPopup.show({
-          rows: safeRows,
-          me: safeMe,
-          loading: Boolean(loading),
-          serverTimeMs: latestServerTimeMs,
-          previousRows: canAnimate ? previousRowsForAnimation : null,
-          animateMovement: canAnimate,
-        });
-
-        if (canAnimate) movementAnimated = true;
-      };
-
-      prefetch.fast
-        .then((fast) => {
-          if (closed) return;
-          applyRows(
-            fast?.rows,
-            fast?.me || initialMe,
-            Boolean(fast?.timedOut && (!fast?.rows || fast.rows.length === 0)),
-            true,
-            fast?.serverTimeMs
-          );
-        })
-        .catch(() => {
-          if (closed) return;
-          applyRows(latestRows, latestMe, false, false);
-        });
-
-      prefetch.full
-        .then((live) => {
-          if (closed) return;
-          applyRows(live?.rows, live?.me || initialMe, false, true, live?.serverTimeMs);
-        })
-        .catch(() => {
-          if (closed) return;
-          applyRows(latestRows, latestMe, false, false);
-        });
-
-      // After reward sync settles, do one extra refresh so latest level/ad coins are reflected.
-      if (rewardSyncPromise) {
-        Promise.resolve(rewardSyncPromise)
-          .then(async () => {
-            if (closed) return;
-            const [boardOut, meOut] = await Promise.all([
-              apiLeaderboardDaily().catch(() => ({ ok: false, rows: latestRows })),
-              apiLeaderboardDailyMe().catch(() => ({ ok: false, row: latestMe })),
-            ]);
-            if (closed) return;
-            applyRows(boardOut?.rows, meOut?.row || latestMe, false, true);
-          })
-          .catch(() => {});
-      }
-    });
-
-    PREVIOUS_DAILY_LEADERBOARD_ROWS = Array.isArray(latestRows) ? latestRows.slice(0, 20) : [];
-    PREVIOUS_DAILY_LEADERBOARD_ME = latestMe || initialMe;
-
-    return true;
-  } catch {
-    return false;
-  }
-}
-
 function afterLevelCompleteShowAdOrWin({ levelNumber, rewards = null, rewardStatus = "", rewardNote = "" }) {
   // Optional: do not show auto ads on the first few levels
   if (levelNumber <= 2) {
