@@ -118,8 +118,19 @@ let pendingWinAdBoxReward = null;
 let pendingWinAdNextLevel = false;
 let winAdFlowBusy = false;
 let pendingWinPopupState = null;
+let postWinFlow = "idle";
+let surpriseBoxRewardResult = null;
+let isProcessingRewardAd = false;
+let isOpeningBox = false;
+let isContinuingSurprise = false;
 let LAST_SERVER_TIME_MS = null;
 let RANKING_REWARD_PROMPT_SHOWN = false;
+function setPostWinFlow(nextFlow) {
+  if (postWinFlow !== nextFlow) {
+    console.debug("[surprise-box] postWinFlow", postWinFlow, "->", nextFlow);
+  }
+  postWinFlow = nextFlow;
+}
 function shouldShowAutoAd() {
   const last = Number(localStorage.getItem(AUTO_AD_LAST_KEY) || 0);
   return Date.now() - last > AUTO_AD_COOLDOWN_MS;
@@ -1726,12 +1737,13 @@ async function startSurpriseBoxFlow({ goNextLevelAfter = false } = {}) {
     return { ok: false, error: "auth_required" };
   }
 
-  if (winAdFlowBusy || pendingWinAdBoxReward) {
+  if (winAdFlowBusy || isProcessingRewardAd || isOpeningBox || isContinuingSurprise || surpriseBoxRewardResult) {
     showAdCooldownToast("Please wait... preparing surprise box.");
     return { ok: false, error: "busy" };
   }
 
   winAdFlowBusy = true;
+  isProcessingRewardAd = true;
   pendingWinAdNextLevel = Boolean(goNextLevelAfter);
   winPopup.setWatchAdBusy?.(true, "Loading ad...");
 
@@ -1739,25 +1751,34 @@ async function startSurpriseBoxFlow({ goNextLevelAfter = false } = {}) {
     simulateAd({
       onFinished: async () => {
         try {
+          console.debug("[surprise-box] rewarded ad success callback fired");
           winPopup.setWatchAdBusy?.(true, "Preparing surprise box...");
           const out = await apiOpenSurpriseBox();
 
-          pendingWinAdBoxReward = {
+          surpriseBoxRewardResult = {
             reward: out?.reward || null,
             label: formatSurpriseBoxRewardLabel(out?.reward),
             userPatch: buildSurpriseBoxUserPatch(out),
             dailyBoxesRemaining: Number(out?.dailyBoxesRemaining ?? 0),
           };
+          pendingWinAdBoxReward = surpriseBoxRewardResult;
+          console.debug("[surprise-box] reward stored", surpriseBoxRewardResult?.reward?.rewardType || "unknown");
+          setPostWinFlow("boxReady");
 
           if (goNextLevelAfter) {
             winPopup.hide();
           }
           adSurprisePopup.show();
+          isProcessingRewardAd = false;
           resolve({ ok: true, out });
         } catch (e) {
           winAdFlowBusy = false;
+          isProcessingRewardAd = false;
           pendingWinAdNextLevel = false;
+          surpriseBoxRewardResult = null;
+          pendingWinAdBoxReward = null;
           winPopup.setWatchAdBusy?.(false);
+          setPostWinFlow("win");
           if (e?.surpriseBoxState) {
             applyUserPatch({
               daily_surprise_boxes_opened: Number(e.surpriseBoxState.dailyBoxesOpened ?? CURRENT_USER?.daily_surprise_boxes_opened ?? 0),
@@ -1794,11 +1815,13 @@ function canAdvanceToNextLevelNow() {
 
 function resumePostWinFlowAfterSurpriseBox() {
   if (canAdvanceToNextLevelNow()) {
+    setPostWinFlow("idle");
     goNextLevel();
     return;
   }
 
   if (pendingWinPopupState) {
+    setPostWinFlow("win");
     winPopup.show(pendingWinPopupState);
     winPopup.setNextLevelEnabled?.(false);
     winPopup.setSurpriseBoxState?.(CURRENT_USER);
@@ -1806,23 +1829,35 @@ function resumePostWinFlowAfterSurpriseBox() {
 }
 
 adSurprisePopup.onOpen(async () => {
-  if (!pendingWinAdBoxReward) {
+  console.debug("[surprise-box] Open Box clicked");
+  if (!surpriseBoxRewardResult && !pendingWinAdBoxReward) {
     winAdFlowBusy = false;
+    isProcessingRewardAd = false;
     winPopup.setWatchAdBusy?.(false);
+    setPostWinFlow("win");
+    if (pendingWinPopupState) {
+      winPopup.show(pendingWinPopupState);
+      winPopup.setNextLevelEnabled?.(canAdvanceToNextLevelNow());
+      winPopup.setSurpriseBoxState?.(CURRENT_USER);
+    }
     return null;
   }
 
-  const rewardPack = pendingWinAdBoxReward;
+  isOpeningBox = true;
+  const rewardPack = surpriseBoxRewardResult || pendingWinAdBoxReward;
   pendingWinAdBoxReward = null;
   const nextCoins = Number(rewardPack?.userPatch?.coins ?? CURRENT_USER?.coins ?? 0);
   const currentCoins = Number(CURRENT_USER?.coins ?? 0);
   applyUserPatch(rewardPack.userPatch, { skipCoinSync: true });
   winPopup.setSurpriseBoxState?.(CURRENT_USER);
+  console.debug("[surprise-box] flow changed to boxReward");
+  setPostWinFlow("boxReward");
   if (nextCoins !== currentCoins) {
     setTimeout(() => {
       animateCoinsTo(nextCoins, { showGainFx: true }).catch(() => {});
     }, 150);
   }
+  isOpeningBox = false;
 
   return {
     label: rewardPack.label,
@@ -1834,12 +1869,23 @@ adSurprisePopup.onOpen(async () => {
 });
 
 adSurprisePopup.onRevealDone(() => {
+  console.debug("[surprise-box] Continue clicked");
   winAdFlowBusy = false;
+  isProcessingRewardAd = false;
   winPopup.setWatchAdBusy?.(false);
   const shouldContinue = pendingWinAdNextLevel;
   pendingWinAdNextLevel = false;
-  if (!shouldContinue) return;
+  surpriseBoxRewardResult = null;
+  pendingWinAdBoxReward = null;
+  isContinuingSurprise = true;
+  if (!shouldContinue) {
+    isContinuingSurprise = false;
+    setPostWinFlow("win");
+    return;
+  }
+  console.debug("[surprise-box] next level open attempted");
   resumePostWinFlowAfterSurpriseBox();
+  isContinuingSurprise = false;
 });
 function onAnyPaintDuringMove() {
   if (!HINT_ACTIVE_FOR_LEVEL) return;
@@ -2397,6 +2443,12 @@ function simulateInterstitialAd(onFinished) {
 }
 function afterLevelCompleteShowAdOrWin({ levelNumber, rewards = null, rewardStatus = "", rewardNote = "" }) {
   pendingWinPopupState = { levelNumber, rewards, rewardStatus, rewardNote };
+  setPostWinFlow("win");
+  surpriseBoxRewardResult = null;
+  pendingWinAdBoxReward = null;
+  isProcessingRewardAd = false;
+  isOpeningBox = false;
+  isContinuingSurprise = false;
 
   // Optional: do not show auto ads on the first few levels
   if (levelNumber <= 2) {
