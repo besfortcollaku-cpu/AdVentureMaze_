@@ -116,6 +116,14 @@ export function mountAccountUI(root) {
               </div>
             </div>
 
+            <div class="accountSection" id="surpriseBoxSection">
+              <h3>Surprise Box</h3>
+              <div class="accountNote">Watch an ad to open a surprise box and get one utility reward.</div>
+              <div class="accountRow"><span>Opened Today</span><span id="accountSurpriseToday">0/3</span></div>
+              <div class="accountRow"><span>Status</span><span id="accountSurpriseStatus">Available</span></div>
+              <button id="accountSurpriseOpenBtn" class="accountActionBtn">Watch an ad to open</button>
+            </div>
+
             <div class="accountSection" id="inviteSection">
               <h3>Invite Friends</h3>
               <div class="accountInviteBox">
@@ -197,6 +205,9 @@ export function mountAccountUI(root) {
   const monthTotalPiEl = root.querySelector("#accountMonthTotalPi");
   const prevMonthEl = root.querySelector("#accountPrevMonth");
   const prevMonthPiEl = root.querySelector("#accountPrevMonthPi");
+  const surpriseTodayEl = root.querySelector("#accountSurpriseToday");
+  const surpriseStatusEl = root.querySelector("#accountSurpriseStatus");
+  const surpriseOpenBtn = root.querySelector("#accountSurpriseOpenBtn");
 
   let serverTimeBaseMs = null;
   let serverTimeClientStartedMs = null;
@@ -327,6 +338,9 @@ export function mountAccountUI(root) {
     const monthScore = Math.max(0, Number(user.score ?? user.rp_score ?? 0));
     const currentTier = String(user.projectedTierLabel || user.projectedTierName || "-");
     const nextTier = String(user.nextTierName || "-");
+    const dailySurpriseOpened = Math.max(0, Number(user.daily_surprise_boxes_opened ?? 0));
+    const dailySurpriseMax = Math.max(1, Number(user.daily_surprise_boxes_max ?? 4));
+    const surpriseLimitReached = dailySurpriseOpened >= dailySurpriseMax;
 
     if (monthCurrentEl) monthCurrentEl.textContent = currentMonth;
     if (monthCoinsEl) monthCoinsEl.textContent = String(monthScore);
@@ -336,6 +350,12 @@ export function mountAccountUI(root) {
 
     if (prevMonthEl) prevMonthEl.textContent = prevMonth;
     if (prevMonthPiEl) prevMonthPiEl.textContent = "Awaiting archive";
+    if (surpriseTodayEl) surpriseTodayEl.textContent = `${Math.min(dailySurpriseOpened, dailySurpriseMax)}/${dailySurpriseMax}`;
+    if (surpriseStatusEl) surpriseStatusEl.textContent = surpriseLimitReached ? "Daily limit reached" : "Available";
+    if (surpriseOpenBtn) {
+      surpriseOpenBtn.disabled = !user.uid || surpriseLimitReached;
+      surpriseOpenBtn.textContent = surpriseLimitReached ? "Daily limit reached" : "Watch an ad to open";
+    }
   }
 
   function setCoins(n) {
@@ -440,6 +460,35 @@ export function mountAccountUI(root) {
   closeBtn?.addEventListener("click", hide);
   overlay?.addEventListener("click", (e) => {
     if (e.target === overlay) hide();
+  });
+
+  surpriseOpenBtn?.addEventListener("click", async () => {
+    if (surpriseOpenBtn.disabled) return;
+
+    const api = window.__maze?.openSurpriseBox;
+    if (typeof api !== "function") {
+      if (surpriseStatusEl) surpriseStatusEl.textContent = "Surprise Box unavailable.";
+      return;
+    }
+
+    surpriseOpenBtn.disabled = true;
+    const previousText = surpriseOpenBtn.textContent;
+    surpriseOpenBtn.textContent = "Preparing...";
+
+    try {
+      const out = await api();
+      if (!out?.ok && !out?.success) {
+        if (surpriseStatusEl) {
+          surpriseStatusEl.textContent = out?.error === "DAILY_SURPRISE_BOX_LIMIT_REACHED"
+            ? "Daily limit reached"
+            : "Try again";
+        }
+      }
+    } catch {
+      if (surpriseStatusEl) surpriseStatusEl.textContent = "Try again";
+    } finally {
+      surpriseOpenBtn.textContent = previousText;
+    }
   });
 
   return { show, hide, setUser, setCoins, setScore, setServerTime };

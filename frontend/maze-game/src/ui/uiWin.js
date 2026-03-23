@@ -6,6 +6,7 @@ import { getTheme } from "../theme.js";
 export function createWinPopup() {
   let onNext = null;
   let onWatchAd = null;
+  let adBtnDefaultText = "Watch Ad for Surprise Box";
 
   const el = document.createElement("div");
   el.className = "overlay winOverlay hidden";
@@ -42,8 +43,8 @@ export function createWinPopup() {
         Watch Ad for Surprise Box
       </button>
 
-      <div class="tip">
-        Tip: Watch an ad to open a surprise box
+      <div class="tip" id="watchAdTip">
+        Box can give Coins, Hint, Restart, or Skip.
       </div>
         </div>
     </div>
@@ -59,7 +60,7 @@ export function createWinPopup() {
   const rewardNoteEl = el.querySelector("#winRewardNote");
   const nextBtn = el.querySelector("#nextLevelBtn");
   const adBtn = el.querySelector("#watchAdBtn");
-  const adBtnDefaultText = adBtn?.textContent || "Watch Ad for Surprise Box";
+  const adTip = el.querySelector("#watchAdTip");
 
   nextBtn.addEventListener("click", () => {
     hide();
@@ -103,6 +104,7 @@ export function createWinPopup() {
     levelText.textContent = `You finished Level ${levelNumber}`;
     applyRewardSummary({ rewards, rewardStatus, rewardNote });
     setWatchAdBusy(false);
+    setSurpriseBoxState();
     el.classList.remove("hidden");
   }
 
@@ -115,6 +117,23 @@ export function createWinPopup() {
     if (!adBtn) return;
     adBtn.disabled = !!isBusy;
     adBtn.textContent = isBusy ? busyText : adBtnDefaultText;
+  }
+
+  function setSurpriseBoxState(state = null) {
+    if (!adBtn || !adTip) return;
+
+    const remaining = Math.max(0, Number(state?.dailyBoxesRemaining ?? state?.daily_surprise_boxes_remaining ?? 0));
+    if (remaining <= 0) {
+      adBtn.classList.add("hidden");
+      adTip.classList.add("hidden");
+      adBtnDefaultText = "Watch Ad for Surprise Box";
+      return;
+    }
+
+    adBtnDefaultText = `Watch Ad for Surprise Box — ${remaining} left`;
+    adBtn.classList.remove("hidden");
+    adTip.classList.remove("hidden");
+    adBtn.textContent = adBtnDefaultText;
   }
 
   function onNextLevel(cb) {
@@ -130,6 +149,7 @@ export function createWinPopup() {
     hide,
     setRewardSummary: applyRewardSummary,
     setWatchAdBusy,
+    setSurpriseBoxState,
     onNextLevel,
     onWatchAdClick,
   };

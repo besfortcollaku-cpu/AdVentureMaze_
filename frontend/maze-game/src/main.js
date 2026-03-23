@@ -14,6 +14,7 @@ import { createRestartPopup } from "./ui/uiRestarts.js";
 import { createMysteryChestPopup } from "./ui/uiMysteryChest.js";
 import { createDailyRankingRewardPopup } from "./ui/uiDailyRankingReward.js";
 import { getSettings, subscribeSettings } from "./settings.js";
+import { LEVEL_ACCESS_DEFAULTS } from "./config/levelAccess.js";
 import { unlockGlobalAudio, play as playAudio, setMusicEnabled, setSfxEnabled, setMasterVolume, startBackgroundMusic, stopBackgroundMusic } from "./audio/audioManager.js";
 
 // DEBUG: show fatal errors on mobile so buttons don't "do nothing"
@@ -36,6 +37,7 @@ Object.defineProperty(window, "__DEBUG_USER", {
 });
 let CURRENT_ACCESS_TOKEN = null;
 let ui = null;
+let levelsUI = null;
 let game = null;
 let HINT_ACTIVE_FOR_LEVEL = false;
 let HINT_ROUTE = null;
@@ -390,9 +392,95 @@ function applyUserPatch(patch, opts = {}) {
   if (!skipCoinSync) {
     ui?.setCoins?.(CURRENT_USER?.coins ?? 0);
   }
+  refreshLevelsAccessUI();
 
-  // 🔥 CRITICAL: refresh badges from DB values
   updateAllBadges();
+}
+
+function normalizeLevelAccess(source) {
+  const access = source?.levelAccess || source || {};
+  const dailyLevelsPlayed = Number(
+    access?.dailyLevelsPlayed ??
+    access?.daily_levels_played ??
+    CURRENT_USER?.dailyLevelsPlayed ??
+    CURRENT_USER?.daily_levels_played ??
+    0
+  );
+  const dailyLevelsUnlocked = Number(
+    access?.dailyLevelsUnlocked ??
+    access?.daily_levels_unlocked ??
+    CURRENT_USER?.dailyLevelsUnlocked ??
+    CURRENT_USER?.daily_levels_unlocked ??
+    access?.initialDailyUnlockedLevels ??
+    access?.initial_daily_unlocked_levels ??
+    CURRENT_USER?.initialDailyUnlockedLevels ??
+    CURRENT_USER?.initial_daily_unlocked_levels ??
+    LEVEL_ACCESS_DEFAULTS.initialDailyUnlockedLevels
+  );
+  const dailyLevelsMax = Number(
+    access?.dailyLevelsMax ??
+    access?.daily_levels_max ??
+    CURRENT_USER?.dailyLevelsMax ??
+    CURRENT_USER?.daily_levels_max ??
+    LEVEL_ACCESS_DEFAULTS.dailyLevelsMax
+  );
+  const nextUnlockAt =
+    access?.nextUnlockAt ??
+    access?.next_unlock_at ??
+    CURRENT_USER?.nextUnlockAt ??
+    CURRENT_USER?.next_unlock_at ??
+    null;
+  const initialDailyUnlockedLevels = Number(
+    access?.initialDailyUnlockedLevels ??
+    access?.initial_daily_unlocked_levels ??
+    CURRENT_USER?.initialDailyUnlockedLevels ??
+    CURRENT_USER?.initial_daily_unlocked_levels ??
+    dailyLevelsUnlocked
+  );
+  const unlockIntervalSeconds = Number(
+    access?.unlockIntervalSeconds ??
+    access?.unlock_interval_seconds ??
+    CURRENT_USER?.unlockIntervalSeconds ??
+    CURRENT_USER?.unlock_interval_seconds ??
+    LEVEL_ACCESS_DEFAULTS.unlockIntervalSeconds
+  );
+  const unlockLevelsPerInterval = Number(
+    access?.unlockLevelsPerInterval ??
+    access?.unlock_levels_per_interval ??
+    CURRENT_USER?.unlockLevelsPerInterval ??
+    CURRENT_USER?.unlock_levels_per_interval ??
+    LEVEL_ACCESS_DEFAULTS.unlockLevelsPerInterval
+  );
+  const adUnlockLevels = Number(
+    access?.adUnlockLevels ??
+    access?.ad_unlock_levels ??
+    CURRENT_USER?.adUnlockLevels ??
+    CURRENT_USER?.ad_unlock_levels ??
+    LEVEL_ACCESS_DEFAULTS.adUnlockLevels
+  );
+
+  return {
+    dailyLevelsPlayed,
+    dailyLevelsUnlocked,
+    dailyLevelsMax,
+    initialDailyUnlockedLevels,
+    nextUnlockAt,
+    unlockIntervalSeconds,
+    unlockLevelsPerInterval,
+    adUnlockLevels,
+    isDailyCapReached: Boolean(access?.isDailyCapReached ?? access?.is_daily_cap_reached ?? (dailyLevelsPlayed >= dailyLevelsMax)),
+    isWaitingForUnlock: Boolean(access?.isWaitingForUnlock ?? access?.is_waiting_for_unlock ?? (dailyLevelsPlayed >= dailyLevelsUnlocked && dailyLevelsUnlocked < dailyLevelsMax && dailyLevelsPlayed < dailyLevelsMax)),
+    canUnlockWithAd: Boolean(access?.canUnlockWithAd ?? access?.can_unlock_with_ad),
+    canWatchAdToUnlock: Boolean(access?.canWatchAdToUnlock ?? access?.can_watch_ad_to_unlock),
+    canPlayNow: Boolean(access?.canPlayNow ?? access?.can_play_now ?? (dailyLevelsPlayed < dailyLevelsUnlocked && dailyLevelsPlayed < dailyLevelsMax)),
+    dailyLimitReached: Boolean(access?.dailyLimitReached ?? access?.daily_limit_reached ?? (dailyLevelsPlayed >= dailyLevelsMax)),
+  };
+}
+
+function refreshLevelsAccessUI() {
+  const access = normalizeLevelAccess(CURRENT_USER);
+  levelsUI?.setLevelAccess?.(access);
+  return access;
 }
 let COIN_ANIM_SEQ = 0;
 let COIN_GAIN_TIMER = null;
@@ -758,11 +846,31 @@ async function apiClaimLevelComplete(levelNumber) {
     }),
   });
 
-  if (!res.ok) {
-    return null; // never break gameplay
+  return res.json().catch(() => ({ ok: false, error: "level_complete_failed" }));
+}
+
+async function apiUnlockLevelsByAd() {
+  if (!CURRENT_ACCESS_TOKEN) {
+    throw new Error("No access token");
   }
 
-  return res.json();
+  const res = await fetch(`${BACKEND}/api/levels/ad-unlock`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${normalizeToken(CURRENT_ACCESS_TOKEN)}`,
+    },
+  });
+
+  const out = await res.json().catch(() => ({}));
+  if (!res.ok || !out?.ok) {
+    const error = out?.error || "level_ad_unlock_failed";
+    const err = new Error(error);
+    err.levelAccess = out?.levelAccess || null;
+    throw err;
+  }
+
+  return out;
 }
 
 function buildLevelCompletePopupState(out, levelNumber) {
@@ -952,6 +1060,28 @@ async function apiClaimAd50() {
   return res.json();
 }
 
+async function apiOpenSurpriseBox() {
+  if (!CURRENT_ACCESS_TOKEN) {
+    throw new Error("No access token");
+  }
+
+  const res = await fetch(`${BACKEND}/api/surprise-box/open`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${normalizeToken(CURRENT_ACCESS_TOKEN)}`,
+    },
+  });
+
+  const out = await res.json().catch(() => ({}));
+  if (!res.ok || (!out?.ok && !out?.success)) {
+    const err = new Error(out?.error || "Surprise Box failed");
+    err.surpriseBoxState = out?.surpriseBoxState || null;
+    throw err;
+  }
+  return out;
+}
+
 async function loadMeAndSyncUI({ BACKEND, token, ui }) {
   const res = await fetch(`${BACKEND}/api/me`, {
   method: "GET",
@@ -970,6 +1100,7 @@ async function loadMeAndSyncUI({ BACKEND, token, ui }) {
 
   const user = me?.user || {};
   const progress = me?.progress || {};
+  const levelAccess = normalizeLevelAccess(me?.levelAccess || user);
 
   CURRENT_USER = {
   ...user,
@@ -1000,12 +1131,26 @@ async function loadMeAndSyncUI({ BACKEND, token, ui }) {
   monthly_restarts_used: Number(user.monthly_restarts_used ?? 0),
   monthly_surprise_boxes_opened: Number(user.monthly_surprise_boxes_opened ?? 0),
   monthly_mystery_boxes_opened: Number(user.monthly_mystery_boxes_opened ?? 0),
+  daily_surprise_boxes_opened: Number(user.daily_surprise_boxes_opened ?? 0),
+  daily_surprise_boxes_max: Number(user.daily_surprise_boxes_max ?? 4),
+  daily_surprise_boxes_remaining: Number(user.daily_surprise_boxes_remaining ?? Math.max(0, Number(user.daily_surprise_boxes_max ?? 4) - Number(user.daily_surprise_boxes_opened ?? 0))),
   monthly_valid_invites: Number(user.monthly_valid_invites ?? 0),
   lifetime_valid_invites: Number(user.lifetime_valid_invites ?? 0),
   invite_code: user.invite_code ?? null,
   pi_wallet_identifier: user.pi_wallet_identifier ?? null,
   wallet_verified: Boolean(user.wallet_verified),
   wallet_last_updated_at: user.wallet_last_updated_at ?? null,
+  dailyLevelsPlayed: levelAccess.dailyLevelsPlayed,
+  dailyLevelsUnlocked: levelAccess.dailyLevelsUnlocked,
+  dailyLevelsMax: levelAccess.dailyLevelsMax,
+  initialDailyUnlockedLevels: levelAccess.initialDailyUnlockedLevels,
+  nextUnlockAt: levelAccess.nextUnlockAt,
+  unlockIntervalSeconds: levelAccess.unlockIntervalSeconds,
+  unlockLevelsPerInterval: levelAccess.unlockLevelsPerInterval,
+  adUnlockLevels: levelAccess.adUnlockLevels,
+  canWatchAdToUnlock: levelAccess.canWatchAdToUnlock,
+  canPlayNow: levelAccess.canPlayNow,
+  dailyLimitReached: levelAccess.dailyLimitReached,
 };
   ui.setUser({
     ...CURRENT_USER,
@@ -1014,6 +1159,7 @@ async function loadMeAndSyncUI({ BACKEND, token, ui }) {
 
   ui.setCoins(Number(user.coins ?? progress.coins ?? 0));
   ui.setScore(Number(user.score ?? user.rp_score ?? 0));
+  refreshLevelsAccessUI();
   
 setTimeout(() => {
   updateAllBadges();
@@ -1218,6 +1364,9 @@ window.__maze = window.__maze || {};
 window.__maze.guestMaxLevel = GUEST_MAX_LEVEL;
 window.__maze.showLoginRequired = () => ui.showLoginRequired();
 window.__maze.isLoggedIn = () => Boolean(CURRENT_ACCESS_TOKEN);
+window.__maze.openSurpriseBox = async () => {
+  return startSurpriseBoxFlow({ goNextLevelAfter: false });
+};
 window.__maze.setWallet = async (wallet) => {
   if (!CURRENT_ACCESS_TOKEN) return { ok: false, error: "auth_required" };
 
@@ -1534,6 +1683,89 @@ mysteryChestPopup.onOpen(async () => {
   return out.reward;
 
 });
+
+function formatSurpriseBoxRewardLabel(reward) {
+  if (!reward || typeof reward !== "object") return "You got a reward";
+  const amount = Math.max(1, Number(reward.rewardAmount ?? 1));
+  if (reward.rewardType === "coins") return `You got ${amount} Coins`;
+  if (reward.rewardType === "restart") return `You got ${amount} Restart`;
+  if (reward.rewardType === "hint") return `You got ${amount} Hint`;
+  if (reward.rewardType === "skip") return `You got ${amount} Skip`;
+  return "You got a reward";
+}
+
+function buildSurpriseBoxUserPatch(out) {
+  const dailyBoxesOpened = Number(out?.dailyBoxesOpened ?? out?.user?.daily_surprise_boxes_opened ?? CURRENT_USER?.daily_surprise_boxes_opened ?? 0);
+  const dailyBoxesMax = Number(out?.dailyBoxesMax ?? out?.user?.daily_surprise_boxes_max ?? CURRENT_USER?.daily_surprise_boxes_max ?? 4);
+  const dailyBoxesRemaining = Number(out?.dailyBoxesRemaining ?? out?.user?.daily_surprise_boxes_remaining ?? Math.max(0, dailyBoxesMax - dailyBoxesOpened));
+  return {
+    coins: Number(out?.user?.coins ?? CURRENT_USER?.coins ?? 0),
+    mc_balance: Number(out?.user?.mc_balance ?? CURRENT_USER?.mc_balance ?? CURRENT_USER?.coins ?? 0),
+    restarts_balance: Number(out?.user?.restarts_balance ?? CURRENT_USER?.restarts_balance ?? 0),
+    skips_balance: Number(out?.user?.skips_balance ?? CURRENT_USER?.skips_balance ?? 0),
+    hints_balance: Number(out?.user?.hints_balance ?? CURRENT_USER?.hints_balance ?? 0),
+    daily_surprise_boxes_opened: dailyBoxesOpened,
+    daily_surprise_boxes_max: dailyBoxesMax,
+    daily_surprise_boxes_remaining: dailyBoxesRemaining,
+  };
+}
+
+async function startSurpriseBoxFlow({ goNextLevelAfter = false } = {}) {
+  if (!CURRENT_ACCESS_TOKEN) {
+    ui.showLoginRequired();
+    return { ok: false, error: "auth_required" };
+  }
+
+  if (winAdFlowBusy || pendingWinAdBoxReward) {
+    showAdCooldownToast("Please wait... preparing surprise box.");
+    return { ok: false, error: "busy" };
+  }
+
+  winAdFlowBusy = true;
+  pendingWinAdNextLevel = Boolean(goNextLevelAfter);
+  winPopup.setWatchAdBusy?.(true, "Loading ad...");
+
+  return new Promise((resolve) => {
+    simulateAd({
+      onFinished: async () => {
+        try {
+          winPopup.setWatchAdBusy?.(true, "Preparing surprise box...");
+          const out = await apiOpenSurpriseBox();
+
+          pendingWinAdBoxReward = {
+            reward: out?.reward || null,
+            label: formatSurpriseBoxRewardLabel(out?.reward),
+            userPatch: buildSurpriseBoxUserPatch(out),
+          };
+
+          if (goNextLevelAfter) {
+            winPopup.hide();
+          }
+          adSurprisePopup.show();
+          resolve({ ok: true, out });
+        } catch (e) {
+          winAdFlowBusy = false;
+          pendingWinAdNextLevel = false;
+          winPopup.setWatchAdBusy?.(false);
+          if (e?.surpriseBoxState) {
+            applyUserPatch({
+              daily_surprise_boxes_opened: Number(e.surpriseBoxState.dailyBoxesOpened ?? CURRENT_USER?.daily_surprise_boxes_opened ?? 0),
+              daily_surprise_boxes_max: Number(e.surpriseBoxState.dailyBoxesMax ?? CURRENT_USER?.daily_surprise_boxes_max ?? 4),
+              daily_surprise_boxes_remaining: Number(e.surpriseBoxState.dailyBoxesRemaining ?? CURRENT_USER?.daily_surprise_boxes_remaining ?? 0),
+            });
+          }
+          showAdCooldownToast(
+            e?.message === "DAILY_SURPRISE_BOX_LIMIT_REACHED"
+              ? "Daily limit reached for Surprise Box."
+              : "Surprise Box not available. Try again."
+          );
+          resolve({ ok: false, error: e?.message || "surprise_box_failed" });
+        }
+      },
+    });
+  });
+}
+
 adSurprisePopup.onOpen(async () => {
   if (!pendingWinAdBoxReward) {
     winAdFlowBusy = false;
@@ -1544,14 +1776,16 @@ adSurprisePopup.onOpen(async () => {
   const rewardPack = pendingWinAdBoxReward;
   pendingWinAdBoxReward = null;
 
-  markAdClaimedNow();
-
   setTimeout(async () => {
-    applyUserPatch({ coins: rewardPack.coins }, { skipCoinSync: true });
-    await animateCoinsTo(rewardPack.coins, { showGainFx: true });
+    const nextCoins = Number(rewardPack?.userPatch?.coins ?? CURRENT_USER?.coins ?? 0);
+    const currentCoins = Number(CURRENT_USER?.coins ?? 0);
+    applyUserPatch(rewardPack.userPatch, { skipCoinSync: true });
+    if (nextCoins !== currentCoins) {
+      await animateCoinsTo(nextCoins, { showGainFx: true });
+    }
   }, 3000);
 
-  return rewardPack.reward;
+  return { label: rewardPack.label, ...(rewardPack.reward || {}) };
 });
 
 adSurprisePopup.onRevealDone(() => {
@@ -1797,17 +2031,31 @@ function showSmartHint(game) {
   // (level-complete reward is handled via global apiClaimLevelComplete)
 
 
-const levelsUI = mountLevelsUI(root, { totalLevels: levels.length });  
+levelsUI = mountLevelsUI(root, { totalLevels: levels.length });  
 ui.levelsBtn.addEventListener("click", () => {
   // keep levels UI in sync before opening
 if (CURRENT_ACCESS_TOKEN) {
   // logged-in: NEVER apply guest cap
   levelsUI.setUnlocked?.(CURRENT_MAX_UNLOCKED_LEVEL || 1);
+  refreshLevelsAccessUI();
 } else {
   const guestProgress = loadGuestProgress();
   const unlocked = Math.min(guestProgress.maxLevel || 1, GUEST_MAX_LEVEL);
   CURRENT_MAX_UNLOCKED_LEVEL = unlocked;
   levelsUI.setUnlocked?.(unlocked);
+  levelsUI.setLevelAccess?.({
+    dailyLevelsPlayed: 0,
+    dailyLevelsUnlocked: LEVEL_ACCESS_DEFAULTS.dailyLevelsMax,
+    dailyLevelsMax: LEVEL_ACCESS_DEFAULTS.dailyLevelsMax,
+    initialDailyUnlockedLevels: LEVEL_ACCESS_DEFAULTS.dailyLevelsMax,
+    unlockIntervalSeconds: LEVEL_ACCESS_DEFAULTS.unlockIntervalSeconds,
+    unlockLevelsPerInterval: LEVEL_ACCESS_DEFAULTS.unlockLevelsPerInterval,
+    adUnlockLevels: LEVEL_ACCESS_DEFAULTS.adUnlockLevels,
+    nextUnlockAt: null,
+    canWatchAdToUnlock: false,
+    canPlayNow: true,
+    dailyLimitReached: false,
+  });
 }
 
   levelsUI.open();
@@ -1818,9 +2066,66 @@ levelsUI.onSelect((levelNumber) => {
   // Guest can only open levels 1..GUEST_MAX_LEVEL
   if (!CURRENT_ACCESS_TOKEN && levelNumber > GUEST_MAX_LEVEL) {
     ui.showLoginRequired();
+    return false;
+  }
+
+  if (CURRENT_ACCESS_TOKEN) {
+    const access = refreshLevelsAccessUI();
+    if (access.dailyLimitReached) {
+      alert("Daily limit reached. Come back tomorrow for more levels.");
+      return false;
+    }
+    if (!access.canPlayNow) {
+      if (access.canWatchAdToUnlock) {
+        const adUnlockLevels = Math.max(1, Number(access.adUnlockLevels || LEVEL_ACCESS_DEFAULTS.adUnlockLevels));
+        alert(`You've used your current unlocked levels. Watch an ad to unlock ${adUnlockLevels} ${adUnlockLevels === 1 ? "level" : "levels"} now or wait for the timer.`);
+      } else {
+        alert("More levels unlock over time. Check the timer in the Levels screen.");
+      }
+      return false;
+    }
+  }
+
+  goToLevel(levelNumber - 1);
+  return true;
+});
+
+levelsUI.onUnlockNow(async () => {
+  if (!CURRENT_ACCESS_TOKEN) {
+    ui.showLoginRequired();
     return;
   }
-  goToLevel(levelNumber - 1);
+
+  try {
+    simulateAd({
+      onFinished: async () => {
+        try {
+          const out = await apiUnlockLevelsByAd();
+          if (out?.user) {
+            applyUserPatch({
+              ...out.user,
+              ...(out.levelAccess || {}),
+            });
+          } else if (out?.levelAccess) {
+            applyUserPatch(out.levelAccess);
+          }
+          refreshLevelsAccessUI();
+          const adUnlockLevels = Math.max(1, Number(out?.levelAccess?.adUnlockLevels ?? CURRENT_USER?.adUnlockLevels ?? LEVEL_ACCESS_DEFAULTS.adUnlockLevels));
+          alert(`${adUnlockLevels} more ${adUnlockLevels === 1 ? "level" : "levels"} unlocked.`);
+        } catch (e) {
+          if (e?.levelAccess) {
+            applyUserPatch(e.levelAccess);
+          }
+          alert(e?.message || "Unlock failed");
+        }
+      },
+      duration: 20,
+      skipAfter: 5,
+      buttonLabel: "Close Ad",
+    });
+  } catch (e) {
+    alert(e?.message || "Unlock failed");
+  }
 });
   if (CURRENT_ACCESS_TOKEN) {
   document.body.classList.remove("welcome-visible");
@@ -1863,6 +2168,7 @@ levelsUI.onSelect((levelNumber) => {
       const completedLevel = level?.number ?? (levelIndex + 1);
       const autoAdDueNow = completedLevel > 2 && !AD_OVERLAY_ACTIVE && shouldShowAutoAd();
       let winPopupState = buildLevelCompletePopupState(null, completedLevel);
+      let rewardAccepted = true;
 
       // Do reward sync in parallel so leaderboard timing stays fixed.
       const rewardSyncPromise = CURRENT_ACCESS_TOKEN
@@ -1870,17 +2176,36 @@ levelsUI.onSelect((levelNumber) => {
             try {
               const out = await apiClaimLevelComplete(completedLevel);
 
-              if (out) {
+              if (out?.ok !== false && out) {
                 winPopupState = buildLevelCompletePopupState(out, completedLevel);
                 winPopup.setRewardSummary?.(winPopupState);
               }
 
               if (out?.user) {
-                applyUserPatch(out.user, { skipCoinSync: true, skipScoreSync: true });
+                applyUserPatch({
+                  ...out.user,
+                  ...(out.levelAccess || {}),
+                }, { skipCoinSync: true, skipScoreSync: true });
                 await Promise.all([
                   animateCoinsTo(Number(out.user.coins ?? 0), { showGainFx: true }),
                   animateScoreTo(Number(out.user.score ?? out.user.rp_score ?? 0), { showGainFx: true }),
                 ]);
+              } else if (out?.levelAccess) {
+                applyUserPatch(out.levelAccess);
+              }
+
+              if (out?.ok === false && out?.error) {
+                rewardAccepted = false;
+                if (out?.levelAccess) {
+                  applyUserPatch(out.levelAccess);
+                }
+                alert(
+                  out.error === "daily_level_limit_reached"
+                    ? "Daily limit reached. Come back tomorrow for more levels."
+                    : out.error === "daily_levels_locked"
+                      ? `You've used your current unlocked levels. Wait for the timer or unlock ${Math.max(1, Number(out?.levelAccess?.adUnlockLevels ?? CURRENT_USER?.adUnlockLevels ?? LEVEL_ACCESS_DEFAULTS.adUnlockLevels))} ${Math.max(1, Number(out?.levelAccess?.adUnlockLevels ?? CURRENT_USER?.adUnlockLevels ?? LEVEL_ACCESS_DEFAULTS.adUnlockLevels)) === 1 ? "level" : "levels"} with an ad.`
+                      : out.error
+                );
               }
             } catch {}
           })()
@@ -1895,7 +2220,7 @@ levelsUI.onSelect((levelNumber) => {
       await rewardSyncPromise;
 
       // logged-in: unlock next level + persist progress and clear resume
-      if (CURRENT_ACCESS_TOKEN) {
+      if (CURRENT_ACCESS_TOKEN && rewardAccepted) {
         const nextUnlocked = Math.min(levels.length, completedLevel + 1);
 
         CURRENT_MAX_UNLOCKED_LEVEL = Math.max(
@@ -2030,6 +2355,7 @@ function afterLevelCompleteShowAdOrWin({ levelNumber, rewards = null, rewardStat
   // Optional: do not show auto ads on the first few levels
   if (levelNumber <= 2) {
     winPopup.show({ levelNumber, rewards, rewardStatus, rewardNote });
+    winPopup.setSurpriseBoxState?.(CURRENT_USER);
     return;
   }
 
@@ -2043,9 +2369,11 @@ function afterLevelCompleteShowAdOrWin({ levelNumber, rewards = null, rewardStat
 
     simulateInterstitialAd(() => {
       winPopup.show({ levelNumber, rewards, rewardStatus, rewardNote });
+      winPopup.setSurpriseBoxState?.(CURRENT_USER);
     });
   } else {
     winPopup.show({ levelNumber, rewards, rewardStatus, rewardNote });
+    winPopup.setSurpriseBoxState?.(CURRENT_USER);
   }
 }
 function simulateAd({
@@ -2174,76 +2502,7 @@ if (!CURRENT_ACCESS_TOKEN && nextLevelNumber > GUEST_MAX_LEVEL) {
   goNextLevel();
 });
 winPopup.onWatchAdClick(() => {
-  if (!CURRENT_ACCESS_TOKEN) {
-    ui.showLoginRequired();
-    return;
-  }
-
-  if (winAdFlowBusy || pendingWinAdBoxReward) {
-    showAdCooldownToast("Please wait... preparing surprise box.");
-    return;
-  }
-
-  if (!guardAdCooldownBeforeWatching()) {
-    return;
-  }
-
-  winAdFlowBusy = true;
-  winPopup.setWatchAdBusy?.(true, "Loading ad...");
-
-  simulateAd({
-    onFinished: async () => {
-      try {
-        winPopup.setWatchAdBusy?.(true, "Preparing surprise box...");
-
-        const nonce = crypto.randomUUID();
-        const res = await fetch(`${BACKEND}/api/rewards/ad-50`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${normalizeToken(CURRENT_ACCESS_TOKEN)}`,
-          },
-          body: JSON.stringify({ nonce }),
-        });
-
-        const out = await res.json().catch(() => ({}));
-
-        if (out?.already) {
-          winAdFlowBusy = false;
-          winPopup.setWatchAdBusy?.(false);
-          showAdCooldownToast("Ad reward already used. Please wait a few minutes.");
-          return;
-        }
-
-        if (out?.user?.coins != null) {
-          const nextCoins = Number(out.user.coins ?? 0);
-          const currentCoins = Number(CURRENT_USER?.coins ?? 0);
-          const rewardFromResponse = Number(out?.reward);
-          const reward = Number.isFinite(rewardFromResponse)
-            ? rewardFromResponse
-            : Math.max(0, nextCoins - currentCoins) || 50;
-
-          pendingWinAdBoxReward = {
-            reward,
-            coins: nextCoins,
-          };
-          pendingWinAdNextLevel = true;
-
-          winPopup.hide();
-          adSurprisePopup.show();
-          return;
-        }
-
-        winAdFlowBusy = false;
-        winPopup.setWatchAdBusy?.(false);
-        showAdCooldownToast("Ad reward not available. Try again.");
-      } catch {
-        winAdFlowBusy = false;
-        winPopup.setWatchAdBusy?.(false);
-        showAdCooldownToast("Ad reward not available. Try again.");
-      }
-    },
-  });
+  startSurpriseBoxFlow({ goNextLevelAfter: true });
 });
 
 
@@ -2688,6 +2947,7 @@ setTimeout(() => {
 }
 
 boot();
+
 
 
 

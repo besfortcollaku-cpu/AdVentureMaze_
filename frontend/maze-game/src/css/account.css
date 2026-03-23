@@ -254,6 +254,21 @@
   padding: 8px 10px;
 }
 
+.accountActionBtn{
+  width:100%;
+  margin-top:12px;
+  border:1px solid rgba(255,255,255,0.18);
+  border-radius:12px;
+  background: linear-gradient(180deg, rgba(47,212,255,.9), rgba(22,163,255,.82));
+  color:#07111f;
+  font-weight:800;
+  padding:10px 12px;
+}
+
+.accountActionBtn:disabled{
+  opacity:.6;
+}
+
 .accountOverallBlock {
   margin-top: 12px;
   padding-top: 12px;

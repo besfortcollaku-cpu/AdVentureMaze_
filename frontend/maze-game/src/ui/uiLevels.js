@@ -1,5 +1,6 @@
 // uiLevels.js
 import "../css/levels.css";
+import { LEVEL_ACCESS_DEFAULTS } from "../config/levelAccess.js";
 
 export function mountLevelsUI(root, { totalLevels } = {}) {
   // ----- DOM -----
@@ -14,6 +15,9 @@ export function mountLevelsUI(root, { totalLevels } = {}) {
         <h2>Select Level</h2>
       </div>
 
+      <div class="levelsAccess" id="levelsAccess"></div>
+      <button class="levelsUnlockBtn hidden" id="levelsUnlockBtn">Watch an ad to unlock now</button>
+
       <div class="levelsGrid" id="levelsGrid"></div>
 
       <button class="closeBtn" id="levelsClose">Close</button>
@@ -23,6 +27,8 @@ export function mountLevelsUI(root, { totalLevels } = {}) {
   root.appendChild(overlay);
 
   const grid = overlay.querySelector("#levelsGrid");
+  const accessEl = overlay.querySelector("#levelsAccess");
+  const unlockBtn = overlay.querySelector("#levelsUnlockBtn");
   // ----- TOUCH DRAG SCROLL -----
 let startY = 0;
 let startScroll = 0;
@@ -44,6 +50,8 @@ overlay.addEventListener("touchmove", (e) => {
   // ----- STATE -----
   let maxUnlocked = 1;
   let selectHandler = null;
+  let unlockNowHandler = null;
+  let levelAccess = null;
 
   const TOTAL_LEVELS = Number(totalLevels || 0) || 20;
 
@@ -71,8 +79,10 @@ overlay.addEventListener("touchmove", (e) => {
         }
         return;
       }
-      selectHandler?.(i);
-      close();
+      const shouldClose = selectHandler?.(i);
+      if (shouldClose !== false) {
+        close();
+      }
     });
 
     grid.appendChild(btn);
@@ -81,6 +91,38 @@ overlay.addEventListener("touchmove", (e) => {
 
   // ----- RENDER STATES -----
   function render() {
+    const played = Number(levelAccess?.dailyLevelsPlayed ?? 0);
+    const unlocked = Number(levelAccess?.dailyLevelsUnlocked ?? levelAccess?.initialDailyUnlockedLevels ?? LEVEL_ACCESS_DEFAULTS.initialDailyUnlockedLevels);
+    const max = Number(levelAccess?.dailyLevelsMax ?? LEVEL_ACCESS_DEFAULTS.dailyLevelsMax);
+    const initialUnlocked = Number(levelAccess?.initialDailyUnlockedLevels ?? LEVEL_ACCESS_DEFAULTS.initialDailyUnlockedLevels);
+    const unlockLevelsPerInterval = Number(levelAccess?.unlockLevelsPerInterval ?? LEVEL_ACCESS_DEFAULTS.unlockLevelsPerInterval);
+    const adUnlockLevels = Number(levelAccess?.adUnlockLevels ?? LEVEL_ACCESS_DEFAULTS.adUnlockLevels);
+    const nextUnlockAt = levelAccess?.nextUnlockAt || null;
+    const canWatchAdToUnlock = levelAccess?.canWatchAdToUnlock === true;
+    const dailyLimitReached = levelAccess?.dailyLimitReached === true;
+
+    let accessHtml = `
+      <div class="levelsAccessRow">Levels played today: <b>${played} / ${max}</b></div>
+      <div class="levelsAccessRow">Unlocked now: <b>${unlocked}</b></div>
+    `;
+
+    const nextUnlockLabel = `Next ${unlockLevelsPerInterval === 1 ? "level unlocks" : `${unlockLevelsPerInterval} levels unlock`} ${formatUnlockTime(nextUnlockAt)}.`;
+    const nextUnlockFallback = `Next ${unlockLevelsPerInterval === 1 ? "level unlocks" : `${unlockLevelsPerInterval} levels unlock`} soon.`;
+
+    if (dailyLimitReached) {
+      accessHtml += `<div class="levelsAccessState">Daily limit reached. Come back tomorrow for more levels.</div>`;
+    } else if (canWatchAdToUnlock) {
+      accessHtml += `<div class="levelsAccessState">You've used your current unlocked levels. ${nextUnlockAt ? nextUnlockLabel : nextUnlockFallback}</div>`;
+    } else if (played === 0 && unlocked === initialUnlocked) {
+      accessHtml += `<div class="levelsAccessHint">${initialUnlocked} levels available now.</div>`;
+    } else if (nextUnlockAt) {
+      accessHtml += `<div class="levelsAccessHint">${nextUnlockLabel}</div>`;
+    }
+
+    accessEl.innerHTML = accessHtml;
+    unlockBtn.textContent = `Watch an ad to unlock ${adUnlockLevels} ${adUnlockLevels === 1 ? "level" : "levels"} now`;
+    unlockBtn.classList.toggle("hidden", !canWatchAdToUnlock || dailyLimitReached);
+
     levelButtons.forEach((btn) => {
       const level = Number(btn.dataset.level);
       btn.classList.remove("locked", "completed", "unlocked");
@@ -99,6 +141,18 @@ overlay.addEventListener("touchmove", (e) => {
     });
   }
 
+  function formatUnlockTime(raw) {
+    const ms = Date.parse(raw);
+    if (!Number.isFinite(ms)) return "soon";
+    const diff = Math.max(0, ms - Date.now());
+    const totalMinutes = Math.ceil(diff / 60000);
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+    if (hours > 0 && minutes > 0) return `in ${hours}h ${minutes}m`;
+    if (hours > 0) return `in ${hours}h`;
+    return `in ${Math.max(1, minutes)}m`;
+  }
+
   // ----- OPEN / CLOSE -----
   function open() {
     document.body.classList.add("overlay-open");
@@ -111,6 +165,9 @@ overlay.addEventListener("touchmove", (e) => {
   }
 
   closeBtn.addEventListener("click", close);
+  unlockBtn.addEventListener("click", () => {
+    unlockNowHandler?.();
+  });
 
   // ----- PUBLIC API -----
   return {
@@ -122,8 +179,17 @@ overlay.addEventListener("touchmove", (e) => {
       render();
     },
 
+    setLevelAccess(nextAccess) {
+      levelAccess = nextAccess || null;
+      render();
+    },
+
     onSelect(cb) {
       selectHandler = cb;
+    },
+
+    onUnlockNow(cb) {
+      unlockNowHandler = cb;
     },
   };
 }
