@@ -1737,6 +1737,10 @@ async function startSurpriseBoxFlow({ goNextLevelAfter = false } = {}) {
     return { ok: false, error: "auth_required" };
   }
 
+  if (!guardAdCooldownBeforeWatching()) {
+    return { ok: false, error: "cooldown" };
+  }
+
   if (winAdFlowBusy || isProcessingRewardAd || isOpeningBox || isContinuingSurprise || surpriseBoxRewardResult) {
     showAdCooldownToast("Please wait... preparing surprise box.");
     return { ok: false, error: "busy" };
@@ -1749,16 +1753,17 @@ async function startSurpriseBoxFlow({ goNextLevelAfter = false } = {}) {
 
   return new Promise((resolve) => {
     simulateAd({
-      onFinished: async () => {
-        try {
-          console.debug("[surprise-box] rewarded ad success callback fired");
-          winPopup.setWatchAdBusy?.(true, "Preparing surprise box...");
-          const out = await apiOpenSurpriseBox();
+        onFinished: async () => {
+          try {
+            console.debug("[surprise-box] rewarded ad success callback fired");
+            winPopup.setWatchAdBusy?.(true, "Preparing surprise box...");
+            const out = await apiOpenSurpriseBox();
+            markAdClaimedNow();
 
-          surpriseBoxRewardResult = {
-            reward: out?.reward || null,
-            label: formatSurpriseBoxRewardLabel(out?.reward),
-            userPatch: buildSurpriseBoxUserPatch(out),
+            surpriseBoxRewardResult = {
+              reward: out?.reward || null,
+              label: formatSurpriseBoxRewardLabel(out?.reward),
+              userPatch: buildSurpriseBoxUserPatch(out),
             dailyBoxesRemaining: Number(out?.dailyBoxesRemaining ?? 0),
           };
           pendingWinAdBoxReward = surpriseBoxRewardResult;
