@@ -110,10 +110,14 @@ const adSurprisePopup = createMysteryChestPopup({
   title: "Surprise Box",
   subtitle: "Ad reward unlocked!",
   buttonText: "Open Surprise Box",
+  requireConfirmAfterReveal: true,
+  confirmButtonText: "Continue",
+  revealedTitle: "Surprise Box Opened",
 });
 let pendingWinAdBoxReward = null;
 let pendingWinAdNextLevel = false;
 let winAdFlowBusy = false;
+let pendingWinPopupState = null;
 let LAST_SERVER_TIME_MS = null;
 let RANKING_REWARD_PROMPT_SHOWN = false;
 function shouldShowAutoAd() {
@@ -1694,6 +1698,12 @@ function formatSurpriseBoxRewardLabel(reward) {
   return "You got a reward";
 }
 
+function formatSurpriseBoxRemainingText(remaining) {
+  const count = Math.max(0, Number(remaining || 0));
+  if (count === 1) return "1 box left today";
+  return `${count} boxes left today`;
+}
+
 function buildSurpriseBoxUserPatch(out) {
   const dailyBoxesOpened = Number(out?.dailyBoxesOpened ?? out?.user?.daily_surprise_boxes_opened ?? CURRENT_USER?.daily_surprise_boxes_opened ?? 0);
   const dailyBoxesMax = Number(out?.dailyBoxesMax ?? out?.user?.daily_surprise_boxes_max ?? CURRENT_USER?.daily_surprise_boxes_max ?? 4);
@@ -1736,6 +1746,7 @@ async function startSurpriseBoxFlow({ goNextLevelAfter = false } = {}) {
             reward: out?.reward || null,
             label: formatSurpriseBoxRewardLabel(out?.reward),
             userPatch: buildSurpriseBoxUserPatch(out),
+            dailyBoxesRemaining: Number(out?.dailyBoxesRemaining ?? 0),
           };
 
           if (goNextLevelAfter) {
@@ -1766,6 +1777,34 @@ async function startSurpriseBoxFlow({ goNextLevelAfter = false } = {}) {
   });
 }
 
+function canAdvanceToNextLevelNow() {
+  const nextLevelNumber = levelIndex + 2;
+
+  if (levelIndex + 1 >= levels.length) {
+    return false;
+  }
+
+  if (!CURRENT_ACCESS_TOKEN) {
+    return nextLevelNumber <= GUEST_MAX_LEVEL;
+  }
+
+  const access = refreshLevelsAccessUI();
+  return Boolean(access?.canPlayNow && !access?.dailyLimitReached);
+}
+
+function resumePostWinFlowAfterSurpriseBox() {
+  if (canAdvanceToNextLevelNow()) {
+    goNextLevel();
+    return;
+  }
+
+  if (pendingWinPopupState) {
+    winPopup.show(pendingWinPopupState);
+    winPopup.setNextLevelEnabled?.(false);
+    winPopup.setSurpriseBoxState?.(CURRENT_USER);
+  }
+}
+
 adSurprisePopup.onOpen(async () => {
   if (!pendingWinAdBoxReward) {
     winAdFlowBusy = false;
@@ -1775,27 +1814,32 @@ adSurprisePopup.onOpen(async () => {
 
   const rewardPack = pendingWinAdBoxReward;
   pendingWinAdBoxReward = null;
+  const nextCoins = Number(rewardPack?.userPatch?.coins ?? CURRENT_USER?.coins ?? 0);
+  const currentCoins = Number(CURRENT_USER?.coins ?? 0);
+  applyUserPatch(rewardPack.userPatch, { skipCoinSync: true });
+  winPopup.setSurpriseBoxState?.(CURRENT_USER);
+  if (nextCoins !== currentCoins) {
+    setTimeout(() => {
+      animateCoinsTo(nextCoins, { showGainFx: true }).catch(() => {});
+    }, 150);
+  }
 
-  setTimeout(async () => {
-    const nextCoins = Number(rewardPack?.userPatch?.coins ?? CURRENT_USER?.coins ?? 0);
-    const currentCoins = Number(CURRENT_USER?.coins ?? 0);
-    applyUserPatch(rewardPack.userPatch, { skipCoinSync: true });
-    if (nextCoins !== currentCoins) {
-      await animateCoinsTo(nextCoins, { showGainFx: true });
-    }
-  }, 3000);
-
-  return { label: rewardPack.label, ...(rewardPack.reward || {}) };
+  return {
+    label: rewardPack.label,
+    detail: formatSurpriseBoxRemainingText(rewardPack.dailyBoxesRemaining),
+    subtitle: formatSurpriseBoxRemainingText(rewardPack.dailyBoxesRemaining),
+    confirmText: "Continue",
+    ...(rewardPack.reward || {}),
+  };
 });
 
 adSurprisePopup.onRevealDone(() => {
   winAdFlowBusy = false;
   winPopup.setWatchAdBusy?.(false);
-
-  if (!pendingWinAdNextLevel) return;
-
+  const shouldContinue = pendingWinAdNextLevel;
   pendingWinAdNextLevel = false;
-  goNextLevel();
+  if (!shouldContinue) return;
+  resumePostWinFlowAfterSurpriseBox();
 });
 function onAnyPaintDuringMove() {
   if (!HINT_ACTIVE_FOR_LEVEL) return;
@@ -2352,9 +2396,12 @@ function simulateInterstitialAd(onFinished) {
   });
 }
 function afterLevelCompleteShowAdOrWin({ levelNumber, rewards = null, rewardStatus = "", rewardNote = "" }) {
+  pendingWinPopupState = { levelNumber, rewards, rewardStatus, rewardNote };
+
   // Optional: do not show auto ads on the first few levels
   if (levelNumber <= 2) {
-    winPopup.show({ levelNumber, rewards, rewardStatus, rewardNote });
+    winPopup.show(pendingWinPopupState);
+    winPopup.setNextLevelEnabled?.(canAdvanceToNextLevelNow());
     winPopup.setSurpriseBoxState?.(CURRENT_USER);
     return;
   }
@@ -2368,11 +2415,13 @@ function afterLevelCompleteShowAdOrWin({ levelNumber, rewards = null, rewardStat
     markAutoAdShown();
 
     simulateInterstitialAd(() => {
-      winPopup.show({ levelNumber, rewards, rewardStatus, rewardNote });
+      winPopup.show(pendingWinPopupState);
+      winPopup.setNextLevelEnabled?.(canAdvanceToNextLevelNow());
       winPopup.setSurpriseBoxState?.(CURRENT_USER);
     });
   } else {
-    winPopup.show({ levelNumber, rewards, rewardStatus, rewardNote });
+    winPopup.show(pendingWinPopupState);
+    winPopup.setNextLevelEnabled?.(canAdvanceToNextLevelNow());
     winPopup.setSurpriseBoxState?.(CURRENT_USER);
   }
 }

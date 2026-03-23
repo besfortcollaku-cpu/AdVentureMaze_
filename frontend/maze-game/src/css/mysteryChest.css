@@ -37,6 +37,27 @@
   transform: scale(0.84);
 }
 
+.reward-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 24px;
+  margin: 0 auto 8px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 225, 146, 0.32);
+  background: rgba(255, 214, 98, 0.12);
+  color: rgba(255, 240, 191, 0.96);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+
+.reward-badge.hidden {
+  display: none;
+}
+
 .chest-open::before,
 .chest-open::after {
   content: "";
@@ -72,7 +93,7 @@
 
 .reward-coins {
   margin-top: 8px;
-  font-size: 30px;
+  font-size: 34px;
   font-weight: 900;
   letter-spacing: 0.35px;
   color: #ffdf7a;
@@ -80,11 +101,31 @@
     0 0 10px rgba(255, 225, 120, 0.65),
     0 0 24px rgba(255, 202, 84, 0.48);
   opacity: 0;
+  transform: translateY(8px) scale(0.96);
+  transition: transform 0.24s ease, opacity 0.24s ease;
+}
+
+.reward-detail {
+  margin-top: 10px;
+  font-size: 13px;
+  color: rgba(255, 236, 184, 0.84);
+  opacity: 0.95;
+}
+
+.reward-detail.hidden {
+  display: none;
 }
 
 .chest-box.revealed .reward-coins {
   animation: rewardPulse 1.1s ease-in-out infinite alternate;
   opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+.chest-box.opening .daily-reward-btn,
+.chest-box.revealed .daily-reward-btn:disabled {
+  opacity: 0.72;
+  cursor: wait;
 }
 
 @keyframes spin {

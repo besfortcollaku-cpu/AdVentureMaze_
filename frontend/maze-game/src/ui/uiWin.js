@@ -7,6 +7,7 @@ export function createWinPopup() {
   let onNext = null;
   let onWatchAd = null;
   let adBtnDefaultText = "Watch Ad for Surprise Box";
+  const nextBtnDefaultText = "Next level";
 
   const el = document.createElement("div");
   el.className = "overlay winOverlay hidden";
@@ -104,6 +105,7 @@ export function createWinPopup() {
     levelText.textContent = `You finished Level ${levelNumber}`;
     applyRewardSummary({ rewards, rewardStatus, rewardNote });
     setWatchAdBusy(false);
+    setNextLevelEnabled(true);
     setSurpriseBoxState();
     el.classList.remove("hidden");
   }
@@ -117,6 +119,12 @@ export function createWinPopup() {
     if (!adBtn) return;
     adBtn.disabled = !!isBusy;
     adBtn.textContent = isBusy ? busyText : adBtnDefaultText;
+  }
+
+  function setNextLevelEnabled(isEnabled, disabledText = "Next level locked") {
+    if (!nextBtn) return;
+    nextBtn.disabled = !isEnabled;
+    nextBtn.textContent = isEnabled ? nextBtnDefaultText : disabledText;
   }
 
   function setSurpriseBoxState(state = null) {
@@ -149,6 +157,7 @@ export function createWinPopup() {
     hide,
     setRewardSummary: applyRewardSummary,
     setWatchAdBusy,
+    setNextLevelEnabled,
     setSurpriseBoxState,
     onNextLevel,
     onWatchAdClick,
