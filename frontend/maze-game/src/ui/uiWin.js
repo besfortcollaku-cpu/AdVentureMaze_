@@ -39,6 +39,7 @@ export function createWinPopup() {
       <button class="btn primary btnNext" id="nextLevelBtn">
         Next Level
       </button>
+      <div class="tip hidden" id="nextLevelHint"></div>
 </div>
 
       <button class="btn secondary" id="watchAdBtn">
@@ -61,6 +62,7 @@ export function createWinPopup() {
   const rewardStatusEl = el.querySelector("#winRewardStatus");
   const rewardNoteEl = el.querySelector("#winRewardNote");
   const nextBtn = el.querySelector("#nextLevelBtn");
+  const nextHint = el.querySelector("#nextLevelHint");
   const adBtn = el.querySelector("#watchAdBtn");
   const adTip = el.querySelector("#watchAdTip");
 
@@ -122,10 +124,14 @@ export function createWinPopup() {
     adBtn.textContent = isBusy ? busyText : adBtnDefaultText;
   }
 
-  function setNextLevelEnabled(isEnabled, disabledText = nextBtnFallbackText) {
+  function setNextLevelEnabled(isEnabled, disabledText = nextBtnFallbackText, helperText = "") {
     if (!nextBtn) return;
     nextBtn.disabled = false;
     nextBtn.textContent = isEnabled ? nextBtnDefaultText : disabledText;
+    if (nextHint) {
+      nextHint.textContent = isEnabled ? "" : String(helperText || "").trim();
+      nextHint.classList.toggle("hidden", isEnabled || !helperText);
+    }
   }
 
   function setSurpriseBoxState(state = null) {

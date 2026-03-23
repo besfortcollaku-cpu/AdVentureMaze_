@@ -1822,6 +1822,52 @@ function canAdvanceToNextLevelNow() {
   return Boolean(access?.canPlayNow && !access?.dailyLimitReached);
 }
 
+function getNextLevelActionState() {
+  const nextLevelNumber = levelIndex + 2;
+
+  if (levelIndex + 1 >= levels.length) {
+    return {
+      isPlayable: false,
+      helperText: "Open Levels to continue.",
+    };
+  }
+
+  if (!CURRENT_ACCESS_TOKEN) {
+    return nextLevelNumber <= GUEST_MAX_LEVEL
+      ? { isPlayable: true, helperText: "" }
+      : { isPlayable: false, helperText: "Open Levels to continue." };
+  }
+
+  const access = refreshLevelsAccessUI();
+  if (access?.dailyLimitReached) {
+    return {
+      isPlayable: false,
+      helperText: "Daily progression complete. Replay unlocked levels from Levels.",
+    };
+  }
+
+  if (!access?.canPlayNow) {
+    return {
+      isPlayable: false,
+      helperText: "Next level unlocks soon or can be unlocked.",
+    };
+  }
+
+  return {
+    isPlayable: true,
+    helperText: "",
+  };
+}
+
+function syncWinPopupNextLevelState() {
+  const nextState = getNextLevelActionState();
+  winPopup.setNextLevelEnabled?.(
+    nextState.isPlayable,
+    nextState.isPlayable ? "Next Level" : "Go to Levels",
+    nextState.helperText
+  );
+}
+
 function resumePostWinFlowAfterSurpriseBox() {
   if (canAdvanceToNextLevelNow()) {
     setPostWinFlow("idle");
@@ -1832,7 +1878,7 @@ function resumePostWinFlowAfterSurpriseBox() {
   if (pendingWinPopupState) {
     setPostWinFlow("win");
     winPopup.show(pendingWinPopupState);
-    winPopup.setNextLevelEnabled?.(false);
+    syncWinPopupNextLevelState();
     winPopup.setSurpriseBoxState?.(CURRENT_USER);
   }
 }
@@ -1846,7 +1892,7 @@ adSurprisePopup.onOpen(async () => {
     setPostWinFlow("win");
     if (pendingWinPopupState) {
       winPopup.show(pendingWinPopupState);
-      winPopup.setNextLevelEnabled?.(canAdvanceToNextLevelNow());
+      syncWinPopupNextLevelState();
       winPopup.setSurpriseBoxState?.(CURRENT_USER);
     }
     return null;
@@ -2470,7 +2516,7 @@ function afterLevelCompleteShowAdOrWin({ levelNumber, rewards = null, rewardStat
   // Optional: do not show auto ads on the first few levels
   if (levelNumber <= 2) {
     winPopup.show(pendingWinPopupState);
-    winPopup.setNextLevelEnabled?.(canAdvanceToNextLevelNow());
+    syncWinPopupNextLevelState();
     winPopup.setSurpriseBoxState?.(CURRENT_USER);
     return;
   }
@@ -2485,12 +2531,12 @@ function afterLevelCompleteShowAdOrWin({ levelNumber, rewards = null, rewardStat
 
     simulateInterstitialAd(() => {
       winPopup.show(pendingWinPopupState);
-      winPopup.setNextLevelEnabled?.(canAdvanceToNextLevelNow());
+      syncWinPopupNextLevelState();
       winPopup.setSurpriseBoxState?.(CURRENT_USER);
     });
   } else {
     winPopup.show(pendingWinPopupState);
-    winPopup.setNextLevelEnabled?.(canAdvanceToNextLevelNow());
+    syncWinPopupNextLevelState();
     winPopup.setSurpriseBoxState?.(CURRENT_USER);
   }
 }
