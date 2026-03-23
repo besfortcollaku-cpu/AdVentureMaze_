@@ -241,9 +241,11 @@
 .leaderboardMonthlyRows {
   display: grid;
   gap: 8px;
+  height: min(42vh, 360px);
   max-height: min(42vh, 360px);
   overflow-y: scroll;
   overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
   padding-right: 4px;
   scrollbar-width: thin;
   scrollbar-color: rgba(156, 231, 255, 0.45) rgba(255, 255, 255, 0.06);
