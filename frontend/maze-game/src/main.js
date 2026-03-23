@@ -901,10 +901,13 @@ function buildLevelCompletePopupState(out, levelNumber) {
   let rewardNote = "";
 
   if (rewards) {
-    if (out?.already) {
-      rewardStatus = "This level already gave Score this month.";
-      rewardNote = "Score affects your leaderboard position and monthly rewards.";
-    } else if (rewards.rp >= 2) {
+      if (out?.isReplay) {
+        rewardStatus = "Replay completed.";
+        rewardNote = "No Coins or Score earned on replay.";
+      } else if (out?.already) {
+        rewardStatus = "This level already gave Score this month.";
+        rewardNote = "Score affects your leaderboard position and monthly rewards.";
+      } else if (rewards.rp >= 2) {
       rewardStatus = "Clean run bonus applied.";
       rewardNote = "Score affects your leaderboard position and monthly rewards.";
     } else if (rewards.rp === 1) {
