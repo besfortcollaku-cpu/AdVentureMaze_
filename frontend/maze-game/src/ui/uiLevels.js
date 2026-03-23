@@ -110,7 +110,7 @@ overlay.addEventListener("touchmove", (e) => {
     const nextUnlockFallback = `Next ${unlockLevelsPerInterval === 1 ? "level unlocks" : `${unlockLevelsPerInterval} levels unlock`} soon.`;
 
     if (dailyLimitReached) {
-      accessHtml += `<div class="levelsAccessState">Daily limit reached. Come back tomorrow for more levels.</div>`;
+      accessHtml += `<div class="levelsAccessState">Daily progression limit reached. You can still replay unlocked levels.</div>`;
     } else if (canWatchAdToUnlock) {
       accessHtml += `<div class="levelsAccessState">You've used your current unlocked levels. ${nextUnlockAt ? nextUnlockLabel : nextUnlockFallback}</div>`;
     } else if (played === 0 && unlocked === initialUnlocked) {
