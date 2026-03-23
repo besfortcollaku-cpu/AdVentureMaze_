@@ -219,6 +219,7 @@ document.addEventListener(
 );
 
 let levelIndex = 0;
+let CURRENT_LEVEL_IS_REPLAY = false;
 let RESUME_ENABLED = false;
 let RESUME_TILES = new Set();
 let RESUME_POS = null;
@@ -2165,12 +2166,13 @@ levelsUI.onSelect((levelNumber) => {
   }
 
   if (CURRENT_ACCESS_TOKEN) {
+    const isReplaySelection = isReplayLevelNumber(levelNumber);
     const access = refreshLevelsAccessUI();
-    if (access.dailyLimitReached) {
+    if (!isReplaySelection && access.dailyLimitReached) {
       alert("Daily limit reached. Come back tomorrow for more levels.");
       return false;
     }
-    if (!access.canPlayNow) {
+    if (!isReplaySelection && !access.canPlayNow) {
       if (access.canWatchAdToUnlock) {
         const adUnlockLevels = Math.max(1, Number(access.adUnlockLevels || LEVEL_ACCESS_DEFAULTS.adUnlockLevels));
         alert(`You've used your current unlocked levels. Watch an ad to unlock ${adUnlockLevels} ${adUnlockLevels === 1 ? "level" : "levels"} now or wait for the timer.`);
@@ -2266,7 +2268,7 @@ levelsUI.onUnlockNow(async () => {
       let rewardAccepted = true;
 
       // Do reward sync in parallel so leaderboard timing stays fixed.
-      const rewardSyncPromise = CURRENT_ACCESS_TOKEN
+      const rewardSyncPromise = CURRENT_ACCESS_TOKEN && !CURRENT_LEVEL_IS_REPLAY
         ? (async () => {
             try {
               const out = await apiClaimLevelComplete(completedLevel);
@@ -2315,7 +2317,7 @@ levelsUI.onUnlockNow(async () => {
       await rewardSyncPromise;
 
       // logged-in: unlock next level + persist progress and clear resume
-      if (CURRENT_ACCESS_TOKEN && rewardAccepted) {
+      if (CURRENT_ACCESS_TOKEN && rewardAccepted && !CURRENT_LEVEL_IS_REPLAY) {
         const nextUnlocked = Math.min(levels.length, completedLevel + 1);
 
         CURRENT_MAX_UNLOCKED_LEVEL = Math.max(
@@ -2364,6 +2366,12 @@ function wipeResumeForCurrentLevel() {
   }).catch(() => {});
 }
 
+function isReplayLevelNumber(levelNumber) {
+  const numericLevel = Number(levelNumber || 0);
+  const maxUnlocked = Number(CURRENT_MAX_UNLOCKED_LEVEL || 1);
+  return numericLevel > 0 && numericLevel < maxUnlocked;
+}
+
 function restartLevelForHint() {
   hideHintArrows();
 
@@ -2391,6 +2399,7 @@ RESUME_ENABLED = false;
   const lvl = levels[levelIndex];
 
   const selectedLevelNumber = levelIndex + 1;
+  CURRENT_LEVEL_IS_REPLAY = isReplayLevelNumber(selectedLevelNumber);
 
   game.setLevel(lvl);
 // ? Capture spawn tile AFTER level fully loads
