@@ -1288,7 +1288,7 @@ CURRENT_USER = null;
 ui?.setUser?.({ username: "Guest", uid: null });
 ui?.setCoins?.(0);
 ui?.setScore?.(0);
-// 🔥 AUTO-HYDRATE USER IF TOKEN EXISTS
+// ?? AUTO-HYDRATE USER IF TOKEN EXISTS
 
   const root = document.querySelector("#app");
   if (!root) {
@@ -1340,7 +1340,7 @@ if (!game?.isRunning?.()) {
 // go to the last unlocked level (where resume is stored)
 goToLevel(CURRENT_MAX_UNLOCKED_LEVEL - 1);
 
-// ✅ APPLY PROGRESS AFTER GAME IS RUNNING + LEVEL IS SET
+// ? APPLY PROGRESS AFTER GAME IS RUNNING + LEVEL IS SET
 setTimeout(() => {
   if (RESUME_TILES.size > 0 || RESUME_POS) {
     game.applyProgress({
@@ -2061,10 +2061,10 @@ function getSmartHintFromState(state) {
   if (!state) return null;
 
   const dirs = [
-    { name: "UP", dx: 0, dy: -1, arrow: "↑" },
-    { name: "DOWN", dx: 0, dy: 1, arrow: "↓" },
-    { name: "LEFT", dx: -1, dy: 0, arrow: "←" },
-    { name: "RIGHT", dx: 1, dy: 0, arrow: "→" },
+    { name: "UP", dx: 0, dy: -1, arrow: "?" },
+    { name: "DOWN", dx: 0, dy: 1, arrow: "?" },
+    { name: "LEFT", dx: -1, dy: 0, arrow: "?" },
+    { name: "RIGHT", dx: 1, dy: 0, arrow: "?" },
   ];
 
   const options = [];
@@ -2072,7 +2072,7 @@ function getSmartHintFromState(state) {
   for (const d of dirs) {
     const out = _slideTargetAndNewPaintCount(state, d.dx, d.dy);
 
-    // ignore “no movement”
+    // ignore �no movement�
     if (out.dist <= 0) continue;
 
     options.push({
@@ -2388,7 +2388,7 @@ RESUME_ENABLED = false;
   const selectedLevelNumber = levelIndex + 1;
 
   game.setLevel(lvl);
-// ✅ Capture spawn tile AFTER level fully loads
+// ? Capture spawn tile AFTER level fully loads
 setTimeout(() => {
   const p = game.getPlayer?.();
   if (p) {
@@ -2438,7 +2438,7 @@ function simulateInterstitialAd(onFinished) {
     duration: 20,
     skipAfter: 5,
     buttonLabel: "Skip Ad",
-    rewardReadyText: "✅ Ad Finished",
+    rewardReadyText: "? Ad Finished",
   });
 }
 function afterLevelCompleteShowAdOrWin({ levelNumber, rewards = null, rewardStatus = "", rewardNote = "" }) {
@@ -2498,7 +2498,7 @@ function simulateAd({
   overlay.innerHTML = `
     <div class="ad-box">
       <div class="ad-video">
-        🎮 Sponsored Ad
+        ?? Sponsored Ad
       </div>
 
       <div id="adCountdown">
@@ -2599,14 +2599,32 @@ async function grantRestartAdReward() {
 function goNextLevel() {
   goToLevel(levelIndex + 1);
 }
+function openLevelsOverlayFromWin() {
+  winPopup.hide();
+  levelsUI?.open?.();
+}
 winPopup.onNextLevel(() => {
   const nextLevelNumber = levelIndex + 2; // levelIndex is 0-based
+  const hasNextLevel = nextLevelNumber <= levels.length;
 
-  // 🔒 Guest limit: require login after level 5
-if (!CURRENT_ACCESS_TOKEN && nextLevelNumber > GUEST_MAX_LEVEL) {
+  // Guest limit: require login after level 5
+  if (!CURRENT_ACCESS_TOKEN && nextLevelNumber > GUEST_MAX_LEVEL) {
     winPopup.hide();
     ui.showLoginRequired();
     return;
+  }
+
+  if (!hasNextLevel) {
+    openLevelsOverlayFromWin();
+    return;
+  }
+
+  if (CURRENT_ACCESS_TOKEN) {
+    const access = refreshLevelsAccessUI();
+    if (!access?.canPlayNow || access?.dailyLimitReached) {
+      openLevelsOverlayFromWin();
+      return;
+    }
   }
 
   winPopup.hide();
