@@ -2072,7 +2072,7 @@ function getSmartHintFromState(state) {
   for (const d of dirs) {
     const out = _slideTargetAndNewPaintCount(state, d.dx, d.dy);
 
-    // ignore “no movement”
+    // ignore ï¿½no movementï¿½
     if (out.dist <= 0) continue;
 
     options.push({
