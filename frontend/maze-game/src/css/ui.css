@@ -699,6 +699,39 @@ canvas#game {
   animation: coinPillPulsePremium 0.85s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+.economyStat.score-gain-pulse {
+  animation: scorePillPulsePremium 0.85s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.score-gain-fx {
+  position: fixed;
+  transform: translate(-50%, -50%);
+  z-index: 100001;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(120, 224, 255, 0.62);
+  background: linear-gradient(135deg, rgba(8, 27, 39, 0.94), rgba(22, 86, 111, 0.88));
+  box-shadow:
+    0 12px 28px rgba(0,0,0,0.4),
+    0 0 24px rgba(120, 224, 255, 0.28),
+    inset 0 1px 0 rgba(255,255,255,0.2);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  pointer-events: none;
+  animation: scoreGainFloatPremium 2.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.score-gain-amount {
+  font-size: 15px;
+  font-weight: 900;
+  letter-spacing: 0.2px;
+  color: #bdf3ff;
+  text-shadow: 0 0 16px rgba(120, 224, 255, 0.34);
+}
+
 @keyframes coinGainFloatPremium {
   0% { opacity: 0; transform: translate(-50%, -12%) scale(0.86); filter: blur(1px); }
   14% { opacity: 1; filter: blur(0); }
@@ -709,6 +742,19 @@ canvas#game {
 @keyframes coinPillPulsePremium {
   0% { transform: scale(1); box-shadow: none; }
   40% { transform: scale(1.095); box-shadow: 0 0 0 8px rgba(255,208,95,0.16); }
+  100% { transform: scale(1); box-shadow: none; }
+}
+
+@keyframes scoreGainFloatPremium {
+  0% { opacity: 0; transform: translate(-50%, -12%) scale(0.86); filter: blur(1px); }
+  14% { opacity: 1; filter: blur(0); }
+  72% { opacity: 1; transform: translate(-50%, -144%) scale(1.03); }
+  100% { opacity: 0; transform: translate(-50%, -208%) scale(1.04); }
+}
+
+@keyframes scorePillPulsePremium {
+  0% { transform: scale(1); box-shadow: none; }
+  40% { transform: scale(1.095); box-shadow: 0 0 0 8px rgba(120,224,255,0.16); }
   100% { transform: scale(1); box-shadow: none; }
 }
 

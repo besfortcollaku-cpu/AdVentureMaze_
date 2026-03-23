@@ -367,6 +367,7 @@ async function canRunInCurrentEnvironment() {
 function applyUserPatch(patch, opts = {}) {
   if (!patch) return;
   const skipCoinSync = Boolean(opts?.skipCoinSync);
+  const skipScoreSync = Boolean(opts?.skipScoreSync);
 
   const keepUid = CURRENT_USER?.uid;
   const keepName = CURRENT_USER?.username;
@@ -383,7 +384,9 @@ function applyUserPatch(patch, opts = {}) {
 
   // update header
   ui?.setUser?.(CURRENT_USER);
-  ui?.setScore?.(CURRENT_USER?.score ?? CURRENT_USER?.rp_score ?? 0);
+  if (!skipScoreSync) {
+    ui?.setScore?.(CURRENT_USER?.score ?? CURRENT_USER?.rp_score ?? 0);
+  }
   if (!skipCoinSync) {
     ui?.setCoins?.(CURRENT_USER?.coins ?? 0);
   }
@@ -393,10 +396,18 @@ function applyUserPatch(patch, opts = {}) {
 }
 let COIN_ANIM_SEQ = 0;
 let COIN_GAIN_TIMER = null;
+let SCORE_ANIM_SEQ = 0;
+let SCORE_GAIN_TIMER = null;
 
 function getDisplayedCoins() {
   const el = document.getElementById("coinCount");
   const n = Number(el?.textContent ?? CURRENT_USER?.coins ?? 0);
+  return Number.isFinite(n) ? n : 0;
+}
+
+function getDisplayedScore() {
+  const el = document.getElementById("scoreCount");
+  const n = Number(el?.textContent ?? CURRENT_USER?.score ?? CURRENT_USER?.rp_score ?? 0);
   return Number.isFinite(n) ? n : 0;
 }
 
@@ -586,6 +597,83 @@ async function animateCoinsTo(target, opts = {}) {
 
   ui?.setCoins?.(finalValue);
   if (CURRENT_USER) CURRENT_USER.coins = finalValue;
+}
+
+function showScoreGainFX(delta) {
+  if (!Number.isFinite(delta) || delta <= 0) return;
+
+  const scoreEl = document.getElementById("scoreCount");
+  const scorePill = scoreEl?.closest(".economyStat");
+  if (!scoreEl || !scorePill) return;
+
+  const old = document.getElementById("scoreGainFX");
+  if (old) old.remove();
+
+  const rect = scorePill.getBoundingClientRect();
+  const fx = document.createElement("div");
+  fx.id = "scoreGainFX";
+  fx.className = "score-gain-fx";
+  fx.innerHTML = `<span class="score-gain-amount">+${Math.floor(delta)} score</span>`;
+  fx.style.left = String(Math.round(rect.left + rect.width / 2)) + "px";
+  fx.style.top = String(Math.round(rect.top - 8)) + "px";
+  document.body.appendChild(fx);
+
+  scorePill.classList.remove("score-gain-pulse");
+  void scorePill.offsetWidth;
+  scorePill.classList.add("score-gain-pulse");
+
+  clearTimeout(SCORE_GAIN_TIMER);
+  SCORE_GAIN_TIMER = setTimeout(() => {
+    scorePill.classList.remove("score-gain-pulse");
+    fx.remove();
+  }, 2600);
+}
+
+async function animateScoreTo(target, opts = {}) {
+  const finalValue = Math.max(0, Math.floor(Number(target || 0)));
+  const delayMs = Math.max(0, Number(opts?.delayMs || 0));
+  const startValue = getDisplayedScore();
+  const delta = finalValue - startValue;
+
+  if (delayMs > 0) await sleep(delayMs);
+
+  if (delta > 0 && opts?.showGainFx !== false) {
+    showScoreGainFX(delta);
+  }
+
+  if (startValue === finalValue) {
+    ui?.setScore?.(finalValue);
+    if (CURRENT_USER) CURRENT_USER.score = finalValue;
+    return;
+  }
+
+  const seq = ++SCORE_ANIM_SEQ;
+  const duration = Math.max(650, Math.min(1800, 850 + Math.abs(delta) * 18));
+  const startedAt = performance.now();
+
+  await new Promise((resolve) => {
+    const step = (now) => {
+      if (seq !== SCORE_ANIM_SEQ) return resolve();
+      const tt = Math.min(1, (now - startedAt) / duration);
+      const eased = tt === 1 ? 1 : 1 - Math.pow(2, -10 * tt);
+      const current = Math.round(startValue + delta * eased);
+      ui?.setScore?.(current);
+
+      if (tt < 1) {
+        requestAnimationFrame(step);
+      } else {
+        resolve();
+      }
+    };
+
+    requestAnimationFrame(step);
+  });
+
+  ui?.setScore?.(finalValue);
+  if (CURRENT_USER) {
+    CURRENT_USER.score = finalValue;
+    CURRENT_USER.rp_score = finalValue;
+  }
 }
 function scheduleResumeSave(currentLevelNumber) {
   if (!CURRENT_ACCESS_TOKEN) return;
@@ -1788,8 +1876,11 @@ levelsUI.onSelect((levelNumber) => {
               }
 
               if (out?.user) {
-                applyUserPatch(out.user, { skipCoinSync: true });
-                await animateCoinsTo(Number(out.user.coins ?? 0), { showGainFx: true });
+                applyUserPatch(out.user, { skipCoinSync: true, skipScoreSync: true });
+                await Promise.all([
+                  animateCoinsTo(Number(out.user.coins ?? 0), { showGainFx: true }),
+                  animateScoreTo(Number(out.user.score ?? out.user.rp_score ?? 0), { showGainFx: true }),
+                ]);
               }
             } catch {}
           })()
