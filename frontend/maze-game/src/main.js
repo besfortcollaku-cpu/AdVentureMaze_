@@ -2438,6 +2438,7 @@ function simulateAd({
   let seconds = duration;
   let skipUnlock = skipAfter;
   let finished = false;
+  let settled = false;
 
   const overlay = document.createElement("div");
   overlay.className = "ad-overlay";
@@ -2471,6 +2472,20 @@ function simulateAd({
 
   const total = duration;
 
+  function finishAd() {
+    if (settled) return;
+    settled = true;
+    clearInterval(interval);
+
+    if (overlay.parentNode) {
+      overlay.parentNode.removeChild(overlay);
+    }
+
+    AD_OVERLAY_ACTIVE = false;
+    document.body.classList.remove("ad-playing");
+    onFinished?.();
+  }
+
   const interval = setInterval(() => {
     seconds -= 1;
     if (skipUnlock > 0) skipUnlock -= 1;
@@ -2489,24 +2504,19 @@ function simulateAd({
     }
 
     if (seconds <= 0) {
-      clearInterval(interval);
       finished = true;
       closeBtn.textContent = "Close";
       closeBtn.disabled = false;
       closeBtn.classList.add("enabled");
+      setTimeout(() => {
+        finishAd();
+      }, 200);
     }
   }, 1000);
 
 closeBtn.addEventListener("click", () => {
   if (!finished && skipUnlock > 0) return;
-
-  if (overlay.parentNode) {
-    overlay.parentNode.removeChild(overlay);
-  }
-
-  AD_OVERLAY_ACTIVE = false;
-  document.body.classList.remove("ad-playing");
-  onFinished?.();
+  finishAd();
 });
 }
 async function grantRestartAdReward() {
