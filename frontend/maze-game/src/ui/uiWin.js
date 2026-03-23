@@ -7,7 +7,8 @@ export function createWinPopup() {
   let onNext = null;
   let onWatchAd = null;
   let adBtnDefaultText = "Watch Ad for Surprise Box";
-  const nextBtnDefaultText = "Next level";
+  const nextBtnDefaultText = "Next Level";
+  const nextBtnFallbackText = "Go to Levels";
 
   const el = document.createElement("div");
   el.className = "overlay winOverlay hidden";
@@ -36,7 +37,7 @@ export function createWinPopup() {
 
 <div class="winCard">
       <button class="btn primary btnNext" id="nextLevelBtn">
-        Next level
+        Next Level
       </button>
 </div>
 
@@ -121,9 +122,9 @@ export function createWinPopup() {
     adBtn.textContent = isBusy ? busyText : adBtnDefaultText;
   }
 
-  function setNextLevelEnabled(isEnabled, disabledText = "Next level locked") {
+  function setNextLevelEnabled(isEnabled, disabledText = nextBtnFallbackText) {
     if (!nextBtn) return;
-    nextBtn.disabled = !isEnabled;
+    nextBtn.disabled = false;
     nextBtn.textContent = isEnabled ? nextBtnDefaultText : disabledText;
   }
 
