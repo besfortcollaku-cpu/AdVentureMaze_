@@ -76,6 +76,7 @@ export function createWinPopup() {
   function applyRewardSummary({
     rewards = null,
     rewardStatus = "",
+    rewardNote = "",
   } = {}) {
     const hasRewards = rewards && (rewards.coinsAwarded != null || rewards.scoreAwarded != null || rewards.mc != null || rewards.rp != null);
     const coinsAwarded = Number(rewards?.coinsAwarded ?? rewards?.mc ?? 0);
@@ -98,19 +99,19 @@ export function createWinPopup() {
     }
 
     if (rewardNoteEl) {
-      rewardNoteEl.textContent = "";
-      rewardNoteEl.classList.add("hidden");
+      rewardNoteEl.textContent = hasRewards ? rewardNote || "" : "";
+      rewardNoteEl.classList.toggle("hidden", !hasRewards || !rewardNote);
     }
   }
 
-  function show({ levelNumber, rewards = null, rewardStatus = "" }) {
+  function show({ levelNumber, rewards = null, rewardStatus = "", rewardNote = "" }) {
     const theme = getTheme();
 
     el.classList.remove("theme-forest", "theme-lava", "theme-ice");
     el.classList.add(`theme-${theme}`);
 
     levelText.textContent = `You finished Level ${levelNumber}`;
-    applyRewardSummary({ rewards, rewardStatus });
+    applyRewardSummary({ rewards, rewardStatus, rewardNote });
     setWatchAdBusy(false);
     setNextLevelEnabled(true);
     setSurpriseBoxState();

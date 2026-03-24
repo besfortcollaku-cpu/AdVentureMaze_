@@ -14,6 +14,7 @@ import { createRestartPopup } from "./ui/uiRestarts.js";
 import { createLevelUnlockPopup } from "./ui/uiLevelUnlock.js";
 import { createMysteryChestPopup } from "./ui/uiMysteryChest.js";
 import { createDailyRankingRewardPopup } from "./ui/uiDailyRankingReward.js";
+import { createDailyReturnRewardPopup } from "./ui/uiDailyReturnReward.js";
 import { createAdConsentPopup } from "./ui/uiAdConsent.js";
 import { getSettings, subscribeSettings } from "./settings.js";
 import { LEVEL_ACCESS_DEFAULTS } from "./config/levelAccess.js";
@@ -137,6 +138,7 @@ let pendingAdConsentPromise = null;
 let pendingAdConsentResolver = null;
 let LAST_SERVER_TIME_MS = null;
 let RANKING_REWARD_PROMPT_SHOWN = false;
+let DAILY_RETURN_REWARD_PENDING = null;
 function setPostWinFlow(nextFlow) {
   if (postWinFlow !== nextFlow) {
     console.debug("[surprise-box] postWinFlow", postWinFlow, "->", nextFlow);
@@ -585,6 +587,85 @@ function refreshLevelsAccessUI() {
   levelsUI?.setLevelAccess?.(access);
   return access;
 }
+
+function formatReturnCountdown(raw, { detailed = false } = {}) {
+  const ms = Date.parse(raw || "");
+  if (!Number.isFinite(ms)) return "later";
+  const diff = Math.max(0, ms - Date.now());
+  const totalMinutes = Math.ceil(diff / 60000);
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+
+  if (detailed && diff < 3600000) {
+    const totalSeconds = Math.max(1, Math.ceil(diff / 1000));
+    const displayMinutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    if (displayMinutes > 0) return `in ${displayMinutes}m ${String(seconds).padStart(2, "0")}s`;
+    return `in ${seconds}s`;
+  }
+
+  if (hours > 0 && minutes > 0) return `in ${hours}h ${minutes}m`;
+  if (hours > 0) return `in ${hours}h`;
+  return `in ${Math.max(1, minutes)}m`;
+}
+
+function buildNextReturnMessage(access, levelNumber) {
+  const nextLevelNumber = Math.max(1, Number(levelNumber || 1));
+  if (access?.dailyLimitReached) {
+    return "New progression resumes tomorrow. You can still replay unlocked levels now.";
+  }
+  if (!access?.canPlayNow) {
+    const countdown = access?.nextUnlockAt ? formatReturnCountdown(access.nextUnlockAt, { detailed: true }) : "later today";
+    return `Come back ${countdown} for Level ${nextLevelNumber}. You can still replay unlocked levels now.`;
+  }
+  return "";
+}
+
+function hasUnfinishedLevelProgress(progress) {
+  const paintedKeys = progress?.paintedKeys;
+  const resume = progress?.resume;
+  return (Array.isArray(paintedKeys) && paintedKeys.length > 0) || Boolean(resume && resume.x != null && resume.y != null);
+}
+
+function getLaunchTarget({ progress, access }) {
+  if (hasUnfinishedLevelProgress(progress)) {
+    return "resume";
+  }
+  if (access?.canPlayNow) {
+    return "play-next";
+  }
+  return "levels";
+}
+
+function applyLaunchTarget({ progress, access }) {
+  const frontierLevel = Math.max(1, Number(progress?.level || CURRENT_MAX_UNLOCKED_LEVEL || 1));
+  const target = getLaunchTarget({ progress, access });
+
+  if (!game?.isRunning?.()) {
+    game.start();
+  }
+
+  if (target === "resume") {
+    goToLevel(frontierLevel - 1);
+    setTimeout(() => {
+      if (RESUME_TILES.size > 0 || RESUME_POS) {
+        game.applyProgress({
+          paintedKeys: Array.from(RESUME_TILES),
+          player: RESUME_POS,
+        });
+      }
+    }, 0);
+    return;
+  }
+
+  goToLevel(frontierLevel - 1);
+
+  if (target === "levels") {
+    refreshLevelsAccessUI();
+    levelsUI?.open?.();
+    levelsUI?.ensureFrontierVisible?.();
+  }
+}
 let COIN_ANIM_SEQ = 0;
 let COIN_GAIN_TIMER = null;
 let SCORE_ANIM_SEQ = 0;
@@ -976,6 +1057,40 @@ async function apiUnlockLevelsByAd() {
   return out;
 }
 
+async function apiDoubleDailyReturnReward() {
+  if (!CURRENT_ACCESS_TOKEN) {
+    throw new Error("No access token");
+  }
+
+  const res = await fetch(`${BACKEND}/api/rewards/daily-return/double`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${normalizeToken(CURRENT_ACCESS_TOKEN)}`,
+    },
+  });
+
+  const out = await res.json().catch(() => ({}));
+  if (!res.ok || !out?.ok) {
+    throw new Error(out?.error || "daily_return_double_failed");
+  }
+
+  return out;
+}
+
+function showPostLoginRewardPopups(dailyReturnReward = null) {
+  if (dailyReturnReward?.itemType && Number(dailyReturnReward?.itemCount || 0) > 0) {
+    DAILY_RETURN_REWARD_PENDING = dailyReturnReward;
+    dailyReturnRewardPopup.show(dailyReturnReward);
+    return;
+  }
+
+  DAILY_RETURN_REWARD_PENDING = null;
+  setTimeout(() => {
+    void maybeShowDailyRankingRewardPopup();
+  }, 1200);
+}
+
 async function apiUnlockLevelsByCoins() {
   if (!CURRENT_ACCESS_TOKEN) {
     throw new Error("No access token");
@@ -1021,10 +1136,12 @@ function buildLevelCompletePopupState(out, levelNumber) {
   const isReplay = Boolean(out?.isReplay ?? ((rewards?.coinsAwarded ?? 0) === 0 && (rewards?.scoreAwarded ?? 0) === 0));
 
   let rewardStatus = "";
+  let rewardNote = "";
 
   if (rewards) {
     if (isReplay) {
-      rewardStatus = "Replay completed. No Coins or Score earned.";
+      rewardStatus = "Replay completed";
+      rewardNote = "No Coins or Score earned.";
     } else if (rewards.scoreAwarded > 0) {
       rewardStatus = "Clean run bonus applied.";
     } else if (rewards.scoreAwarded === 0) {
@@ -1036,6 +1153,7 @@ function buildLevelCompletePopupState(out, levelNumber) {
     levelNumber,
     rewards,
     rewardStatus,
+    rewardNote,
   };
 }
 
@@ -1260,6 +1378,7 @@ async function loadMeAndSyncUI({ BACKEND, token, ui }) {
   restarts_balance: Number(user.restarts_balance ?? 0),
   skips_balance: Number(user.skips_balance ?? 0),
   hints_balance: Number(user.hints_balance ?? 0),
+  daily_reward_doubled: Boolean(user.daily_reward_doubled),
 
   free_restarts_used: Number(progress.free_restarts_used ?? 0),
   free_skips_used: Number(progress.free_skips_used ?? 0),
@@ -1467,22 +1586,11 @@ if (CURRENT_ACCESS_TOKEN) {
 if (!game?.isRunning?.()) {
   game.start();
 }
-
-// go to the last unlocked level (where resume is stored)
-goToLevel(CURRENT_MAX_UNLOCKED_LEVEL - 1);
-
-// ? APPLY PROGRESS AFTER GAME IS RUNNING + LEVEL IS SET
-setTimeout(() => {
-  if (RESUME_TILES.size > 0 || RESUME_POS) {
-    game.applyProgress({
-      paintedKeys: Array.from(RESUME_TILES),
-      player: RESUME_POS,
-    });
-  }
-}, 0);
-setTimeout(() => {
-  void maybeShowDailyRankingRewardPopup();
-}, 1200);
+applyLaunchTarget({
+  progress: me?.progress,
+  access: normalizeLevelAccess(me?.levelAccess || me?.user || CURRENT_USER),
+});
+showPostLoginRewardPopups(me?.dailyReturnReward || null);
 }
      else {
       throw new Error("Invalid session");
@@ -1575,6 +1683,7 @@ const hintPopup = createHintPopup();
 const restartPopup = createRestartPopup();
 const levelUnlockPopup = createLevelUnlockPopup();
 const dailyRankingRewardPopup = createDailyRankingRewardPopup();
+const dailyReturnRewardPopup = createDailyReturnRewardPopup();
 
 function withPopupAudio(popupApi) {
   if (!popupApi) return;
@@ -1604,6 +1713,7 @@ withPopupAudio(levelUnlockPopup);
 withPopupAudio(mysteryChestPopup);
 withPopupAudio(adSurprisePopup);
 withPopupAudio(dailyRankingRewardPopup);
+withPopupAudio(dailyReturnRewardPopup);
 
 
 dailyRankingRewardPopup.onClaim(async () => {
@@ -1620,6 +1730,54 @@ dailyRankingRewardPopup.onClaim(async () => {
   }
 
   dailyRankingRewardPopup.hide();
+});
+
+dailyReturnRewardPopup.onContinue(async () => {
+  DAILY_RETURN_REWARD_PENDING = null;
+  dailyReturnRewardPopup.hide();
+  await maybeShowDailyRankingRewardPopup();
+});
+
+dailyReturnRewardPopup.onWatchAd(async () => {
+  const pendingReward = DAILY_RETURN_REWARD_PENDING || null;
+  if (!pendingReward?.itemType || Number(pendingReward?.itemCount || 0) <= 0) {
+    dailyReturnRewardPopup.setAdState({ visible: false });
+    return;
+  }
+
+  dailyReturnRewardPopup.setAdState({
+    visible: true,
+    disabled: true,
+    text: `Watch Ad for +${pendingReward.label || `${pendingReward.itemCount} more`}`,
+  });
+
+  simulateAd({
+    onFinished: async () => {
+      try {
+        const out = await apiDoubleDailyReturnReward();
+        if (out?.user) {
+          applyUserPatch(out.user, { skipCoinSync: true, skipScoreSync: true });
+        }
+
+        DAILY_RETURN_REWARD_PENDING = {
+          ...pendingReward,
+          canDouble: false,
+          doubled: true,
+        };
+
+        const rewardLabel = String(out?.reward?.label || pendingReward.label || "").trim();
+        dailyReturnRewardPopup.setAdState({ visible: false });
+        dailyReturnRewardPopup.setConfirmation(rewardLabel ? `+${rewardLabel} added` : "Reward added");
+      } catch (e) {
+        dailyReturnRewardPopup.setAdState({
+          visible: true,
+          disabled: false,
+          text: `Watch Ad for +${pendingReward.label || `${pendingReward.itemCount} more`}`,
+        });
+        dailyReturnRewardPopup.setConfirmation(e?.message === "daily_reward_already_doubled" ? "Daily reward already doubled today" : "Ad reward unavailable right now");
+      }
+    },
+  });
 });
 
 function setupGlobalAudioHooks() {
@@ -1974,14 +2132,14 @@ function getNextLevelActionState() {
   if (access?.dailyLimitReached) {
     return {
       isPlayable: false,
-      helperText: "Daily progression complete. Replay unlocked levels from Levels.",
+      helperText: buildNextReturnMessage(access, nextLevelNumber),
     };
   }
 
   if (!access?.canPlayNow) {
     return {
       isPlayable: false,
-      helperText: "Next level unlocks soon or can be unlocked.",
+      helperText: buildNextReturnMessage(access, nextLevelNumber),
     };
   }
 
@@ -2348,6 +2506,12 @@ levelsUI.onSelect((levelNumber) => {
 
   if (CURRENT_ACCESS_TOKEN) {
     const isReplaySelection = isReplayLevelNumber(levelNumber);
+    if (isReplaySelection) {
+      const confirmed = window.confirm("Replay level?\n\nReplay levels do not grant Coins or Score.");
+      if (!confirmed) {
+        return false;
+      }
+    }
     const access = refreshLevelsAccessUI();
     if (!isReplaySelection && access.dailyLimitReached) {
       alert("Daily limit reached. Come back tomorrow for more levels.");
@@ -2379,6 +2543,28 @@ levelsUI.onUnlockNow(() => {
     coins: Number(CURRENT_USER?.coins ?? 0),
     unlockLevels: adUnlockLevels,
   });
+});
+levelsUI.onRefreshAccess(async () => {
+  if (!CURRENT_ACCESS_TOKEN) {
+    refreshLevelsAccessUI();
+    return;
+  }
+
+  try {
+    const out = await apiMe();
+    if (out?.user) {
+      applyUserPatch({
+        ...out.user,
+        ...(out.levelAccess || {}),
+      });
+    } else if (out?.levelAccess) {
+      applyUserPatch(out.levelAccess);
+    } else {
+      refreshLevelsAccessUI();
+    }
+  } catch {
+    refreshLevelsAccessUI();
+  }
 });
 levelUnlockPopup.onBuy(async () => {
   try {
@@ -3282,27 +3468,18 @@ ui.onLoginClick(async (e) => {
 
     document.body.classList.add("game-running");
 
-    if (!game.isRunning?.()) game.start();
-
     ui.hideWelcome();
     document.body.classList.remove("welcome-visible");
 
-    hideLoginLoading();
+hideLoginLoading();
     updateAllBadges();
     LOGIN_IN_PROGRESS = false;
-    
-setTimeout(() => {
-  void maybeShowDailyRankingRewardPopup();
-}, 1200);
 
-    if (RESUME_TILES.size > 0 || RESUME_POS) {
-      setTimeout(() => {
-        game.applyProgress({
-          paintedKeys: Array.from(RESUME_TILES),
-          player: RESUME_POS,
-        });
-      }, 0);
-    }
+    showPostLoginRewardPopups(me?.dailyReturnReward || null);
+    applyLaunchTarget({
+      progress: me?.progress,
+      access: normalizeLevelAccess(me?.levelAccess || me?.user || CURRENT_USER),
+    });
   } catch (e) {
     hideLoginLoading();
     LOGIN_IN_PROGRESS = false;

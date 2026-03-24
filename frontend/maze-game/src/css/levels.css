@@ -383,3 +383,99 @@ body.theme-lava .levelBtn {
     transform: translateY(0) scale(1);
   }
 }
+
+.levelBtn {
+  flex-direction: column;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 6px 8px;
+}
+
+.levelBtn .icon {
+  display: block !important;
+  min-height: 18px;
+  font-size: 16px;
+  line-height: 1;
+}
+
+.levelBtn .label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: auto;
+  height: auto;
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.levelBtn .stateBadge {
+  min-height: 18px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  font-size: 10px;
+  line-height: 1.2;
+  font-weight: 700;
+  text-align: center;
+  color: rgba(255,255,255,0.92);
+  background: rgba(255,255,255,0.12);
+}
+
+.levelBtn.availableNow {
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.14) inset,
+    0 10px 24px rgba(0,0,0,0.18);
+}
+
+.levelBtn.frontier {
+  border-color: rgba(122, 255, 196, 0.78);
+  box-shadow:
+    0 0 0 2px rgba(122, 255, 196, 0.18),
+    0 14px 28px rgba(0,0,0,0.22);
+  transform: translateY(-1px);
+}
+
+.levelBtn.frontier .label {
+  color: #f7fffb;
+}
+
+.levelBtn.frontier .stateBadge {
+  background: rgba(122, 255, 196, 0.2);
+  color: #dfffee;
+}
+
+.levelBtn.availableNow .stateBadge {
+  background: rgba(255,255,255,0.18);
+}
+
+.levelBtn.replayable {
+  opacity: 1;
+}
+
+.levelBtn.replayable .stateBadge {
+  background: rgba(255, 217, 90, 0.16);
+  color: #ffe9a6;
+}
+
+.levelBtn.timeLocked {
+  opacity: 0.82;
+  background: rgba(255,255,255,0.08);
+  border-style: dashed;
+  border-color: rgba(255,255,255,0.32);
+  cursor: default;
+}
+
+.levelBtn.timeLocked .stateBadge {
+  background: rgba(255,255,255,0.16);
+}
+
+.levelsFrontierHint {
+  color: rgba(230, 255, 244, 0.86);
+}
+
+.levelBtn.futureLocked {
+  opacity: 0.32;
+}
+
+.levelBtn.futureLocked .stateBadge {
+  background: rgba(255,255,255,0.08);
+}
