@@ -666,6 +666,67 @@ function applyLaunchTarget({ progress, access }) {
     levelsUI?.ensureFrontierVisible?.();
   }
 }
+
+async function activateLoggedInSession(me, { showRewardPopup = true } = {}) {
+  await tryAutoClaimInvite();
+
+  const unlockedLevel =
+    me?.progress?.level ??
+    me?.progress?.maxLevel ??
+    me?.progress?.highestLevel ??
+    1;
+
+  const nextUnlockedLevel = Math.max(1, Number(unlockedLevel) || 1);
+
+  window.__maze = window.__maze || {};
+  window.__maze.guestMaxLevel = Infinity;
+
+  CURRENT_MAX_UNLOCKED_LEVEL = nextUnlockedLevel;
+  levelsUI?.setUnlocked?.(nextUnlockedLevel);
+
+  ui.setUser({
+    ...CURRENT_USER,
+    level: CURRENT_MAX_UNLOCKED_LEVEL,
+  });
+
+  setLevel(Math.max(0, nextUnlockedLevel - 1));
+
+  RESUME_ENABLED = true;
+  RESUME_TILES = new Set();
+  RESUME_POS = null;
+
+  const paintedKeys = me?.progress?.paintedKeys;
+  const resume = me?.progress?.resume;
+
+  if (Array.isArray(paintedKeys)) {
+    for (const k of paintedKeys) RESUME_TILES.add(k);
+  }
+  if (resume && resume.x != null && resume.y != null) {
+    RESUME_POS = { x: resume.x, y: resume.y };
+  }
+
+  document.body.classList.add("game-running");
+  ui.hideWelcome();
+  document.body.classList.remove("welcome-visible");
+
+  if (!game?.isRunning?.()) {
+    game.start();
+  }
+
+  updateAllBadges();
+
+  try {
+    if (showRewardPopup) {
+      showPostLoginRewardPopups(me?.dailyReturnReward || null);
+    }
+    applyLaunchTarget({
+      progress: me?.progress,
+      access: normalizeLevelAccess(me?.levelAccess || me?.user || CURRENT_USER),
+    });
+  } catch (postLoginError) {
+    console.error("Post-login UI setup failed", postLoginError);
+  }
+}
 let COIN_ANIM_SEQ = 0;
 let COIN_GAIN_TIMER = null;
 let SCORE_ANIM_SEQ = 0;
@@ -1580,38 +1641,10 @@ if (CURRENT_ACCESS_TOKEN) {
     });
 
     if (me?.user) {
-  await tryAutoClaimInvite();
-  document.body.classList.add("game-running");
-
-  const unlocked = Number(me?.progress?.level || 1);
-  CURRENT_MAX_UNLOCKED_LEVEL = Math.max(1, unlocked);
-  levelsUI.setUnlocked?.(CURRENT_MAX_UNLOCKED_LEVEL);
-
-  // enable resume for logged-in users
-  RESUME_ENABLED = true;
-
-  // restore saved path + position from backend
-  const paintedKeys = me?.progress?.paintedKeys;
-  const resume = me?.progress?.resume;
-
-  RESUME_TILES = new Set(Array.isArray(paintedKeys) ? paintedKeys : []);
-  RESUME_POS =
-    resume && resume.x != null && resume.y != null
-      ? { x: resume.x, y: resume.y }
-      : null;
-
-if (!game?.isRunning?.()) {
-  game.start();
-}
-applyLaunchTarget({
-  progress: me?.progress,
-  access: normalizeLevelAccess(me?.levelAccess || me?.user || CURRENT_USER),
-});
-showPostLoginRewardPopups(me?.dailyReturnReward || null);
-}
-     else {
+      await activateLoggedInSession(me);
+    } else {
       throw new Error("Invalid session");
-     }
+    }
   } catch (e) {
     console.warn("Token invalid during boot");
     CURRENT_ACCESS_TOKEN = null;
@@ -3447,57 +3480,12 @@ ui.onLoginClick(async (e) => {
       return;
     }
 
-    await tryAutoClaimInvite();
+    await activateLoggedInSession(me);
 
-    const unlockedLevel =
-      me?.progress?.level ??
-      me?.progress?.maxLevel ??
-      me?.progress?.highestLevel ??
-      1;
-
-    const UNLOCKED_LEVEL = Math.max(1, Number(unlockedLevel) || 1);
-
-    window.__maze.guestMaxLevel = Infinity;
-
-    CURRENT_MAX_UNLOCKED_LEVEL = UNLOCKED_LEVEL;
-    levelsUI.setUnlocked?.(UNLOCKED_LEVEL);
-
-    ui.setUser({
-      ...CURRENT_USER,
-      level: CURRENT_MAX_UNLOCKED_LEVEL,
-    });
-
-    setLevel(Math.max(0, UNLOCKED_LEVEL - 1));
-
-    RESUME_ENABLED = true;
-    RESUME_TILES = new Set();
-    RESUME_POS = null;
-
-    const paintedKeys = me?.progress?.paintedKeys;
-    const resume = me?.progress?.resume;
-
-    if (Array.isArray(paintedKeys)) {
-      for (const k of paintedKeys) RESUME_TILES.add(k);
-    }
-    if (resume && resume.x != null && resume.y != null) {
-      RESUME_POS = { x: resume.x, y: resume.y };
-    }
-
-    document.body.classList.add("game-running");
-
-    ui.hideWelcome();
-    document.body.classList.remove("welcome-visible");
-
-hideLoginLoading();
-    updateAllBadges();
+    hideLoginLoading();
     LOGIN_IN_PROGRESS = false;
-
-    showPostLoginRewardPopups(me?.dailyReturnReward || null);
-    applyLaunchTarget({
-      progress: me?.progress,
-      access: normalizeLevelAccess(me?.levelAccess || me?.user || CURRENT_USER),
-    });
   } catch (e) {
+    console.error("Login flow failed", e);
     hideLoginLoading();
     LOGIN_IN_PROGRESS = false;
     document.body.classList.remove("game-running");
