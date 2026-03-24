@@ -14,8 +14,15 @@ import { createRestartPopup } from "./ui/uiRestarts.js";
 import { createLevelUnlockPopup } from "./ui/uiLevelUnlock.js";
 import { createMysteryChestPopup } from "./ui/uiMysteryChest.js";
 import { createDailyRankingRewardPopup } from "./ui/uiDailyRankingReward.js";
+import { createAdConsentPopup } from "./ui/uiAdConsent.js";
 import { getSettings, subscribeSettings } from "./settings.js";
 import { LEVEL_ACCESS_DEFAULTS } from "./config/levelAccess.js";
+import {
+  ensureAdConsentStateInitialized,
+  getAdConsentSummary,
+  getAdRequestPreferences,
+  setAdConsentChoice,
+} from "./ads/adConsent.js";
 import { unlockGlobalAudio, play as playAudio, setMusicEnabled, setSfxEnabled, setMasterVolume, startBackgroundMusic, stopBackgroundMusic } from "./audio/audioManager.js";
 
 // DEBUG: show fatal errors on mobile so buttons don't "do nothing"
@@ -108,6 +115,7 @@ function showAdCooldownToast(message) {
 const AUTO_AD_COOLDOWN_MS = 180000;
 const AUTO_AD_LAST_KEY = "auto_ad_last";
 const mysteryChestPopup = createMysteryChestPopup();
+const adConsentPopup = createAdConsentPopup();
 const adSurprisePopup = createMysteryChestPopup({
   title: "Surprise Box",
   subtitle: "Ad reward unlocked!",
@@ -125,6 +133,8 @@ let surpriseBoxRewardResult = null;
 let isProcessingRewardAd = false;
 let isOpeningBox = false;
 let isContinuingSurprise = false;
+let pendingAdConsentPromise = null;
+let pendingAdConsentResolver = null;
 let LAST_SERVER_TIME_MS = null;
 let RANKING_REWARD_PROMPT_SHOWN = false;
 function setPostWinFlow(nextFlow) {
@@ -133,6 +143,19 @@ function setPostWinFlow(nextFlow) {
   }
   postWinFlow = nextFlow;
 }
+
+adConsentPopup.onAllow(() => {
+  applyAdConsentChoice("personalized");
+});
+
+adConsentPopup.onNonPersonalized(() => {
+  applyAdConsentChoice("non_personalized");
+});
+
+adConsentPopup.onClose(() => {
+  adConsentPopup.hide();
+});
+
 function shouldShowAutoAd() {
   const last = Number(localStorage.getItem(AUTO_AD_LAST_KEY) || 0);
   return Date.now() - last > AUTO_AD_COOLDOWN_MS;
@@ -140,6 +163,57 @@ function shouldShowAutoAd() {
 
 function markAutoAdShown() {
   localStorage.setItem(AUTO_AD_LAST_KEY, Date.now());
+}
+
+function resolvePendingAdConsent(preferences) {
+  if (!pendingAdConsentResolver) return;
+  const resolve = pendingAdConsentResolver;
+  pendingAdConsentResolver = null;
+  pendingAdConsentPromise = null;
+  resolve(preferences);
+}
+
+function applyAdConsentChoice(choice) {
+  const nextState = setAdConsentChoice(choice);
+  adConsentPopup.hide();
+  resolvePendingAdConsent(getAdRequestPreferences());
+  return nextState;
+}
+
+function openAdConsentManager({ requireChoice = false } = {}) {
+  ensureAdConsentStateInitialized();
+  adConsentPopup.open({
+    requireChoice,
+    statusText: getAdConsentSummary(),
+  });
+}
+
+async function ensureAdConsentResolved() {
+  try {
+    const initializedState = ensureAdConsentStateInitialized();
+    if (initializedState.status !== "unknown") {
+      return getAdRequestPreferences();
+    }
+
+    if (!pendingAdConsentPromise) {
+      pendingAdConsentPromise = new Promise((resolve) => {
+        pendingAdConsentResolver = resolve;
+        openAdConsentManager({ requireChoice: true });
+      });
+    }
+
+    return await pendingAdConsentPromise;
+  } catch (e) {
+    console.warn("[ads] consent init failed, using non-personalized fallback", e);
+    const fallbackState = applyAdConsentChoice("non_personalized");
+    return {
+      consentStatus: fallbackState.status,
+      personalization: fallbackState.personalization,
+      personalizedAllowed: false,
+      nonPersonalizedOnly: true,
+      canRequestAds: true,
+    };
+  }
 }
 
 function getRemainingAdCooldownMs() {
@@ -1436,6 +1510,8 @@ window.__maze = window.__maze || {};
 window.__maze.guestMaxLevel = GUEST_MAX_LEVEL;
 window.__maze.showLoginRequired = () => ui.showLoginRequired();
 window.__maze.isLoggedIn = () => Boolean(CURRENT_ACCESS_TOKEN);
+window.__maze.openAdConsent = () => openAdConsentManager({ requireChoice: false });
+window.__maze.getAdConsentSummary = () => getAdConsentSummary();
 window.__maze.openSurpriseBox = async () => {
   return startSurpriseBoxFlow({ goNextLevelAfter: false });
 };
@@ -2636,93 +2712,101 @@ function simulateAd({
   skipAfter = 10,
   buttonLabel = "Close",
 } = {}) {
-  if (AD_OVERLAY_ACTIVE) return;
-  AD_OVERLAY_ACTIVE = true;
-  document.body.classList.add("ad-playing");
+  void (async () => {
+    if (AD_OVERLAY_ACTIVE) return;
 
-  let seconds = duration;
-  let skipUnlock = skipAfter;
-  let finished = false;
-  let settled = false;
-
-  const overlay = document.createElement("div");
-  overlay.className = "ad-overlay";
-
-  overlay.innerHTML = `
-    <div class="ad-box">
-      <div class="ad-video">
-        ?? Sponsored Ad
-      </div>
-
-      <div id="adCountdown">
-        Ad ends in <b>${seconds}</b>s
-      </div>
-
-      <div class="ad-progress-container">
-        <div id="adBar" class="ad-progress-bar"></div>
-      </div>
-
-      <button id="closeAdBtn" class="ad-close-btn" disabled>
-        ${skipUnlock > 0 ? `${buttonLabel} in ${skipUnlock}s` : buttonLabel}
-      </button>
-    </div>
-  `;
-
-  document.body.appendChild(overlay);
-  
-
-  const countdownEl = overlay.querySelector("#adCountdown");
-  const bar = overlay.querySelector("#adBar");
-  const closeBtn = overlay.querySelector("#closeAdBtn");
-
-  const total = duration;
-
-  function finishAd() {
-    if (settled) return;
-    settled = true;
-    clearInterval(interval);
-
-    if (overlay.parentNode) {
-      overlay.parentNode.removeChild(overlay);
+    const consent = await ensureAdConsentResolved();
+    if (!consent?.canRequestAds || AD_OVERLAY_ACTIVE) {
+      return;
     }
 
-    AD_OVERLAY_ACTIVE = false;
-    document.body.classList.remove("ad-playing");
-    onFinished?.();
-  }
+    AD_OVERLAY_ACTIVE = true;
+    document.body.classList.add("ad-playing");
+    console.debug("[ads] starting simulated ad", consent.nonPersonalizedOnly ? "non_personalized" : "personalized");
 
-  const interval = setInterval(() => {
-    seconds -= 1;
-    if (skipUnlock > 0) skipUnlock -= 1;
+    let seconds = duration;
+    let skipUnlock = skipAfter;
+    let finished = false;
+    let settled = false;
 
-    countdownEl.innerHTML = `Ad ends in <b>${seconds}</b>s`;
-    bar.style.width = `${((total - seconds) / total) * 100}%`;
+    const overlay = document.createElement("div");
+    overlay.className = "ad-overlay";
 
-    if (skipUnlock > 0) {
-      closeBtn.textContent = `${buttonLabel} in ${skipUnlock}s`;
-      closeBtn.disabled = true;
-      closeBtn.classList.remove("enabled");
-    } else {
-      closeBtn.textContent = buttonLabel;
-      closeBtn.disabled = false;
-      closeBtn.classList.add("enabled");
+    overlay.innerHTML = `
+      <div class="ad-box">
+        <div class="ad-video">
+          ?? Sponsored Ad
+        </div>
+
+        <div id="adCountdown">
+          Ad ends in <b>${seconds}</b>s
+        </div>
+
+        <div class="ad-progress-container">
+          <div id="adBar" class="ad-progress-bar"></div>
+        </div>
+
+        <button id="closeAdBtn" class="ad-close-btn" disabled>
+          ${skipUnlock > 0 ? `${buttonLabel} in ${skipUnlock}s` : buttonLabel}
+        </button>
+      </div>
+    `;
+
+    document.body.appendChild(overlay);
+
+    const countdownEl = overlay.querySelector("#adCountdown");
+    const bar = overlay.querySelector("#adBar");
+    const closeBtn = overlay.querySelector("#closeAdBtn");
+
+    const total = duration;
+
+    function finishAd() {
+      if (settled) return;
+      settled = true;
+      clearInterval(interval);
+
+      if (overlay.parentNode) {
+        overlay.parentNode.removeChild(overlay);
+      }
+
+      AD_OVERLAY_ACTIVE = false;
+      document.body.classList.remove("ad-playing");
+      onFinished?.();
     }
 
-    if (seconds <= 0) {
-      finished = true;
-      closeBtn.textContent = "Close";
-      closeBtn.disabled = false;
-      closeBtn.classList.add("enabled");
-      setTimeout(() => {
-        finishAd();
-      }, 200);
-    }
-  }, 1000);
+    const interval = setInterval(() => {
+      seconds -= 1;
+      if (skipUnlock > 0) skipUnlock -= 1;
 
-closeBtn.addEventListener("click", () => {
-  if (!finished && skipUnlock > 0) return;
-  finishAd();
-});
+      countdownEl.innerHTML = `Ad ends in <b>${seconds}</b>s`;
+      bar.style.width = `${((total - seconds) / total) * 100}%`;
+
+      if (skipUnlock > 0) {
+        closeBtn.textContent = `${buttonLabel} in ${skipUnlock}s`;
+        closeBtn.disabled = true;
+        closeBtn.classList.remove("enabled");
+      } else {
+        closeBtn.textContent = buttonLabel;
+        closeBtn.disabled = false;
+        closeBtn.classList.add("enabled");
+      }
+
+      if (seconds <= 0) {
+        finished = true;
+        closeBtn.textContent = "Close";
+        closeBtn.disabled = false;
+        closeBtn.classList.add("enabled");
+        setTimeout(() => {
+          finishAd();
+        }, 200);
+      }
+    }, 1000);
+
+    closeBtn.addEventListener("click", () => {
+      if (!finished && skipUnlock > 0) return;
+      finishAd();
+    });
+  })();
 }
 async function grantRestartAdReward() {
   const out = await fetch(`${BACKEND}/api/restart`, {

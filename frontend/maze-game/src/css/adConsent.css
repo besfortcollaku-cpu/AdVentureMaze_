@@ -1,0 +1,27 @@
+.ad-consent-card .popup-note {
+  margin-bottom: 12px;
+}
+
+#allowPersonalizedAdsBtn.ad-consent-primary {
+  background: linear-gradient(180deg, #2fd4ff, #16a3ff);
+  color: #00121f;
+}
+
+#useStandardAdsBtn.ad-consent-secondary {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+
+#closeAdConsentBtn.ad-consent-close {
+  background: transparent;
+  color: #9fb3c8;
+  font-size: 14px;
+}
+
+.privacy-ads-card .hidden {
+  display: none;
+}
+
+.privacy-policy-copy {
+  white-space: normal;
+}

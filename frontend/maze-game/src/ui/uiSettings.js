@@ -1,8 +1,10 @@
 import "../css/settings.css";
 import { getSettings, setSetting, subscribeSettings } from "../settings.js";
 import { unlockGlobalAudio } from "../audio/audioManager.js";
+import { createPrivacyAdsPopup } from "./uiPrivacyAds.js";
 
 export function mountSettingsUI(root) {
+  const privacyAdsPopup = createPrivacyAdsPopup();
   const el = document.createElement("div");
   el.id = "settingsOverlay";
   el.className = "settings-overlay hidden";
@@ -67,6 +69,14 @@ export function mountSettingsUI(root) {
         </label>
       </div>
 
+      <div class="settings-item settings-item-action">
+        <div>
+          <strong>Privacy & Ads</strong>
+          <div class="desc" id="manageConsentDesc">Manage personalized ads.</div>
+        </div>
+        <button id="manageConsentBtn" class="settings-action-btn">Open</button>
+      </div>
+
       <p class="settings-hint">Changes are saved automatically.</p>
     </div>
   `;
@@ -78,6 +88,8 @@ export function mountSettingsUI(root) {
   const musicToggle = el.querySelector("#musicToggle");
   const slideSoundToggle = el.querySelector("#slideSoundToggle");
   const vibrationToggle = el.querySelector("#vibrationToggle");
+  const manageConsentBtn = el.querySelector("#manageConsentBtn");
+  const manageConsentDesc = el.querySelector("#manageConsentDesc");
 
   gyroToggle.checked = localStorage.getItem("gyro") === "on";
   gyroToggle.addEventListener("change", () => {
@@ -121,10 +133,35 @@ export function mountSettingsUI(root) {
     setSetting("vibration", vibrationToggle.checked);
   });
 
+  function refreshConsentState() {
+    if (manageConsentDesc) {
+      manageConsentDesc.textContent = window.__maze?.getAdConsentSummary?.() || "Manage personalized ads.";
+    }
+  }
+
+  refreshConsentState();
+  window.addEventListener("maze:ad-consent-changed", refreshConsentState);
+
+  privacyAdsPopup.onManageConsent(() => {
+    try {
+      window.__maze?.openAdConsent?.();
+      refreshConsentState();
+    } catch {
+      alert("Unable to open consent settings right now.");
+    }
+  });
+
+  manageConsentBtn?.addEventListener("click", () => {
+    privacyAdsPopup.open({
+      statusText: window.__maze?.getAdConsentSummary?.() || "Manage personalized ads.",
+    });
+  });
+
   el.querySelector(".close-btn").onclick = close;
   el.querySelector(".settings-backdrop").onclick = close;
 
   function open() {
+    refreshConsentState();
     el.classList.remove("hidden");
     document.body.classList.add("modal-open");
   }
