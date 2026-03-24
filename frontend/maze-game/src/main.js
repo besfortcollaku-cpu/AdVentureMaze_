@@ -28,6 +28,7 @@ window.addEventListener("unhandledrejection", (e) => {
 const GUEST_PROGRESS_KEY = "guest_progress_v1";
 const GUEST_MAX_LEVEL = 5;
 let CURRENT_USER = null;
+let CURRENT_COMPLETED_LEVELS = new Set();
 let AD_OVERLAY_ACTIVE = false;
 
 Object.defineProperty(window, "__DEBUG_USER", {
@@ -399,6 +400,17 @@ function applyUserPatch(patch, opts = {}) {
   // never allow identity to be wiped by partial backend patches
   if (!CURRENT_USER?.uid && keepUid) CURRENT_USER.uid = keepUid;
   if (!CURRENT_USER?.username && keepName) CURRENT_USER.username = keepName;
+
+  const completedLevels = patch?.completedLevels ?? patch?.completed_levels;
+  if (Array.isArray(completedLevels)) {
+    CURRENT_COMPLETED_LEVELS = new Set(
+      completedLevels
+        .map((level) => Number(level))
+        .filter((level) => Number.isInteger(level) && level > 0)
+    );
+    CURRENT_USER.completedLevels = Array.from(CURRENT_COMPLETED_LEVELS);
+    CURRENT_USER.completed_levels = Array.from(CURRENT_COMPLETED_LEVELS);
+  }
 
   // update header
   ui?.setUser?.(CURRENT_USER);
@@ -1120,10 +1132,22 @@ async function loadMeAndSyncUI({ BACKEND, token, ui }) {
   const user = me?.user || {};
   const progress = me?.progress || {};
   const levelAccess = normalizeLevelAccess(me?.levelAccess || user);
+  const completedLevels = Array.isArray(me?.completedLevels)
+    ? me.completedLevels
+    : Array.isArray(user?.completed_levels)
+      ? user.completed_levels
+      : Array.isArray(user?.completedLevels)
+        ? user.completedLevels
+        : [];
+  CURRENT_COMPLETED_LEVELS = new Set(
+    completedLevels
+      .map((level) => Number(level))
+      .filter((level) => Number.isInteger(level) && level > 0)
+  );
 
   CURRENT_USER = {
-  ...user,
-  ...progress,
+    ...user,
+    ...progress,
 
   uid: user.uid,
   username: user.username,
@@ -1167,10 +1191,12 @@ async function loadMeAndSyncUI({ BACKEND, token, ui }) {
   unlockIntervalSeconds: levelAccess.unlockIntervalSeconds,
   unlockLevelsPerInterval: levelAccess.unlockLevelsPerInterval,
   adUnlockLevels: levelAccess.adUnlockLevels,
-  canWatchAdToUnlock: levelAccess.canWatchAdToUnlock,
-  canPlayNow: levelAccess.canPlayNow,
-  dailyLimitReached: levelAccess.dailyLimitReached,
-};
+    canWatchAdToUnlock: levelAccess.canWatchAdToUnlock,
+    canPlayNow: levelAccess.canPlayNow,
+    dailyLimitReached: levelAccess.dailyLimitReached,
+    completedLevels: Array.from(CURRENT_COMPLETED_LEVELS),
+    completed_levels: Array.from(CURRENT_COMPLETED_LEVELS),
+  };
   ui.setUser({
     ...CURRENT_USER,
     level: Number(progress.level || 1),
@@ -1289,6 +1315,7 @@ if (storedToken) {
 
 // never show a "logged-in" user until backend validates token
 CURRENT_USER = null;
+CURRENT_COMPLETED_LEVELS = new Set();
 ui?.setUser?.({ username: "Guest", uid: null });
 ui?.setCoins?.(0);
 ui?.setScore?.(0);
@@ -1364,6 +1391,7 @@ setTimeout(() => {
     console.warn("Token invalid during boot");
     CURRENT_ACCESS_TOKEN = null;
     CURRENT_USER = null;
+    CURRENT_COMPLETED_LEVELS = new Set();
     localStorage.removeItem("pi_access_token");
     document.body.classList.add("welcome-visible");
   }
@@ -2322,10 +2350,13 @@ levelsUI.onUnlockNow(async () => {
             try {
               const out = await apiClaimLevelComplete(completedLevel);
 
-              if (out?.ok !== false && out) {
-                winPopupState = buildLevelCompletePopupState(out, completedLevel);
-                winPopup.setRewardSummary?.(winPopupState);
-              }
+                if (out?.ok !== false && out) {
+                  if (completedLevel > 0) {
+                    CURRENT_COMPLETED_LEVELS.add(completedLevel);
+                  }
+                  winPopupState = buildLevelCompletePopupState(out, completedLevel);
+                  winPopup.setRewardSummary?.(winPopupState);
+                }
 
               if (out?.user) {
                 applyUserPatch({
@@ -2417,6 +2448,9 @@ function wipeResumeForCurrentLevel() {
 
 function isReplayLevelNumber(levelNumber) {
   const numericLevel = Number(levelNumber || 0);
+  if (CURRENT_COMPLETED_LEVELS.has(numericLevel)) {
+    return true;
+  }
   const maxUnlocked = Number(CURRENT_MAX_UNLOCKED_LEVEL || 1);
   return numericLevel > 0 && numericLevel < maxUnlocked;
 }
@@ -2991,6 +3025,7 @@ restartPopup.onWatchAdRestart(() => {
 ui.onGuestStart(() => {
   CURRENT_USER = { username: "Guest", uid: null, coins: 0, score: 0, dailyRp: 0 };
   CURRENT_ACCESS_TOKEN = null;
+  CURRENT_COMPLETED_LEVELS = new Set();
 
   CURRENT_MAX_UNLOCKED_LEVEL = 1;
 
@@ -3062,6 +3097,7 @@ ui.onLoginClick(async (e) => {
       LOGIN_IN_PROGRESS = false;
       CURRENT_ACCESS_TOKEN = null;
       CURRENT_USER = null;
+      CURRENT_COMPLETED_LEVELS = new Set();
       localStorage.removeItem("pi_access_token");
       document.body.classList.remove("game-running");
       document.body.classList.add("welcome-visible");
