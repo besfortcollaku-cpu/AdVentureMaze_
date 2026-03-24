@@ -1530,7 +1530,13 @@ async function loadMeAndSyncUIWithRetry({ BACKEND, token, ui, attempts = 3, dela
   let lastResult = null;
 
   for (let attempt = 0; attempt < attempts; attempt += 1) {
-    lastResult = await loadMeAndSyncUI({ BACKEND, token, ui });
+    try {
+      lastResult = await loadMeAndSyncUI({ BACKEND, token, ui });
+    } catch (error) {
+      console.warn("loadMeAndSyncUI attempt failed", attempt + 1, error);
+      lastResult = { user: null, progress: null };
+    }
+
     if (lastResult?.user) {
       return lastResult;
     }
