@@ -16,7 +16,7 @@ export function mountLevelsUI(root, { totalLevels } = {}) {
       </div>
 
       <div class="levelsAccess" id="levelsAccess"></div>
-      <button class="levelsUnlockBtn hidden" id="levelsUnlockBtn">Watch an ad to unlock now</button>
+      <button class="levelsUnlockBtn hidden" id="levelsUnlockBtn">Unlock More Levels</button>
 
       <div class="levelsGrid" id="levelsGrid"></div>
 
@@ -120,7 +120,7 @@ overlay.addEventListener("touchmove", (e) => {
     }
 
     accessEl.innerHTML = accessHtml;
-    unlockBtn.textContent = `Watch an ad to unlock ${adUnlockLevels} ${adUnlockLevels === 1 ? "level" : "levels"} now`;
+    unlockBtn.textContent = "Unlock More Levels";
     unlockBtn.classList.toggle("hidden", !canWatchAdToUnlock || dailyLimitReached);
 
     levelButtons.forEach((btn) => {

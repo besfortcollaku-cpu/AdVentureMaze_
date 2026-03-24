@@ -11,6 +11,7 @@ import { createWinPopup } from "./ui/uiWin.js";
 import { createSkipPopup } from "./ui/uiSkip.js";
 import { createHintPopup } from "./ui/uiHints.js";
 import { createRestartPopup } from "./ui/uiRestarts.js";
+import { createLevelUnlockPopup } from "./ui/uiLevelUnlock.js";
 import { createMysteryChestPopup } from "./ui/uiMysteryChest.js";
 import { createDailyRankingRewardPopup } from "./ui/uiDailyRankingReward.js";
 import { getSettings, subscribeSettings } from "./settings.js";
@@ -901,6 +902,30 @@ async function apiUnlockLevelsByAd() {
   return out;
 }
 
+async function apiUnlockLevelsByCoins() {
+  if (!CURRENT_ACCESS_TOKEN) {
+    throw new Error("No access token");
+  }
+
+  const res = await fetch(`${BACKEND}/api/levels/coins-unlock`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${normalizeToken(CURRENT_ACCESS_TOKEN)}`,
+    },
+  });
+
+  const out = await res.json().catch(() => ({}));
+  if (!res.ok || !out?.ok) {
+    const error = out?.error || "level_coin_unlock_failed";
+    const err = new Error(error);
+    err.levelAccess = out?.levelAccess || null;
+    throw err;
+  }
+
+  return out;
+}
+
 function buildLevelCompletePopupState(out, levelNumber) {
   const rewards = out?.rewards
     ? {
@@ -1471,6 +1496,7 @@ const winPopup = createWinPopup();
 const skipPopup = createSkipPopup();
 const hintPopup = createHintPopup();
 const restartPopup = createRestartPopup();
+const levelUnlockPopup = createLevelUnlockPopup();
 const dailyRankingRewardPopup = createDailyRankingRewardPopup();
 
 function withPopupAudio(popupApi) {
@@ -1497,6 +1523,7 @@ withPopupAudio(winPopup);
 withPopupAudio(skipPopup);
 withPopupAudio(hintPopup);
 withPopupAudio(restartPopup);
+withPopupAudio(levelUnlockPopup);
 withPopupAudio(mysteryChestPopup);
 withPopupAudio(adSurprisePopup);
 withPopupAudio(dailyRankingRewardPopup);
@@ -2264,13 +2291,41 @@ levelsUI.onSelect((levelNumber) => {
   return true;
 });
 
-levelsUI.onUnlockNow(async () => {
+levelsUI.onUnlockNow(() => {
   if (!CURRENT_ACCESS_TOKEN) {
     ui.showLoginRequired();
     return;
   }
 
+  const adUnlockLevels = Math.max(1, Number(CURRENT_USER?.adUnlockLevels ?? LEVEL_ACCESS_DEFAULTS.adUnlockLevels));
+  levelUnlockPopup.open({
+    coins: Number(CURRENT_USER?.coins ?? 0),
+    unlockLevels: adUnlockLevels,
+  });
+});
+levelUnlockPopup.onBuy(async () => {
   try {
+    const out = await apiUnlockLevelsByCoins();
+    if (out?.user) {
+      applyUserPatch({
+        ...out.user,
+        ...(out.levelAccess || {}),
+      });
+    } else if (out?.levelAccess) {
+      applyUserPatch(out.levelAccess);
+    }
+    refreshLevelsAccessUI();
+    levelUnlockPopup.hide();
+  } catch (e) {
+    if (e?.levelAccess) {
+      applyUserPatch(e.levelAccess);
+    }
+    alert(e?.message === "NOT_ENOUGH_COINS" ? "Not enough Coins" : (e?.message || "Unlock failed"));
+  }
+});
+levelUnlockPopup.onWatchAd(() => {
+  try {
+    levelUnlockPopup.hide();
     simulateAd({
       onFinished: async () => {
         try {
@@ -2284,6 +2339,7 @@ levelsUI.onUnlockNow(async () => {
             applyUserPatch(out.levelAccess);
           }
           refreshLevelsAccessUI();
+          levelUnlockPopup.hide();
           const adUnlockLevels = Math.max(1, Number(out?.levelAccess?.adUnlockLevels ?? CURRENT_USER?.adUnlockLevels ?? LEVEL_ACCESS_DEFAULTS.adUnlockLevels));
           alert(`${adUnlockLevels} more ${adUnlockLevels === 1 ? "level" : "levels"} unlocked.`);
         } catch (e) {
