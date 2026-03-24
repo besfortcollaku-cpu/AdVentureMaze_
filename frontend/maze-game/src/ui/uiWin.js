@@ -23,12 +23,10 @@ export function createWinPopup() {
 
       <div class="winRewardSummary" id="winRewardSummary">
         <div class="winRewardRow">
-          <span class="winRewardLabel">Coins</span>
-          <span class="winRewardValue" id="winRewardCoins">+0</span>
+          <span class="winRewardValue" id="winRewardCoins">0 Coins</span>
         </div>
         <div class="winRewardRow">
-          <span class="winRewardLabel">Score</span>
-          <span class="winRewardValue" id="winRewardScore">+0</span>
+          <span class="winRewardValue" id="winRewardScore">0 Score</span>
         </div>
       </div>
 
@@ -78,15 +76,21 @@ export function createWinPopup() {
   function applyRewardSummary({
     rewards = null,
     rewardStatus = "",
-    rewardNote = "",
   } = {}) {
-    const hasRewards = rewards && (rewards.mc != null || rewards.rp != null);
-    const mc = Number(rewards?.mc || 0);
-    const rp = Number(rewards?.rp || 0);
+    const hasRewards = rewards && (rewards.coinsAwarded != null || rewards.scoreAwarded != null || rewards.mc != null || rewards.rp != null);
+    const coinsAwarded = Number(rewards?.coinsAwarded ?? rewards?.mc ?? 0);
+    const scoreAwarded = Number(rewards?.scoreAwarded ?? rewards?.rp ?? 0);
+
+    const formatRewardLine = (amount, singular, plural = singular) => {
+      const value = Number(amount || 0);
+      const prefix = value > 0 ? `+${value}` : `${value}`;
+      const noun = Math.abs(value) === 1 ? singular : plural;
+      return `${prefix} ${noun}`;
+    };
 
     if (rewardSummaryEl) rewardSummaryEl.classList.toggle("hidden", !hasRewards);
-    if (rewardCoinsEl) rewardCoinsEl.textContent = `+${mc}`;
-    if (rewardScoreEl) rewardScoreEl.textContent = `+${rp}`;
+    if (rewardCoinsEl) rewardCoinsEl.textContent = formatRewardLine(coinsAwarded, "Coin", "Coins");
+    if (rewardScoreEl) rewardScoreEl.textContent = formatRewardLine(scoreAwarded, "Score");
 
     if (rewardStatusEl) {
       rewardStatusEl.textContent = hasRewards ? rewardStatus || "" : "";
@@ -94,19 +98,19 @@ export function createWinPopup() {
     }
 
     if (rewardNoteEl) {
-      rewardNoteEl.textContent = hasRewards ? rewardNote || "" : "";
-      rewardNoteEl.classList.toggle("hidden", !hasRewards || !rewardNote);
+      rewardNoteEl.textContent = "";
+      rewardNoteEl.classList.add("hidden");
     }
   }
 
-  function show({ levelNumber, rewards = null, rewardStatus = "", rewardNote = "" }) {
+  function show({ levelNumber, rewards = null, rewardStatus = "" }) {
     const theme = getTheme();
 
     el.classList.remove("theme-forest", "theme-lava", "theme-ice");
     el.classList.add(`theme-${theme}`);
 
     levelText.textContent = `You finished Level ${levelNumber}`;
-    applyRewardSummary({ rewards, rewardStatus, rewardNote });
+    applyRewardSummary({ rewards, rewardStatus });
     setWatchAdBusy(false);
     setNextLevelEnabled(true);
     setSurpriseBoxState();

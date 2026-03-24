@@ -1001,29 +1001,34 @@ async function apiUnlockLevelsByCoins() {
 }
 
 function buildLevelCompletePopupState(out, levelNumber) {
-  const rewards = out?.rewards
+  const rewards = out
     ? {
-        mc: Number(out.rewards.mc || 0),
-        rp: Number(out.rewards.rp || 0),
+        coinsAwarded: Number(
+          out?.coinsAwarded
+          ?? out?.rewards?.coinsAwarded
+          ?? out?.rewards?.mc
+          ?? 0
+        ),
+        scoreAwarded: Number(
+          out?.scoreAwarded
+          ?? out?.rewards?.scoreAwarded
+          ?? out?.rewards?.rp
+          ?? 0
+        ),
       }
     : null;
 
+  const isReplay = Boolean(out?.isReplay ?? ((rewards?.coinsAwarded ?? 0) === 0 && (rewards?.scoreAwarded ?? 0) === 0));
+
   let rewardStatus = "";
-  let rewardNote = "";
 
   if (rewards) {
-      if (out?.isReplay) {
-        rewardStatus = "Replay completed.";
-        rewardNote = "No Coins or Score earned on replay.";
-      } else if (out?.already) {
-        rewardStatus = "This level already gave Score this month.";
-        rewardNote = "Score affects your leaderboard position and monthly rewards.";
-      } else if (rewards.rp >= 2) {
+    if (isReplay) {
+      rewardStatus = "Replay completed. No Coins or Score earned.";
+    } else if (rewards.scoreAwarded > 0) {
       rewardStatus = "Clean run bonus applied.";
-      rewardNote = "Score affects your leaderboard position and monthly rewards.";
-    } else if (rewards.rp === 0) {
-      rewardStatus = "No Score awarded for this run.";
-      rewardNote = "Hint or skip use removes Score for first-time completion.";
+    } else if (rewards.scoreAwarded === 0) {
+      rewardStatus = "Hint or skip used: no Score awarded.";
     }
   }
 
@@ -1031,7 +1036,6 @@ function buildLevelCompletePopupState(out, levelNumber) {
     levelNumber,
     rewards,
     rewardStatus,
-    rewardNote,
   };
 }
 
@@ -2474,7 +2478,7 @@ levelUnlockPopup.onWatchAd(() => {
       let rewardAccepted = true;
 
       // Do reward sync in parallel so leaderboard timing stays fixed.
-      const rewardSyncPromise = CURRENT_ACCESS_TOKEN && !CURRENT_LEVEL_IS_REPLAY
+      const rewardSyncPromise = CURRENT_ACCESS_TOKEN
         ? (async () => {
             try {
               const out = await apiClaimLevelComplete(completedLevel);
@@ -2517,13 +2521,11 @@ levelUnlockPopup.onWatchAd(() => {
           })()
         : Promise.resolve();
 
-      // Fixed timing: reward animation stays visible for ~2 seconds from level complete.
-      await sleep(2000);
+      // Fixed timing: keep the completion pause, but do not render guessed rewards
+      // before the backend response is available.
+      await Promise.all([sleep(2000), rewardSyncPromise]);
 
       afterLevelCompleteShowAdOrWin(winPopupState);
-
-      // Keep reward flow completion non-blocking for popup timing.
-      await rewardSyncPromise;
 
       // logged-in: unlock next level + persist progress and clear resume
       if (CURRENT_ACCESS_TOKEN && rewardAccepted && !CURRENT_LEVEL_IS_REPLAY) {
