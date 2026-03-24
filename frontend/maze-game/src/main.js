@@ -727,6 +727,40 @@ async function activateLoggedInSession(me, { showRewardPopup = true } = {}) {
     console.error("Post-login UI setup failed", postLoginError);
   }
 }
+
+function buildFallbackLoginState(verifiedUser = null) {
+  const user = verifiedUser && typeof verifiedUser === "object" ? verifiedUser : {};
+  return {
+    user: {
+      ...user,
+      uid: user.uid || CURRENT_USER?.uid || null,
+      username: user.username || CURRENT_USER?.username || "Player",
+      coins: Number(user.coins ?? user.mc_balance ?? 0),
+      score: Number(user.score ?? user.rp_score ?? 0),
+      dailyRp: Number(user.dailyRp ?? user.daily_rp ?? 0),
+      restarts_balance: Number(user.restarts_balance ?? 0),
+      skips_balance: Number(user.skips_balance ?? 0),
+      hints_balance: Number(user.hints_balance ?? 0),
+    },
+    progress: {
+      level: 1,
+      paintedKeys: [],
+      resume: null,
+    },
+    levelAccess: {
+      canPlayNow: true,
+      dailyLimitReached: false,
+      dailyLevelsPlayed: 0,
+      dailyLevelsUnlocked: LEVEL_ACCESS_DEFAULTS.initialDailyUnlockedLevels,
+      dailyLevelsMax: LEVEL_ACCESS_DEFAULTS.dailyLevelsMax,
+      initialDailyUnlockedLevels: LEVEL_ACCESS_DEFAULTS.initialDailyUnlockedLevels,
+      unlockIntervalSeconds: LEVEL_ACCESS_DEFAULTS.unlockIntervalSeconds,
+      unlockLevelsPerInterval: LEVEL_ACCESS_DEFAULTS.unlockLevelsPerInterval,
+      adUnlockLevels: LEVEL_ACCESS_DEFAULTS.adUnlockLevels,
+      nextUnlockAt: null,
+    },
+  };
+}
 let COIN_ANIM_SEQ = 0;
 let COIN_GAIN_TIMER = null;
 let SCORE_ANIM_SEQ = 0;
@@ -3468,15 +3502,27 @@ ui.onLoginClick(async (e) => {
     });
 
     if (!me?.user) {
+      const fallbackMe = buildFallbackLoginState(result?.user || null);
+      CURRENT_USER = {
+        ...CURRENT_USER,
+        ...fallbackMe.user,
+      };
+      CURRENT_COMPLETED_LEVELS = new Set();
+
+      await activateLoggedInSession(fallbackMe, { showRewardPopup: false });
+
       hideLoginLoading();
       LOGIN_IN_PROGRESS = false;
-      CURRENT_ACCESS_TOKEN = null;
-      CURRENT_USER = null;
-      CURRENT_COMPLETED_LEVELS = new Set();
-      localStorage.removeItem("pi_access_token");
-      document.body.classList.remove("game-running");
-      document.body.classList.add("welcome-visible");
-      ui.showWelcome();
+
+      setTimeout(() => {
+        void loadMeAndSyncUIWithRetry({
+          BACKEND,
+          token: CURRENT_ACCESS_TOKEN,
+          ui,
+          attempts: 4,
+          delayMs: 600,
+        }).catch(() => {});
+      }, 600);
       return;
     }
 
