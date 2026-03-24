@@ -23,7 +23,7 @@ import {
   getAdConsentSummary,
   getAdRequestPreferences,
   setAdConsentChoice,
-} from "./ads/adConsent.js";
+} from "./Ads/adConsent.js";
 import { unlockGlobalAudio, play as playAudio, setMusicEnabled, setSfxEnabled, setMasterVolume, startBackgroundMusic, stopBackgroundMusic } from "./audio/audioManager.js";
 
 // DEBUG: show fatal errors on mobile so buttons don't "do nothing"
