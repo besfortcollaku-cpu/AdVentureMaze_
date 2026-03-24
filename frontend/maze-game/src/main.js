@@ -1021,12 +1021,9 @@ function buildLevelCompletePopupState(out, levelNumber) {
       } else if (rewards.rp >= 2) {
       rewardStatus = "Clean run bonus applied.";
       rewardNote = "Score affects your leaderboard position and monthly rewards.";
-    } else if (rewards.rp === 1) {
-      rewardStatus = "Hint used: reduced Score.";
-      rewardNote = "Hints reduce Score for this run.";
     } else if (rewards.rp === 0) {
       rewardStatus = "No Score awarded for this run.";
-      rewardNote = "Skipped levels do not award Score.";
+      rewardNote = "Hint or skip use removes Score for first-time completion.";
     }
   }
 
