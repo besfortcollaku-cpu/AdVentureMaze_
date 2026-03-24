@@ -1431,6 +1431,23 @@ setTimeout(() => {
 return me;
 }
 
+async function loadMeAndSyncUIWithRetry({ BACKEND, token, ui, attempts = 3, delayMs = 350 }) {
+  let lastResult = null;
+
+  for (let attempt = 0; attempt < attempts; attempt += 1) {
+    lastResult = await loadMeAndSyncUI({ BACKEND, token, ui });
+    if (lastResult?.user) {
+      return lastResult;
+    }
+
+    if (attempt < attempts - 1) {
+      await sleep(delayMs);
+    }
+  }
+
+  return lastResult;
+}
+
 function updateAllBadges() {
   if (!CURRENT_USER) return;
 
@@ -1556,7 +1573,7 @@ if (!allowRuntime) {
 }
 if (CURRENT_ACCESS_TOKEN) {
   try {
-    const me = await loadMeAndSyncUI({
+    const me = await loadMeAndSyncUIWithRetry({
       BACKEND,
       token: CURRENT_ACCESS_TOKEN,
       ui,
@@ -3411,7 +3428,7 @@ ui.onLoginClick(async (e) => {
       return;
     }
 
-    const me = await loadMeAndSyncUI({
+    const me = await loadMeAndSyncUIWithRetry({
       BACKEND,
       token: CURRENT_ACCESS_TOKEN,
       ui,
