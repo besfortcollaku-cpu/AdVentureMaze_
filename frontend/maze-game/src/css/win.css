@@ -257,13 +257,20 @@
 .winOverlay.theme-ice .winModal {
   background: linear-gradient(
     180deg,
-    rgba(28, 64, 120, 0.96),
-    rgba(14, 28, 64, 0.98)
+    rgba(213, 244, 255, 0.16),
+    rgba(28, 70, 129, 0.94) 38%,
+    rgba(10, 27, 58, 0.98)
   );
+  box-shadow:
+    0 24px 72px rgba(2, 14, 36, 0.62),
+    inset 0 1px 0 rgba(255,255,255,0.22),
+    inset 0 0 0 1px rgba(170, 231, 255, 0.16);
 }
 
 .winOverlay.theme-ice .badge {
-  background: linear-gradient(180deg, #7dd3fc, #38bdf8);
+  background: linear-gradient(180deg, #eefcff, #a6ebff 45%, #53b9ff);
+  color: #07233d;
+  box-shadow: 0 12px 26px rgba(88, 182, 241, 0.34);
 }
 
 /* =========================
@@ -295,7 +302,33 @@ body.theme-forest .winModal {
 
 /* ICE */
 body.theme-ice .winModal {
-  background: rgba(90, 150, 220, 0.30) !important;
+  background: linear-gradient(180deg, rgba(217,246,255,0.12), rgba(30,72,129,0.32)) !important;
+}
+
+body.theme-ice .winRewardSummary,
+body.theme-ice .winRewardStatus {
+  background: linear-gradient(180deg, rgba(216,246,255,0.12), rgba(44,86,150,0.16));
+  border-color: rgba(173, 232, 255, 0.18);
+}
+
+body.theme-ice .winRewardNote,
+body.theme-ice .victoryBox {
+  background: linear-gradient(180deg, rgba(214,245,255,0.08), rgba(11,29,60,0.28));
+  border-color: rgba(166, 227, 255, 0.14);
+}
+
+body.theme-ice .winModal .btn {
+  background: linear-gradient(180deg, #f1fdff, #adebff 42%, #5bc0ff);
+  color: #07243f;
+  box-shadow:
+    0 16px 30px rgba(7, 33, 67, 0.34),
+    inset 0 1px 0 rgba(255,255,255,0.6);
+}
+
+body.theme-ice .winModal .btn.secondary {
+  background: linear-gradient(180deg, rgba(215,245,255,0.12), rgba(21,49,95,0.3));
+  color: #f2fbff;
+  border-color: rgba(175, 231, 255, 0.22);
 }
 
 /* LAVA */

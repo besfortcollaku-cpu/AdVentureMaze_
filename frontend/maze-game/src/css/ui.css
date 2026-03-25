@@ -16,6 +16,10 @@ body {
   --ui-bg-top: #070c22;
   --ui-bg-mid: #0b1433;
   --ui-bg-bot: #070c22;
+  --ice-accent: #7ddcff;
+  --ice-accent-strong: #eefcff;
+  --ice-edge: rgba(174, 233, 255, 0.34);
+  --ice-shadow: rgba(4, 17, 45, 0.42);
 }
 
 /* Forest */
@@ -547,15 +551,32 @@ body.theme-lava .coins {
   touch-action: manipulation;
 }/* ===== ICE THEME (UI ONLY - DEFAULT) ===== */
 body.theme-ice {
-  background: radial-gradient(circle at top, #1b255c, #070b18);
+  --ui-bg-top: #021225;
+  --ui-bg-mid: #0a2f4d;
+  --ui-bg-bot: #03101f;
+  background:
+    radial-gradient(circle at 50% -10%, rgba(162, 231, 255, 0.24), transparent 34%),
+    radial-gradient(circle at 15% 14%, rgba(205, 247, 255, 0.18), transparent 20%),
+    linear-gradient(180deg, #061326, #0c2344 48%, #04111f);
 }
 
 body.theme-ice .icon {
-  background: rgba(255,255,255,0.08);
+  background:
+    linear-gradient(180deg, rgba(214, 246, 255, 0.18), rgba(93, 145, 214, 0.14));
+  border: 1px solid rgba(175, 232, 255, 0.18);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.24),
+    inset 0 -1px 0 rgba(7,24,52,0.42),
+    0 10px 18px rgba(4, 17, 45, 0.28);
 }
 
 body.theme-ice .coins {
-  border-color: #8a6d1d;
+  border-color: var(--ice-edge);
+  background:
+    linear-gradient(180deg, rgba(209, 245, 255, 0.16), rgba(72, 126, 206, 0.18));
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.2),
+    0 10px 24px rgba(4, 17, 45, 0.26);
 }
 
 /* ===== FOREST THEME (UI ONLY) ===== */
@@ -797,7 +818,46 @@ canvas#game {
 
 /* Keep ice UI texture colors true (no extra tint overlay). */
 body.theme-ice .app::before {
-  opacity: 0;
+  background:
+    linear-gradient(180deg, rgba(5, 20, 43, 0.22), rgba(8, 33, 64, 0.08)),
+    radial-gradient(circle at top, rgba(214, 246, 255, 0.12), transparent 34%);
+  opacity: 1;
+}
+
+body.theme-ice .app {
+  background-image:
+    radial-gradient(circle at top, rgba(154, 230, 255, 0.16), transparent 34%),
+    radial-gradient(circle at 82% 12%, rgba(127, 212, 255, 0.16), transparent 24%),
+    var(--ui-bg);
+}
+
+body.theme-ice .iconBtn {
+  color: #f1fcff;
+  text-shadow: 0 0 14px rgba(168, 232, 255, 0.18);
+}
+
+body.theme-ice .top {
+  background:
+    linear-gradient(to bottom, rgba(5, 20, 43, 0.62) 0%, rgba(6, 28, 58, 0.22) 48%, rgba(0, 0, 0, 0) 100%);
+}
+
+body.theme-ice .bottomBar {
+  background:
+    linear-gradient(to top, rgba(3, 19, 42, 0.72), rgba(7, 32, 61, 0.26), transparent);
+}
+
+body.theme-ice .board {
+  filter: drop-shadow(0 16px 30px rgba(5, 18, 44, 0.42));
+}
+
+body.theme-ice .appToast {
+  background:
+    linear-gradient(180deg, rgba(209, 244, 255, 0.18), rgba(18, 48, 93, 0.92));
+  border: 1px solid rgba(182, 236, 255, 0.22);
+  color: #effbff;
+  box-shadow:
+    0 14px 32px rgba(3, 15, 38, 0.48),
+    inset 0 1px 0 rgba(255,255,255,0.18);
 }
 
 

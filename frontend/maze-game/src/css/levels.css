@@ -245,10 +245,12 @@ body.theme-forest .levelBtn.unlocked {
 
 /* ICE */
 body.theme-ice .levelsHeader .badge {
-  background: linear-gradient(135deg, #7cc7ff, #4aa3ff);
+  background: linear-gradient(135deg, #eefcff, #abeaff 45%, #58bfff);
+  color: #06223e;
+  box-shadow: 0 10px 22px rgba(80, 178, 239, 0.28);
 }
 body.theme-ice .levelBtn.unlocked {
-  background: linear-gradient(180deg, rgba(120,180,255,0.35), rgba(80,140,220,0.35));
+  background: linear-gradient(180deg, rgba(215,246,255,0.2), rgba(89,147,223,0.18));
 }
 
 /* LAVA */
@@ -264,7 +266,7 @@ body.theme-forest .levelBtn.unlocked {
 }
 
 body.theme-ice .levelBtn.unlocked {
-  border-color: rgba(120, 180, 255, 0.45);
+  border-color: rgba(171, 230, 255, 0.42);
 }
 
 body.theme-lava .levelBtn.unlocked {
@@ -312,7 +314,62 @@ body.theme-forest .levelBtn {
 }
 
 body.theme-ice .levelBtn {
-  border-color: rgba(140, 190, 255, 0.35);
+  background: linear-gradient(180deg, rgba(218,246,255,0.08), rgba(31,67,122,0.18));
+  border-color: rgba(145, 212, 255, 0.24);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.12),
+    0 8px 20px rgba(4, 17, 45, 0.22);
+}
+
+body.theme-ice .levelsOverlay::after {
+  background: linear-gradient(180deg, rgba(2, 15, 32, 0.42), rgba(4, 15, 31, 0.58));
+}
+
+body.theme-ice .levelsCard {
+  background: linear-gradient(180deg, rgba(212,245,255,0.14), rgba(38,72,133,0.18));
+  box-shadow:
+    0 22px 68px rgba(3, 14, 38, 0.62),
+    inset 0 1px 0 rgba(255,255,255,0.18),
+    inset 0 0 0 1px rgba(156, 225, 255, 0.16);
+}
+
+body.theme-ice .levelsAccess {
+  background: linear-gradient(180deg, rgba(214,246,255,0.14), rgba(46,88,153,0.14));
+  border-color: rgba(175, 232, 255, 0.2);
+}
+
+body.theme-ice .levelsAccessState,
+body.theme-ice .levelsAccessHint {
+  color: #dff7ff;
+}
+
+body.theme-ice .levelsUnlockBtn {
+  background: linear-gradient(180deg, #ecfbff, #9fe6ff 45%, #58baf9);
+  color: #06233f;
+  box-shadow:
+    0 14px 28px rgba(18, 78, 132, 0.32),
+    inset 0 1px 0 rgba(255,255,255,0.52);
+}
+
+body.theme-ice .levelBtn.completed {
+  background: linear-gradient(180deg, rgba(241,251,255,0.18), rgba(103,169,231,0.18));
+  border-color: rgba(200, 241, 255, 0.38);
+  box-shadow:
+    0 0 0 1px rgba(186, 236, 255, 0.16),
+    0 10px 22px rgba(6, 26, 58, 0.22);
+}
+
+body.theme-ice .levelBtn.frontier {
+  background: linear-gradient(180deg, rgba(229,251,255,0.32), rgba(110,196,255,0.24));
+  border-color: rgba(218, 248, 255, 0.82);
+  box-shadow:
+    0 0 0 1px rgba(201, 242, 255, 0.4),
+    0 0 22px rgba(123, 214, 255, 0.26),
+    0 14px 28px rgba(4, 17, 45, 0.32);
+}
+
+body.theme-ice .levelBtn.locked {
+  background: linear-gradient(180deg, rgba(202,231,255,0.04), rgba(13,27,53,0.2));
 }
 
 body.theme-lava .levelBtn {
