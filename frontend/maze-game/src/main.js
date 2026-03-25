@@ -2946,23 +2946,20 @@ levelUnlockPopup.onWatchAd(() => {
 
       afterLevelCompleteShowAdOrWin(winPopupState);
 
-      // logged-in: unlock next level + persist progress and clear resume
+      // logged-in: move the visual frontier forward, but do not persist a fake
+      // next-level progress checkpoint before the backend actually unlocks it.
       if (CURRENT_ACCESS_TOKEN && rewardAccepted && !CURRENT_LEVEL_IS_REPLAY) {
-        const nextUnlocked = Math.min(levels.length, completedLevel + 1);
+        const nextFrontierLevel = Math.min(levels.length, completedLevel + 1);
 
         CURRENT_MAX_UNLOCKED_LEVEL = Math.max(
           CURRENT_MAX_UNLOCKED_LEVEL,
-          nextUnlocked
+          nextFrontierLevel
         );
 
-        setTimeout(() => levelsUI.setUnlocked?.(CURRENT_MAX_UNLOCKED_LEVEL), 0);
-
-        apiSetProgress({
-          uid: CURRENT_USER.uid,
-          level: nextUnlocked,
-          paintedKeys: [],
-          resume: null,
-        }).catch(() => {});
+        setTimeout(() => {
+          levelsUI.setUnlocked?.(CURRENT_MAX_UNLOCKED_LEVEL);
+          refreshLevelsAccessUI();
+        }, 0);
       }
 
       // guest progress is local-only (levels 1..GUEST_MAX_LEVEL)
