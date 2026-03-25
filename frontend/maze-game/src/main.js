@@ -652,9 +652,6 @@ function getLaunchTarget({ progress, access }) {
   if (hasUnfinishedLevelProgress(progress)) {
     return "resume";
   }
-  if (access?.canPlayNow) {
-    return "play-next";
-  }
   return "levels";
 }
 
@@ -662,11 +659,10 @@ function applyLaunchTarget({ progress, access }) {
   const frontierLevel = Math.max(1, Number(progress?.level || CURRENT_MAX_UNLOCKED_LEVEL || 1));
   const target = getLaunchTarget({ progress, access });
 
-  if (!game?.isRunning?.()) {
-    game.start();
-  }
-
   if (target === "resume") {
+    if (!game?.isRunning?.()) {
+      game.start();
+    }
     goToLevel(frontierLevel - 1);
     setTimeout(() => {
       if (RESUME_TILES.size > 0 || RESUME_POS) {
@@ -679,13 +675,9 @@ function applyLaunchTarget({ progress, access }) {
     return;
   }
 
-  goToLevel(frontierLevel - 1);
-
-  if (target === "levels") {
-    refreshLevelsAccessUI();
-    levelsUI?.open?.();
-    levelsUI?.ensureFrontierVisible?.();
-  }
+  refreshLevelsAccessUI();
+  levelsUI?.open?.();
+  levelsUI?.ensureFrontierVisible?.();
 }
 
 async function activateLoggedInSession(me, { showRewardPopup = true } = {}) {
@@ -729,10 +721,6 @@ async function activateLoggedInSession(me, { showRewardPopup = true } = {}) {
   document.body.classList.add("game-running");
   ui.hideWelcome();
   document.body.classList.remove("welcome-visible");
-
-  if (!game?.isRunning?.()) {
-    game.start();
-  }
 
   updateAllBadges();
 
@@ -2992,6 +2980,9 @@ function restartLevelForHint() {
 
 }
 function goToLevel(nextIndex) {
+  if (!game?.isRunning?.()) {
+    game.start();
+  }
     hideHintArrows();
 HINT_ROUTE = null;
 HINT_ROUTE_INDEX = 0;
