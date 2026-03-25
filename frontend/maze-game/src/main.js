@@ -2991,6 +2991,15 @@ setTimeout(() => {
 }, 50);
   ui.setLevel(selectedLevelNumber);
 
+  if (CURRENT_ACCESS_TOKEN && CURRENT_USER?.uid) {
+    apiSetProgress({
+      uid: CURRENT_USER.uid,
+      level: selectedLevelNumber,
+      paintedKeys: [],
+      resume: null,
+    }).catch(() => {});
+  }
+
   // Only logged-in users can resume
   if (!CURRENT_ACCESS_TOKEN) return;
 
