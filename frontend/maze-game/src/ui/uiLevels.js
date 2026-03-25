@@ -152,12 +152,12 @@ export function mountLevelsUI(root, { totalLevels } = {}) {
       if (isCompleted) {
         btn.classList.add("completed", "replayable");
         btn.title = "Replay levels do not grant Coins or Score.";
-        if (icon) icon.textContent = "✓";
+        if (icon) icon.textContent = "";
         if (stateBadge) stateBadge.textContent = "Replay";
       } else if (isSkipped) {
         btn.classList.add("unlocked", "skipped");
         btn.title = "Skipped levels can be completed later for normal rewards.";
-        if (icon) icon.textContent = "!";
+        if (icon) icon.textContent = "";
         if (stateBadge) stateBadge.textContent = "Skipped";
       } else if (isAvailableNow) {
         btn.classList.add("unlocked", "availableNow", "frontier");
@@ -172,12 +172,12 @@ export function mountLevelsUI(root, { totalLevels } = {}) {
       } else if (isTimeLockedNext) {
         btn.classList.add("timeLocked", "frontier");
         btn.title = nextUnlockAt ? `Unlocks ${formatUnlockTime(nextUnlockAt, { detailed: true })}.` : "Available later.";
-        if (icon) icon.textContent = "🔒";
+        if (icon) icon.textContent = "";
         if (stateBadge) stateBadge.textContent = nextUnlockAt ? `Next • ${formatUnlockTime(nextUnlockAt, { detailed: true })}` : "Next";
       } else {
         btn.classList.add("locked", "futureLocked");
         btn.title = "Locked";
-        if (icon) icon.textContent = "🔒";
+        if (icon) icon.textContent = "";
         if (stateBadge) stateBadge.textContent = "Locked";
       }
 
