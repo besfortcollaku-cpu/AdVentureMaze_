@@ -649,9 +649,6 @@ function hasUnfinishedLevelProgress(progress) {
 }
 
 function getLaunchTarget({ progress, access }) {
-  if (hasUnfinishedLevelProgress(progress)) {
-    return "resume";
-  }
   return "levels";
 }
 
