@@ -698,8 +698,7 @@ async function activateLoggedInSession(me, { showRewardPopup = true } = {}) {
     ...CURRENT_USER,
     level: CURRENT_MAX_UNLOCKED_LEVEL,
   });
-
-  setLevel(Math.max(0, nextUnlockedLevel - 1));
+  ui.setLevel?.(CURRENT_MAX_UNLOCKED_LEVEL);
 
   RESUME_ENABLED = true;
   RESUME_TILES = new Set();
@@ -725,10 +724,9 @@ async function activateLoggedInSession(me, { showRewardPopup = true } = {}) {
     if (showRewardPopup) {
       showPostLoginRewardPopups(me?.dailyReturnReward || null);
     }
-    applyLaunchTarget({
-      progress: me?.progress,
-      access: normalizeLevelAccess(me?.levelAccess || me?.user || CURRENT_USER),
-    });
+    refreshLevelsAccessUI();
+    levelsUI?.open?.();
+    levelsUI?.ensureFrontierVisible?.();
   } catch (postLoginError) {
     console.error("Post-login UI setup failed", postLoginError);
   }
