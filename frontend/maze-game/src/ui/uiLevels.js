@@ -49,6 +49,8 @@ export function mountLevelsUI(root, { totalLevels } = {}) {
   let unlockNowHandler = null;
   let refreshAccessHandler = null;
   let levelAccess = null;
+  let completedLevels = new Set();
+  let skippedLevels = new Set();
   let countdownTimer = null;
   let countdownRefreshPending = false;
 
@@ -136,13 +138,15 @@ export function mountLevelsUI(root, { totalLevels } = {}) {
       const level = Number(btn.dataset.level);
       const icon = btn.querySelector(".icon");
       const stateBadge = btn.querySelector(".stateBadge");
-      const isCompleted = level < maxUnlocked;
+      const isCompleted = completedLevels.has(level);
+      const isSkipped = skippedLevels.has(level) && !isCompleted;
       const isCurrentLevel = level === maxUnlocked;
       const isAvailableNow = isCurrentLevel && canPlayNow;
       const isTimeLockedNext = isCurrentLevel && !canPlayNow;
+      const isPreviouslyUnlocked = level < maxUnlocked && !isCompleted && !isSkipped;
       const isFrontier = isCurrentLevel;
 
-      btn.classList.remove("locked", "completed", "unlocked", "timeLocked", "futureLocked", "replayable", "availableNow", "frontier");
+      btn.classList.remove("locked", "completed", "skipped", "unlocked", "timeLocked", "futureLocked", "replayable", "availableNow", "frontier");
       btn.title = "";
 
       if (isCompleted) {
@@ -150,11 +154,21 @@ export function mountLevelsUI(root, { totalLevels } = {}) {
         btn.title = "Replay levels do not grant Coins or Score.";
         if (icon) icon.textContent = "✓";
         if (stateBadge) stateBadge.textContent = "Replay";
+      } else if (isSkipped) {
+        btn.classList.add("unlocked", "skipped");
+        btn.title = "Skipped levels can be completed later for normal rewards.";
+        if (icon) icon.textContent = "!";
+        if (stateBadge) stateBadge.textContent = "Skipped";
       } else if (isAvailableNow) {
         btn.classList.add("unlocked", "availableNow", "frontier");
         btn.title = "Available";
         if (icon) icon.textContent = "";
         if (stateBadge) stateBadge.textContent = "Next";
+      } else if (isPreviouslyUnlocked) {
+        btn.classList.add("unlocked");
+        btn.title = "Available";
+        if (icon) icon.textContent = "";
+        if (stateBadge) stateBadge.textContent = "Available";
       } else if (isTimeLockedNext) {
         btn.classList.add("timeLocked", "frontier");
         btn.title = nextUnlockAt ? `Unlocks ${formatUnlockTime(nextUnlockAt, { detailed: true })}.` : "Available later.";
@@ -290,6 +304,26 @@ export function mountLevelsUI(root, { totalLevels } = {}) {
       levelAccess = nextAccess || null;
       render();
       syncCountdownTimer();
+    },
+
+    setCompletedLevels(levels) {
+      completedLevels = new Set(
+        Array.isArray(levels)
+          ? levels.map((level) => Number(level)).filter((level) => Number.isInteger(level) && level > 0)
+          : []
+      );
+      render();
+    },
+
+    setSkippedLevels(levels) {
+      skippedLevels = new Set(
+        Array.isArray(levels)
+          ? levels
+              .map((level) => Number(level))
+              .filter((level) => Number.isInteger(level) && level > 0 && !completedLevels.has(level))
+          : []
+      );
+      render();
     },
 
     onSelect(cb) {

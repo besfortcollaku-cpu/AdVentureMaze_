@@ -38,6 +38,7 @@ const GUEST_PROGRESS_KEY = "guest_progress_v1";
 const GUEST_MAX_LEVEL = 5;
 let CURRENT_USER = null;
 let CURRENT_COMPLETED_LEVELS = new Set();
+let CURRENT_SKIPPED_LEVELS = new Set();
 let AD_OVERLAY_ACTIVE = false;
 
 Object.defineProperty(window, "__DEBUG_USER", {
@@ -50,6 +51,8 @@ let ui = null;
 let levelsUI = null;
 let game = null;
 let HINT_ACTIVE_FOR_LEVEL = false;
+let HINT_USED_FOR_LEVEL = false;
+let SKIP_USED_FOR_LEVEL = false;
 let HINT_ROUTE = null;
 let HINT_ROUTE_INDEX = 0;
 let HINT_ROUTE_TIMER = null;
@@ -489,6 +492,22 @@ function applyUserPatch(patch, opts = {}) {
     CURRENT_USER.completed_levels = Array.from(CURRENT_COMPLETED_LEVELS);
   }
 
+  const skippedLevels = patch?.skippedLevels ?? patch?.skipped_levels;
+  if (Array.isArray(skippedLevels)) {
+    CURRENT_SKIPPED_LEVELS = new Set(
+      skippedLevels
+        .map((level) => Number(level))
+        .filter((level) => Number.isInteger(level) && level > 0 && !CURRENT_COMPLETED_LEVELS.has(level))
+    );
+    CURRENT_USER.skippedLevels = Array.from(CURRENT_SKIPPED_LEVELS);
+    CURRENT_USER.skipped_levels = Array.from(CURRENT_SKIPPED_LEVELS);
+  }
+
+  if (Number.isFinite(Number(patch?.level))) {
+    CURRENT_MAX_UNLOCKED_LEVEL = Math.max(1, Number(patch.level));
+    levelsUI?.setUnlocked?.(CURRENT_MAX_UNLOCKED_LEVEL);
+  }
+
   // update header
   ui?.setUser?.(CURRENT_USER);
   if (!skipScoreSync) {
@@ -585,6 +604,8 @@ function normalizeLevelAccess(source) {
 function refreshLevelsAccessUI() {
   const access = normalizeLevelAccess(CURRENT_USER);
   levelsUI?.setLevelAccess?.(access);
+  levelsUI?.setCompletedLevels?.(Array.from(CURRENT_COMPLETED_LEVELS));
+  levelsUI?.setSkippedLevels?.(Array.from(CURRENT_SKIPPED_LEVELS));
   return access;
 }
 
@@ -1111,7 +1132,7 @@ async function apiSetProgress({ uid, level, paintedKeys, resume } = {}) {
 
   return res.json().catch(() => ({}));
 }
-async function apiClaimLevelComplete(levelNumber) {
+async function apiClaimLevelComplete(levelNumber, opts = {}) {
   if (!CURRENT_ACCESS_TOKEN) return null;
 
   const res = await fetch(`${BACKEND}/api/rewards/level-complete`, {
@@ -1122,6 +1143,8 @@ async function apiClaimLevelComplete(levelNumber) {
     },
     body: JSON.stringify({
       level: levelNumber,
+      usedHint: opts.usedHint === true,
+      usedSkip: opts.usedSkip === true,
     }),
   });
 
@@ -1349,7 +1372,7 @@ function updateBadge({ badgeId, left }) {
 }
 
 
-async function apiSkip({ mode }) {
+async function apiSkip({ mode, level }) {
   const nonce = crypto.randomUUID?.() || `${Date.now()}-${Math.random()}`;
   const res = await fetch(`${BACKEND}/api/skip`, {
     method: "POST",
@@ -1357,7 +1380,7 @@ async function apiSkip({ mode }) {
       "Content-Type": "application/json",
       Authorization: `Bearer ${normalizeToken(CURRENT_ACCESS_TOKEN)}`,
     },
-    body: JSON.stringify({ mode, nonce }),
+    body: JSON.stringify({ mode, nonce, level }),
   });
 
   const data = await res.json().catch(() => ({}));
@@ -1452,10 +1475,22 @@ async function loadMeAndSyncUI({ BACKEND, token, ui }) {
       : Array.isArray(user?.completedLevels)
         ? user.completedLevels
         : [];
+  const skippedLevels = Array.isArray(me?.skippedLevels)
+    ? me.skippedLevels
+    : Array.isArray(user?.skipped_levels)
+      ? user.skipped_levels
+      : Array.isArray(user?.skippedLevels)
+        ? user.skippedLevels
+        : [];
   CURRENT_COMPLETED_LEVELS = new Set(
     completedLevels
       .map((level) => Number(level))
       .filter((level) => Number.isInteger(level) && level > 0)
+  );
+  CURRENT_SKIPPED_LEVELS = new Set(
+    skippedLevels
+      .map((level) => Number(level))
+      .filter((level) => Number.isInteger(level) && level > 0 && !CURRENT_COMPLETED_LEVELS.has(level))
   );
 
   CURRENT_USER = {
@@ -1510,6 +1545,8 @@ async function loadMeAndSyncUI({ BACKEND, token, ui }) {
     dailyLimitReached: levelAccess.dailyLimitReached,
     completedLevels: Array.from(CURRENT_COMPLETED_LEVELS),
     completed_levels: Array.from(CURRENT_COMPLETED_LEVELS),
+    skippedLevels: Array.from(CURRENT_SKIPPED_LEVELS),
+    skipped_levels: Array.from(CURRENT_SKIPPED_LEVELS),
   };
   ui.setUser({
     ...CURRENT_USER,
@@ -1653,6 +1690,7 @@ if (storedToken) {
 // never show a "logged-in" user until backend validates token
 CURRENT_USER = null;
 CURRENT_COMPLETED_LEVELS = new Set();
+CURRENT_SKIPPED_LEVELS = new Set();
 ui?.setUser?.({ username: "Guest", uid: null });
 ui?.setCoins?.(0);
 ui?.setScore?.(0);
@@ -1728,6 +1766,7 @@ setTimeout(() => {
     CURRENT_ACCESS_TOKEN = null;
     CURRENT_USER = null;
     CURRENT_COMPLETED_LEVELS = new Set();
+    CURRENT_SKIPPED_LEVELS = new Set();
     localStorage.removeItem("pi_access_token");
     document.body.classList.add("welcome-visible");
   }
@@ -2600,6 +2639,8 @@ ui.levelsBtn.addEventListener("click", () => {
 if (CURRENT_ACCESS_TOKEN) {
   // logged-in: NEVER apply guest cap
   levelsUI.setUnlocked?.(CURRENT_MAX_UNLOCKED_LEVEL || 1);
+  levelsUI.setCompletedLevels?.(Array.from(CURRENT_COMPLETED_LEVELS));
+  levelsUI.setSkippedLevels?.(Array.from(CURRENT_SKIPPED_LEVELS));
   refreshLevelsAccessUI();
 } else {
   const guestProgress = loadGuestProgress();
@@ -2634,18 +2675,25 @@ levelsUI.onSelect((levelNumber) => {
 
   if (CURRENT_ACCESS_TOKEN) {
     const isReplaySelection = isReplayLevelNumber(levelNumber);
+    const isSkippedSelection = isSkippedLevelNumber(levelNumber);
+    const isPreviouslyUnlockedSelection = isReplaySelection || isSkippedSelection;
     if (isReplaySelection) {
       const confirmed = window.confirm("Replay level?\n\nReplay levels do not grant Coins or Score.");
       if (!confirmed) {
         return false;
       }
+    } else if (isSkippedSelection) {
+      const confirmed = window.confirm("Play skipped level?\n\nComplete it later for normal rewards.");
+      if (!confirmed) {
+        return false;
+      }
     }
     const access = refreshLevelsAccessUI();
-    if (!isReplaySelection && access.dailyLimitReached) {
+    if (!isPreviouslyUnlockedSelection && access.dailyLimitReached) {
       alert("Daily limit reached. Come back tomorrow for more levels.");
       return false;
     }
-    if (!isReplaySelection && !access.canPlayNow) {
+    if (!isPreviouslyUnlockedSelection && !access.canPlayNow) {
       if (access.canWatchAdToUnlock) {
         const adUnlockLevels = Math.max(1, Number(access.adUnlockLevels || LEVEL_ACCESS_DEFAULTS.adUnlockLevels));
         alert(`You've used your current unlocked levels. Watch an ad to unlock ${adUnlockLevels} ${adUnlockLevels === 1 ? "level" : "levels"} now or wait for the timer.`);
@@ -2780,10 +2828,14 @@ levelUnlockPopup.onWatchAd(() => {
     },
 
     async onLevelComplete({ level }) {
+      const usedHintForLevel = HINT_USED_FOR_LEVEL;
+      const usedSkipForLevel = SKIP_USED_FOR_LEVEL;
       hideHintArrows();
       HINT_ROUTE = null;
       HINT_ROUTE_INDEX = 0;
       HINT_ACTIVE_FOR_LEVEL = false;
+      HINT_USED_FOR_LEVEL = false;
+      SKIP_USED_FOR_LEVEL = false;
       RESUME_ENABLED = false;
 
       const completedLevel = level?.number ?? (levelIndex + 1);
@@ -2795,7 +2847,10 @@ levelUnlockPopup.onWatchAd(() => {
       const rewardSyncPromise = CURRENT_ACCESS_TOKEN
         ? (async () => {
             try {
-              const out = await apiClaimLevelComplete(completedLevel);
+              const out = await apiClaimLevelComplete(completedLevel, {
+                usedHint: usedHintForLevel,
+                usedSkip: usedSkipForLevel,
+              });
 
                 if (out?.ok !== false && out) {
                   if (completedLevel > 0) {
@@ -2809,6 +2864,7 @@ levelUnlockPopup.onWatchAd(() => {
                 applyUserPatch({
                   ...out.user,
                   ...(out.levelAccess || {}),
+                  skippedLevels: out?.skippedLevels || out?.skipped_levels || [],
                 }, { skipCoinSync: true, skipScoreSync: true });
                 await Promise.all([
                   animateCoinsTo(Number(out.user.coins ?? 0), { showGainFx: true }),
@@ -2893,11 +2949,12 @@ function wipeResumeForCurrentLevel() {
 
 function isReplayLevelNumber(levelNumber) {
   const numericLevel = Number(levelNumber || 0);
-  if (CURRENT_COMPLETED_LEVELS.has(numericLevel)) {
-    return true;
-  }
-  const maxUnlocked = Number(CURRENT_MAX_UNLOCKED_LEVEL || 1);
-  return numericLevel > 0 && numericLevel < maxUnlocked;
+  return CURRENT_COMPLETED_LEVELS.has(numericLevel);
+}
+
+function isSkippedLevelNumber(levelNumber) {
+  const numericLevel = Number(levelNumber || 0);
+  return CURRENT_SKIPPED_LEVELS.has(numericLevel);
 }
 
 function restartLevelForHint() {
@@ -2922,6 +2979,8 @@ function goToLevel(nextIndex) {
 HINT_ROUTE = null;
 HINT_ROUTE_INDEX = 0;
 HINT_ACTIVE_FOR_LEVEL = false;
+HINT_USED_FOR_LEVEL = false;
+SKIP_USED_FOR_LEVEL = false;
 RESUME_ENABLED = false;
   levelIndex = Math.max(0, Math.min(levels.length - 1, nextIndex));
   const lvl = levels[levelIndex];
@@ -3193,7 +3252,9 @@ ui.onSkipClick(async () => {
   }
 
   try {
-    const out = await apiSkip({ mode: "auto" });
+    const out = await apiSkip({ mode: "auto", level: levelIndex + 1 });
+    applyUserPatch(out);
+    SKIP_USED_FOR_LEVEL = true;
 
     applyUserPatch({
   free_skips_used: out.free_skips_used,
@@ -3221,7 +3282,9 @@ ui.onSkipClick(async () => {
 
 skipPopup.onBuySkip(async () => {
   try {
-    const out = await apiSkip({ mode: "coins" });
+    const out = await apiSkip({ mode: "coins", level: levelIndex + 1 });
+    applyUserPatch(out);
+    SKIP_USED_FOR_LEVEL = true;
 
     applyUserPatch({
   free_skips_used: out.free_skips_used,
@@ -3248,6 +3311,7 @@ skipPopup.onWatchAdSkip(() => {
     onFinished: async () => {
       const out = await apiSkip({
         mode: "ad",
+        level: levelIndex + 1,
         nonce: crypto.randomUUID(),
       });
 
@@ -3257,6 +3321,8 @@ skipPopup.onWatchAdSkip(() => {
       }
 
       markAdClaimedNow();
+      applyUserPatch(out);
+      SKIP_USED_FOR_LEVEL = true;
 
       applyUserPatch({
         free_skips_used: out.free_skips_used,
@@ -3277,6 +3343,7 @@ ui.onHintClick(async () => {
 
   try {
     const out = await apiHint({ mode: "auto" });
+    HINT_USED_FOR_LEVEL = true;
 
     applyUserPatch({
       free_hints_used: out.free_hints_used,
@@ -3306,6 +3373,7 @@ ui.onHintClick(async () => {
 hintPopup.onBuyHint(async () => {
   try {
     const out = await apiHint({ mode: "coins" });
+    HINT_USED_FOR_LEVEL = true;
 
     applyUserPatch({
       free_hints_used: out.free_hints_used,
@@ -3341,6 +3409,7 @@ hintPopup.onWatchAdHint(() => {
       }
 
       markAdClaimedNow();
+      HINT_USED_FOR_LEVEL = true;
 
       applyUserPatch({
         free_hints_used: out.free_hints_used,
@@ -3479,6 +3548,7 @@ ui.onGuestStart(() => {
   CURRENT_USER = { username: "Guest", uid: null, coins: 0, score: 0, dailyRp: 0 };
   CURRENT_ACCESS_TOKEN = null;
   CURRENT_COMPLETED_LEVELS = new Set();
+  CURRENT_SKIPPED_LEVELS = new Set();
 
   CURRENT_MAX_UNLOCKED_LEVEL = 1;
 
@@ -3551,6 +3621,7 @@ ui.onLoginClick(async (e) => {
       CURRENT_ACCESS_TOKEN = null;
       CURRENT_USER = null;
       CURRENT_COMPLETED_LEVELS = new Set();
+      CURRENT_SKIPPED_LEVELS = new Set();
       localStorage.removeItem("pi_access_token");
       document.body.classList.remove("game-running");
       document.body.classList.add("welcome-visible");
