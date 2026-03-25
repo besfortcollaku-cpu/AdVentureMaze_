@@ -617,7 +617,7 @@ function isLoggedInLevelPlayableNow(levelNumber, access = refreshLevelsAccessUI(
   const numericLevel = Math.max(1, Number(levelNumber || 0));
   const frontierLevel = Math.max(1, Number(CURRENT_MAX_UNLOCKED_LEVEL || 1));
 
-  if (isReplayLevelNumber(numericLevel) || isSkippedLevelNumber(numericLevel)) {
+  if (CURRENT_COMPLETED_LEVELS.has(numericLevel) || CURRENT_SKIPPED_LEVELS.has(numericLevel)) {
     return true;
   }
 
