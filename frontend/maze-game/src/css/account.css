@@ -269,6 +269,16 @@
   opacity:.6;
 }
 
+.accountDangerSection {
+  border-color: rgba(255, 120, 120, 0.24);
+}
+
+.accountDangerBtn {
+  background: linear-gradient(180deg, rgba(255,115,115,.96), rgba(216,62,62,.92));
+  color: #fff;
+  border-color: rgba(255, 170, 170, 0.2);
+}
+
 .accountOverallBlock {
   margin-top: 12px;
   padding-top: 12px;

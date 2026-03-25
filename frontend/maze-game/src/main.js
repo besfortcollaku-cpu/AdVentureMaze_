@@ -1760,6 +1760,40 @@ window.__maze.guestMaxLevel = GUEST_MAX_LEVEL;
 window.__maze.showLoginRequired = () => ui.showLoginRequired();
 window.__maze.isLoggedIn = () => Boolean(CURRENT_ACCESS_TOKEN);
 window.__maze.showToast = (message, duration) => ui?.showToast?.(message, duration);
+window.__maze.deleteAccount = async () => {
+  if (!CURRENT_ACCESS_TOKEN) return { ok: false, error: "auth_required" };
+
+  const res = await fetch(`${BACKEND}/api/account`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${normalizeToken(CURRENT_ACCESS_TOKEN)}`,
+    },
+  });
+
+  const out = await res.json().catch(() => ({}));
+  if (!res.ok || !out?.ok) {
+    return { ok: false, error: out?.error || "delete_failed" };
+  }
+
+  CURRENT_ACCESS_TOKEN = null;
+  CURRENT_USER = null;
+  CURRENT_COMPLETED_LEVELS = new Set();
+  CURRENT_SKIPPED_LEVELS = new Set();
+  CURRENT_MAX_UNLOCKED_LEVEL = 1;
+  RESUME_TILES = new Set();
+  RESUME_POS = null;
+  RESUME_ENABLED = false;
+  localStorage.removeItem("pi_access_token");
+  levelsUI?.close?.();
+  ui?.setUser?.({ username: "Guest", uid: null });
+  ui?.setCoins?.(0);
+  ui?.setScore?.(0);
+  document.body.classList.remove("game-running", "overlay-open");
+  document.body.classList.add("welcome-visible");
+  ui?.showWelcome?.();
+  ui?.showToast?.("Account deleted");
+  return { ok: true };
+};
 window.__maze.openAdConsent = () => openAdConsentManager({ requireChoice: false });
 window.__maze.getAdConsentSummary = () => getAdConsentSummary();
 window.__maze.openSurpriseBox = async () => {

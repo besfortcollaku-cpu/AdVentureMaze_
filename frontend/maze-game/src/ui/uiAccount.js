@@ -160,6 +160,13 @@ export function mountAccountUI(root) {
               <div class="accountRow"><span>Previous Month</span><span id="accountPrevMonth">-</span></div>
               <div class="accountRow"><span>Previous Season</span><span id="accountPrevMonthPi">Awaiting archive</span></div>
             </div>
+
+            <div class="accountSection accountDangerSection" id="accountDangerSection">
+              <h3>Delete My Account</h3>
+              <div class="accountNote">This permanently deletes your account data and cannot be undone.</div>
+              <button id="accountDeleteBtn" class="accountActionBtn accountDangerBtn">Delete My Account</button>
+              <div class="accountWalletStatus" id="accountDeleteStatus"></div>
+            </div>
           </div>
         </div>
       </div>
@@ -208,6 +215,8 @@ export function mountAccountUI(root) {
   const surpriseTodayEl = root.querySelector("#accountSurpriseToday");
   const surpriseStatusEl = root.querySelector("#accountSurpriseStatus");
   const surpriseOpenBtn = root.querySelector("#accountSurpriseOpenBtn");
+  const deleteBtn = root.querySelector("#accountDeleteBtn");
+  const deleteStatusEl = root.querySelector("#accountDeleteStatus");
 
   let serverTimeBaseMs = null;
   let serverTimeClientStartedMs = null;
@@ -488,6 +497,36 @@ export function mountAccountUI(root) {
       if (surpriseStatusEl) surpriseStatusEl.textContent = "Try again";
     } finally {
       surpriseOpenBtn.textContent = previousText;
+    }
+  });
+
+  deleteBtn?.addEventListener("click", async () => {
+    if (deleteBtn.disabled) return;
+
+    const confirmed = window.confirm("Delete your account permanently?\n\nThis cannot be undone.");
+    if (!confirmed) return;
+
+    const api = window.__maze?.deleteAccount;
+    if (typeof api !== "function") {
+      if (deleteStatusEl) deleteStatusEl.textContent = "Delete account unavailable.";
+      return;
+    }
+
+    deleteBtn.disabled = true;
+    if (deleteStatusEl) deleteStatusEl.textContent = "Deleting account...";
+
+    try {
+      const out = await api();
+      if (!out?.ok) {
+        if (deleteStatusEl) deleteStatusEl.textContent = out?.error || "Delete failed.";
+        return;
+      }
+      if (deleteStatusEl) deleteStatusEl.textContent = "";
+      hide();
+    } catch (e) {
+      if (deleteStatusEl) deleteStatusEl.textContent = e?.message || "Delete failed.";
+    } finally {
+      deleteBtn.disabled = false;
     }
   });
 
