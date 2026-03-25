@@ -1718,45 +1718,10 @@ if (CURRENT_ACCESS_TOKEN) {
     });
 
     if (me?.user) {
-  await tryAutoClaimInvite();
-  document.body.classList.add("game-running");
-
-  const unlocked = Number(me?.progress?.level || 1);
-  CURRENT_MAX_UNLOCKED_LEVEL = Math.max(1, unlocked);
-  levelsUI.setUnlocked?.(CURRENT_MAX_UNLOCKED_LEVEL);
-
-  // enable resume for logged-in users
-  RESUME_ENABLED = true;
-
-  // restore saved path + position from backend
-  const paintedKeys = me?.progress?.paintedKeys;
-  const resume = me?.progress?.resume;
-
-  RESUME_TILES = new Set(Array.isArray(paintedKeys) ? paintedKeys : []);
-  RESUME_POS =
-    resume && resume.x != null && resume.y != null
-      ? { x: resume.x, y: resume.y }
-      : null;
-
-if (!game?.isRunning?.()) {
-  game.start();
-}
-
-// go to the last unlocked level (where resume is stored)
-goToLevel(CURRENT_MAX_UNLOCKED_LEVEL - 1);
-
-// APPLY PROGRESS AFTER GAME IS RUNNING + LEVEL IS SET
-setTimeout(() => {
-  if (RESUME_TILES.size > 0 || RESUME_POS) {
-    game.applyProgress({
-      paintedKeys: Array.from(RESUME_TILES),
-      player: RESUME_POS,
-    });
-  }
-}, 0);
-setTimeout(() => {
-  void maybeShowDailyRankingRewardPopup();
-}, 1200);
+  await activateLoggedInSession(me, { showRewardPopup: false });
+  setTimeout(() => {
+    void maybeShowDailyRankingRewardPopup();
+  }, 1200);
     } else {
       throw new Error("Invalid session");
     }
@@ -3637,65 +3602,10 @@ ui.onLoginClick(async (e) => {
       return;
     }
 
-    await tryAutoClaimInvite();
-
-    const unlockedLevel =
-      me?.progress?.level ??
-      me?.progress?.maxLevel ??
-      me?.progress?.highestLevel ??
-      1;
-
-    const UNLOCKED_LEVEL = Math.max(1, Number(unlockedLevel) || 1);
-
-    window.__maze.guestMaxLevel = Infinity;
-
-    CURRENT_MAX_UNLOCKED_LEVEL = UNLOCKED_LEVEL;
-    levelsUI.setUnlocked?.(UNLOCKED_LEVEL);
-
-    ui.setUser({
-      ...CURRENT_USER,
-      level: CURRENT_MAX_UNLOCKED_LEVEL,
-    });
-
-    setLevel(Math.max(0, UNLOCKED_LEVEL - 1));
-
-    RESUME_ENABLED = true;
-    RESUME_TILES = new Set();
-    RESUME_POS = null;
-
-    const paintedKeys = me?.progress?.paintedKeys;
-    const resume = me?.progress?.resume;
-
-    if (Array.isArray(paintedKeys)) {
-      for (const k of paintedKeys) RESUME_TILES.add(k);
-    }
-    if (resume && resume.x != null && resume.y != null) {
-      RESUME_POS = { x: resume.x, y: resume.y };
-    }
-
-    document.body.classList.add("game-running");
-
-    if (!game.isRunning?.()) game.start();
-
-    ui.hideWelcome();
-    document.body.classList.remove("welcome-visible");
-
+    await activateLoggedInSession(me, { showRewardPopup: true });
     hideLoginLoading();
     updateAllBadges();
     LOGIN_IN_PROGRESS = false;
-    
-setTimeout(() => {
-  void maybeShowDailyRankingRewardPopup();
-}, 1200);
-
-    if (RESUME_TILES.size > 0 || RESUME_POS) {
-      setTimeout(() => {
-        game.applyProgress({
-          paintedKeys: Array.from(RESUME_TILES),
-          player: RESUME_POS,
-        });
-      }, 0);
-    }
   } catch (e) {
     hideLoginLoading();
     LOGIN_IN_PROGRESS = false;
