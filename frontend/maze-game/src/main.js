@@ -737,6 +737,19 @@ async function activateLoggedInSession(me, { showRewardPopup = true } = {}) {
   }
 }
 
+function showLoggedInLevelsFallback() {
+  try {
+    document.body.classList.add("game-running");
+    ui?.hideWelcome?.();
+    document.body.classList.remove("welcome-visible");
+    refreshLevelsAccessUI();
+    levelsUI?.open?.();
+    levelsUI?.ensureFrontierVisible?.();
+  } catch (fallbackError) {
+    console.error("Logged-in fallback failed", fallbackError);
+  }
+}
+
 function buildFallbackLoginState(verifiedUser = null) {
   const user = verifiedUser && typeof verifiedUser === "object" ? verifiedUser : {};
   return {
@@ -1718,7 +1731,12 @@ if (CURRENT_ACCESS_TOKEN) {
     });
 
     if (me?.user) {
-  await activateLoggedInSession(me, { showRewardPopup: false });
+  try {
+    await activateLoggedInSession(me, { showRewardPopup: false });
+  } catch (sessionError) {
+    console.error("Boot session activation failed", sessionError);
+    showLoggedInLevelsFallback();
+  }
   setTimeout(() => {
     void maybeShowDailyRankingRewardPopup();
   }, 1200);
@@ -3602,7 +3620,12 @@ ui.onLoginClick(async (e) => {
       return;
     }
 
-    await activateLoggedInSession(me, { showRewardPopup: true });
+    try {
+      await activateLoggedInSession(me, { showRewardPopup: true });
+    } catch (sessionError) {
+      console.error("Login session activation failed", sessionError);
+      showLoggedInLevelsFallback();
+    }
     hideLoginLoading();
     updateAllBadges();
     LOGIN_IN_PROGRESS = false;
