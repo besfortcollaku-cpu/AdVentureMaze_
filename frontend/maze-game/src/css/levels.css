@@ -50,9 +50,9 @@ body.overlay-open {
   position: relative;
   z-index: 2;
 
-  width: min(92vw, 420px);
-  max-height: 82vh;
-  padding: 22px;
+  width: min(96vw, 420px);
+  max-height: 84vh;
+  padding: 18px;
   border-radius: 26px;
 
   background: linear-gradient(
@@ -134,11 +134,12 @@ body.overlay-open {
 ========================= */
 .levelsGrid {
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(52px, 1fr));
+  gap: 8px;
 
-  margin: 12px 0 18px;
+  margin: 10px 0 16px;
   flex: 1;
+  align-content: start;
 
   overflow-y: scroll;
   -webkit-overflow-scrolling: touch;
@@ -387,14 +388,14 @@ body.theme-lava .levelBtn {
 .levelBtn {
   flex-direction: column;
   justify-content: center;
-  gap: 6px;
-  padding: 10px 6px 8px;
+  gap: 4px;
+  padding: 7px 4px 6px;
 }
 
 .levelBtn .icon {
   display: block !important;
-  min-height: 18px;
-  font-size: 16px;
+  min-height: 14px;
+  font-size: 13px;
   line-height: 1;
 }
 
@@ -404,20 +405,48 @@ body.theme-lava .levelBtn {
   justify-content: center;
   width: auto;
   height: auto;
-  font-size: 18px;
+  font-size: 15px;
   font-weight: 800;
 }
 
 .levelBtn .stateBadge {
-  min-height: 18px;
-  padding: 2px 6px;
+  min-height: 14px;
+  padding: 2px 5px;
   border-radius: 999px;
-  font-size: 10px;
+  font-size: 8px;
   line-height: 1.2;
   font-weight: 700;
   text-align: center;
   color: rgba(255,255,255,0.92);
   background: rgba(255,255,255,0.12);
+}
+
+@media (max-width: 420px) {
+  .levelsCard {
+    width: min(97vw, 420px);
+    padding: 14px;
+    border-radius: 22px;
+  }
+
+  .levelsGrid {
+    grid-template-columns: repeat(auto-fit, minmax(46px, 1fr));
+    gap: 7px;
+  }
+
+  .levelBtn {
+    border-radius: 15px;
+    padding: 6px 3px 5px;
+    gap: 3px;
+  }
+
+  .levelBtn .label {
+    font-size: 13px;
+  }
+
+  .levelBtn .stateBadge {
+    font-size: 7px;
+    padding: 1px 4px;
+  }
 }
 
 .levelBtn.availableNow {

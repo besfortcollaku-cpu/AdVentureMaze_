@@ -79,6 +79,8 @@ export function createWinPopup() {
     rewardNote = "",
   } = {}) {
     const hasRewards = rewards && (rewards.coinsAwarded != null || rewards.scoreAwarded != null || rewards.mc != null || rewards.rp != null);
+    const hasStatus = Boolean(String(rewardStatus || "").trim());
+    const hasNote = Boolean(String(rewardNote || "").trim());
     const coinsAwarded = Number(rewards?.coinsAwarded ?? rewards?.mc ?? 0);
     const scoreAwarded = Number(rewards?.scoreAwarded ?? rewards?.rp ?? 0);
 
@@ -94,13 +96,13 @@ export function createWinPopup() {
     if (rewardScoreEl) rewardScoreEl.textContent = formatRewardLine(scoreAwarded, "Score");
 
     if (rewardStatusEl) {
-      rewardStatusEl.textContent = hasRewards ? rewardStatus || "" : "";
-      rewardStatusEl.classList.toggle("hidden", !hasRewards || !rewardStatus);
+      rewardStatusEl.textContent = hasStatus ? rewardStatus || "" : "";
+      rewardStatusEl.classList.toggle("hidden", !hasStatus);
     }
 
     if (rewardNoteEl) {
-      rewardNoteEl.textContent = hasRewards ? rewardNote || "" : "";
-      rewardNoteEl.classList.toggle("hidden", !hasRewards || !rewardNote);
+      rewardNoteEl.textContent = hasNote ? rewardNote || "" : "";
+      rewardNoteEl.classList.toggle("hidden", !hasNote);
     }
   }
 

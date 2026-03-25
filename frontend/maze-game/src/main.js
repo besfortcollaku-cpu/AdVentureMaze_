@@ -1275,6 +1275,17 @@ function buildLevelCompletePopupState(out, levelNumber) {
   };
 }
 
+function buildLevelCompleteFallbackState(levelNumber, errorText = "") {
+  return {
+    levelNumber,
+    rewards: null,
+    rewardStatus: "Level completed",
+    rewardNote: errorText
+      ? `Reward sync is still loading. ${errorText}`
+      : "Reward sync is still loading. Please check your balance in a moment.",
+  };
+}
+
 async function apiLeaderboardMonthly(params = {}) {
   const qs = new URLSearchParams();
   if (params?.limit != null) qs.set("limit", String(params.limit));
@@ -2876,6 +2887,8 @@ levelUnlockPopup.onWatchAd(() => {
 
               if (out?.ok === false && out?.error) {
                 rewardAccepted = false;
+                winPopupState = buildLevelCompleteFallbackState(completedLevel, String(out.error || ""));
+                winPopup.setRewardSummary?.(winPopupState);
                 if (out?.levelAccess) {
                   applyUserPatch(out.levelAccess);
                 }
@@ -2887,7 +2900,11 @@ levelUnlockPopup.onWatchAd(() => {
                       : out.error
                 );
               }
-            } catch {}
+            } catch (error) {
+              console.error("Level reward sync failed", error);
+              winPopupState = buildLevelCompleteFallbackState(completedLevel);
+              winPopup.setRewardSummary?.(winPopupState);
+            }
           })()
         : Promise.resolve();
 
