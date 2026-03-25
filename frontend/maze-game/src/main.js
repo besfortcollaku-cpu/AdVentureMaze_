@@ -28,11 +28,11 @@ import { unlockGlobalAudio, play as playAudio, setMusicEnabled, setSfxEnabled, s
 
 // DEBUG: show fatal errors on mobile so buttons don't "do nothing"
 window.addEventListener("error", (e) => {
-  alert("JS ERROR: " + (e?.message || "unknown"));
+  ui?.showToast?.("JS ERROR: " + (e?.message || "unknown"), 3200);
 });
 window.addEventListener("unhandledrejection", (e) => {
   const msg = e?.reason?.message || String(e?.reason || "unknown");
-  alert("PROMISE ERROR: " + msg);
+  ui?.showToast?.("PROMISE ERROR: " + msg, 3200);
 });
 const GUEST_PROGRESS_KEY = "guest_progress_v1";
 const GUEST_MAX_LEVEL = 5;
@@ -142,6 +142,9 @@ let pendingAdConsentResolver = null;
 let LAST_SERVER_TIME_MS = null;
 let RANKING_REWARD_PROMPT_SHOWN = false;
 let DAILY_RETURN_REWARD_PENDING = null;
+function showToast(message, duration) {
+  ui?.showToast?.(message, duration);
+}
 function setPostWinFlow(nextFlow) {
   if (postWinFlow !== nextFlow) {
     console.debug("[surprise-box] postWinFlow", postWinFlow, "->", nextFlow);
@@ -1763,6 +1766,7 @@ window.__maze = window.__maze || {};
 window.__maze.guestMaxLevel = GUEST_MAX_LEVEL;
 window.__maze.showLoginRequired = () => ui.showLoginRequired();
 window.__maze.isLoggedIn = () => Boolean(CURRENT_ACCESS_TOKEN);
+window.__maze.showToast = (message, duration) => ui?.showToast?.(message, duration);
 window.__maze.openAdConsent = () => openAdConsentManager({ requireChoice: false });
 window.__maze.getAdConsentSummary = () => getAdConsentSummary();
 window.__maze.openSurpriseBox = async () => {
@@ -2667,15 +2671,15 @@ levelsUI.onSelect((levelNumber) => {
     }
     const access = refreshLevelsAccessUI();
     if (!isPreviouslyUnlockedSelection && access.dailyLimitReached) {
-      alert("Daily limit reached. Come back tomorrow for more levels.");
+      showToast("Daily limit reached. Come back tomorrow for more levels.");
       return false;
     }
     if (!isPreviouslyUnlockedSelection && !access.canPlayNow) {
       if (access.canWatchAdToUnlock) {
         const adUnlockLevels = Math.max(1, Number(access.adUnlockLevels || LEVEL_ACCESS_DEFAULTS.adUnlockLevels));
-        alert(`You've used your current unlocked levels. Watch an ad to unlock ${adUnlockLevels} ${adUnlockLevels === 1 ? "level" : "levels"} now or wait for the timer.`);
+        showToast(`You've used your current unlocked levels. Watch an ad to unlock ${adUnlockLevels} ${adUnlockLevels === 1 ? "level" : "levels"} now or wait for the timer.`, 2800);
       } else {
-        alert("More levels unlock over time. Check the timer in the Levels screen.");
+        showToast("More levels unlock over time. Check the timer in the Levels screen.", 2600);
       }
       return false;
     }
@@ -2736,7 +2740,7 @@ levelUnlockPopup.onBuy(async () => {
     if (e?.levelAccess) {
       applyUserPatch(e.levelAccess);
     }
-    alert(e?.message === "NOT_ENOUGH_COINS" ? "Not enough Coins" : (e?.message || "Unlock failed"));
+    showToast(e?.message === "NOT_ENOUGH_COINS" ? "Not enough Coins" : (e?.message || "Unlock failed"));
   }
 });
 levelUnlockPopup.onWatchAd(() => {
@@ -2757,12 +2761,12 @@ levelUnlockPopup.onWatchAd(() => {
           refreshLevelsAccessUI();
           levelUnlockPopup.hide();
           const adUnlockLevels = Math.max(1, Number(out?.levelAccess?.adUnlockLevels ?? CURRENT_USER?.adUnlockLevels ?? LEVEL_ACCESS_DEFAULTS.adUnlockLevels));
-          alert(`${adUnlockLevels} more ${adUnlockLevels === 1 ? "level" : "levels"} unlocked.`);
+          showToast(`${adUnlockLevels} more ${adUnlockLevels === 1 ? "level" : "levels"} unlocked.`);
         } catch (e) {
           if (e?.levelAccess) {
             applyUserPatch(e.levelAccess);
           }
-          alert(e?.message || "Unlock failed");
+          showToast(e?.message || "Unlock failed");
         }
       },
       duration: 20,
@@ -2770,7 +2774,7 @@ levelUnlockPopup.onWatchAd(() => {
       buttonLabel: "Close Ad",
     });
   } catch (e) {
-    alert(e?.message || "Unlock failed");
+    showToast(e?.message || "Unlock failed");
   }
 });
   if (CURRENT_ACCESS_TOKEN) {
@@ -2858,12 +2862,13 @@ levelUnlockPopup.onWatchAd(() => {
                 if (out?.levelAccess) {
                   applyUserPatch(out.levelAccess);
                 }
-                alert(
+                showToast(
                   out.error === "daily_level_limit_reached"
                     ? "Daily limit reached. Come back tomorrow for more levels."
                     : out.error === "daily_levels_locked"
                       ? `You've used your current unlocked levels. Wait for the timer or unlock ${Math.max(1, Number(out?.levelAccess?.adUnlockLevels ?? CURRENT_USER?.adUnlockLevels ?? LEVEL_ACCESS_DEFAULTS.adUnlockLevels))} ${Math.max(1, Number(out?.levelAccess?.adUnlockLevels ?? CURRENT_USER?.adUnlockLevels ?? LEVEL_ACCESS_DEFAULTS.adUnlockLevels)) === 1 ? "level" : "levels"} with an ad.`
-                      : out.error
+                      : out.error,
+                  3000
                 );
               }
             } catch (error) {
@@ -3179,7 +3184,10 @@ async function grantRestartAdReward() {
     }),
   }).then((r) => r.json());
 
-  if (!out?.ok) return alert(out.error || "Restart failed");
+  if (!out?.ok) {
+    showToast(out.error || "Restart failed");
+    return;
+  }
 
   applyUserPatch({
     free_restarts_used: out.free_restarts_used,
@@ -3283,7 +3291,7 @@ skipPopup.onBuySkip(async () => {
     goNextLevel();
 
   } catch (e) {
-    alert(e.message || "Skip failed");
+    showToast(e.message || "Skip failed");
   }
 });
 
@@ -3373,7 +3381,7 @@ hintPopup.onBuyHint(async () => {
     restartLevelForHint();
     startRouteHintForLevel(levelIndex + 1);
   } catch (e) {
-    alert(e.message || "Hint failed");
+    showToast(e.message || "Hint failed");
   }
 });
 
@@ -3485,7 +3493,7 @@ restartPopup.onBuyRestart(async () => {
     restartPopup.hide();
 
   } catch (e) {
-    alert(e.message || "Restart failed");
+    showToast(e.message || "Restart failed");
   }
 });
 

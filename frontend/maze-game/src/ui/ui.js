@@ -67,6 +67,11 @@ welcome.innerHTML = `
 `;
 
 document.body.appendChild(welcome);
+const toastEl = document.createElement("div");
+toastEl.id = "appToast";
+toastEl.className = "appToast hidden";
+document.body.appendChild(toastEl);
+let toastTimer = null;
     // ===== Login Required Overlay =====
 const loginRequiredOverlay = document.createElement("div");
 loginRequiredOverlay.className = "login-required-overlay hidden";
@@ -266,7 +271,20 @@ hideLoginGate() {
 },
 
 showLoginError(msg) {
-  alert(msg); // TEMP – replace later with UI label
+  this.showToast(msg || "Something went wrong");
+},
+
+showToast(message, duration = 2200) {
+  if (!toastEl) return;
+  toastEl.textContent = String(message || "").trim();
+  if (!toastEl.textContent) return;
+  toastEl.classList.remove("hidden");
+  toastEl.classList.add("visible");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => {
+    toastEl.classList.remove("visible");
+    toastEl.classList.add("hidden");
+  }, Math.max(1200, Number(duration) || 2200));
 },
 
     showWelcome() {

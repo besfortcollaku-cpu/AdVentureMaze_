@@ -147,7 +147,7 @@ export function mountSettingsUI(root) {
       window.__maze?.openAdConsent?.();
       refreshConsentState();
     } catch {
-      alert("Unable to open consent settings right now.");
+      window.__maze?.showToast?.("Unable to open consent settings right now.");
     }
   });
 

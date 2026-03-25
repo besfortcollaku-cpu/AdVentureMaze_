@@ -53,6 +53,36 @@ body.theme-lava {
   height: 100%;
 }
 
+.appToast {
+  position: fixed;
+  left: 50%;
+  bottom: 104px;
+  transform: translateX(-50%);
+  z-index: 1200;
+  max-width: min(82vw, 320px);
+  padding: 10px 14px;
+  border-radius: 14px;
+  background: rgba(10, 14, 24, 0.92);
+  color: #fff;
+  font-size: 14px;
+  line-height: 1.35;
+  text-align: center;
+  box-shadow: 0 10px 24px rgba(0,0,0,0.35);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+.appToast.hidden {
+  display: none;
+}
+
+.appToast.visible {
+  display: block;
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
 /* =========================
    APP LAYOUT
 ========================= */
