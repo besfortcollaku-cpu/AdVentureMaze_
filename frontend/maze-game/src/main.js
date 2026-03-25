@@ -613,6 +613,25 @@ function refreshLevelsAccessUI() {
   return access;
 }
 
+function isLoggedInLevelPlayableNow(levelNumber, access = refreshLevelsAccessUI()) {
+  const numericLevel = Math.max(1, Number(levelNumber || 0));
+  const frontierLevel = Math.max(1, Number(CURRENT_MAX_UNLOCKED_LEVEL || 1));
+
+  if (isReplayLevelNumber(numericLevel) || isSkippedLevelNumber(numericLevel)) {
+    return true;
+  }
+
+  if (numericLevel < frontierLevel) {
+    return true;
+  }
+
+  if (numericLevel > frontierLevel) {
+    return false;
+  }
+
+  return Boolean(access?.canPlayNow && !access?.dailyLimitReached);
+}
+
 function formatReturnCountdown(raw, { detailed = false } = {}) {
   const ms = Date.parse(raw || "");
   if (!Number.isFinite(ms)) return "later";
@@ -2284,7 +2303,7 @@ function canAdvanceToNextLevelNow() {
   }
 
   const access = refreshLevelsAccessUI();
-  return Boolean(access?.canPlayNow && !access?.dailyLimitReached);
+  return isLoggedInLevelPlayableNow(nextLevelNumber, access);
 }
 
 function getNextLevelActionState() {
@@ -2312,6 +2331,13 @@ function getNextLevelActionState() {
   }
 
   if (!access?.canPlayNow) {
+    return {
+      isPlayable: false,
+      helperText: buildNextReturnMessage(access, nextLevelNumber),
+    };
+  }
+
+  if (!isLoggedInLevelPlayableNow(nextLevelNumber, access)) {
     return {
       isPlayable: false,
       helperText: buildNextReturnMessage(access, nextLevelNumber),
@@ -2695,7 +2721,7 @@ levelsUI.onSelect((levelNumber) => {
       showToast("Daily limit reached. Come back tomorrow for more levels.");
       return false;
     }
-    if (!isPreviouslyUnlockedSelection && !access.canPlayNow) {
+    if (!isPreviouslyUnlockedSelection && !isLoggedInLevelPlayableNow(levelNumber, access)) {
       if (access.canWatchAdToUnlock) {
         const adUnlockLevels = Math.max(1, Number(access.adUnlockLevels || LEVEL_ACCESS_DEFAULTS.adUnlockLevels));
         showToast(`You've used your current unlocked levels. Watch an ad to unlock ${adUnlockLevels} ${adUnlockLevels === 1 ? "level" : "levels"} now or wait for the timer.`, 2800);
