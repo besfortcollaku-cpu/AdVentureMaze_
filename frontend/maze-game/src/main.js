@@ -58,6 +58,7 @@ let HINT_ROUTE_INDEX = 0;
 let HINT_ROUTE_TIMER = null;
 let CURRENT_MISSED_DAY = null;
 let CURRENT_MISSED_COINS = null;
+let PENDING_AUTO_LOGIN_ME = null;
 // hint system state
 let HINT_RECALC_TIMER = null;
 const BACKEND = "https://triumphant-gentleness-production.up.railway.app";
@@ -1729,15 +1730,7 @@ if (CURRENT_ACCESS_TOKEN) {
     });
 
     if (me?.user) {
-  try {
-    await activateLoggedInSession(me, { showRewardPopup: false });
-  } catch (sessionError) {
-    console.error("Boot session activation failed", sessionError);
-    showLoggedInLevelsFallback();
-  }
-  setTimeout(() => {
-    void maybeShowDailyRankingRewardPopup();
-  }, 1200);
+  PENDING_AUTO_LOGIN_ME = me;
     } else {
       throw new Error("Invalid session");
     }
@@ -2659,15 +2652,9 @@ levelsUI.onSelect((levelNumber) => {
     const isSkippedSelection = isSkippedLevelNumber(levelNumber);
     const isPreviouslyUnlockedSelection = isReplaySelection || isSkippedSelection;
     if (isReplaySelection) {
-      const confirmed = window.confirm("Replay level?\n\nReplay levels do not grant Coins or Score.");
-      if (!confirmed) {
-        return false;
-      }
+      showToast("Replay level? Replay levels do not grant Coins or Score.", 2200);
     } else if (isSkippedSelection) {
-      const confirmed = window.confirm("Play skipped level?\n\nComplete it later for normal rewards.");
-      if (!confirmed) {
-        return false;
-      }
+      showToast("Play skipped level? Complete it later for normal rewards.", 2200);
     }
     const access = refreshLevelsAccessUI();
     if (!isPreviouslyUnlockedSelection && access.dailyLimitReached) {
@@ -2723,6 +2710,20 @@ levelsUI.onRefreshAccess(async () => {
     refreshLevelsAccessUI();
   }
 });
+
+if (PENDING_AUTO_LOGIN_ME?.user) {
+  try {
+    await activateLoggedInSession(PENDING_AUTO_LOGIN_ME, { showRewardPopup: false });
+  } catch (sessionError) {
+    console.error("Boot session activation failed", sessionError);
+    showLoggedInLevelsFallback();
+  }
+  setTimeout(() => {
+    void maybeShowDailyRankingRewardPopup();
+  }, 1200);
+  PENDING_AUTO_LOGIN_ME = null;
+}
+
 levelUnlockPopup.onBuy(async () => {
   try {
     const out = await apiUnlockLevelsByCoins();
