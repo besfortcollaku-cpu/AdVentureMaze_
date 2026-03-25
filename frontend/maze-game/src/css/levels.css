@@ -17,6 +17,11 @@ body.overlay-open {
   overflow: hidden;
 }
 
+body.overlay-open #app > :not(#levelsOverlay) {
+  visibility: hidden;
+  pointer-events: none;
+}
+
 /* =========================
    THEME BACKGROUND (PNG)
 ========================= */
