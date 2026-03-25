@@ -60,6 +60,36 @@ import { level57 } from "./level57.js";
 import { level58 } from "./level58.js";
 import { level59 } from "./level59.js";
 import { level60 } from "./level60.js";
+import { level61 } from "./level61.js";
+import { level62 } from "./level62.js";
+import { level63 } from "./level63.js";
+import { level64 } from "./level64.js";
+import { level65 } from "./level65.js";
+import { level66 } from "./level66.js";
+import { level67 } from "./level67.js";
+import { level68 } from "./level68.js";
+import { level69 } from "./level69.js";
+import { level70 } from "./level70.js";
+import { level71 } from "./level71.js";
+import { level72 } from "./level72.js";
+import { level73 } from "./level73.js";
+import { level74 } from "./level74.js";
+import { level75 } from "./level75.js";
+import { level76 } from "./level76.js";
+import { level77 } from "./level77.js";
+import { level78 } from "./level78.js";
+import { level79 } from "./level79.js";
+import { level80 } from "./level80.js";
+import { level81 } from "./level81.js";
+import { level82 } from "./level82.js";
+import { level83 } from "./level83.js";
+import { level84 } from "./level84.js";
+import { level85 } from "./level85.js";
+import { level86 } from "./level86.js";
+import { level87 } from "./level87.js";
+import { level88 } from "./level88.js";
+import { level89 } from "./level89.js";
+import { level90 } from "./level90.js";
 
 export const levels = [
   level1,
@@ -122,6 +152,36 @@ export const levels = [
   level58,
   level59,
   level60,
+  level61,
+  level62,
+  level63,
+  level64,
+  level65,
+  level66,
+  level67,
+  level68,
+  level69,
+  level70,
+  level71,
+  level72,
+  level73,
+  level74,
+  level75,
+  level76,
+  level77,
+  level78,
+  level79,
+  level80,
+  level81,
+  level82,
+  level83,
+  level84,
+  level85,
+  level86,
+  level87,
+  level88,
+  level89,
+  level90,
 ];
 
 export function getLevel(index) {
