@@ -2163,6 +2163,25 @@ async function apiMe() {
   return out;
 }
 
+async function syncLevelAccessFromBackend() {
+  if (!CURRENT_ACCESS_TOKEN) {
+    return refreshLevelsAccessUI();
+  }
+
+  const me = await apiMe().catch(() => null);
+  if (me?.user || me?.progress || me?.levelAccess) {
+    applyUserPatch({
+      ...(me?.user || {}),
+      ...(me?.levelAccess || {}),
+      level: Number(me?.progress?.level ?? CURRENT_MAX_UNLOCKED_LEVEL ?? 1),
+      completedLevels: me?.completedLevels || me?.completed_levels || [],
+      skippedLevels: me?.skippedLevels || me?.skipped_levels || [],
+    });
+  }
+
+  return refreshLevelsAccessUI();
+}
+
 mysteryChestPopup.onOpen(async () => {
 
   const res = await fetch(`${BACKEND}/api/rewards/mystery-chest`, {
@@ -2700,7 +2719,7 @@ if (CURRENT_ACCESS_TOKEN) {
 });
 
 // Level select
-levelsUI.onSelect((levelNumber) => {
+levelsUI.onSelect(async (levelNumber) => {
   // Guest can only open levels 1..GUEST_MAX_LEVEL
   if (!CURRENT_ACCESS_TOKEN && levelNumber > GUEST_MAX_LEVEL) {
     ui.showLoginRequired();
@@ -2716,7 +2735,9 @@ levelsUI.onSelect((levelNumber) => {
     } else if (isSkippedSelection) {
       showToast("Play skipped level? Complete it later for normal rewards.", 2200);
     }
-    const access = refreshLevelsAccessUI();
+    const access = isPreviouslyUnlockedSelection
+      ? refreshLevelsAccessUI()
+      : await syncLevelAccessFromBackend();
     if (!isPreviouslyUnlockedSelection && access.dailyLimitReached) {
       showToast("Daily limit reached. Come back tomorrow for more levels.");
       return false;
@@ -3273,7 +3294,7 @@ function openLevelsOverlayFromWin() {
   winPopup.hide();
   levelsUI?.open?.();
 }
-winPopup.onNextLevel(() => {
+winPopup.onNextLevel(async () => {
   const nextLevelNumber = levelIndex + 2; // levelIndex is 0-based
   const hasNextLevel = nextLevelNumber <= levels.length;
 
@@ -3290,8 +3311,12 @@ winPopup.onNextLevel(() => {
   }
 
   if (CURRENT_ACCESS_TOKEN) {
-    const access = refreshLevelsAccessUI();
+    const access = await syncLevelAccessFromBackend();
     if (!access?.canPlayNow || access?.dailyLimitReached) {
+      openLevelsOverlayFromWin();
+      return;
+    }
+    if (!isLoggedInLevelPlayableNow(nextLevelNumber, access)) {
       openLevelsOverlayFromWin();
       return;
     }

@@ -82,6 +82,16 @@ export function mountLevelsUI(root, { totalLevels } = {}) {
         return;
       }
       const shouldClose = selectHandler?.(i);
+      if (shouldClose && typeof shouldClose.then === "function") {
+        shouldClose
+          .then((resolvedShouldClose) => {
+            if (resolvedShouldClose !== false) {
+              close();
+            }
+          })
+          .catch(() => {});
+        return;
+      }
       if (shouldClose !== false) {
         close();
       }
