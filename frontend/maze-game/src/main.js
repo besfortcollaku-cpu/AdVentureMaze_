@@ -666,6 +666,11 @@ function buildNextReturnMessage(access, levelNumber) {
 }
 
 function hasUnfinishedLevelProgress(progress) {
+  const resumeLevel = Number(progress?.resumeLevel ?? progress?.resume_level ?? 0);
+  const progressLevel = Number(progress?.level ?? 0);
+  if (!resumeLevel || (progressLevel && resumeLevel !== progressLevel)) {
+    return false;
+  }
   const paintedKeys = progress?.paintedKeys;
   const resume = progress?.resume;
   return (Array.isArray(paintedKeys) && paintedKeys.length > 0) || Boolean(resume && resume.x != null && resume.y != null);
@@ -728,12 +733,13 @@ async function activateLoggedInSession(me, { showRewardPopup = true } = {}) {
   RESUME_POS = null;
 
   const paintedKeys = me?.progress?.paintedKeys;
+  const resumeLevel = Number(me?.progress?.resumeLevel ?? me?.progress?.resume_level ?? 0);
   const resume = me?.progress?.resume;
 
-  if (Array.isArray(paintedKeys)) {
+  if (resumeLevel === nextUnlockedLevel && Array.isArray(paintedKeys)) {
     for (const k of paintedKeys) RESUME_TILES.add(k);
   }
-  if (resume && resume.x != null && resume.y != null) {
+  if (resumeLevel === nextUnlockedLevel && resume && resume.x != null && resume.y != null) {
     RESUME_POS = { x: resume.x, y: resume.y };
   }
 
@@ -1110,6 +1116,7 @@ apiSetProgress({
   uid: CURRENT_USER.uid,
       level: safeLevel,
       paintedKeys: Array.from(RESUME_TILES),
+      resumeLevel: Number(currentLevelNumber || safeLevel || 1),
       resume: RESUME_POS,
     }).catch(() => {});
   }, 700);
@@ -1132,7 +1139,7 @@ async function fetchAndSetCoins({ BACKEND, token, ui }) {
   ui.setCoins(data.coins ?? 0);
 }
 
-async function apiSetProgress({ uid, level, paintedKeys, resume } = {}) {
+async function apiSetProgress({ uid, level, paintedKeys, resumeLevel, resume } = {}) {
   if (!CURRENT_ACCESS_TOKEN) return null;
 
   const res = await fetch(`${BACKEND}/api/progress`, {
@@ -1145,6 +1152,7 @@ async function apiSetProgress({ uid, level, paintedKeys, resume } = {}) {
       uid,
       level,
       paintedKeys,
+      resumeLevel,
       resume,
     }),
   });
@@ -3010,6 +3018,7 @@ function wipeResumeForCurrentLevel() {
     uid: CURRENT_USER.uid,
     level: CURRENT_MAX_UNLOCKED_LEVEL,
     paintedKeys: [],
+    resumeLevel: null,
     resume: null,
   }).catch(() => {});
 }
@@ -3074,6 +3083,7 @@ setTimeout(() => {
       uid: CURRENT_USER.uid,
       level: selectedLevelNumber,
       paintedKeys: [],
+      resumeLevel: null,
       resume: null,
     }).catch(() => {});
   }
@@ -3094,8 +3104,8 @@ setTimeout(() => {
       const progress = me?.progress;
       if (!progress) return;
 
-      // Only resume if this level matches saved level
-      if (progress.level !== selectedLevelNumber) return;
+      const savedResumeLevel = Number(progress.resumeLevel ?? progress.resume_level ?? 0);
+      if (savedResumeLevel !== selectedLevelNumber) return;
 
       const paintedKeys = progress.paintedKeys;
       const resume = progress.resume;
